@@ -1,0 +1,84 @@
+{
+  "theme": {
+    "name": "default-theme",
+    "colors": {
+      "primary_color": "",
+      "secondary_color": "",
+      "accent_color": "",
+      "link_color": "",
+      "button_secondary_color": ""
+    },
+    "styles": {
+      "default": {
+        "status_bar": {
+          "preferred": "dark"
+        },
+        "header": {
+          "background_color": "#F3F3F3",
+          "title_color": "#41434c",
+          "shadow_color": "#41434c"
+        },
+        "primary_button": {
+          "default": {
+            "title_color": "#FFFFFF",
+            "background_color": "#FE8F46",
+            "border_color": "#FFFFFF"
+          }
+        },
+        "secondary_button": {
+          "selected": {
+            "title_color": "#41434c",
+            "background_color": "#e8baf5",
+            "border_color": "#EEEEEE"
+          },
+          "default": {
+            "title_color": "#41434c",
+            "background_color": "#e8baf5",
+            "border_color": "#EEEEEE"
+          },
+          "onHover": {
+            "title_color": "#41434c",
+            "background_color": "#e8baf5",
+            "border_color": "#EEEEEE"
+          }
+        },
+        "link": {
+          "selected": {
+            "title_color": "#EE478D"
+          },
+          "default": {
+            "title_color": "#EE478D"
+          },
+          "onHover": {
+            "title_color": "#EE478D"
+          }
+        }
+      }
+    },
+    "font": {
+      "variants": {
+        "light": {
+          "name": "300",
+          "file": "https://fonts.gstatic.com/s/montserrat/v14/JTURjIg1_i6t8kCHKm45_cJD7g7J_950vCo.ttf"
+        },
+        "regular": {
+          "name": "regular",
+          "file": "https://fonts.gstatic.com/s/montserrat/v14/JTUSjIg1_i6t8kCHKm45xW5rygbi49c.ttf"
+        },
+        "medium": {
+          "name": "500",
+          "file": "https://fonts.gstatic.com/s/montserrat/v14/JTURjIg1_i6t8kCHKm45_ZpC7g7J_950vCo.ttf"
+        },
+        "semi_bold": {
+          "name": "600",
+          "file": "https://fonts.gstatic.com/s/montserrat/v14/JTURjIg1_i6t8kCHKm45_bZF7g7J_950vCo.ttf"
+        },
+        "bold": {
+          "name": "700",
+          "file": "https://fonts.gstatic.com/s/montserrat/v14/JTURjIg1_i6t8kCHKm45_dJE7g7J_950vCo.ttf"
+        }
+      },
+      "family": "Montserrat"
+    }
+  }
+}
