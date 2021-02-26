@@ -29,6 +29,7 @@ const { writeFile, createDirectory, readFile } = require('../../utils/file-utlis
 const { downloadFile } = require('../../utils/download');
 const { extractArchive } = require('../../utils/archive');
 const { getThemeV2, createThemeV3, applyThemeV2 } = require('../../apis/theme');
+const { sanitizeThemeName } = require('../../utils/themeUtils');
 
 const copy = promisify(ncp);
 
@@ -268,7 +269,7 @@ const createProject = async answerObject => {
                 task: async ctx => {
                     await installNpmPackages();
                     let packageJSON = JSON.parse(readFile(`${process.cwd()}/package.json`));
-                    packageJSON.name = answerObject.themeName;
+                    packageJSON.name = sanitizeThemeName(answerObject.themeName);
                     writeFile(`${process.cwd()}/package.json`, JSON.stringify(packageJSON, undefined, 2))
                 }
             },

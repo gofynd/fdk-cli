@@ -246,11 +246,21 @@ const readLessVariables = async verbose => {
   return lessVariableContent;
 };
 
+const sanitizeThemeName = name => {
+  return name.replace(/ /g, '_');
+}
+
+const unSanitizeThemeName = name => {
+  return name.replace(/_/g, ' ');
+}
+
 module.exports = {
   validateTemplate,
   serializeTemplate,
   readComponent,
   readGlobalComponentFiles,
   readHeadLess,
-  readLessVariables
+  readLessVariables,
+  sanitizeThemeName,
+  unSanitizeThemeName
 };
