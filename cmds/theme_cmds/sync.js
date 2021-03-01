@@ -317,6 +317,9 @@ const handler = async ({ isNew }) => {
 
       let [cssUrl, commonJsUrl, umdJsUrl] = await Promise.all(pArr);
       let packageJSON = JSON.parse(readFile(`${process.cwd()}/package.json`));
+      if (!packageJSON.name) {
+        throw new Error('package.json name can not be empty')
+      }
 
       //update theme
       let theme = await getThemeV3(appId, token, themeId, host).catch((e) => ({}));
