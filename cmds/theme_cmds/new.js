@@ -29,6 +29,7 @@ const { writeFile, createDirectory, readFile } = require('../../utils/file-utlis
 const { downloadFile } = require('../../utils/download');
 const { extractArchive } = require('../../utils/archive');
 const { getThemeV2, createThemeV3, applyThemeV2 } = require('../../apis/theme');
+const { sanitizeThemeName } = require('../../utils/themeUtils');
 
 const copy = promisify(ncp);
 
@@ -85,25 +86,32 @@ exports.desc = 'Create new theme';
 exports.builder = function (yargs) {
     return yargs
         .options('theme-name', {
-            describe: 'Theme Name'
+            describe: 'Theme Name',
+            default: ''
         })
         .options('context-name', {
-            describe: 'Context Name'
+            describe: 'Context Name',
+            default: ''
         })
         .options('email', {
-            describe: 'User Email'
+            describe: 'User Email',
+            default: ''
         })
         .options('password', {
-            describe: 'User Password'
+            describe: 'User Password',
+            default: ''
         })
         .options('app-id', {
-            describe: 'App ID'
+            describe: 'App ID',
+            default: ''
         })
         .options('app-token', {
-            describe: 'App Token'
+            describe: 'App Token',
+            default: ''
         })
         .options('host', {
-            describe: 'Specify host for theme'
+            describe: 'Specify host for theme',
+            default: ''
         })
 };
 
@@ -268,7 +276,7 @@ const createProject = async answerObject => {
                 task: async ctx => {
                     await installNpmPackages();
                     let packageJSON = JSON.parse(readFile(`${process.cwd()}/package.json`));
-                    packageJSON.name = answerObject.themeName;
+                    packageJSON.name = sanitizeThemeName(answerObject.themeName);
                     writeFile(`${process.cwd()}/package.json`, JSON.stringify(packageJSON, undefined, 2))
                 }
             },

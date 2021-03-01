@@ -27,6 +27,7 @@ const { promisify } = require('util');
 const ncp = require('ncp');
 const copy = promisify(ncp);
 const inquirer = require('inquirer');
+const { unSanitizeThemeName } = require('../../utils/themeUtils');
 
 const command = 'sync';
 const desc = 'Sync Theme Files with DB';
@@ -316,6 +317,9 @@ const handler = async ({ isNew }) => {
 
       let [cssUrl, commonJsUrl, umdJsUrl] = await Promise.all(pArr);
       let packageJSON = JSON.parse(readFile(`${process.cwd()}/package.json`));
+      if (!packageJSON.name) {
+        throw new Error('package.json name can not be empty')
+      }
 
       //update theme
       let theme = await getThemeV3(appId, token, themeId, host).catch((e) => ({}));
@@ -343,7 +347,7 @@ const handler = async ({ isNew }) => {
       _.set(theme, 'information.images.ios', iosImages)
       _.set(theme, 'information.images.android', androidImages)
       _.set(theme, 'information.images.thumbnail', thumbnailImages)
-      _.set(theme, 'information.name', packageJSON.name)
+      _.set(theme, 'information.name', unSanitizeThemeName(packageJSON.name))
 
       // get config schema and data
       let globalConfigSchema = JSON.parse(readFile(`${process.cwd()}/theme/config/settings_schema.json`));
