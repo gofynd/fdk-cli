@@ -1,0 +1,10 @@
+{
+    "props": [
+        {
+            "type": "checkbox",
+            "id": "test",
+            "default": true,
+            "label": "Test Checkbox"
+        }
+    ]
+}

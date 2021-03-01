@@ -1,0 +1,100 @@
+{
+	"name": "@gofynd/fdk-cli",
+	"version": "2.0.50",
+	"description": "Fynd Development Kit",
+	"main": "",
+	"preferGlobal": true,
+	"bin": {
+		"fdk": "./fdk.js"
+	},
+	"scripts": {
+		"test": "jest",
+		"test:coverage": "jest --coverage",
+		"test:coveralls": "jest --coverage --coverageReporters=text-lcov | coveralls"
+	},
+	"jest": {
+		"verbose": true,
+		"coverageReporters": [
+			"json-summary",
+			"lcov"
+		],
+		"testEnvironment": "node",
+		"collectCoverage": true,
+		"collectCoverageFrom": [
+			"./services/*.js"
+		]
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gofynd/fdk-cli.git"
+	},
+	"keywords": [
+		"gofynd",
+		"node-cli",
+		"vue",
+		"theme-cli"
+	],
+	"bugs": {
+		"url": "https://github.com/gofynd/fdk-cli/issues"
+	},
+	"homepage": "https://github.com/gofynd/fdk-cli#readme",
+	"author": "Akash Mane<akashmane@gofynd.com>",
+	"license": "MIT",
+	"dependencies": {
+		"@babel/core": "^7.9.6",
+		"@babel/plugin-transform-modules-commonjs": "^7.9.6",
+		"archiver": "^3.1.1",
+		"async": "^3.2.0",
+		"axios": "^0.19.0",
+		"chalk": "^3.0.0",
+		"cheerio": "^1.0.0-rc.3",
+		"chokidar": "^3.3.0",
+		"cli-box": "^6.0.9",
+		"cli-table": "^0.3.1",
+		"css-validator": "^0.9.0",
+		"dotenv": "^8.2.0",
+		"email-validator": "^2.0.4",
+		"esm": "^3.2.25",
+		"esprima": "^4.0.1",
+		"execa": "^4.0.0",
+		"express": "^4.17.1",
+		"express-http-proxy": "^1.6.0",
+		"extract-zip": "^1.6.7",
+		"fs-extra": "^9.0.1",
+		"glob": "^7.1.6",
+		"https-localhost": "^4.5.1",
+		"inquirer": "^7.0.0",
+		"inquirer-autocomplete-prompt": "^1.0.1",
+		"less": "^3.11.1",
+		"less-loader": "^5.0.0",
+		"libphonenumber-js": "^1.7.46",
+		"listr": "^0.14.3",
+		"localtunnel": "^2.0.0",
+		"lodash": "^4.17.15",
+		"mime": "^2.4.4",
+		"mongodb": "^3.5.4",
+		"mongoose": "^5.8.0",
+		"ncp": "^2.0.0",
+		"open": "^7.0.2",
+		"parse5": "^5.1.1",
+		"password-validator": "^5.0.3",
+		"require-from-string": "^2.0.2",
+		"rimraf": "^3.0.0",
+		"socket.io": "^2.3.0",
+		"source-map": "^0.7.3",
+		"stacktrace-parser": "^0.1.10",
+		"url-join": "^4.0.1",
+		"vue-template-compiler": "^2.6.11",
+		"ws": "^7.2.1",
+		"yargs": "^15.0.2"
+	},
+	"devDependencies": {
+		"@babel/preset-env": "^7.7.6",
+		"babel-jest": "^24.9.0",
+		"bdd-stdin": "^0.2.0",
+		"coveralls": "^3.0.9",
+		"jest": "^24.9.0",
+		"nock": "^11.7.0",
+		"sinon": "^7.5.0"
+	}
+}

@@ -1,0 +1,16 @@
+sudo: false
+language: node_js
+node_js:
+  - node
+
+script:
+  -
+env:
+  - https://api.addsale.com
+deploy:
+  edge: true
+  provider: npm
+  email: $NPM_EMAIL
+  api_key: $NPM_TOKEN
+  on:
+    tags: true
