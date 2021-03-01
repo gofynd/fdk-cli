@@ -86,25 +86,32 @@ exports.desc = 'Create new theme';
 exports.builder = function (yargs) {
     return yargs
         .options('theme-name', {
-            describe: 'Theme Name'
+            describe: 'Theme Name',
+            default: ''
         })
         .options('context-name', {
-            describe: 'Context Name'
+            describe: 'Context Name',
+            default: ''
         })
         .options('email', {
-            describe: 'User Email'
+            describe: 'User Email',
+            default: ''
         })
         .options('password', {
-            describe: 'User Password'
+            describe: 'User Password',
+            default: ''
         })
         .options('app-id', {
-            describe: 'App ID'
+            describe: 'App ID',
+            default: ''
         })
         .options('app-token', {
-            describe: 'App Token'
+            describe: 'App Token',
+            default: ''
         })
         .options('host', {
-            describe: 'Specify host for theme'
+            describe: 'Specify host for theme',
+            default: ''
         })
 };
 
