@@ -14,6 +14,20 @@ function addStyleResource(rule) {
 
 module.exports = {
   chainWebpack: config => {
+    config.mode(process.env.NODE_ENV)
+    if (!process.env.NODE_ENV === 'production') {
+      config.plugins.delete("uglify")
+      config.optimization.minimize(false)
+      config.optimization.minimizer([
+        new TerserPlugin({
+          parallel: true,
+          sourceMap: false, // Must be set to true if using source-maps in production
+          terserOptions: {
+            // https://github.com/webpack-contrib/terser-webpack-plugin#terseroptions
+          },
+        }),
+      ])
+    }
     // disable eslint
     config.module.rules.delete('eslint');
     config.module.rules.delete('svg');

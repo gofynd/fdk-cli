@@ -3,7 +3,7 @@ const path = require('path');
 
 function build({ buildFolder, imageCdnUrl }) {
     return new Promise((resolve, reject) => {
-        let env_variables = 'PATH='+process.env.PATH;
+        let env_variables = 'PATH='+process.env.PATH + ' NODE_ENV=production';
         let b = exec(`${env_variables} node ./node_modules/@vue/cli/bin/vue.js build --target lib --dest ${buildFolder} --name themeBundle theme/index.js`,
             {
                 cwd: process.cwd(),
@@ -25,7 +25,7 @@ function build({ buildFolder, imageCdnUrl }) {
 }
 
 function devBuild({ buildFolder, imageCdnUrl }) {
-    let env_variables = 'PATH='+process.env.PATH;
+    let env_variables = 'PATH='+process.env.PATH + ' NODE_ENV=development';
     return new Promise((resolve, reject) => {
         let b = exec(`${env_variables} node ./node_modules/@vue/cli/bin/vue.js build --target lib --dest ${buildFolder} --name themeBundle theme/index.js`,
             {
