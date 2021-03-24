@@ -226,7 +226,7 @@ exports.builder = yargs => {
 
 exports.handler = async (args) => {
 	try {
-		const isSSR = args['ssr']
+		const isSSR = typeof args['ssr'] === "boolean" ? args['ssr'] : args['ssr']  == 'true' ? true : false
 		let { appId, token, host } = await Promise.resolve().then(() =>
 			getActiveContext()
 		);
