@@ -23,6 +23,13 @@ const getGrimlockUrl = host => {
   const grimlock = urlJoin(baseURl, '/auth/auth');
   return grimlock;
 };
+
+const getSkywarpUrl = host => {
+  const baseURl = getAPIUrl(host);
+  const skywarp = urlJoin(baseURl, '/service/panel/authentication');
+  return skywarp;
+};
+
 const getFreewayUrl = host => {
   const baseURl = getAPIUrl(host);
   const freeway = urlJoin(baseURl, '/platform/custom/v1/application/current/pages');
@@ -30,7 +37,7 @@ const getFreewayUrl = host => {
 };
 const getGrindorUrl = host => {
   const baseURl = getAPIUrl(host);
-  const grindor = urlJoin(baseURl, '/common/assets');
+  const grindor = urlJoin(baseURl, '/service/platform/assets');
   return grindor
 };
 const getBlitzkriegUrl = host => {
@@ -44,5 +51,6 @@ module.exports = {
   getPlatformUrl,
   getFreewayUrl,
   getGrindorUrl,
-  getBlitzkriegUrl
+  getBlitzkriegUrl,
+  getSkywarpUrl
 };

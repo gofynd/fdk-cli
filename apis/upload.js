@@ -7,17 +7,17 @@ const mime = require('mime');
 const { readCookie, getActiveContext } = require('../utils/utils');
 const { logger } = require('../utils/logger');
 
+
 const startThemeImagesUpload = async (data) => {
     const currentContext = getActiveContext();
-
     const headers = {
         'x-application-id': currentContext.appId,
         'x-application-token': currentContext.token,
-        Cookie: data.Cookie || readCookie()
+        Cookie: data.Cookie || readCookie(),
     };
     const platform = getGrindorUrl(currentContext.host);
     const response = await axios.post(
-        `${platform}/v1/asset/uploads/start/application-theme-images`,
+        `${platform}/v1.0/company/${currentContext.company_id}/application/${currentContext.appId}/namespaces/application-theme-images/upload/start/`,
         data,
         {
             headers
@@ -66,7 +66,7 @@ const uploadFile = async (filepath, grindorNamespace) => {
     const headers = {
         'x-application-id': currentContext.appId,
         'x-application-token': currentContext.token,
-        Cookie: readCookie()
+        Cookie: readCookie(),
     };
 
     let stats;
@@ -90,7 +90,7 @@ const uploadFile = async (filepath, grindorNamespace) => {
 
     const platform = getGrindorUrl(currentContext.host);
     const res1 = await axios.post(
-        `${platform}/v1/asset/uploads/start/${grindorNamespace}`,
+        `${platform}/v1.0/company/${currentContext.company_id}/application/${currentContext.appId}/namespaces/${grindorNamespace}/upload/start`,
         startData,
         {
             headers
@@ -113,7 +113,7 @@ const uploadFile = async (filepath, grindorNamespace) => {
 
     // complete
     const res3 = await axios.post(
-        `${platform}/v1/asset/uploads/complete/${grindorNamespace}`,
+        `${platform}/v1.0/company/${currentContext.company_id}/application/${currentContext.appId}/namespaces/${grindorNamespace}/upload/complete`,
         {
             response: startResponse,
             ...startData,

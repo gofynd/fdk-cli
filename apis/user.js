@@ -1,12 +1,15 @@
-const { getGrimlockUrl } = require('./apiUrl');
+const { getSkywarpUrl } = require('./apiUrl');
 const axios = require('axios');
 const { logger } = require('../utils/logger');
+const { addSignatureFn } = require('./axios_helper');
 
+
+axios.interceptors.request.use(addSignatureFn({}));
 const loginUser = async (email, password, host, verbose) => {
   if (verbose) {
     logger(`Login User Method called`, true);
   }
-  const grimlock = getGrimlockUrl(host);
+  const skywarp = getSkywarpUrl(host);
   const userData = {
     username: email,
     password,
@@ -19,10 +22,10 @@ const loginUser = async (email, password, host, verbose) => {
     'Content-Type': 'application/json'
   };
   if (verbose) {
-    logger(`API call for LOGIN : ${grimlock}/password-login`, true);
+    logger(`API call for LOGIN : ${skywarp}/v1.0/auth/login/password`, true);
   }
   const response = await axios.post(
-    `${grimlock}/password-login`,
+    `${skywarp}/v1.0/auth/login/password`,
     {
       username: email,
       password,
@@ -31,8 +34,22 @@ const loginUser = async (email, password, host, verbose) => {
     headers
   );
   if (verbose) {
-    logger(`API RESPONSE: ${response.data}`, true);
+    logger(`API RESPONSE: ${response.headers['set-cookie'][0]}`, true);
   }
   return response;
 };
-module.exports = { loginUser };
+
+const getOauthToken = async () => {
+  const { getActiveContext } = require('../utils/utils');
+  const ctx = getActiveContext();
+  const skywarp = getSkywarpUrl(ctx.host);
+  const headers = {
+    'Content-Type': 'application/json',
+    'cookie': ctx.cookie
+  };
+  const response = await axios.get(`${skywarp}/v1.0/company/${ctx.company_id}/oauth/staff/token`, {
+    headers
+  });
+  return response.data
+}
+module.exports = { loginUser, getOauthToken };

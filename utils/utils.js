@@ -83,10 +83,23 @@ const getActiveContext = () => {
   }
 };
 
-const writeContextData = (contextName, newContext, targetDir) => {
+const getActiveContextName = () => {
+  let contextData = JSON.parse(readFile('./.fdk/context.json'));
+  if (
+    contextData.current_context.length > 0 &&
+    contextData.contexts[contextData.current_context]
+  ) {
+    return contextData.current_context;
+  } else {
+    return Promise.reject('No active context set');
+  }
+};
+
+
+const writeContextData = (contextName, newContext, targetDir, upsert=false) => {
   targetDir = targetDir || './.fdk/context.json';
   const contextData = JSON.parse(readFile(targetDir) || '{}');
-  if (contextData.contexts && contextData.contexts[contextName]) {
+  if (contextData.contexts && contextData.contexts[contextName] && !upsert) {
     return Promise.reject('Context with the same name already exists');
   }
   _.set(contextData, `contexts.${contextName}`, newContext);
@@ -144,6 +157,7 @@ module.exports = {
   generateConfigJSON,
   readCookie,
   loginUserWithEmail,
+  getActiveContextName,
   writeContextData,
   removeContextData,
   setContext,

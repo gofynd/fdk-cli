@@ -110,6 +110,7 @@ const addContextTask = async contextObj => {
           delete contextObj.password;
           let ctxObj = { cookie: ctx.cookie, ...contextObj, name: ctx.theme.information.name };
           ctxObj.domain = Array.isArray(ctx.app.domains) ? ctx.app.domains[0].name : ctx.app.domain.name;
+          ctxObj.company_id = ctx.app.company_id
           writeContextData(contextObj.contextName, ctxObj, undefined, contextObj.verbose);
         }
       }
