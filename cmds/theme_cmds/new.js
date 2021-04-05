@@ -266,7 +266,8 @@ const createProject = async answerObject => {
                         host: answerObject.host,
                         email: answerObject.email,
                         name: answerObject.themeName,
-                        domain: ctx.app.domain.name
+                        domain: ctx.app.domain.name,
+                        company_id: ctx.app.company_id
                     };
                     writeContextData(answerObject.contextName, contextObj, targetDir + '/.fdk/context.json');
                 }
