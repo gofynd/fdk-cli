@@ -226,7 +226,7 @@ exports.builder = yargs => {
 
 exports.handler = async (args) => {
 	try {
-		const isSSR = typeof args['ssr'] === "boolean" ? args['ssr'] : args['ssr']  == 'true' ? true : false
+		const isSSR = typeof args['ssr'] === "boolean" ? args['ssr'] : args['ssr'] == 'true' ? true : false
 		let { appId, token, host } = await Promise.resolve().then(() =>
 			getActiveContext()
 		);
@@ -240,6 +240,7 @@ exports.handler = async (args) => {
 		await devBuild({
 			buildFolder,
 			imageCdnUrl: urlJoin(getFullLocalUrl(host), 'assets/images'),
+			isProd: isSSR
 		});
 
 		// start dev server
@@ -259,6 +260,7 @@ exports.handler = async (args) => {
 			await devBuild({
 				buildFolder: path.resolve(process.cwd(), buildFolder),
 				imageCdnUrl: urlJoin(getFullLocalUrl(host), 'assets/images'),
+				isProd: isSSR
 			});
 			reload();
 		});
