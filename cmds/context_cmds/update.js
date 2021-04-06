@@ -17,6 +17,7 @@ const updateContext = async (args) => {
         ctx.cookie = newCookie;
         writeContextData(getActiveContextName(), ctx, undefined, true)
     } catch (error) {
+      if(error.isAxiosError) error.message = error.response.data.message 
         throw new Error(error)
     }
     
