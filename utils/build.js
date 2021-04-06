@@ -7,7 +7,7 @@ function build({ buildFolder, imageCdnUrl }) {
             {
                 cwd: process.cwd(),
                 env: {
-                    ...process.env.PATH,
+                    ...process.env,
                     IMAGE_CDN_URL: imageCdnUrl,
                     NODE_ENV: "production"
                 }
@@ -31,7 +31,7 @@ function devBuild({ buildFolder, imageCdnUrl, isProd }) {
             {
                 cwd: process.cwd(),
                 env: {
-                    ...process.env.PATH,
+                    ...process.env,
                     IMAGE_CDN_URL: imageCdnUrl,
                     NODE_ENV: (isProd && "production") || "development"
                 }
