@@ -283,11 +283,11 @@ const createProject = async answerObject => {
             {
                 title: 'Installing Dependencies',
                 task: async ctx => {
-                    await installNpmPackages();
                     if (fs.existsSync(process.cwd() + '/theme/package.json')) {
                         writeFile(process.cwd() + '/package.json', fs.readFileSync(process.cwd() + '/theme/package.json'))
                         rimraf.sync(process.cwd() + '/theme/package.json')
                     }
+                    await installNpmPackages();
                 }
             }
         ]);
