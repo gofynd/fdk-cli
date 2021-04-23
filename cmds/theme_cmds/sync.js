@@ -357,6 +357,8 @@ const handler = async ({ isNew }) => {
       theme.config.current = globalConfigData.current || 'default';
       theme.config.list = globalConfigData.list || [{ name: 'default' }];
       theme.config.preset = globalConfigData.preset || [];
+      theme.font = globalConfigData.font || {};
+      theme.colors = globalConfigData.colors || {};
       theme.version = packageJSON.version;
       theme.customized = true;
       _.set(theme, 'information.features', _.get(globalConfigData, 'information.features', []));
