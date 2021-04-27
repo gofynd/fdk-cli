@@ -1,6 +1,6 @@
 {
 	"name": "@gofynd/fdk-cli",
-	"version": "2.0.54",
+	"version": "2.0.55",
 	"description": "Fynd Development Kit",
 	"main": "",
 	"preferGlobal": true,
