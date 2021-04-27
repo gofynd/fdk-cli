@@ -10,14 +10,12 @@ exports.desc = 'Pull remote theme config';
 const pullConfig = async (args, isSync = false) => {
     try {
         const { appId, token, host, themeId } = getActiveContext();
-        const { config, information, font, colors } = await getThemeV3(appId, token, themeId, host)
+        const { config, information } = await getThemeV3(appId, token, themeId, host)
         const newConfig = {};
         if (config && information) {
             newConfig.list = config.list
             newConfig.current = config.current
             newConfig.preset = config.preset
-            newConfig.font = font
-            newConfig.colors = colors
             newConfig.information = {
                 features: information.features
             }
