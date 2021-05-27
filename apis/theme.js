@@ -1,4 +1,4 @@
-const { getPlatformUrl, getBlitzkriegUrl } = require('./apiUrl');
+const { getPlatformUrl, getBlitzkriegUrl, getBlitzkriegUrlv2 } = require('./apiUrl');
 const axios = require('axios');
 const _ = require('lodash');
 const chalk = require('chalk');
@@ -54,13 +54,15 @@ async function getThemeV2(appId, appToken, host) {
 }
 
 async function getThemeV3(appId, appToken, themeId, host) {
+  const { company_id : companyId } = getActiveContext()
   const headers = {
     'x-application-id': appId,
-    'x-application-token': appToken
+    'x-application-token': appToken,
+    Cookie: readCookie()
   };
 
-  const platform = getBlitzkriegUrl(host);
-  const response = await axios.get(`${platform}/theme/v3/${themeId}`, {
+  const platform = getBlitzkriegUrlv2(host);
+  const response = await axios.get(`${platform}/v1.0/company/${companyId}/application/${appId}/${themeId}`, {
     headers
   });
 
@@ -68,6 +70,7 @@ async function getThemeV3(appId, appToken, themeId, host) {
 }
 
 async function publishThemeV3(appId, appToken, themeId, host) {
+  const { company_id : companyId } = getActiveContext()
   const headers = {
     'x-application-id': appId,
     'x-application-token': appToken,
@@ -75,12 +78,13 @@ async function publishThemeV3(appId, appToken, themeId, host) {
   };
 
   const platform = getBlitzkriegUrl(host);
-  const response = await axios.put(`${platform}/theme/v3/${themeId}/publish`, {}, {
+  const response = await axios.put(`${platform}/v1.0/company/${companyId}/application/${appId}/${themeId}/publish`, {}, {
     headers
   });
   return response.data;
 }
 async function unPublishAppThemeV3(appId, appToken, themeId, host) {
+  const { company_id : companyId } = getActiveContext()
   const headers = {
     'x-application-id': appId,
     'x-application-token': appToken,
@@ -88,12 +92,13 @@ async function unPublishAppThemeV3(appId, appToken, themeId, host) {
   };
 
   const platform = getBlitzkriegUrl(host);
-  const response = await axios.put(`${platform}/theme/v3/${themeId}/unpublish`, {}, {
+  const response = await axios.put(`${platform}/v1.0/company/${companyId}/application/${appId}/${themeId}/unpublish`, {}, {
     headers
   });
   return response.data;
 }
 async function getApplicationThemes(appId, appToken, host) {
+  const { company_id : companyId } = getActiveContext()
   const headers = {
     'x-application-id': appId,
     'x-application-token': appToken,
@@ -101,21 +106,22 @@ async function getApplicationThemes(appId, appToken, host) {
   };
 
   const platform = getBlitzkriegUrl(host);
-  const response = await axios.get(`${platform}/theme/v3/application/themes`, {
+  const response = await axios.get(`${platform}/v1.0/company/${companyId}/application/${appId}/library`, {
     headers
   });
   return response.data;
 }
 
 async function updateThemeV3(appId, appToken, themeId, body, host) {
+  const { company_id : companyId } = getActiveContext()
   const headers = {
     'x-application-id': appId,
     'x-application-token': appToken,
     Cookie: readCookie()
   };
 
-  const platform = getBlitzkriegUrl(host);
-  const response = await axios.put(`${platform}/theme/v3/${themeId}`,
+  const platform = getBlitzkriegUrlv2(host);
+  const response = await axios.put(`${platform}/v1.0/company/${companyId}/application/${appId}/${themeId}`,
     body,
     {
       headers
@@ -124,14 +130,15 @@ async function updateThemeV3(appId, appToken, themeId, body, host) {
 }
 
 async function createThemeV3(host, appId, appToken, body, cookie = null) {
+  const { company_id : companyId } = getActiveContext()
   const headers = {
     'x-application-id': appId,
     'x-application-token': appToken,
     Cookie: cookie ? cookie : readCookie()
   };
 
-  const platform = getBlitzkriegUrl(host);
-  const response = await axios.post(`${platform}/theme/v3`,
+  const platform = getBlitzkriegUrlv2(host);
+  const response = await axios.post(`${platform}/v1.0/company/${companyId}/application/${appId}`,
     body,
     {
       headers
@@ -139,4 +146,58 @@ async function createThemeV3(host, appId, appToken, body, cookie = null) {
   return response.data;
 }
 
-module.exports = { sendTheme, getTheme, getThemeV2, getThemeV3, updateThemeV3, getApplicationThemes, createThemeV3, publishThemeV3, unPublishAppThemeV3 };
+async function getAvailablePage(appId, appToken, themeId, pageValue, host) {
+  try {
+    const { company_id : companyId } = getActiveContext()
+    const headers = {
+      'x-application-id': appId,
+      'x-application-token': appToken,
+      Cookie: readCookie() || ''
+    };
+    const platform = getBlitzkriegUrlv2(host);
+    const response = await axios.get(`${platform}/v1.0/company/${companyId}/application/${appId}/${themeId}/${pageValue}`,
+      {
+        headers
+      }
+    );
+    return response.data;
+  } catch (error) {
+    return {}
+  }
+  
+} 
+
+async function updateAllPages(appId, appToken, themeId, body, host) {
+  const { company_id : companyId } = getActiveContext()
+  const headers = {
+    'x-application-id': appId,
+    'x-application-token': appToken,
+    Cookie: readCookie() || ''
+  };
+
+  const platform = getBlitzkriegUrlv2(host);
+  const response = await axios.put(`${platform}/v1.0/company/${companyId}/application/${appId}/${themeId}/page`,
+    body,
+    {
+      headers
+    });
+  return response.data;
+}
+
+async function createAvailablePage(appId, appToken, themeId, body, host) {
+  const { company_id : companyId } = getActiveContext()
+  const headers = {
+    'x-application-id': appId,
+    'x-application-token': appToken,
+    Cookie:  readCookie() || ''
+  };
+
+  const platform = getBlitzkriegUrlv2(host);
+  const response = await axios.post(`${platform}/v1.0/company/${companyId}/application/${appId}/${themeId}`,
+    body,
+    {
+      headers
+    });
+  return response.data;
+}
+module.exports = { sendTheme, getTheme, getThemeV2, getThemeV3, updateThemeV3, getApplicationThemes, createThemeV3, publishThemeV3, unPublishAppThemeV3, updateAllPages, getAvailablePage, createAvailablePage };

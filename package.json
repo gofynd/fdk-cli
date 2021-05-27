@@ -69,6 +69,7 @@
 		"inquirer-autocomplete-prompt": "^1.0.1",
 		"less": "^3.11.1",
 		"less-loader": "^5.0.0",
+		"leven": "^3.1.0",
 		"libphonenumber-js": "^1.7.46",
 		"listr": "^0.14.3",
 		"localtunnel": "^2.0.0",

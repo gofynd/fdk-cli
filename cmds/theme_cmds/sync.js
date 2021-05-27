@@ -22,12 +22,14 @@ const {
   uploadFile
 } = require('../../apis/upload');
 const { pullConfig } = require('./pull-config')
-const { sendTheme, updateThemeV3, getThemeV3 } = require('../../apis/theme');
+const { sendTheme, updateThemeV3, getThemeV3, getAvailablePage, updateAllPages, createAvailablePage } = require('../../apis/theme');
 const { promisify } = require('util');
 const ncp = require('ncp');
 const copy = promisify(ncp);
 const inquirer = require('inquirer');
 const { unSanitizeThemeName } = require('../../utils/themeUtils');
+const { ALL_AVAILABLE_PAGES } = require('../../utils/fileMap');
+const leven = require('leven');
 
 const command = 'sync';
 const desc = 'Sync Theme Files with DB';
@@ -364,18 +366,47 @@ const handler = async ({ isNew }) => {
       // extract page level settings schema
       let pageTemplateFiles = fs.readdirSync(`${process.cwd()}/theme/templates/pages`).filter(o => o != 'index.js');
       theme.config = theme.config || {};
-      pageTemplateFiles.forEach((fileName) => {
-        let pageName = fileName.replace('.vue', '');
-        theme.available_pages = theme.available_pages || [];
-        let available_page = theme.available_pages.find(c => c.value === pageName);
-        if (!available_page) {
-          return;
-        }
-        available_page.props = (extractSettingsFromFile(`${process.cwd()}/theme/templates/pages/${fileName}`) || {}).props || [];
-        available_page.sections = extractSectionsFromFile(`${process.cwd()}/theme/templates/pages/${fileName}`);
+      let availablePages = []
+      pageTemplateFiles.forEach(async (fileName) => {
+          let pageName = fileName.replace('.vue', '');
+          // SYSTEM Pages
+          let available_page = await getAvailablePage(appId, token, themeId, pageName, host)
+          if (!available_page) {
+            available_page = ALL_AVAILABLE_PAGES.find(p => p.value === pageName)
+            if (!available_page) {
+              const suggestion = ALL_AVAILABLE_PAGES.find(
+                (page) => leven(page.value, pageName) < page.value.length * 0.4
+              );
+              let msg = suggestion ? `Did you mean ${suggestion}` : ''
+              throw new Error(`Invalid theme template: ${pageName}. ${msg}`)
+            }
+          }
+          available_page.props = (extractSettingsFromFile(`${process.cwd()}/theme/templates/pages/${fileName}`) || {}).props || [];
+          available_page.sections_meta = extractSectionsFromFile(`${process.cwd()}/theme/templates/pages/${fileName}`);
+          available_page.type = "system"
+          availablePages.push(available_page)
       });
-
-      await Promise.all([updateThemeV3(appId, token, themeId, theme, host)]);
+      // TODO custom templates
+      // let customPageTemplateFiles = fs.readdirSync(`${process.cwd()}/theme/custom-templates`).filter(o => o != 'index.js');
+      // customPageTemplateFiles.forEach((fileName) => {
+      //   let pageName = fileName.replace('.vue', '');
+      //   // SYSTEM Pages
+      //   let available_page = await getAvailablePage(appId, token, themeId, pageName, host)
+      //   if (!available_page) {
+      //     available_page = ALL_AVAILABLE_PAGES.find(p => p.value === pageName)
+      //     if(!available_page) {
+      //       const suggestion = ALL_AVAILABLE_PAGES.find(
+      //         (page) => leven(page, available_page) < page.length * 0.4
+      //       );
+      //       let msg = suggestion ? `Did you mean ${suggestion}` : ''
+      //       throw new Error(`Invalid theme template: ${available_page}. ${msg}`)}
+      //   }
+      //   available_page.props = (extractSettingsFromFile(`${process.cwd()}/theme/custom-templates/${fileName}`) || {}).props || [];
+      //   available_page.sections_meta = extractSectionsFromFile(`${process.cwd()}/theme/custom-templates/${fileName}`);
+      //   available_page.type = "custom"
+      //   availablePages.push(available_page)
+      // });
+      await Promise.all([updateThemeV3(appId, token, themeId, theme, host), updateAllPages(appId, token, themeId, {pages: availablePages } , host)]);
     }
   } catch (error) {
     console.log(error);

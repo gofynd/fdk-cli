@@ -10,12 +10,12 @@ exports.desc = 'List Application themes';
 exports.handler = async (args) => {
     try {
         let { appId, appToken, host } = args;
-        let { docs } = await getApplicationThemes(appId, appToken, host);
+        let { items } = await getApplicationThemes(appId, appToken, host);
         const table = new Table({
             head: ['Name', 'ID'],
             colWidths: [30, 30]
         });
-        docs.forEach(t => {
+        items.forEach(t => {
             table.push([t.information.name, t._id]);
         });
         console.log(table.toString());
