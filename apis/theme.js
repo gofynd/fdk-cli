@@ -77,7 +77,7 @@ async function publishThemeV3(appId, appToken, themeId, host) {
     Cookie: readCookie()
   };
 
-  const platform = getBlitzkriegUrl(host);
+  const platform = getBlitzkriegUrlv2(host);
   const response = await axios.put(`${platform}/v1.0/company/${companyId}/application/${appId}/${themeId}/publish`, {}, {
     headers
   });
@@ -91,7 +91,7 @@ async function unPublishAppThemeV3(appId, appToken, themeId, host) {
     Cookie: readCookie()
   };
 
-  const platform = getBlitzkriegUrl(host);
+  const platform = getBlitzkriegUrlv2(host);
   const response = await axios.put(`${platform}/v1.0/company/${companyId}/application/${appId}/${themeId}/unpublish`, {}, {
     headers
   });
@@ -105,7 +105,7 @@ async function getApplicationThemes(appId, appToken, host) {
     Cookie: readCookie()
   };
 
-  const platform = getBlitzkriegUrl(host);
+  const platform = getBlitzkriegUrlv2(host);
   const response = await axios.get(`${platform}/v1.0/company/${companyId}/application/${appId}/library`, {
     headers
   });
