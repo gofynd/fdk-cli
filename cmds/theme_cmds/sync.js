@@ -14,7 +14,7 @@ const { archiveFolder } = require('../../utils/archive');
 const { readFile, createDirectory, writeFile } = require('../../utils/file-utlis');
 const { logger } = require('../../utils/logger');
 const { build } = require('../../utils/build');
-const { getActiveContext } = require('../../utils/utils');
+const { getActiveContext, pageNameModifier } = require('../../utils/utils');
 const {
   startThemeImagesUpload,
   getTheme,
@@ -22,14 +22,13 @@ const {
   uploadFile
 } = require('../../apis/upload');
 const { pullConfig } = require('./pull-config')
-const { sendTheme, updateThemeV3, getThemeV3, getAvailablePage, updateAllPages, createAvailablePage } = require('../../apis/theme');
+const { sendTheme, updateThemeV3, getThemeV3, getAvailablePage, updateAvailablePage, createAvailablePage } = require('../../apis/theme');
 const { promisify } = require('util');
 const ncp = require('ncp');
 const copy = promisify(ncp);
 const inquirer = require('inquirer');
 const { unSanitizeThemeName } = require('../../utils/themeUtils');
-const { ALL_AVAILABLE_PAGES } = require('../../utils/fileMap');
-const leven = require('leven');
+const { asyncForEach } = require('../../utils/utils');
 
 const command = 'sync';
 const desc = 'Sync Theme Files with DB';
@@ -367,25 +366,28 @@ const handler = async ({ isNew }) => {
       let pageTemplateFiles = fs.readdirSync(`${process.cwd()}/theme/templates/pages`).filter(o => o != 'index.js');
       theme.config = theme.config || {};
       let availablePages = []
-      pageTemplateFiles.forEach(async (fileName) => {
-          let pageName = fileName.replace('.vue', '');
-          // SYSTEM Pages
-          let available_page = await getAvailablePage(appId, token, themeId, pageName, host)
-          if (!available_page) {
-            available_page = ALL_AVAILABLE_PAGES.find(p => p.value === pageName)
-            if (!available_page) {
-              const suggestion = ALL_AVAILABLE_PAGES.find(
-                (page) => leven(page.value, pageName) < page.value.length * 0.4
-              );
-              let msg = suggestion ? `Did you mean ${suggestion}` : ''
-              throw new Error(`Invalid theme template: ${pageName}. ${msg}`)
-            }
+      await asyncForEach(pageTemplateFiles, async (fileName) => {
+        let pageName = fileName.replace('.vue', '');
+        // SYSTEM Pages
+        let available_page = await getAvailablePage(appId, token, themeId, pageName, host)
+        if (!available_page.value) {
+          const pageData = {
+            value : pageName,
+            props:[],
+            sections:[],
+            sections_meta: [],
+            type: "system",
+            text: pageNameModifier(pageName)
           }
-          available_page.props = (extractSettingsFromFile(`${process.cwd()}/theme/templates/pages/${fileName}`) || {}).props || [];
-          available_page.sections_meta = extractSectionsFromFile(`${process.cwd()}/theme/templates/pages/${fileName}`);
-          available_page.type = "system"
-          availablePages.push(available_page)
-      });
+          available_page = await createAvailablePage(appId, token, themeId, pageData, host)
+          console.log('Creating Page: ', available_page.value)
+        }
+        available_page.props = (extractSettingsFromFile(`${process.cwd()}/theme/templates/pages/${fileName}`) || {}).props || [];
+        available_page.sections_meta = extractSectionsFromFile(`${process.cwd()}/theme/templates/pages/${fileName}`);
+        available_page.type = "system";
+        delete available_page.sections
+        availablePages.push(available_page)
+      })
       // TODO custom templates
       // let customPageTemplateFiles = fs.readdirSync(`${process.cwd()}/theme/custom-templates`).filter(o => o != 'index.js');
       // customPageTemplateFiles.forEach((fileName) => {
@@ -406,7 +408,14 @@ const handler = async ({ isNew }) => {
       //   available_page.type = "custom"
       //   availablePages.push(available_page)
       // });
-      await Promise.all([updateThemeV3(appId, token, themeId, theme, host), updateAllPages(appId, token, themeId, {pages: availablePages } , host)]);
+      console.log(chalk.yellow.bold('Updating theme...'));
+      await Promise.all([updateThemeV3(appId, token, themeId, theme, host)]);
+      console.log(chalk.yellow.bold('Updating pages...'));
+      await asyncjs.concatLimit(availablePages, 1, async (page) => {
+        console.log(chalk.yellow.bold('Updating page: ', page.value));
+        await updateAvailablePage(appId, token, themeId, page, host)
+      })
+      console.log(chalk.greenBright.bold('DONE...'));
     }
   } catch (error) {
     console.log(error);

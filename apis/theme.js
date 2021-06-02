@@ -164,26 +164,29 @@ async function getAvailablePage(appId, appToken, themeId, pageValue, host) {
   } catch (error) {
     return {}
   }
-  
 } 
 
-async function updateAllPages(appId, appToken, themeId, body, host) {
-  const { company_id : companyId } = getActiveContext()
-  const headers = {
-    'x-application-id': appId,
-    'x-application-token': appToken,
-    Cookie: readCookie() || ''
-  };
-
-  const platform = getBlitzkriegUrlv2(host);
-  const response = await axios.put(`${platform}/v1.0/company/${companyId}/application/${appId}/${themeId}/page`,
-    body,
-    {
-      headers
-    });
-  return response.data;
-}
-
+async function updateAvailablePage(appId, appToken, themeId, body, host) {
+  try {
+    const { company_id : companyId } = getActiveContext()
+    const headers = {
+      'x-application-id': appId,
+      'x-application-token': appToken,
+      Cookie: readCookie() || ''
+    };
+    const platform = getBlitzkriegUrlv2(host);
+    const response = await axios.put(`${platform}/v1.0/company/${companyId}/application/${appId}/${themeId}/${body.value}`,
+      body, 
+      {
+        headers
+      }
+    );
+    return response.data;
+  } catch (error) {
+    return {}
+  }
+  
+} 
 async function createAvailablePage(appId, appToken, themeId, body, host) {
   const { company_id : companyId } = getActiveContext()
   const headers = {
@@ -193,11 +196,11 @@ async function createAvailablePage(appId, appToken, themeId, body, host) {
   };
 
   const platform = getBlitzkriegUrlv2(host);
-  const response = await axios.post(`${platform}/v1.0/company/${companyId}/application/${appId}/${themeId}`,
+  const response = await axios.post(`${platform}/v1.0/company/${companyId}/application/${appId}/${themeId}/page`,
     body,
     {
       headers
     });
   return response.data;
 }
-module.exports = { sendTheme, getTheme, getThemeV2, getThemeV3, updateThemeV3, getApplicationThemes, createThemeV3, publishThemeV3, unPublishAppThemeV3, updateAllPages, getAvailablePage, createAvailablePage };
+module.exports = { sendTheme, getTheme, getThemeV2, getThemeV3, updateThemeV3, getApplicationThemes, createThemeV3, publishThemeV3, unPublishAppThemeV3, getAvailablePage, createAvailablePage, updateAvailablePage };

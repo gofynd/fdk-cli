@@ -76,3 +76,4 @@ export const copyToClipboard = str => {
         document.getSelection().addRange(selected); // Restore the original selection
     }
 };
+
