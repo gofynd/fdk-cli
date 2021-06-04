@@ -1,6 +1,6 @@
 {
 	"name": "@gofynd/fdk-cli",
-	"version": "2.0.56-beta.1",
+	"version": "2.0.56-beta.2",
 	"description": "Fynd Development Kit",
 	"main": "",
 	"preferGlobal": true,
@@ -87,7 +87,7 @@
 		"source-map": "^0.7.3",
 		"stacktrace-parser": "^0.1.10",
 		"url-join": "^4.0.1",
-		"vue-template-compiler": "^2.6.11",
+		"vue-template-compiler": "^2.6.13",
 		"ws": "^7.2.1",
 		"yargs": "^15.0.2"
 	},

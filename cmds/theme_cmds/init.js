@@ -26,7 +26,7 @@ const {
 const { writeFile, createDirectory } = require('../../utils/file-utlis');
 const { downloadFile } = require('../../utils/download');
 const { extractArchive } = require('../../utils/archive');
-const { getThemeV2, getThemeV3 } = require('../../apis/theme');
+const { getThemeV3 } = require('../../apis/theme');
 
 const copy = promisify(ncp);
 
