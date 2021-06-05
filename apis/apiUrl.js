@@ -55,5 +55,4 @@ module.exports = {
   getGrindorUrl,
   getBlitzkriegUrl,
   getSkywarpUrl,
-  getBlitzkriegUrlv2
 };
