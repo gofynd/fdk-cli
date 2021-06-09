@@ -68,7 +68,12 @@ function getTransformer(config) {
             } = config;
             if (pathname.startsWith('/service/platform')) {
                 const { getOauthToken } = require('../user')
-                let { access_token } =  await getOauthToken() || {};
+                const host = headers['host'];
+                const cookie = headers['Cookie'];
+                const company_id = headers['x-company-id']
+                let { access_token } =  await getOauthToken(host, cookie, company_id) || {};
+                delete headers['host']
+                delete headers['x-company-id']
                 if(access_token){
                     config.headers['Authorization'] = 'Bearer ' + access_token;
                 }

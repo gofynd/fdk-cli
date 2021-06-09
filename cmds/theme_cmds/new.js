@@ -28,7 +28,7 @@ const {
 const { writeFile, createDirectory, readFile } = require('../../utils/file-utlis');
 const { downloadFile } = require('../../utils/download');
 const { extractArchive } = require('../../utils/archive');
-const { getThemeV2, createThemeV3, applyThemeV2 } = require('../../apis/theme');
+const {  createThemeV3, applyThemeV2 } = require('../../apis/theme');
 const { sanitizeThemeName } = require('../../utils/themeUtils');
 
 const copy = promisify(ncp);
@@ -99,6 +99,10 @@ exports.builder = function (yargs) {
         })
         .options('password', {
             describe: 'User Password',
+            default: ''
+        })
+        .options('company-id', {
+            describe: 'App ID',
             default: ''
         })
         .options('app-id', {
@@ -208,8 +212,7 @@ const createProject = async answerObject => {
                 task: async ctx => {
                     try {
                         let available_sections = await getAvailableSections();
-                        ctx.themeData = await createThemeV3(
-
+                        ctx.themeData = (await createThemeV3(
                             answerObject.host,
                             answerObject.app,
                             answerObject.token,
@@ -219,8 +222,9 @@ const createProject = async answerObject => {
                                 },
                                 available_sections
                             },
-                            ctx.cookie
-                        );
+                            ctx.cookie,
+                            answerObject.company_id
+                        )).data;
                     } catch (err) {
                         return Promise.reject(new Error(normalizeError(err).message))
                     }
@@ -284,7 +288,6 @@ const createProject = async answerObject => {
             {
                 title: 'Syncing template',
                 task: async ctx => {
-                    console.log(syncHandler)
                     await syncHandler({isNew: true});
                 }
             }
@@ -326,6 +329,7 @@ exports.handler = async args => {
         args.password &&
         args['app-id'] &&
         args['app-token'] &&
+        args['company-id'] &&
         args.host
     ) {
         answers = {
@@ -335,7 +339,8 @@ exports.handler = async args => {
             password: args.password,
             app: args['app-id'],
             token: args['app-token'],
-            host: args.host
+            host: args.host,
+            company_id: args['company-id']
         };
         await createProject(answers);
     }
@@ -360,6 +365,9 @@ exports.handler = async args => {
         if (args['app-id']) {
             recieved.push('app-id');
         }
+        if (args['company-id']) {
+            recieved.push('company-id');
+        }
         if (args['app-token']) {
             recieved.push('app-token');
         }
@@ -368,6 +376,6 @@ exports.handler = async args => {
         }
         console.log('Insufficient options provided');
         console.log('Got:', recieved.join(' '));
-        console.log('Required: theme-name,context-name,email,password,app-id,app-token,host');
+        console.log('Required: theme-name,context-name,email,password,app-id,app-token,company-id,host');
     }
 };

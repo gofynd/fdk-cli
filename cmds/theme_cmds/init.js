@@ -26,7 +26,7 @@ const {
 const { writeFile, createDirectory } = require('../../utils/file-utlis');
 const { downloadFile } = require('../../utils/download');
 const { extractArchive } = require('../../utils/archive');
-const { getThemeV2, getThemeV3 } = require('../../apis/theme');
+const { getThemeV3 } = require('../../apis/theme');
 
 const copy = promisify(ncp);
 
@@ -98,6 +98,9 @@ exports.builder = function (yargs) {
         .options('theme-id', {
             describe: 'Theme Id'
         })
+        .options('company-id', {
+            describe: 'Company Id'
+        })
         .options('context-name', {
             describe: 'Context name'
         })
@@ -142,12 +145,12 @@ async function installNpmPackages() {
     await execa('npm', ['i'], { cwd: process.cwd() });
 }
 
-async function getThemeSourceFiles(appId, token, themeId, targetDir, host) {
+async function getThemeSourceFiles(appId, token, themeId, targetDir, host, company_id, cookie) {
     let zipPath = path.resolve(process.cwd(), targetDir, '.fdk/archive/archive.zip');
     let themeInfo;
 
     try {
-        themeInfo = await getThemeV3(appId, token, themeId, host);
+        themeInfo = await getThemeV3(appId, token, themeId, host, company_id, cookie);
         if (!themeInfo.application || !themeInfo.src.link) {
             return themeInfo;
         }
@@ -212,7 +215,9 @@ const createProject = async answerObject => {
                         answerObject.token,
                         answerObject.themeId,
                         targetDir,
-                        answerObject.host
+                        answerObject.host,
+                        answerObject.company_id,
+                        ctx.cookie
                     );
                     // if (!ctx.themeData.application || !fs.existsSync(path.resolve(process.cwd(), 'package.json'))) {
                     //     await copyTemplateFiles(templateDir, targetDir);
@@ -327,6 +332,7 @@ exports.handler = async args => {
         args['app-id'] &&
         args['app-token'] &&
         args['theme-id'] &&
+        args['company-id'] &&
         args['context-name'] &&
         args.host
     ) {
@@ -339,7 +345,8 @@ exports.handler = async args => {
             themeId: args['theme-id'],
             contextName: args['context-name'],
             host: args.host,
-            verbose: args.verbose
+            verbose: args.verbose,
+            company_id: args['company-id']
         };
         await createProject(answers);
     }

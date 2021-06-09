@@ -39,9 +39,15 @@ const loginUser = async (email, password, host, verbose) => {
   return response;
 };
 
-const getOauthToken = async () => {
-  const { getActiveContext } = require('../utils/utils');
-  const ctx = getActiveContext();
+const getOauthToken = async (host, cookie, company_id) => {
+  let ctx;
+  if(!host || !cookie) {
+    const { getActiveContext } = require('../utils/utils');
+    ctx = getActiveContext();
+  }
+  else {
+    ctx = { host, cookie, company_id }
+  }
   const skywarp = getSkywarpUrl(ctx.host);
   const headers = {
     'Content-Type': 'application/json',

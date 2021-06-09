@@ -1,6 +1,6 @@
 {
 	"name": "@gofynd/fdk-cli",
-	"version": "2.0.55",
+	"version": "2.0.56",
 	"description": "Fynd Development Kit",
 	"main": "",
 	"preferGlobal": true,
@@ -69,6 +69,7 @@
 		"inquirer-autocomplete-prompt": "^1.0.1",
 		"less": "^3.11.1",
 		"less-loader": "^5.0.0",
+		"leven": "^3.1.0",
 		"libphonenumber-js": "^1.7.46",
 		"listr": "^0.14.3",
 		"localtunnel": "^2.0.0",
@@ -86,7 +87,7 @@
 		"source-map": "^0.7.3",
 		"stacktrace-parser": "^0.1.10",
 		"url-join": "^4.0.1",
-		"vue-template-compiler": "^2.6.11",
+		"vue-template-compiler": "^2.6.13",
 		"ws": "^7.2.1",
 		"yargs": "^15.0.2"
 	},

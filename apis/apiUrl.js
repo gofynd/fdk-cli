@@ -40,9 +40,11 @@ const getGrindorUrl = host => {
   const grindor = urlJoin(baseURl, '/service/platform/assets');
   return grindor
 };
+
+
 const getBlitzkriegUrl = host => {
   const baseURl = getAPIUrl(host);
-  const blitzkrieg = urlJoin(baseURl, '/platform/theme');
+  const blitzkrieg = urlJoin(baseURl, '/service/platform/theme');
   return blitzkrieg
 };
 module.exports = {
@@ -52,5 +54,5 @@ module.exports = {
   getFreewayUrl,
   getGrindorUrl,
   getBlitzkriegUrl,
-  getSkywarpUrl
+  getSkywarpUrl,
 };

@@ -153,6 +153,22 @@ const loginUserWithEmail = async (emailId, password, host, verbose) => {
   return cookie;
 };
 
+
+const asyncForEach = async (array, callback) => {
+  for (let index = 0; index < array.length; index++) {
+      await callback(array[index], index, array)
+  }
+}
+
+
+const pageNameModifier = (page) => {
+  let pageArr = page.split('-');
+  let res = ''
+  pageArr.forEach(p => {
+    res+= p[0].toUpperCase() + p.substring(1) + ' '
+  })
+  return res.trim()
+}
 module.exports = {
   generateConfigJSON,
   readCookie,
@@ -161,5 +177,7 @@ module.exports = {
   writeContextData,
   removeContextData,
   setContext,
-  getActiveContext
+  getActiveContext,
+  asyncForEach,
+  pageNameModifier
 };
