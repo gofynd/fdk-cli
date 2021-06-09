@@ -41,12 +41,14 @@ const getTheme = async (appId, appToken, host, verbose) => {
 };
 
 
-async function getThemeV3(appId, appToken, themeId, host) {
-  const { company_id : companyId } = getActiveContext()
+async function getThemeV3(appId, appToken, themeId, host, companyId = null, cookie = null) {
+  const company_id  = companyId ? companyId : getActiveContext().companyId
   const headers = {
     'x-application-id': appId,
     'x-application-token': appToken,
-    Cookie: readCookie()
+    Cookie: cookie ? cookie : readCookie(),
+    'x-company-id': company_id,
+    host: host
   };
 
   const platform = getBlitzkriegUrl(host);
