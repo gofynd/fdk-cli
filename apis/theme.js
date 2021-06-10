@@ -42,12 +42,12 @@ const getTheme = async (appId, appToken, host, verbose) => {
 
 
 async function getThemeV3(appId, appToken, themeId, host, companyId = null, cookie = null) {
-  const company_id  = companyId ? companyId : getActiveContext().companyId
+  companyId  = companyId ? companyId : getActiveContext().company_id
   const headers = {
     'x-application-id': appId,
     'x-application-token': appToken,
     Cookie: cookie ? cookie : readCookie(),
-    'x-company-id': company_id,
+    'x-company-id': companyId,
     host: host
   };
 
