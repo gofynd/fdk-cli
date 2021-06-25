@@ -70,7 +70,11 @@ const setContext = contextName => {
   }
 };
 const getActiveContext = () => {
-  let contextData = JSON.parse(readFile('./.fdk/context.json'));
+  let contextData = {};
+  try {
+    contextData = JSON.parse(readFile('./.fdk/context.json'));
+  } 
+  catch(err) {}
   if (
     contextData.current_context.length > 0 &&
     contextData.contexts[contextData.current_context]
@@ -83,8 +87,24 @@ const getActiveContext = () => {
   }
 };
 
+const getDefaultContextData = () => {
+  return {
+    'current_context': '', 
+    'contexts': {
+      'default': {
+        name: 'default',
+        host: 'api.fynd.com'
+      }
+    }
+  }
+};
+
 const getActiveContextName = () => {
-  let contextData = JSON.parse(readFile('./.fdk/context.json'));
+  let contextData = {};
+  try {
+    contextData = JSON.parse(readFile('./.fdk/context.json'));
+  } 
+  catch(err) {}
   if (
     contextData.current_context.length > 0 &&
     contextData.contexts[contextData.current_context]
@@ -98,7 +118,11 @@ const getActiveContextName = () => {
 
 const writeContextData = (contextName, newContext, targetDir, upsert=false) => {
   targetDir = targetDir || './.fdk/context.json';
-  const contextData = JSON.parse(readFile(targetDir) || '{}');
+  let contextData = {}
+  try {
+    contextData = JSON.parse(readFile(targetDir) || '{}');
+  }
+  catch(err) {}
   if (contextData.contexts && contextData.contexts[contextName] && !upsert) {
     return Promise.reject('Context with the same name already exists');
   }
@@ -178,6 +202,7 @@ module.exports = {
   removeContextData,
   setContext,
   getActiveContext,
+  getDefaultContextData,
   asyncForEach,
   pageNameModifier
 };
