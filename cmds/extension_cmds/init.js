@@ -99,6 +99,7 @@ async function copyTemplateFiles(targetDirectory) {
 
 async function installNpmPackages(targetDir) {
     await execa('npm', ['i'], { cwd: targetDir });
+    await execa('npm', ['run', 'build'], { cwd: targetDir });
 }
 
 const createProject = async answerObject => {
