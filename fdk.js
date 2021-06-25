@@ -8,7 +8,7 @@ const yargs = require('yargs')
   .completion('autocomplete')
   .commandDir('cmds')
   .option('host', {
-    describe: 'Set host'
+    describe: 'Set host for syncing resources'
   })
   .version()
   .help().argv;

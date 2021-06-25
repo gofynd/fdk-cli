@@ -97,8 +97,8 @@ async function copyTemplateFiles(targetDirectory) {
     }
 }
 
-async function installNpmPackages() {
-    await execa('npm', ['i'], { cwd: process.cwd() });
+async function installNpmPackages(targetDir) {
+    await execa('npm', ['i'], { cwd: targetDir });
 }
 
 const createProject = async answerObject => {
@@ -106,21 +106,6 @@ const createProject = async answerObject => {
         let targetDir = answerObject.targetDir || process.cwd();
 
         const tasks = new Listr([
-            // {
-            //     title: 'Login Initiated',
-            //     task: async ctx => {
-            //         try {
-            //             ctx.cookie = await loginUserWithEmail(
-            //                 answerObject.email,
-            //                 answerObject.password,
-            //                 answerObject.host,
-            //                 answerObject.verbose
-            //             );
-            //         } catch (err) {
-            //             return Promise.reject(new Error(normalizeError(err).message))
-            //         }
-            //     }
-            // },
             {
                 title: 'Fetching Template Files',
                 task: async ctx => {
@@ -167,7 +152,7 @@ const createProject = async answerObject => {
                 title: 'Registering Extension',
                 task: async ctx => {
                     const extension_data = await registerExtension(ctx.host, ctx.partner_access_token, answerObject.name, answerObject.type, answerObject.verbose);
-                    const envData=`EXTENSION_API_KEY="${extension_data.client_id}"\nEXTENSION_API_TOKEN="${extension_data.secret}"\nEXTENSION_BASE_URL="${answerObject.launch_url}"\nEXTENSION_CLUSTER_URL="${ctx.host}"`;
+                    const envData=`EXTENSION_API_KEY="${extension_data.client_id}"\nEXTENSION_API_SECRET="${extension_data.secret}"\nEXTENSION_BASE_URL="${answerObject.launch_url}"\nEXTENSION_CLUSTER_URL="https://${ctx.host}"`;
                     fs.writeFileSync(`${targetDir}/.env`, envData);
                 }
             },
@@ -222,12 +207,17 @@ exports.handler = async args => {
 
     if (answers.template !== 'javascript') {
         console.log('template not present. allowed value: javascript'); // add more later
+        process.exit(0);
+    }
+    if (answers.targetDir != '.' && fs.existsSync(answers.targetDir)) {
+        console.log(`Directory "${answers.targetDir}" already exists. Please choose another`);
+        process.exit(0);
     }
     prompt_answers = await inquirer.prompt(questions);
     if (!contextData.partner_access_token) {
         contextData.partner_access_token = await partner_token_cmd({readOnly: true});
     }
-    answers.launch_url = "localdev.fyndx0.de"
+    answers.launch_url = "http://localdev.fyndx0.de"
     answers.partner_access_token = contextData.partner_access_token;
     answers = {
         ...answers,
