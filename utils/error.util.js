@@ -12,15 +12,15 @@ module.exports = {
                 obj = { ...data, message: data.message, code: status }
             }
             return obj;
+        } else if (error.message) {
+            // Something happened in setting up the request that triggered an Error
+            return { message: error.message }
         } else if (error.request) {
             // The request was made but no response was received
             // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
             // http.ClientRequest in node.js
             return { message: 'no response was received' };
-        } else {
-            // Something happened in setting up the request that triggered an Error
-            return { message: error.message }
-        }
+        } 
     }
 };
 

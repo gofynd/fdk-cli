@@ -93,7 +93,7 @@ const getDefaultContextData = () => {
     'contexts': {
       'default': {
         name: 'default',
-        host: 'api.fynd.com'
+        host: 'api.fyndx0.de'
       }
     }
   }

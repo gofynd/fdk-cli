@@ -86,8 +86,11 @@ async function copyTemplateFiles(targetDirectory) {
         if (!fs.existsSync(targetDirectory)) {
             createDirectory(targetDirectory);
         }
-        await execa('git', ['clone', INIT_PROJECT_URL, '.'], { cwd: targetDirectory });
-        writeFile(targetDirectory + '/.gitignore', `\n.fdk\\node_modules`, 'a+' );
+        await execa('git', ['init'], { cwd: targetDirectory });
+        await execa('git', ['remote', 'add', 'origin', INIT_PROJECT_URL], { cwd: targetDirectory });
+        await execa('git', ['pull', 'origin', 'main:main'], { cwd: targetDirectory });
+        // writeFile(targetDirectory + '/.gitignore', `\n.fdk\\node_modules`, 'a+' );
+        await rimraf.sync(`${targetDirectory}/.git`) // unmark as git repo
         return true;
     } catch (error) {
         return Promise.reject(error);
@@ -123,6 +126,7 @@ const createProject = async answerObject => {
                 task: async ctx => {
                     await copyTemplateFiles(targetDir, answerObject);
                     ctx.partner_access_token = answerObject.partner_access_token;
+                    ctx.host = answerObject.host;
                     ctx.extensionData = {
                         name: answerObject.name,
                         targetDir: targetDir,
@@ -133,17 +137,20 @@ const createProject = async answerObject => {
             {
                 title: 'Storing context',
                 task: async ctx => {
-                    createDirectory(targetDir + '/.fdk');
-                    const contextData = { current_context: '', contexts: {} };
-                    writeFile(
-                        targetDir + '/.fdk/context.json',
-                        JSON.stringify(contextData, undefined, 2)
-                    );
+                    let contextData = getDefaultContextData();
+                    if(!fs.existsSync(targetDir + '/.fdk')) {
+                        createDirectory(targetDir + '/.fdk');
+                        writeFile(
+                            targetDir + '/.fdk/context.json',
+                            JSON.stringify(contextData, undefined, 2)
+                        );
+                    }
+                    answerObject.contextName = answerObject.contextName || 'default';
                     const contextObj = {
                         partner_access_token: ctx.partner_access_token,
                         host: answerObject.host,
                     };
-                    writeContextData(answerObject.contextName, contextObj, targetDir + '/.fdk/context.json');
+                    writeContextData(answerObject.contextName, contextObj, targetDir + '/.fdk/context.json', true);
                     if (answerObject.verbose) {
                         logger(
                             `context.json written successfully with the following data \n ${JSON.stringify(
@@ -159,9 +166,9 @@ const createProject = async answerObject => {
             {
                 title: 'Registering Extension',
                 task: async ctx => {
-                    const extension_data = await registerExtension(ctx.host || 'api.fyndx0.de', ctx.partner_access_token, answerObject.name, answerObject.type);
-                    const envData=`EXTENSION_API_KEY="${extension_data.client_id}"\nEXTENSION_API_TOKEN="${extension_data.secret}"\nEXTENSION_BASE_URL="${answerObject.launch_url}"`;
-                    fs.writeFileSync('.env', envData);
+                    const extension_data = await registerExtension(ctx.host, ctx.partner_access_token, answerObject.name, answerObject.type, answerObject.verbose);
+                    const envData=`EXTENSION_API_KEY="${extension_data.client_id}"\nEXTENSION_API_TOKEN="${extension_data.secret}"\nEXTENSION_BASE_URL="${answerObject.launch_url}"\nEXTENSION_CLUSTER_URL="${ctx.host}"`;
+                    fs.writeFileSync(`${targetDir}/.env`, envData);
                 }
             },
             {
@@ -210,7 +217,7 @@ exports.handler = async args => {
         template: args.template || 'javascript',
         host: args.host || contextData.host,
         verbose: args.verbose,
-        targetDir: args['target-dir']
+        targetDir: args['target-dir'] || '.'
     };
 
     if (answers.template !== 'javascript') {
