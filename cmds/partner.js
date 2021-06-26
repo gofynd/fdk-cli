@@ -5,7 +5,7 @@ exports.builder = function(yargs) {
     .commandDir('partner_cmds')
     .showHelpOnFail(true, 'Specify --help for available options');
 };
-exports.aliases = ['t'];
+exports.aliases = ['pt'];
 exports.handler = function(argv) {
   console.log(argv.options);
 };

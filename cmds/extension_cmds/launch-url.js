@@ -1,11 +1,11 @@
-exports.command = 'extension <command> [options]';
-exports.desc = 'Extension Module of FDK';
+exports.command = 'launch-url <command> [options]';
+exports.desc = 'Extension Launch Url Module of FDK';
 exports.builder = function(yargs) {
   return yargs
-    .commandDir('extension_cmds')
+    .commandDir('launch_url_cmds')
     .showHelpOnFail(true, 'Specify --help for available options');
 };
-exports.aliases = ['e'];
+exports.aliases = ['u'];
 exports.handler = function(argv) {
   console.log(argv.options);
 };

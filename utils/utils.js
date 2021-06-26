@@ -76,6 +76,7 @@ const getActiveContext = () => {
   } 
   catch(err) {}
   if (
+    contextData.current_context &&
     contextData.current_context.length > 0 &&
     contextData.contexts[contextData.current_context]
   ) {
