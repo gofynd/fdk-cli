@@ -19,9 +19,10 @@ const {
     loginUserWithEmail,
     writeContextData,
     getActiveContext,
-    getDefaultContextData
+    getDefaultContextData,
+    replaceContent
 } = require('../../utils/utils');
-const { writeFile, createDirectory } = require('../../utils/file-utlis');
+const { writeFile, createDirectory, readFile } = require('../../utils/file-utlis');
 const { downloadFile } = require('../../utils/download');
 const { extractArchive } = require('../../utils/archive');
 
@@ -155,12 +156,16 @@ const createProject = async answerObject => {
                     const extension_data = await registerExtension(ctx.host, ctx.partner_access_token, answerObject.name, answerObject.type, answerObject.verbose);
                     const envData=`EXTENSION_API_KEY="${extension_data.client_id}"\nEXTENSION_API_SECRET="${extension_data.secret}"\nEXTENSION_BASE_URL="${answerObject.launch_url}"\nEXTENSION_CLUSTER_URL="https://${ctx.host}"`;
                     fs.writeFileSync(`${targetDir}/.env`, envData);
+                    let packageJson = readFile(`${targetDir}/package.json`);
+                    writeFile(`${targetDir}/package.json`, replaceContent(packageJson, 'groot', answerObject.name));
+                    let readMe = readFile(`${targetDir}/README.md`);
+                    writeFile(`${targetDir}/README.md`, replaceContent(readMe, 'groot', answerObject.name));
                 }
             },
             {
                 title: 'Installing Dependencies',
                 task: async ctx => {
-                    await installNpmPackages();
+                    await installNpmPackages(targetDir);
                 }
             }
         ]);
@@ -194,8 +199,9 @@ const createProject = async answerObject => {
 exports.handler = async args => {
     
     let contextData = getDefaultContextData().contexts.default;
+
     try {
-        contextData = getActiveContext();
+        contextData = getActiveContext(true);
     }
     catch(err) { }
 

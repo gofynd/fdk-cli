@@ -25,7 +25,7 @@ const handler = async args => {
     let contextData = getDefaultContextData().contexts.default;
 
     try {
-        contextData = getActiveContext();
+        contextData = getActiveContext(true);
     }
     catch (err) { }
 

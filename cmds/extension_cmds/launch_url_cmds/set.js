@@ -2,9 +2,10 @@
 const Listr = require('listr');
 const chalk = require('chalk');
 const fs = require('fs');
-const { setContext, getActiveContext, getDefaultContextData } = require('../../../utils/utils');
+const { setContext, getActiveContext, getDefaultContextData, replaceContent } = require('../../../utils/utils');
 const { updateLaunchUrl } = require('../../../apis/extension');
 const { logger } = require('../../../utils/logger');
+const { readFile, writeFile } = require('../../../utils/file-utlis');
 
 const command = 'set';
 const desc = 'Set a launch url for extension';
@@ -32,7 +33,7 @@ const handler = async args => {
     let contextData = getDefaultContextData().contexts.default;
 
     try {
-        contextData = getActiveContext();
+        contextData = getActiveContext(true);
     }
     catch (err) { }
 
@@ -47,17 +48,26 @@ const handler = async args => {
 };
 
 const setLaunchUrl = async ctx => {
+    let manualUpdateRequired = false;
     try {
         const tasks = new Listr([
             {
-                title: 'Setting launch url',
+                title: 'Updating launch url',
                 task: async () => {
                     await updateLaunchUrl(ctx.host, ctx.token, ctx.extension_id, ctx.launch_url, ctx.verbose);
+                    if (fs.existsSync('./.env')) {
+                        let envData = readFile('.env');
+                        envData = replaceContent(envData, `EXTENSION_BASE_URL=.*[\n]`, `EXTENSION_BASE_URL="${ctx.launch_url}"\n`);
+                        writeFile('./.env', envData);
+                    }
+                    else {
+                        manualUpdateRequired = true;
+                    }
                 }
             }
         ]);
         await tasks.run();
-        console.log(chalk.greenBright('Launch url set successfully'));
+        console.log(chalk.greenBright(`Launch url set successfully ${manualUpdateRequired? '. Please update launch url in your code.': ''}`));
     } catch (error) {
         console.log(chalk.red(error.message));
     }

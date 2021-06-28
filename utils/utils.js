@@ -69,7 +69,7 @@ const setContext = contextName => {
     return Promise.reject('No matching context found');
   }
 };
-const getActiveContext = () => {
+const getActiveContext = (throwError=false) => {
   let contextData = {};
   try {
     contextData = JSON.parse(readFile('./.fdk/context.json'));
@@ -84,7 +84,12 @@ const getActiveContext = () => {
     const currentContextObj = contextData.contexts[currentContext];
     return currentContextObj;
   } else {
-    return Promise.reject('No active context set');
+    if(!throwError) {
+      return Promise.reject('No active context set');
+    }
+    else {
+      throw Error('No active context set');
+    }
   }
 };
 
@@ -194,6 +199,11 @@ const pageNameModifier = (page) => {
   })
   return res.trim()
 }
+
+const replaceContent = (content, searchPattern, replaceStr) => {
+  return content.replace(new RegExp(`${searchPattern}`, 'g'), replaceStr)
+}
+
 module.exports = {
   generateConfigJSON,
   readCookie,
@@ -205,5 +215,6 @@ module.exports = {
   getActiveContext,
   getDefaultContextData,
   asyncForEach,
-  pageNameModifier
+  pageNameModifier,
+  replaceContent
 };
