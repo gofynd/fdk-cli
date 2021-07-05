@@ -8,14 +8,14 @@ const yargs = require('yargs')
   .completion('autocomplete')
   .commandDir('cmds')
   .option('host', {
-    describe: 'Set host'
+    describe: 'Set host for syncing resources'
   })
   .version()
   .help().argv;
 if (yargs.host && Object.keys(yargs).length === 3) {
-  if (!fs.existsSync('./config.json')) {
-    console.log(chalk.red('Not a theme directory'));
-  }
+  // if (!fs.existsSync('./config.json')) {
+  //   console.log(chalk.red('Not a theme directory'));
+  // }
 } else if (yargs._.length === 0) {
   require('yargs').showHelp();
 }
