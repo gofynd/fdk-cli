@@ -23,14 +23,11 @@ npm install -g @gofynd/fdk-cli
 ## Themes
 A theme is a VueJS project that developers can scaffold using this cli tool. Themes change the look and feel of websites built using Fynd Platform
 
-### Creating a new theme.
-To create a new theme you will required the application id and application token. This can be found under the Developer panel of Fynd Platform. [Screenshot](https://hdn-1.fynd.com/company/884/applications/000000000000000000000003/theme/pictures/free/original/theme-image-1625635306591.png)
-
 Use the below commands to create a new theme
 ```sh
 mkdir new-theme
 cd new-theme
-fdk theme new --email email@gmail.com --password 'mypassword' --app-id 000000000000000000000002 --app-token token123 --host api.fynd.com --theme-name new-theme --context-name new-theme --company-id 123
+fdk theme new --email [your-email] --password '[your-password]' --app-id [your-application-id] --app-token [your-application-token] --host api.fynd.com --theme-name [your-theme-name] --context-name [context-name] --company-id [your-company-id]
 ```
 
 ### Initializing an existing theme
@@ -41,7 +38,7 @@ Use the below commands to initialize a theme
 ```sh
 mkdir init-theme
 cd init-theme
-fdk theme init --email email@gmail.com --password 'mypassword' --app-id 000000000000000000000002 --app-token token123 --host api.fynd.com --context-name new-theme --company-id 1 --theme-id 523552df6179f0991e9afd91
+fdk theme init --email [your-email] --password '[your-password]' --app-id [your-application-id] --app-token [your-application-token]  --host api.fynd.com  --theme-name [your-theme-name] --context-name [context-name] --company-id [your-company-id] --theme-id [your-theme-id]
 ```
 
 ### Local Development
@@ -60,7 +57,7 @@ fdk theme serve --ssr=false
 Context is a JSON object which holds the configurations related the the application and theme. When you initialize or create a new theme a context is created with the name provided in the commands and assigned as the active context. You can add multiple contexts if you want to use the same theme on multiple applications or envoirnments 
 To add a context use the below command
 ```sh
-fdk context add --email email@gmail.com --password 'mypassword' --app-id 60b4a22ed261c3b04da8a383 --app-token token123 --host api.fynd.com --theme-id 60b4a22f58e65f652161b678 --context-name new-context
+fdk context add --email [your-email] --password '[your-password]' --app-id [your-application-id] --app-token [your-application-token]  --host api.fynd.com --context-name [context-name] --company-id [your-company-id] --theme-id [your-theme-id]
 ```
 
 To set a different context use the below command and from the dropdown select the context you want to use.
@@ -81,13 +78,20 @@ To publish a theme so that it appears in the theme library and can be used by ot
 fdk theme publish
 ```
 
+### Updating session
+Sometimes you might get unauthenticated errors. In that case you should update your context.
+Use the below command to update context
+```sh
+fdk context update --email [your-email-id] --password '[your-password]'
+```
+
 ### Other commands
 
 | Plugin | README |
 | ------ | ------ |
 | Pull Config | fdk theme pull-config |
 | Pull latest theme code | fdk theme pull |
-| List themes | fdk theme list --app-id 60ae5186057785954b550560  --app-token token123  --host api.fynd.com |
+| List themes | fdk theme list --app-id [your-application-id]  --app-token [your-application-token]  --host api.fynd.com |
 | Unpublish theme | fdk theme unpublish |
 
 <div id="Extensions"></div>

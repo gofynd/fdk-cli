@@ -19,13 +19,14 @@ const readFile = relativePath => {
   return fileContents;
 };
 
-const writeFile = (relativePath, fileContents) => {
+const writeFile = (relativePath, fileContents, mode='w') => {
   fs.ensureFileSync(relativePath);
   fs.writeFileSync(
     relativePath,
     fileContents,
     {
-      encoding: 'utf-8'
+      encoding: 'utf-8',
+      flag: mode
     },
     function (error) {
       if (error) {
