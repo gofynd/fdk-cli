@@ -107,6 +107,14 @@ Coming soon
 
 
 
-
+[npm-image]: https://img.shields.io/npm/v/@gofynd/fdk-cli?color=blue
+[npm-url]: https://www.npmjs.com/package/@gofynd/fdk-cli
+[downloads-image]: https://img.shields.io/npm/dm/@gofynd/fdk-cli
+[downloads-url]: https://www.npmjs.com/package/@gofynd/fdk-cli
+[coveralls-image]: https://img.shields.io/coveralls/github/gofynd/fdk-cli?color=success
+[coveralls-url]: https://coveralls.io/github/gofynd/fdk-cli
+[travis-url]: https://travis-ci.org/gofynd/fdk-cli/
+[license-image]: https://img.shields.io/npm/l/@gofynd/fdk-cli?color=success
+[license-url]: https://github.com/gofynd/fdk-cli/blob/master/LICENSE
 
 
