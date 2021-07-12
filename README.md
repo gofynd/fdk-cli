@@ -346,7 +346,7 @@ fdk extension init [options]
 #### **Command Options**
 | Option        | Description           | 
 | ------------- |-------------| 
-| --dir    | Directory |
+| --dir    | Target Directory |
 | --host    | Host |
 | --help    | Show help |
 
