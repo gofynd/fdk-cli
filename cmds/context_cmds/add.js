@@ -72,6 +72,17 @@ const addContextTask = async contextObj => {
     }
     const tasks = new Listr([
       {
+        title: 'Validating Creditials',
+        task: async ctx => {
+          ctx.cookie = await loginUserWithEmail(
+            contextObj.email,
+            contextObj.password,
+            contextObj.host,
+            contextObj.verbose
+          );
+        }
+      },
+      {
         title: 'Validating App ID & Token',
         task: async ctx => {
           ctx.app = await validateAppIdAndToken(
@@ -89,18 +100,9 @@ const addContextTask = async contextObj => {
             contextObj.appId,
             contextObj.token,
             contextObj.themeId,
-            contextObj.host
-          );
-        }
-      },
-      {
-        title: 'Validating Creditials',
-        task: async ctx => {
-          ctx.cookie = await loginUserWithEmail(
-            contextObj.email,
-            contextObj.password,
             contextObj.host,
-            contextObj.verbose
+            ctx.app.company_id,
+            ctx.cookie
           );
         }
       },
