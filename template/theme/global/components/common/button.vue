@@ -66,6 +66,7 @@ export default {
 .common-button {
   height: 40px;
   display: inline-flex;
+  border-radius: 3px;
   align-items: center;
   justify-content: center;
   outline: none;
@@ -79,12 +80,12 @@ export default {
   transition: all 0.4s ease;
 }
 .primary {
-  background-color: #000;
-  border: 1px solid #000;
-  color: #fff;
+  background-color: @ds-black;
+  border: 1px solid @ds-black;
+  color: @ds-white;
   &:hover {
-    background-color: #fff;
-    color: #000;
+    background-color: @ds-white;
+    color: @ds-black;
   }
 }
 

@@ -15,11 +15,18 @@
 @Required: #ee485d;
 @White: #ffffff;
 
+@Black:#000000;
+
+@ds-white:var(--secondaryColor);
+@ds-black:var(--primaryColor);;
+@ds-light-border-color: hsla(0, 0%, 100%, 0.1);
+
 @sm-min: 480px;
 @md-min: 768px;
 
+
 @mobile: ~"only screen and (max-width: @{sm-min})";
 @tablet: ~"only screen and (max-width: @{md-min})";
-
+@large-tablet: ~"only screen and (max-width: 1024px)";
 //BORDER
 @border-color: #e1e1e1;

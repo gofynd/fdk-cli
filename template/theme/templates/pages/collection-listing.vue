@@ -1,8 +1,12 @@
 <template>
-  <div class="main-container">
+  <div class="plp-main-container coll-cont">
     <empty-state
       v-if="!context.loading && (!context.items || !context.items.length)"
-      :title="`${context.productMeta.data[0].name} has not products.`"
+      :title="
+        context && context.product_meta && context.product_meta.data
+          ? `${context.product_meta.data[0].name} has not products.`
+          : 'No products found'
+      "
     />
     <div v-else-if="context && context.items && context.items.length > 0">
       <div class="bg-white products-cont">
@@ -11,494 +15,653 @@
             class="filter-sort-button-holder"
             @click.stop="showMobileFilters = true"
           >
-            <div class="filter-results " tabindex="0">
+            <div class="filter-results" tabindex="0">
               <span class="filter-sort-button-name">Filter-Sort By</span>
             </div>
           </div>
           <fdk-share>
             <template slot-scope="share">
-              <div @click="getShareLink(share)" class="share-button">
-                <img src="./../../assets/images/share.svg" />
+              <div class="share-button" @click.stop="getShareLink(share)">
+                <img src="./../../assets/images/share.svg" class="share-img" />
               </div>
             </template>
           </fdk-share>
         </div>
-        <div class="container refinements-holder " ref="refinementsHolder">
-          <fdk-filter-modal>
-            <template slot-scope="filterModalData">
+
+        <div class="left">
+          <div
+            class="filter-list"
+            v-for="(filter, idx) in getFilters"
+            :key="idx + '-desktop' + filter.key.display"
+          >
+            <div class="filters">
               <div
-                class="refinement-bar  d-block col-md-12"
-                :class="{ 'show-refinement-bar': showMobileFilters }"
+                class="filter-title"
+                v-on:click="filter.isOpen = !filter.isOpen"
+                v-if="filter.values && filter.values.length > 0"
               >
-                <div class="mobile-filter-sort-bar">
-                  <div class="mobile-sort-header sticky-div">
-                    <div class="mobile-sort-header-bar clearfix">
-                      <div class="pull-left mobile-header-title">
-                        <span>Sort By</span>
-                      </div>
-                      <button
-                        class="black-btn icon-close-black close js_close"
-                        aria-label="Close"
-                        @click="
-                          showMobileFilters = false;
-                          filterModalData.closeModal();
-                        "
-                      >
-                        <i class="fa fa-close"></i>
-                      </button>
-                    </div>
-                  </div>
-                  <form>
-                    <div class="sort-options-mobile" aria-hidden="true">
-                      <span role="group" aria-label="Sort by">
-                        <div
-                          class="radio-button-sort"
-                          v-for="(sortitem, index) in context.sort_on"
-                          :key="index + '-sort'"
-                          @click="
-                            selectedSort = sortitem;
-                            showMobileFilters = false;
-                            filterModalData.closeModal();
-                          "
-                        >
-                          <fdk-link
-                            :link="sortitem.url"
-                            class="filterValue sort-item"
-                          >
-                            <input
-                              class="sort-radio sort-option new-arrivals"
-                              type="radio"
-                              id="sortitem.value"
-                              name="sort-by"
-                              value="sortitem.value"
-                              :checked="sortitem.value === selectedSort.value"
-                              tabindex="-1"
-                            />
-                            <label
-                              for="sortitem.value"
-                              class="sort-radio-label"
-                            >
-                              {{ sortitem.display }}</label
-                            >
-                          </fdk-link>
-                        </div>
-                        <hr />
-                      </span>
-                    </div>
-                  </form>
+                <span>{{ filter.key.display }}</span>
+                <span
+                  v-bind:class="{
+                    'filter-arrow-up': filter.isOpen,
+                  }"
+                >
+                  <!-- Arrow icon -->
+                  <fdk-inline-svg :src="'arrow-dropdown-black'" />
+                </span>
+              </div>
+              <div
+                class="filter-disp"
+                v-bind:class="{ open: !filter.isOpen }"
+                v-if="filter.key.kind == 'multivalued'"
+              >
+                <div
+                  class="filter-search"
+                  v-if="filter.values && filter.values.length > SHOW_SEARCH_THRESHOLD"
+                >
+                  <input
+                    v-model="filter.searchText"
+                    :placeholder="placeholder"
+                    @input="filterResults(filter, idx)"
+                  />
+                  <span class="search-icon" @click="filterResults(filter, idx)">
+                    <fdk-inline-svg :src="'search-black'"></fdk-inline-svg>
+                  </span>
                 </div>
-                <div class="refinement-constraint ">
-                  <div class="mobile-filter-header d-lg-none">
-                    <div class="mobile-filter-header-bar clearfix">
-                      <div class="pull-left mobile-header-title">
-                        <span>Filter By</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    class="refinements-container "
-                    :class="{ 'display-mobile-none': !showMobileFilters }"
-                  >
-                    <div class="filter-header d-none d-lg-block">
-                      <span>Filter By</span>
-                    </div>
-                    <div class="refinements ">
-                      <div
-                        class="card js_collapsible js_refinement refinement collapsed refinement-fit"
-                        v-for="(filter, idx) in showMobileFilters
-                          ? filterModalData.filters
-                          : getFilters"
-                        :key="idx"
-                        :class="{
-                          'select-open': filter.isOpen,
-                          'hidden-filter': idx > 5 && showMoreFilters == false,
-                        }"
-                      >
-                        <template v-if="filter.key.kind === 'multivalued'">
-                          <h2
-                            class="js_card-header card-header"
-                            tabindex="0"
-                            v-if="filter.values.length > 0"
-                            @click="toggleDropdown(filter)"
-                          >
-                            <span class="filter-title js_title">
-                              {{ filter.key.display }}
-                              <span
-                                class="js_total-selected total-selected d-lg-none"
-                              ></span>
-                            </span>
-                            <span
-                              class="select-arrow icon-arrow-mid-down-black js_select-arrow"
-                            ></span>
-                          </h2>
-                          <div
-                            class="js_card-body card-body"
-                            :ref="'fltDropdown-cont' + filter.key.name"
-                            v-if="filter.values.length > 0"
-                          >
-                            <ul
-                              class="values"
-                              style="width:140px"
-                              :ref="'fltDropdown' + filter.key.name"
-                            >
-                              <li
-                                :title="
-                                  `Refine by ${filter.key.display}: ${filterItem.display}`
-                                "
-                                class="col-md-12 value js_value"
-                                v-for="(filterItem, index) in filter.values"
-                                :key="filterItem.value + index"
-                                @click="
-                                  updateFilters(
-                                    filter,
-                                    filterItem,
-                                    idx,
-                                    filterModalData.updateSelectedItem,
-                                    filterModalData.updateFilter
-                                  )
-                                "
-                              >
-                                <span
-                                  class="selection-box not-selected-box"
-                                  :class="{
-                                    'selected-box':
-                                      filterItem.is_selected == true,
-                                  }"
-                                  >{{ filterItem.display }}</span
-                                >
-                              </li>
-                            </ul>
+                <div class="example">
+                  <ul class="filter-items-container" id="scroll-bar">
+                    <li
+                      v-for="(filterItem, index) in filter.filteredValues"
+                      :key="'filter-desktop' + index"
+                    >
+                      <fdk-link :link="filterItem.url" v-if="index < 8">
+                        <div class="filter-item">
+                          <div v-if="!filterItem.is_selected">
+                            <!-- CheckBox Unchecked -->
+                            <fdk-inline-svg
+                              :src="'regular'"
+                              class="icon"
+                            ></fdk-inline-svg>
                           </div>
-                        </template>
-                        <div
-                          class="filter-disp"
-                          v-bind:class="{ open: !filter.isOpen }"
-                          v-if="filter.key.kind == 'range'"
-                        >
-                          <h2
-                            class="js_card-header card-header"
-                            tabindex="0"
-                            v-if="filter.values.length > 0"
-                            @click="toggleDropdown(filter)"
-                          >
-                            <span class="filter-title js_title">
-                              {{ filter.key.display }}
-                              <span
-                                class="js_total-selected total-selected d-lg-none"
-                              ></span>
-                            </span>
-                            <span
-                              class="select-arrow icon-arrow-mid-down-black js_select-arrow"
-                            ></span>
-                          </h2>
+                          <div v-if="filterItem.is_selected">
+                            <!-- CheckBox Checked -->
+                            <fdk-inline-svg
+                              class="icon"
+                              :src="'check-box-selected'"
+                            ></fdk-inline-svg>
+                          </div>
+
                           <div
-                            class="js_card-body card-body"
-                            :ref="'fltDropdown-cont' + filter.key.name"
+                            class="filter-item-value"
+                            :class="{
+                              active: filterItem.is_selected == true,
+                            }"
                           >
-                            <fdk-slider
-                              class="value"
-                              :class="{
-                                svalue: showMobileFilters,
-                                dvalue: !showMobileFilters,
-                              }"
-                            >
-                              <template slot-scope="sliderData">
-                                <div
-                                  class="slider-container"
-                                  :ref="'fltDropdown' + filter.key.name"
-                                >
-                                  <slider-filter
-                                    class="slider-position"
-                                    :show-slider-text="false"
-                                    :options="options"
-                                    :filteritem="filter"
-                                    :show-text-box="false"
-                                    @slider-query="
-                                      updateSliderFilters(
-                                        $event,
-                                        filter,
-                                        idx,
-                                        sliderData,
-                                        filterModalData
-                                      );
-                                      sliderData.replaceQuery($event, filter);
-                                    "
-                                  ></slider-filter>
-                                  <div class="slider-range-info">
-                                    <div>
-                                      <span
-                                        v-if="filter.values[0].currency_code"
-                                      >
-                                        {{
-                                          getMinValue(filter.values[0])
-                                            | currencyformat
-                                        }}
-                                      </span>
-                                      <span v-else
-                                        >{{
-                                          getMinValue(filter.values[0])
-                                        }}%</span
-                                      >
-                                    </div>
-                                    <div style="opacity: 0.7;	color: #1D1D1D;">
-                                      to
-                                    </div>
-                                    <div>
-                                      <span
-                                        v-if="filter.values[0].currency_code"
-                                      >
-                                        {{
-                                          getMaxValue(filter.values[0])
-                                            | currencyformat
-                                        }}
-                                      </span>
-                                      <span v-else
-                                        >{{
-                                          getMaxValue(filter.values[0])
-                                        }}%</span
-                                      >
-                                    </div>
-                                  </div>
-                                </div>
-                              </template>
-                            </fdk-slider>
+                            {{ filterItem.display }}
+                          </div>
+                          <div class="filter-item-count">
+                            ({{ filterItem.count }})
                           </div>
                         </div>
-                      </div>
-                    </div>
-                    <div
-                      class="filter-toggle d-lg-block px-0"
-                      v-if="filterModalData.filters.length > 6"
-                    >
-                      <span
-                        class="more-filters "
-                        tabindex="0"
-                        @click="showMoreFilters = true"
-                        v-if="!showMoreFilters"
+                      </fdk-link>
+                      <fdk-link
+                        :link="filterItem.url"
+                        v-else-if="viewMore[idx]"
                       >
-                        More Filters
+                        <div class="filter-item">
+                          <div v-if="!filterItem.is_selected">
+                            <!-- CheckBox Unchecked -->
+                            <fdk-inline-svg
+                              :src="'regular'"
+                              class="icon"
+                            ></fdk-inline-svg>
+                          </div>
+                          <div v-if="filterItem.is_selected">
+                            <!-- CheckBox Checked -->
+                            <fdk-inline-svg
+                              class="icon"
+                              :src="'check-box-selected'"
+                            ></fdk-inline-svg>
+                          </div>
+
+                          <div
+                            class="filter-item-value"
+                            :class="{
+                              active: filterItem.is_selected == true,
+                            }"
+                          >
+                            {{ filterItem.display }}
+                          </div>
+                          <div class="filter-item-count">
+                            ({{ filterItem.count }})
+                          </div>
+                        </div>
+                      </fdk-link>
+                    </li>
+                  </ul>
+                  <div
+                    v-if="filter.filteredValues && filter.filteredValues.length > 8"
+                    class="view-more"
+                    @click="changeViewMore(idx)"
+                  >
+                    {{
+                      !viewMore[idx]
+                        ? `+ ${filter.filteredValues.length - 8} more`
+                        : `- view less`
+                    }}
+                  </div>
+                </div>
+              </div>
+              <div
+                class="filter-disp"
+                v-bind:class="{ open: !filter.isOpen }"
+                v-else-if="
+                  filter.key.kind == 'range' && filter.values &&  filter.values.length > 0
+                "
+              >
+                <fdk-slider>
+                  <template slot-scope="sliderData">
+                    <slider-filter
+                      type="desktop"
+                      :filteritem="filter"
+                      :reset="resetSlider"
+                      :show-text-box="false"
+                      @slider-query="sliderData.replaceQuery($event, filter)"
+                    ></slider-filter>
+                  </template>
+                </fdk-slider>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="right">
+          <div class="main-actions-container">
+            <div class="search-result-options">
+              <div class="showing-results">
+                <p
+                  class="section-heading"
+                  style="font-weight: bold"
+                  v-if="
+                    context && context.product_meta && context.product_meta.data
+                  "
+                >
+                  {{ context.product_meta.data[0].name }}
+                </p>
+                Showing: {{ context.product_count }} Products
+              </div>
+              <div class="align-share">
+                <div
+                  class="sort-order js_sort-order sort-open"
+                  role="button"
+                  aria-label="Open/Close sort dropdown"
+                  tabindex="0"
+                  @click="showSortOn = !showSortOn"
+                >
+                  <div class="sort-list">
+                    <div class="sort-label">
+                      <span class="sort-selected-option">
+                        {{ getSortOnValue }}
                       </span>
                       <span
-                        class="less-filters "
-                        tabindex="0"
-                        @click="showMoreFilters = false"
-                        v-if="showMoreFilters"
-                      >
-                        Less Filters
-                      </span>
+                        class="select-arrow icon-arrow-mid-down-black"
+                      ></span>
                     </div>
-                  </div>
-                  <div class="clear"></div>
-                  <div
-                    class="clear-apply-wrapper d-lg-none "
-                    :class="{ 'display-none': !showMobileFilters }"
-                  >
-                    <div class="button-container">
-                      <button
-                        class="secondary-btn clear js_clear-filters"
-                        tabindex="0"
-                        @click="
-                          filterModalData.resetFilters();
-                          filterModalData.applyFilters();
-                          showMobileFilters = false;
-                        "
-                      >
-                        Clear
-                      </button>
-                    </div>
-                    <div class="button-container">
-                      <button
-                        class="primary-btn apply-filters js_apply-filters"
-                        tabindex="0"
-                        @click="
-                          filterModalData.applyFilters();
-                          showMobileFilters = false;
-                        "
-                      >
-                        Apply
-                      </button>
-                    </div>
-                  </div>
-                  <div
-                    class="filter-bar row"
-                    v-if="
-                      showMobileFilters
-                        ? selectedOptions(filterModalData).length > 0
-                        : selectedOptions(context).length > 0
-                    "
-                  >
-                    <div class="filter-clearall-container">
-                      <div
-                        class="filter-clearall-secondary col-12"
-                        data-filterlenght="4"
-                      >
-                        <a
-                          class="reset"
-                          @click="
-                            filterModalData.resetFilters();
-                            filterModalData.applyFilters();
-                          "
-                          >Clear all</a
-                        >
-                      </div>
-                    </div>
-                    <ul
-                      class="filters-close-main-container"
-                      v-if="
-                        showMobileFilters
-                          ? selectedOptions(filterModalData).length > 0
-                          : selectedOptions(context).length > 0
-                      "
-                    >
+                    <ul class="sort-list-items" v-if="showSortOn">
                       <li
-                        class="filter-value"
-                        v-for="(item, index) in showMobileFilters
-                          ? selectedOptions(filterModalData)
-                          : selectedOptions(context)"
-                        :key="index + '-modal'"
+                        class="sort-option sort-selected"
+                        v-for="(item, idx) in context.sort_on"
+                        :key="idx"
+                        @click="updateSelection(item)"
+                        tabindex="-1"
                       >
-                        <div
-                          class="filter-close-container"
-                          @click="
-                            updateActiveFilters(
-                              item,
-                              item.filterIndex,
-                              filterModalData.updateFilter
-                            )
-                          "
-                          v-if="!showMobileFilters"
-                        >
-                          <div
-                            class="icon-close-black icon-close-black-filter"
-                          ></div>
-                          {{ getFilterDisplay(context.filters, item) }}
-                        </div>
+                        <fdk-link :link="item.url" class="sort-option">
+                          {{ item.display }}
+                        </fdk-link>
                       </li>
                     </ul>
                   </div>
                 </div>
+                <fdk-share v-click-outside="hideShare">
+                  <template slot-scope="share">
+                    <div class="share-button" @click="getShareLink(share)">
+                      <img
+                        src="./../../assets/images/share.svg"
+                        class="share-img"
+                      />
+                      <transition name="fade">
+                        <rd-share
+                          :title="`Spread the shopping delight! Scan QR & share these products with
+                              your loved ones`"
+                          :shareLoading="shareLoading"
+                          :qr_code="qr_code"
+                          @close-share="showShare = false"
+                          v-if="showShare"
+                          :share_link="share_link"
+                        />
+                      </transition>
+                    </div>
+                  </template>
+                </fdk-share>
               </div>
-              <div
-                class="cls-modal-bg"
-                :class="{ 'display-block': showMobileFilters }"
-                @click="hideMobileFilter(filterModalData.closeModal)"
-              ></div>
-            </template>
-          </fdk-filter-modal>
-        </div>
-        <div class="main-actions-container">
-          <div class="search-result-options">
-            <div class="showing-results">
-              Showing: {{ context.product_count }} Products
-            </div>
-            <div class="align-share">
-              <div
-                class="sort-order js_sort-order sort-open"
-                role="button"
-                aria-label="Open/Close sort dropdown"
-                tabindex="0"
-                @click="showSortOn = !showSortOn"
-              >
-                <div class="sort-list">
-                  <div class="sort-label">
-                    <span class="sort-selected-option">
-                      {{ selectedSort.display }}
-                    </span>
-                    <span class="select-arrow icon-arrow-mid-down-black"></span>
-                  </div>
-                  <ul class="sort-list-items" v-if="showSortOn">
-                    <li
-                      class="sort-option sort-selected"
-                      v-for="(item, idx) in context.sort_on"
-                      :key="idx"
-                      @click="selectedSort = item"
-                      tabindex="-1"
-                    >
-                      <fdk-link :link="item.url"> {{ item.display }} </fdk-link>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              <fdk-share>
-                <template slot-scope="share">
-                  <div @click="getShareLink(share)" class="share-button">
-                    <img src="./../../assets/images/share.svg" />
-                  </div>
-                </template>
-              </fdk-share>
             </div>
           </div>
-        </div>
-        <div class="mobile-items-found">
-          <div class="product-count light-text">
-            {{ context.product_count }} items Found
+          <div class="mobile-items-found">
+            <p
+              class="section-heading"
+              style="font-weight: bold; margin-left: 0"
+              v-if="context && context.product_meta && context.product_meta.data"
+            > 
+              {{ context.product_meta.data[0].name }}
+            </p>
+            Showing: {{ context.product_count }} Products
           </div>
-        </div>
-        <div class="main-product-container">
-          <fdk-infinite-loading>
-            <template slot-scope="infiniteLoaderData">
-              <div class="product-container">
+          <div class="main-product-container">
+            <fdk-filter-modal>
+              <template slot-scope="filterModalData">
                 <div
-                  v-for="(product, index) in context.items"
-                  :key="index + '-product.uid'"
+                  class="container refinements-holder"
+                  ref="filterSortModalDiv"
                 >
-                  <div @click="redirectToProduct(product.url)">
-                    <product-card
-                      :product="product"
-                      :context="context"
-                    ></product-card>
+                  <div
+                    ref="mobileActionContainer"
+                    class="refinement-bar d-block col-md-12"
+                    :class="{ 'show-refinement-bar': showMobileFilters }"
+                  >
+                    <div class="mobile-sort-header sticky-div">
+                      <div class="mobile-sort-header-bar clearfix">
+                        <div class="pull-left mobile-header-title">
+                          <span>Sort & Filters</span>
+                        </div>
+                        <button
+                          class="black-btn icon-close-black close js_close"
+                          aria-label="Close"
+                          @click="
+                            showMobileFilters = false;
+                            filterModalData.closeModal();
+                          "
+                        >
+                          <i class="fa fa-close"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="mobile-filter-sort-bar">
+                      <form>
+                        <div class="sort-options-mobile" aria-hidden="true">
+                          <span role="group" aria-label="Sort by">
+                            <div
+                              class="radio-button-sort"
+                              v-for="(sortitem, index) in context.sort_on"
+                              :key="index + '-sort'"
+                              @click="
+                                updateSelection(sortitem);
+                                showMobileFilters = false;
+                                filterModalData.closeModal();
+                                redirectToPage(sortitem.url);
+                              "
+                            >
+                              <div class="filterValue sort-item">
+                                <span
+                                  class="selection-box not-selected-box"
+                                  :class="{
+                                    'selected-box':
+                                      getSortOnValue === sortitem.display,
+                                  }"
+                                >
+                                  {{ sortitem.display }}
+                                </span>
+                              </div>
+                            </div>
+                            <hr />
+                          </span>
+                        </div>
+                      </form>
+                    </div>
+                    <div class="refinement-constraint">
+                      <div
+                        class="refinements-container"
+                        :class="{ 'display-mobile-none': !showMobileFilters }"
+                      >
+                        <div class="filter-header d-none d-lg-block">
+                          <span>Filter By</span>
+                        </div>
+                        <div class="refinements">
+                          <div
+                            class="card js_collapsible js_refinement refinement collapsed refinement-fit"
+                            v-for="(filter, idx) in filterModalData.filters"
+                            :key="idx"
+                            :class="{
+                              'select-open': filter.isOpen,
+                              'hidden-filter':
+                                idx > 5 && showMoreFilters == false,
+                            }"
+                          >
+                            <template v-if="filter.key.kind === 'multivalued'">
+                              <h2
+                                class="js_card-header card-header"
+                                tabindex="0"
+                                v-if="filter.values && filter.values.length > 0"
+                                @click="toggleDropdown(filter)"
+                              >
+                                <span class="filter-title js_title">
+                                  {{ filter.key.display }}
+                                  <span
+                                    class="js_total-selected total-selected d-lg-none"
+                                  ></span>
+                                </span>
+                                <span
+                                  class="select-arrow icon-arrow-mid-down-black js_select-arrow"
+                                ></span>
+                              </h2>
+                              <div
+                                class="js_card-body card-body"
+                                :ref="'fltDropdown-cont' + filter.key.name"
+                                v-if="filter.values && filter.values.length > 0"
+                              >
+                                <ul
+                                  class="values"
+                                  :ref="'fltDropdown' + filter.key.name"
+                                >
+                                  <li
+                                    :title="`Refine by ${filter.key.display}: ${filterItem.display}`"
+                                    class="col-md-12 value js_value"
+                                    v-for="(filterItem, index) in filter.values"
+                                    :key="filterItem.value + index"
+                                    @click="
+                                      updateFilters(
+                                        filter,
+                                        filterItem,
+                                        idx,
+                                        filterModalData.updateSelectedItem,
+                                        filterModalData.updateFilter
+                                      )
+                                    "
+                                  >
+                                    <span
+                                      class="selection-box not-selected-box"
+                                      :class="{
+                                        'selected-box':
+                                          filterItem.is_selected == true,
+                                      }"
+                                      >{{ filterItem.display }}</span
+                                    >
+                                  </li>
+                                </ul>
+                              </div>
+                            </template>
+                            <div
+                              class="filter-disp"
+                              v-bind:class="{ open: !filter.isOpen }"
+                              v-if="filter.key.kind == 'range'"
+                            >
+                              <h2
+                                class="js_card-header card-header"
+                                tabindex="0"
+                                v-if="filter.values && filter.values.length > 0"
+                                @click="toggleDropdown(filter)"
+                              >
+                                <span class="filter-title js_title">
+                                  {{ filter.key.display }}
+                                  <span
+                                    class="js_total-selected total-selected d-lg-none"
+                                  ></span>
+                                </span>
+                                <span
+                                  class="select-arrow icon-arrow-mid-down-black js_select-arrow"
+                                ></span>
+                              </h2>
+                              <div
+                                class="js_card-body card-body"
+                                :ref="'fltDropdown-cont' + filter.key.name"
+                              >
+                                <fdk-slider class="value">
+                                  <template slot-scope="sliderData">
+                                    <div
+                                      class="slider-container"
+                                      :ref="'fltDropdown' + filter.key.name"
+                                    >
+                                      <slider-filter
+                                        type="mobile"
+                                        class="slider-position"
+                                        :show-slider-text="false"
+                                        :options="options"
+                                        :filteritem="filter"
+                                        :show-text-box="false"
+                                        :reset="resetSlider"
+                                        @slider-mount="
+                                          resetSlider = !resetSlider
+                                        "
+                                        @slider-query="
+                                          updateSliderFilters(
+                                            $event,
+                                            filter,
+                                            idx,
+                                            sliderData,
+                                            filterModalData
+                                          )
+                                        "
+                                      ></slider-filter>
+                                      <div class="slider-range-info">
+                                        <div>
+                                          <span
+                                            v-if="
+                                              filter.values[0].currency_code
+                                            "
+                                          >
+                                            {{
+                                              getMinValue(filter.values[0])
+                                                | currencyformat
+                                            }}
+                                          </span>
+                                          <span v-else
+                                            >{{
+                                              getMinValue(filter.values[0])
+                                            }}%</span
+                                          >
+                                        </div>
+                                        <div
+                                          style="opacity: 0.7; color: #1d1d1d"
+                                        >
+                                          to
+                                        </div>
+                                        <div>
+                                          <span
+                                            v-if="
+                                              filter.values[0].currency_code
+                                            "
+                                          >
+                                            {{
+                                              getMaxValue(filter.values[0])
+                                                | currencyformat
+                                            }}
+                                          </span>
+                                          <span v-else
+                                            >{{
+                                              getMaxValue(filter.values[0])
+                                            }}%</span
+                                          >
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </template>
+                                </fdk-slider>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        class="clear-apply-wrapper d-lg-none"
+                        :class="{ 'display-none': !showMobileFilters }"
+                      >
+                        <div class="button-container">
+                          <button
+                            class="secondary clear js_clear-filters"
+                            tabindex="0"
+                            @click="
+                              filterModalData.resetFilters();
+                              filterModalData.applyFilters();
+                              showMobileFilters = false;
+                            "
+                          >
+                            Clear
+                          </button>
+                        </div>
+                        <div class="button-container">
+                          <button
+                            class="secondary apply-filters js_apply-filters"
+                            tabindex="0"
+                            @click="
+                              filterModalData.applyFilters();
+                              showMobileFilters = false;
+                            "
+                          >
+                            Apply
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="cls-modal-bg"
+                    :class="{ 'display-block': showMobileFilters }"
+                    @click="hideMobileFilter(filterModalData.closeModal)"
+                  ></div>
+                </div>
+
+                <div
+                  class="active-filters-container"
+                  v-if="selectedOptions(context).length > 0"
+                >
+                  <div
+                    v-for="(item, index) in selectedOptions(context)"
+                    :key="index"
+                  >
+                    <div
+                      @click="
+                        updateSelectedOptions(
+                          item,
+                          filterModalData.updateFilter
+                        )
+                      "
+                      class="selected-item"
+                    >
+                      <span>{{ getFilterDisplay(context.filters, item) }}</span>
+                      <span style="margin-left: 10px">
+                        <div>
+                          <span class="close-chip-icon"></span>
+                        </div>
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    class="reset-btn"
+                    @click="
+                      filterModalData.resetFilters();
+                      filterModalData.applyFilters();
+                      resetFilters(filterModalData.resetFilters);
+                    "
+                    v-if="selectedOptions(context).length > 1"
+                  >
+                    <span>CLEAR ALL</span>
                   </div>
                 </div>
-                <!-- <loader
+              </template>
+            </fdk-filter-modal>
+
+            <fdk-infinite-loading>
+              <template slot-scope="infiniteLoaderData">
+                <div class="product-container">
+                  <div
+                    v-for="(product, index) in context.items"
+                    :key="index + '-product.uid'"
+                    class="product-grid-item"
+                  >
+                    <div
+                      @click="redirectToPage(product.url)"
+                      class="product-link-wrap"
+                    >
+                      <product-card
+                        :product="product"
+                        :context="context"
+                        :listing_price_config="listingPriceConfig"
+                      ></product-card>
+                    </div>
+                  </div>
+                  <!-- <loader
                   id="loader"
                   class="loader-center"
                   v-if="infiniteLoaderData.hasNext"
                 ></loader> -->
-              </div>
-            </template>
-          </fdk-infinite-loading>
+                </div>
+                <div class="loader-center" v-if="infiniteLoaderData.hasNext">
+                  <img src="../../assets/images/loader.gif" alt="" />
+                </div>
+              </template>
+            </fdk-infinite-loading>
+          </div>
         </div>
+        <transition name="fade">
+          <rd-share
+            :title="`Spread the shopping delight! Scan QR & share these products with
+                      your loved ones`"
+            :shareLoading="shareLoading"
+            :qr_code="qr_code"
+            @close-share="showShare = false"
+            v-if="showShare"
+            :share_link="share_link"
+            class="showShare"
+          />
+        </transition>
       </div>
     </div>
+    <toast :id="'toast-message'" :content="toast_message"></toast>
+    <loader v-if="isLoading" />
   </div>
 </template>
 
 <script>
-import productcard from './../../global/components/product-card.vue';
-import sliderfilter from './../../global/components/slider-filter.vue';
-import loader from './../components/loader';
-import emptystate from './../components/empty-state';
-import { detectMobileWidth, copyToClipboard } from './../../helper/utils';
+import productcard from "./../../global/components/product-card.vue";
+import sliderfilter from "./../../global/components/slider-filter.vue";
+import loader from "./../components/loader";
+import emptystate from "./../components/empty-state";
+import { detectMobileWidth } from "./../../helper/utils";
+import share from "./../../global/components/common/share";
+import toast from "./../../global/components/toast.vue";
 export default {
   components: {
-    'product-card': productcard,
-    'empty-state': emptystate,
-    'slider-filter': sliderfilter,
+    "product-card": productcard,
+    "empty-state": emptystate,
+    "slider-filter": sliderfilter,
     loader,
+    "rd-share": share,
+    toast,
   },
   data() {
     return {
-      url: window.location.href,
+      toast_message: "",
+      isLoading: false,
       showFilters: false,
+      placeholder: "Search",
+      SHOW_SEARCH_THRESHOLD: 8,
       showSortOn: false,
       breadcrumbs: [],
-      selectedSort: { value: 'popular', display: 'Popularity' },
+      selectedSort: { value: "popular", display: "Popularity" },
       activeFilters: [],
       filteredItems: [],
       options: {
         dotSize: 15,
         processStyle: {
-          backgroundColor: '#000',
-          borderColor: '#000',
-          height: '5px',
+          backgroundColor: "#000",
+          borderColor: "#000",
+          height: "5px",
         },
         railStyle: {
-          backgroundColor: '#ECECEC',
-          borderColor: '#ECECEC',
-          height: '4px',
+          backgroundColor: "#ECECEC",
+          borderColor: "#ECECEC",
+          height: "4px",
         },
-        tooltip: 'none',
-        dotStyle: { backgroundColor: '#000', borderColor: '#000' },
+        tooltip: "none",
+        dotStyle: { backgroundColor: "#000", borderColor: "#000" },
       },
       showSortByModal: false,
       showFilterByModal: false,
@@ -506,70 +669,96 @@ export default {
       resetSlider: false,
       showMoreFilters: false,
       firstRun: true,
+      searchTextObj: {},
       showMobileFilters: false,
+      viewMore: [],
+      showShare: false,
+      share_link: "",
+      qr_code: "",
+      shareLoading: false,
     };
   },
   mounted() {
     let value = 0;
-    if (!detectMobileWidth()) {
-      window.addEventListener('scroll', () => {
-        {
-          let filBox = this.$refs['refinementsHolder'];
-          if (filBox) {
-            let YOffset = filBox.offsetTop;
-            value = YOffset === 0 ? value : YOffset;
-            if (window.pageYOffset >= value) {
-              filBox.classList.add('sticky-filter');
-            } else {
-              filBox.classList.remove('sticky-filter');
-            }
-          }
-        }
-      });
-    }
     if (!this.context.loading) {
       this.activeFiltersSet = true;
     }
   },
   created() {},
 
-  destroyed() {
-    window.removeEventListener('scroll', () => {
-      {
-        let fltBox = this.$refs.refinementsHolder;
-        let YOffset = fltBox.offsetTop;
-        value = YOffset === 0 ? value : YOffset;
-        if (window.pageYOffset >= value) {
-          fltBox.classList.add('sticky-filter');
-        } else {
-          fltBox.classList.remove('sticky-filter');
-        }
-      }
-    });
-  },
   methods: {
+    updateSelection: function updateSelection(item) {
+      const val = item.value;
+      const sortItemIndex = this.context.sort_on.findIndex(
+        (item) => item.value === val
+      );
+      this.$router.push(this.context.sort_on[sortItemIndex].url);
+    },
+    resetFilters(modalReset) {
+      this.showMobileFilters = false;
+      if (this.$refs && this.$refs.mobileActionContainer) {
+        modalReset();
+      }
+      this.$router.push({ query: {} });
+    },
+    updateSelectedOptions(item, modalUpdate) {
+      if (this.$refs && this.$refs.mobileActionContainer) {
+        modalUpdate(item, item.filterIndex);
+      }
+      if (item.url) {
+        this.$router.push(item.url);
+      } else {
+        this.getRangeURL(item);
+      }
+    },
+    getRangeURL(item) {
+      let key = this.context.filters[item.filterIndex].key.name;
+      let q = { ...this.$route.query };
+      if (Object.keys(q).includes(key)) {
+        delete q[key];
+      }
+      this.$router.push({ ...this.$route, query: q });
+    },
+    hideShare() {
+      if (!this.isMobile) {
+        this.showShare = false;
+      }
+    },
+
     getShareLink(share) {
-      share.getShareLink(this.url).then((res) => {
-        this.copyToClipboard(res);
+      this.showShare = true;
+      this.shareLoading = true;
+      share.getShareLink(window.location.href).then((res) => {
+        share.generateQRCode(res).then(( data ) => {
+          this.qr_code = `
+                <div style="width: 250px;">
+                  ${data.svg}
+                </div>
+                `;
+          this.share_link = res;
+          this.shareLoading = false;
+        });
       });
     },
-    copyToClipboard(data) {
-      copyToClipboard(data);
-      this.$toasted.global.showToaster('Link Copied to Clipboard', 1000);
-    },
-    updateActiveFilters(item, filterIndex, updateFilter) {
-      console.log(this.showMobileFilters);
-      if (!this.showMobileFilters) {
-        if (item.url) {
-          this.$router.push(item.url);
+    filterResults: function filterResults(filter, index) {
+      this.getFilters[index].filteredValues = filter.values.filter((item) => {
+        if (filter.searchText && filter.searchText.length > 0) {
+          this.searchTextObj[this.getFilters[index].key.name] =
+            filter.searchText;
+          return (
+            item.display
+              .toLowerCase()
+              .indexOf(filter.searchText.toLowerCase()) !== -1
+          );
         } else {
-          this.resetSlider = !this.resetSlider;
-          this.getRangeURL(item);
+          return item;
         }
-        return;
-      }
-      console.log(updateFilter);
-      updateFilter(item, filterIndex);
+      });
+      this.$forceUpdate();
+    },
+    changeViewMore(idx) {
+      this.viewMore[idx] = !this.viewMore[idx];
+      this.$forceUpdate();
     },
     getRangeURL(item) {
       let key = this.context.filters[item.filterIndex].key.name;
@@ -584,19 +773,18 @@ export default {
         sliderData.replaceQuery(query, filter);
         return;
       }
-      console.log(this.showMobileFilters);
       filterModalData.updateSelectedItem(filter, idx);
       filterModalData.updateSliderInfo(query, filter);
     },
     getBreadCrumbs() {
       let arr = [];
       arr.push({
-        display: 'Home',
-        link: '/',
+        display: "Home",
+        link: "/",
       });
       arr.push({
-        display: 'Products',
-        link: '/products/',
+        display: "Products",
+        link: "/products/",
       });
       return arr;
     },
@@ -612,7 +800,7 @@ export default {
       this.showMobileFilters = false;
     },
 
-    selectedOptions: function(context) {
+    selectedOptions: function (context) {
       let { filters } = context;
       filters = filters || [];
       let filterOptionsArray = filters.reduce((a, f, index) => {
@@ -634,35 +822,36 @@ export default {
     },
     getFilterDisplay: function getFilterDisplay(filters, filterObj) {
       let filter = filters[filterObj.filterIndex];
-      if (filter.key.kind === 'range') {
+      if (filter.key.kind === "range") {
         if (filterObj.currency_code) {
           return (
-            '₹ ' + filterObj.selected_min + ' - ₹ ' + filterObj.selected_max
+            this.$options.filters.currencyformat(filterObj.selected_min) +
+            " - " +
+            this.$options.filters.currencyformat(filterObj.selected_max)
           );
         } else {
-          return filterObj.selected_min + '% - ' + filterObj.selected_max + '%';
+          return filterObj.selected_min + "% - " + filterObj.selected_max + "%";
         }
       }
       return filterObj.display.toUpperCase();
     },
 
     closeModal: function closeModal(event, type) {
-      if (type === 'sort') {
+      if (type === "sort") {
         this.showSortByModal = false;
-      } else if (type === 'filter') {
+      } else if (type === "filter") {
         this.showFilterModal = false;
       }
     },
-    redirectToProduct: function redirectToProduct(productUrl) {
-      this.$router.push(productUrl);
+    redirectToPage: function redirectToPage(url) {
+      this.$router.push(url);
     },
 
     toggleDropdown(filter) {
       if (!filter.isOpen) {
-        let ref = this.$refs['fltDropdown' + filter.key.name];
-        let refCont = this.$refs['fltDropdown-cont' + filter.key.name];
-        console.log(ref, refCont);
-        refCont[0].style.maxHeight = ref[0].clientHeight + 'px';
+        let ref = this.$refs["fltDropdown" + filter.key.name];
+        let refCont = this.$refs["fltDropdown-cont" + filter.key.name];
+        refCont[0].style.maxHeight = ref[0].clientHeight + "px";
       }
       filter.isOpen = !filter.isOpen;
     },
@@ -682,52 +871,70 @@ export default {
     },
   },
   computed: {
+    getSortOnValue() {
+      let val = "";
+      let item = [];
+      if (this.context && this.context.sort_on) {
+        item = this.context.sort_on.filter((item) => item.is_selected);
+      }
+      return item.length > 0 ? item[0].display : "Popular";
+    },
     getFilters: function getFilters() {
-      let oldFilters = this.filteredItems;
       this.filteredItems = [];
       const data =
         this.context.filters &&
-        this.context.filters.map((item, idx) => {
-          // item.isOpen ? (item.isOpen = true) : (item.isOpen = false);
-          // item.key.kind === "range" ? (item.isOpen = true) : "";
-          if (item.key.kind == 'multivalued') {
-            if (this.firstRun) {
-              item.isOpen = false;
-            } else {
-              let findIt = oldFilters.filter((it, idx1) => {
-                return it.key.name === item.key.name;
-              });
-              if (findIt.length > 0) {
-                item.isOpen = findIt[0].isOpen;
-              } else {
-                item.isOpen = false;
-              }
-            }
-          }
+        this.context.filters.map((item) => {
+          item.searchText =
+            this.searchTextObj[item] && this.searchTextObj[item.key]
+              ? this.searchTextObj[item.key.name]
+              : "";
+          item.filteredValues = item.values;
           this.filteredItems.push(item);
+
+          return item;
         });
-      if (this.context.filters) {
-        this.firstRun = false;
-      }
-      this.resetSlider = !this.resetSlider;
       return this.filteredItems;
+    },
+    isMobile() {
+      return detectMobileWidth();
+    },
+    listingPriceConfig() {
+      return this.context.app_features?.feature?.common?.listing_price?.value;
     },
   },
   watch: {
-    context: function(newValue) {
+    context: function (newValue) {
       this.context = newValue;
+      if (
+        this.context.filters &&
+        this.context.filters.length > this.viewMore.length
+      ) {
+        for (var i = 0; i < this.context.filters.length; i++) {
+          if (!this.viewMore[i]) {
+            this.$set(this.viewMore, i, false);
+          }
+        }
+      }
     },
   },
 };
 </script>
 
 <style lang="less" scoped>
+.showShare {
+  display: none;
+  @media @mobile {
+    display: flex;
+  }
+}
+/deep/.mobile-header {
+  z-index: 1;
+}
 .slider-position {
   margin-top: 15px;
 }
 .main-container {
   margin-top: 5px;
-  font-family: Roboto, sans-serif;
 }
 
 /**
@@ -737,7 +944,6 @@ export default {
 .refinements {
   display: -ms-flexbox;
   display: flex;
-  -ms-flex-align: start;
   align-items: flex-start;
   -ms-flex-wrap: wrap;
   flex-wrap: wrap;
@@ -749,6 +955,7 @@ export default {
   align-items: center;
   .share-button {
     cursor: pointer;
+    position: relative;
     padding-left: 15px;
   }
 }
@@ -773,6 +980,10 @@ export default {
   padding: 0;
   width: 100%;
   z-index: 100;
+  display: none;
+  @media @mobile {
+    display: block;
+  }
 }
 
 @media (min-width: 992px) {
@@ -795,6 +1006,7 @@ export default {
 }
 
 .refinement-bar {
+  width: calc(100% - 57px);
   top: 0;
   height: 100%;
   left: -100%;
@@ -803,6 +1015,8 @@ export default {
   transition: left 0.5s ease;
   background-color: #f9f9f9;
   margin: 0 auto;
+  z-index: 100;
+  overflow-y: scroll;
 }
 
 @media (min-width: 992px) {
@@ -819,10 +1033,6 @@ export default {
 
 .refinement-bar.show-refinement-bar {
   left: 0;
-  overflow-y: scroll;
-  -webkit-overflow-scrolling: touch;
-  z-index: 100;
-  width: calc(100% - 57px);
 }
 
 .refinement-bar .close {
@@ -920,20 +1130,14 @@ export default {
 }
 
 .mobile-refinement-bar {
-  display: -ms-flexbox;
-  display: flex;
-  -ms-flex-align: start;
-  align-items: center;
-  -ms-flex-pack: justify;
-  justify-content: space-between;
-  background-color: #f9f9f9;
-  padding: 14px;
-  padding: 0.875rem;
-}
-
-@media (min-width: 992px) {
-  .mobile-refinement-bar {
-    display: none;
+  display: none;
+  @media @mobile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f9f9f9;
+    padding: 14px;
+    padding: 0.875rem;
   }
 }
 
@@ -964,7 +1168,7 @@ export default {
 }
 
 .mobile-refinement-bar .filter-results::after {
-  content: '+';
+  content: "+";
   position: absolute;
   right: 10px;
   right: 0.625rem;
@@ -1039,7 +1243,6 @@ export default {
   overflow-y: hidden;
   padding: 0;
   transition: max-height 0.5s;
-  width: 100vw;
 }
 
 @media (min-width: 992px) {
@@ -1051,7 +1254,9 @@ export default {
 
 .refinement.card .card-body .values {
   padding: 0;
-  margin: 0 0 10px 0;
+  &:not(:last-child) {
+    margin: 0 0 10px 0;
+  }
 }
 
 @media (min-width: 992px) {
@@ -1086,7 +1291,6 @@ export default {
   padding: 0 1.25rem;
   overflow: hidden;
   white-space: nowrap;
-  width: 100%;
   text-overflow: ellipsis;
 }
 
@@ -1148,7 +1352,7 @@ export default {
   text-decoration: none;
 }
 
-.refinement.card .selection-box {
+.selection-box {
   color: #000;
   position: relative;
   font-size: 0.75rem;
@@ -1159,34 +1363,34 @@ export default {
 }
 
 @media (min-width: 992px) {
-  .refinement.card .selection-box {
+  .selection-box {
     font-size: 0.875rem;
   }
 }
 
-.refinement.card .selection-box::before {
-  content: '';
+.selection-box::before {
+  content: "";
   left: 0;
   position: absolute;
-  top: 0;
+  top: -1px;
   height: 14px;
   height: 0.875rem;
   width: 14px;
   width: 0.875rem;
 }
 
-.refinement.card .selection-box.selected-box::before {
-  background-color: #000;
+.selection-box.selected-box::before {
+  background-color: @ds-black;
 }
 
-.refinement.card .selection-box.not-selected-box::before {
-  border-color: #000;
+.selection-box.not-selected-box::before {
+  border-color: @ds-black;
   border-style: solid;
   border-width: 1px;
   border-width: 0.0625rem;
 }
 
-.refinement.card .total-selected[data-selected='0'] {
+.refinement.card .total-selected[data-selected="0"] {
   display: none;
 }
 
@@ -1203,7 +1407,7 @@ export default {
 }
 
 .icon-arrow-mid-down-black {
-  content: '';
+  content: "";
   display: inline-block;
   background-image: url(../../assets/images/sprite-icons.svg);
   background-position: -586px -2px;
@@ -1245,6 +1449,7 @@ export default {
   font-size: 0.875rem;
   height: 44px;
   height: 2.75rem;
+  width: 100%;
 }
 
 .filter-bar {
@@ -1269,7 +1474,6 @@ export default {
 .filter-clearall-container {
   display: -ms-flexbox;
   display: flex;
-  -ms-flex-pack: start;
   justify-content: flex-start;
   -ms-flex-align: center;
   align-items: center;
@@ -1293,8 +1497,7 @@ export default {
   display: flex;
   -ms-flex-align: center;
   align-items: center;
-  -ms-flex-pack: start;
-  justify-content: start;
+  justify-content: flex-start;
   margin: 0;
 }
 
@@ -1311,7 +1514,7 @@ export default {
 }
 
 .icon-close-black {
-  content: '';
+  content: "";
   display: inline-block;
   background-image: url(../../assets/images/sprite-icons.svg);
   background-position: -959px -2px;
@@ -1363,7 +1566,6 @@ export default {
 }
 
 .sort-order-mobile .sort-selected-option {
-  font-family: roboto condensed, sans-serif;
   font-weight: 700;
   padding-left: 14px;
   padding-left: 0.875rem;
@@ -1398,9 +1600,10 @@ export default {
 }
 
 .showing-results {
-  font-size: 0.875rem;
-  padding: 8px 0;
-  padding: 0.5rem 0;
+  font-size: 14px;
+  p {
+    margin-bottom: 10px;
+  }
 }
 
 .mobile-filter-sort-bar {
@@ -1424,31 +1627,32 @@ export default {
 
 .main-actions-container {
   padding: 0 20px;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.mobile-items-found {
-  display: none;
+  // width: 100%;
+  // max-width: 1200px;
+  // margin: 0 auto;
 }
 
 .main-product-container {
   width: 100%;
-  max-width: 1200px;
-  min-width: 1200px;
-  margin: 0 auto 100px auto;
-
+  padding: 20px;
+  box-sizing: border-box;
+  .product-grid-item,
+  .product-link-wrap {
+    height: 100%;
+  }
   .product-container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(20%, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(15%, 1fr));
     grid-auto-rows: auto;
+    grid-template-rows: 1fr;
     grid-gap: 3em;
     padding-top: 0;
   }
   .loader-center {
     grid-column-start: -1;
     grid-column-end: 1;
+    text-align: center;
+    margin: 20px 0;
   }
   @media screen and (max-width: 768px) {
     .product-container {
@@ -1462,21 +1666,8 @@ export default {
   }
 }
 
-@media (min-width: 0px) and (max-width: 991.98px) {
-  .main-product-container {
-    min-width: auto;
-  }
-}
-
 .bg-white {
   background: #fff;
-}
-.products-cont {
-  display: flex;
-  flex-direction: column;
-  @media @mobile {
-    margin-top: 50px;
-  }
 }
 
 .range-box {
@@ -1489,6 +1680,7 @@ export default {
 .active {
   font-size: 16px;
   font-weight: bold !important;
+  color: @ds-black;
 }
 
 @media screen and (max-width: 768px) {
@@ -1511,221 +1703,25 @@ export default {
     .main-actions-container {
       display: none;
     }
-    .mobile-items-found {
-      display: block;
-      font-size: 14px;
-      opacity: 0.5;
-
-      padding-top: 1em;
-      display: flex;
-      justify-content: center;
-    }
-    .mobile-actions-container {
-      text-transform: uppercase;
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      height: 4em;
-      background: black;
-      color: white;
-      .sort-container,
-      .filter-container {
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-      .seperator {
-        background: white;
-        margin: 3em 0;
-        font-size: 6px;
-      }
-    }
-  }
-  .modal {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 10;
-    overflow: hidden;
-    background-color: white;
-    transition: all 0.25s ease;
-    user-select: none;
-  }
-  .modal-container {
-    height: 100vh;
-  }
-  .modal-header {
-    display: flex;
-    align-items: center;
-    padding: 10px 15px;
-    background: black;
-    color: #fff;
-    height: 2em;
-    .modal-title {
-      width: 100%;
-      margin: 0 auto;
-      display: flex;
-      justify-content: center;
-    }
-  }
-  .modal-content {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    overflow: hidden;
-    overflow-y: scroll;
-    height: 90vh;
-    .actions {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 100%;
-      position: fixed;
-      bottom: 0;
-      background: #f5f5f5;
-      height: 70px;
-      z-index: 5;
-      font-weight: 500;
-      letter-spacing: 0.65px;
-      button {
-        max-width: 300px;
-        margin: 10px 10px;
-        flex: 1;
-      }
-    }
-    .sort-item {
-      display: flex;
-      align-items: center;
-      padding: 0 2em;
-      justify-content: space-between;
-      height: 4em;
-      text-transform: uppercase;
-      border-bottom: 1px solid #e3e3e3;
-    }
-    .filter-modal-item {
-      border-bottom: 1px solid #00000024;
-      &:last-child {
-        border-bottom: 0;
-      }
-    }
-    .filter-title {
-      display: flex;
-      align-items: center;
-      height: 40px;
-      color: #000000;
-
-      font-size: 16px;
-      font-weight: bold;
-      letter-spacing: 0.58px;
-      justify-content: space-between;
-      margin: 1em;
-
-      .display {
-        text-transform: uppercase;
-      }
-      .view-more {
-        width: 50px;
-        cursor: pointer;
-      }
-    }
-
-    .filter-disp {
-      margin-left: 10px;
-
-      text-transform: uppercase;
-      font-size: 14px;
-      .filter-item {
-        display: flex;
-        height: 35px;
-        font-size: 16px;
-        letter-spacing: 0.55px;
-        padding: 10px;
-
-        .filter-item-value {
-          margin-right: 10px;
-        }
-      }
-    }
-    .slider-container {
-      padding: 15px;
-      padding-top: 30px;
-      .slider-range-info {
-        font-size: 14px;
-        font-weight: normal;
-        display: flex;
-        justify-content: center;
-        margin-top: 10px;
-        margin-bottom: 20px;
-      }
-      .slider-range-info > div {
-        margin: 0 10px;
-      }
-    }
-  }
-  .active-filters-container {
-    flex-wrap: wrap;
-    padding: 1em;
-    .selected-item {
-      margin-bottom: 0.5em;
-      border: 1px solid #979797;
-      border-radius: 8px;
-      height: 25px;
-      &:hover {
-        background: white;
-        color: black;
-        .close-icon {
-          background-image: url('./../../assets/images/close.svg');
-        }
-      }
-    }
   }
 }
-.slide-up-leave-active,
-.slide-up-enter-active {
-  transition: 0.5s;
-}
-.slide-up-enter {
-  transform: translate(0, 100%);
-}
-.slide-up-leave-to {
-  transform: translate(0, 100%);
-}
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s;
-}
-.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
-  opacity: 0;
-}
-
-.slide-enter,
-.slide-leave-to {
-  transform: scaleY(0);
-}
-
 .rotate {
   transform: rotate(180deg);
 }
-.svalue {
-  width: calc(100% - 90px) !important;
-}
-.dvalue {
-  width: 140px !important;
-  padding: 0 !important;
-}
+
 .slider-container {
   padding: 10px;
   box-sizing: border-box;
   .slider-range-info {
     display: flex;
     justify-content: space-around;
-    font-family: 'Roboto Condensed';
     margin-top: 10px;
+  }
+}
+.sort-options-mobile {
+  background: @ds-white;
+  .radio-button-sort {
+    padding: 0 1.25rem;
   }
 }
 
@@ -1740,7 +1736,7 @@ export default {
   position: relative;
   .sort-list-items {
     position: absolute;
-    z-index: 1;
+    z-index: 2;
     width: 100%;
     background: white;
     border: 1px solid #ccc;
@@ -1751,6 +1747,173 @@ export default {
       padding: 15px 10px;
       &:not(:last-child) {
         border-bottom: 1px solid #ccc;
+      }
+    }
+  }
+}
+.products-cont {
+  display: flex;
+  @media @mobile {
+    flex-direction: column;
+  }
+  .left {
+    display: initial;
+    border-right: 1px solid @border-color;
+    width: 300px;
+    @media @mobile {
+      display: none;
+    }
+    .open {
+      display: none;
+    }
+    .filter-list {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      width: 262px;
+      background: white;
+      padding: 5px 10px;
+      min-height: auto;
+    }
+
+    .filter-item-value {
+      text-transform: capitalize;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 75%;
+    }
+
+    .filter-title {
+      text-transform: uppercase;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      cursor: pointer;
+    }
+    .filter-arrow-up {
+      transform: rotate(180deg);
+    }
+
+    .filter-item {
+      display: flex;
+      flex-direction: row;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      padding: 0px 8px;
+      align-items: center;
+      min-height: 1.8rem;
+      cursor: pointer;
+      color: #41434c;
+    }
+
+    .filter-search input {
+      border: none;
+      background: #f5f5f5;
+      outline: 0;
+      padding: 7px 0 7px 5px;
+      border-radius: 5px 0 0 5px;
+      width: 85%;
+    }
+    .search-icon {
+      margin: auto;
+    }
+
+    .filter-search {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 0 10px 0;
+      border: 1px solid #e4e5e6;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .filter-item-count {
+      margin-left: auto;
+    }
+    .view-more {
+      font-size: 14px;
+      display: flex;
+      justify-content: center;
+      margin-top: 5%;
+      color: @ds-black;
+      cursor: pointer;
+    }
+  }
+  .right {
+    width: calc(100% - 300px);
+    @media @mobile {
+      width: 100%;
+    }
+    .mobile-items-found {
+      display: none;
+      p {
+        margin-bottom: 10px;
+      }
+      @media @mobile {
+        display: block;
+        padding: 0 20px;
+        font-size: 14px;
+        padding-top: 20px;
+      }
+    }
+    .active-filters-container {
+      font-size: 13px;
+
+      display: flex;
+      flex-wrap: wrap;
+      padding: 0px 0 10px 0;
+      margin: 0 15px 10px 16px;
+      border-bottom: 1px solid #e4e5e6;
+      @media @mobile {
+        margin: 0;
+      }
+      .selected-item {
+        transition: all 0.1s ease-in;
+        height: 1.5em;
+        background: #fff;
+        border-radius: 6px;
+        border: 1px solid #e4e5e6;
+        padding: 5px;
+        margin: 0 3px 3px 0;
+        display: flex;
+        align-items: center;
+        color: #41434c;
+        cursor: pointer;
+        &:hover {
+          background: @ds-black;
+          color: white;
+          .close-chip-icon {
+            background-image: url("../../assets/images/cross-black.svg");
+          }
+        }
+        .close-chip-icon {
+          background-image: url("../../assets/images/cross-black.svg");
+          width: 7px;
+          height: 7px;
+          display: inline-block;
+          background-size: cover;
+        }
+      }
+      .reset-btn {
+        padding: 5px;
+        display: flex;
+        align-items: center;
+        color: @ds-black;
+        cursor: pointer;
+      }
+    }
+    .product-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(20%, 1fr));
+      grid-auto-rows: auto;
+      grid-gap: 1em;
+      @media @mobile {
+        grid-template-columns: repeat(auto-fill, minmax(40%, 1fr));
+        grid-gap: 0.5em;
       }
     }
   }

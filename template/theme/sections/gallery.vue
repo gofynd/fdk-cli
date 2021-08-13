@@ -1,5 +1,5 @@
 <template>
-  <div class="section-container slot-margin" v-if="settings.blocks.length">
+  <div class="section-container slot-margin">
     <div class="gallery-container">
       <fdk-link
         :link="block.props.link.value"
@@ -41,7 +41,7 @@
             settings.blocks.length + placeholderBlock === 4,
         }"
         v-for="(block, index) in placeholderBlock"
-        :key="index"
+        :key="'placeholder-' + index"
         :style="{ backgroundImage: `url('https://place-hold.it/600x500')` }"
       ></div>
     </div>
@@ -91,7 +91,23 @@
             }
         ]
     }
-  ]
+  ],
+   "preset":{
+    "blocks":[
+      {
+        "name":"Image"
+      },
+       {
+        "name":"Image"
+      },
+       {
+        "name":"Image"
+      },
+       {
+        "name":"Image"
+      }
+    ]
+  }
 }
 </settings>
 <style scoped lang="less">
@@ -129,7 +145,7 @@
   .overlay {
     position: relative;
     &::before {
-      content: '';
+      content: "";
       background: black;
       opacity: 0.3;
       position: absolute;
@@ -186,15 +202,9 @@
 </style>
 <script>
 export default {
-  props: ['settings'],
-  components: {},
-  watch: {
-    settings: function(newVal, oldVal) {},
-  },
-  mounted() {},
+  props: ["settings"],
   data: function() {
     return {
-      // url: ""
       placeholderBlock:
         this.settings.props.item_count.value - this.settings.blocks.length,
     };

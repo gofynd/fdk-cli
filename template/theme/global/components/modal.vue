@@ -52,6 +52,23 @@
     max-width: 720px;
     position: relative;
     overflow: auto;
+
+    &::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+      background-color: #ffffff;
+    }
+    /* Track */
+    &::-webkit-scrollbar-track {
+      box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.4);
+      background-color: #ffffff;
+    }
+    /* Handle */
+    &::-webkit-scrollbar-thumb {
+      border-radius: 2.5px;
+      background-color: #6b6b6b;
+    }
+
     .modal-header {
       padding: 10px 0;
       display: flex;
@@ -99,7 +116,7 @@
 
 <script>
 export default {
-  name: 'modal',
+  name: "modal",
   props: {
     isOpen: {
       type: Boolean,
@@ -140,11 +157,10 @@ export default {
   methods: {
     closeDialog() {
       if (this.isCancelable) {
-        this.$emit('closedialog');
+        this.$emit("closedialog");
       }
     },
     outsideClick() {
-      console.log(this.enableOutsideClick, 'enableOutsideClick');
       if (this.enableOutsideClick) {
         this.closeDialog();
       }
@@ -155,7 +171,7 @@ export default {
   },
 
   destroyed() {
-    if (this.$el && this.$el.parentNode && this.$el.nodeName !== '#comment') {
+    if (this.$el && this.$el.parentNode && this.$el.nodeName !== "#comment") {
       this.$el.parentNode.removeChild(this.$el);
     }
   },

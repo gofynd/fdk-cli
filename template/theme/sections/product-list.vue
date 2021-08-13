@@ -5,10 +5,9 @@
       'full-width-section': settings.props.full_width.value,
     }"
   >
-    <h2
-      v-if="settings.props.heading.value"
-      class="section-heading"
-    >{{ settings.props.heading.value }}</h2>
+    <h2 v-if="settings.props.heading.value" class="section-heading">
+      {{ settings.props.heading.value }}
+    </h2>
     <div class="section__items" v-if="products.length > 0">
       <div
         class="item"
@@ -23,11 +22,12 @@
       >
         <!-- {{ block }} -->
         <fdk-link :link="`/product/${product.slug}`">
-          <img
-            alt="Shop Now"
+          <nm-image
+            :alt="product.name"
             class="product-image"
-            :src="product.images[0].url"
+            :src="product.medias[0].url"
             :title="product.name"
+            :sources="[{ width: 275 }]"
           />
         </fdk-link>
         <p class="product-brand">{{ product.brand.name }}</p>
@@ -41,38 +41,30 @@
                 {{ product.price.marked.max }}
               </span>
             </span>
-            <span class="product-total-discount list" v-if="hasDiscount(product)">
+            <span
+              class="product-total-discount list"
+              v-if="hasDiscount(product)"
+            >
               <span class="value">{{ product.discount }}</span>
             </span>
             <meta />
             <span class="sales">
               <span class="value">
                 {{ product.price.effective.currency_symbol }}
-                {{ getPrice(product, 'effective') }}
+                {{ getPrice(product, "effective") }}
               </span>
             </span>
           </span>
         </div>
-        <!-- <div class="product-price">
-          <span>
-            <span class="strike-through list" v-if="hasDiscount()">
-              <span class="value">
-                {{ product.price.marked.currency_symbol }}
-                {{ product.price.marked.max | currencyformat }}
-              </span>
-            </span>
-            <span class="product-total-discount list" v-if="hasDiscount()">
-              <span class="value">{{ product.discount }}</span>
-            </span>
-            <span class="sales">
-              <span class="value">
-                {{ product.price.marked.currency_symbol }}
-                {{ getPrice(product, 'effective') | currencyformat }}
-              </span>
-            </span>
-          </span>
-        </div>-->
       </div>
+    </div>
+    <div v-else-if="products.length === 0">
+      <placeholder-items
+        :count="10"
+        type="collection-1"
+        text="Product"
+        :layout="`grid`"
+      />
     </div>
   </div>
 </template>
@@ -94,8 +86,8 @@
             "max": 5,
             "step": 1,
             "unit": "",
-            "label": "Collections per row",
-            "default": 2,
+            "label": "Products per row",
+            "default": 4,
             "info": "Maximum items allowed per row"
         },
         {
@@ -116,36 +108,55 @@
 
 </settings>
 <script>
+import placeholderItemsVue from "../global/components/sections/placeholder-items.vue";
+import nmImage from "./../global/components/common/nm-image.vue";
+
 export default {
-  props: ["settings", "provider"],
-  mounted() {
-    this.settings = this.settings || {};
-    this.settings.props = this.settings.props || {};
-
-    let { collection } = this.settings.props;
-    collection = collection.value;
-
-    this.getProducts(collection)
-      .then(results => {
-        results = results || {};
-        results.items = results.items || [];
-        this.products = results.items;
+  props: ["settings", "apiSDK", "serverProps"],
+  initializeServerProps({ apiSDK, settings, route }) {
+    const collection = settings?.props?.collection?.value;
+    return apiSDK.catalog
+      .getCollectionItemsBySlug({
+        slug: collection,
       })
-      .catch(e => console.log);
+      .then((res) => {
+        return res?.items || [];
+      })
+      .catch((e) => console.log(e));
   },
-  data: function() {
+  components: {
+    "nm-image": nmImage,
+    "placeholder-items": placeholderItemsVue,
+  },
+  mounted() {
+    if (this.products.length == 0) {
+      const collection = this.settings?.props?.collection?.value;
+      this.getProducts(collection);
+    }
+  },
+  watch: {
+    settings(n, o) {
+      if (n?.props?.collection?.value !== o?.props?.collection?.value) {
+        const collection = n?.props?.collection?.value;
+        this.getProducts(collection);
+      }
+    },
+  },
+  data() {
     return {
-      products: []
+      products: this.serverProps || [],
     };
   },
   methods: {
     getProducts(slug) {
-      return this.provider.ProductListing.fetchCollectionListing({
-        id: slug,
-        image_size: "med"
-      }).then(res => {
-        return res.data || {};
-      });
+      if (!slug) return;
+      this.$apiSDK.catalog
+        .getCollectionItemsBySlug({
+          slug: slug,
+        })
+        .then((res) => {
+          this.products = res?.items || [];
+        });
     },
     getPrice(product, key) {
       if (product && product.price) {
@@ -158,15 +169,26 @@ export default {
       return (
         this.getPrice(product, "effective") !== this.getPrice(product, "marked")
       );
-    }
-  }
+    },
+  },
 };
 </script>
 
 <style lang="less" scoped>
 .item {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  a {
+    display: flex;
+    align-items: center;
+    height: 100%;
+  }
   .product-image {
-    width: 100%;
+    /deep/ .nm__img {
+      width: 100%;
+    }
   }
   .product-brand {
     font-size: 12px;

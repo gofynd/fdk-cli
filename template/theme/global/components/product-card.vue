@@ -1,35 +1,62 @@
 <template>
-  <fdk-product-card>
-    <template slot-scope="productData">
+  <fdk-product-card class="product-card-wrap">
+    <template slot-scope="product_data">
       <div class="product" data-pid="00ADS3083AC">
         <div
           class="product-tile"
           itemscope
           itemtype="http://schema.org/Product"
         >
-          <div class="image-container">
-            <div
-              class="product-badge product-badge-bottom product-badge-promotion"
-              style="background-color: #1D6A9E; "
-              v-if="product.attributes.discount"
-            >
-              {{ product.attributes.discount }}
+          <!-- <no-ssr> -->
+          <div class="center-img">
+            <fdk-accounts v-if="isMounted">
+              <template slot-scope="accountsData">
+                <div
+                  class="wishlist-container"
+                  v-if="accountsData.is_logged_in"
+                  @click="product_data.updateWishList($event, product)"
+                >
+                  <div v-if="product.follow" style="text-align: center">
+                    <img src="./../../assets/images/heart-filled.svg" />
+                  </div>
+                  <div v-else style="text-align: center">
+                    <img src="./../../assets/images/heart-empty.svg" />
+                  </div>
+                </div>
+                <div
+                  v-else
+                  class="wishlist-container"
+                  @click="
+                    accountsData.openLogin();
+                    stopRouting($event);
+                  "
+                  style="text-align: center"
+                >
+                  <img src="./../../assets/images/heart-empty.svg" />
+                </div>
+              </template>
+            </fdk-accounts>
+            <!-- </no-ssr> -->
+
+            <div class="image-container">
+              <div
+                class="
+                  product-badge product-badge-bottom product-badge-promotion
+                "
+                style="background-color: #1d6a9e"
+                v-if="product.attributes.discount"
+              >
+                {{ product.attributes.discount }}
+              </div>
+              <div class="tile-image-link pointer">
+                <nm-image
+                  class="tile-image"
+                  :src="getImageURL"
+                  :alt="product.name"
+                  :style="{ backgroundColor: getProductColor }"
+                />
+              </div>
             </div>
-            <fdk-link
-              class="tile-image-link pointer"
-              :href="'/product/' + product.slug"
-              tabindex="0"
-              :title="product.name"
-            >
-              <img
-                class="tile-image"
-                v-bind:src="getImageURL"
-                :alt="product.name"
-                :title="product.name"
-                :style="{ backgroundColor: getProductColor }"
-                itemprop="image"
-              />
-            </fdk-link>
           </div>
           <div class="tile-body">
             <div
@@ -42,9 +69,9 @@
               alt
               aria-hidden="true"
             /> -->
-              <span style="color: #1D6A9E; ">{{
-                product.attributes.discount
-              }}</span>
+              <span style="color: #1d6a9e"
+                >{{ product.attributes.discount }}
+              </span>
             </div>
             <div
               class="tile-promo__extra-info"
@@ -58,7 +85,7 @@
             <div class="pdp-link" itemprop="name">
               <fdk-link
                 class="product-link"
-                :href="'/product/' + product.slug"
+                :link="'/product/' + product.slug"
                 title="Bootcut - Zatiny"
                 tabindex="0"
                 itemprop="url"
@@ -77,27 +104,40 @@
                   :content="product.price.marked.currency_code"
                   v-if="hasDiscount()"
                 />
-                <span class="strike-through list" v-if="hasDiscount()">
-                  <span
-                    class="value"
-                    itemprop="price"
-                    :content="product.price.marked.max"
-                  >
-                    {{ product.price.marked.currency_symbol }}
-                    {{ product.price.marked.max }}
-                  </span>
-                </span>
-                <span class="product-total-discount list" v-if="hasDiscount()">
-                  <span class="value">{{ product.discount }}</span>
-                </span>
                 <span class="sales" v-if="product.price">
                   <span
                     class="value"
                     itemprop="price"
-                    :content="getPrice('effective')"
-                    >{{ product.price.effective.currency_symbol }}
-                    {{ getPrice('effective') }}
+                    :content="
+                      getListingPrice('effective') || getPrice('effective')
+                    "
+                  >
+                    {{ product.price.effective.currency_symbol }}
+                    {{ getListingPrice("effective") || getPrice("effective") }}
                   </span>
+                </span>
+                <span class="strike-through list" v-if="hasDiscount()">
+                  <span
+                    v-if="getListingPrice('effective') !== getPrice('marked')"
+                    class="value"
+                    itemprop="price"
+                    :content="getListingPrice('marked') || getPrice('marked')"
+                  >
+                    {{ product.price.marked.currency_symbol }}
+                    {{ getListingPrice("marked") || getPrice("marked") }}
+                  </span>
+                </span>
+                <span
+                  class="product-total-discount list"
+                  v-if="hasDiscount() && product.sellable"
+                >
+                  <span class="value">{{ product.discount }}</span>
+                </span>
+                <span
+                  class="product-total-discount list"
+                  v-if="!product.sellable"
+                >
+                  <span class="value"> SOLD OUT </span>
                 </span>
               </span>
             </div>
@@ -105,58 +145,37 @@
         </div>
       </div>
     </template>
-    <!-- <template slot-scope="productData">
-      <div class="product-card animated fadeIn">
-        <div
-          class="wishlist-container"
-          v-if="context.isLoggedIn"
-          @click="productData.updateWishList($event, product)"
-        >
-          <div v-if="product.follow" style="text-align:center">
-            <img src="./../../assets/images/heart-filled.svg" />
-          </div>
-          <div v-else style="text-align:center">
-            <img src="./../../assets/images/heart-empty.svg" />
-          </div>
-        </div>
-        <fdk-accounts class="wishlist-container" v-else-if="!context.isLoggedIn">
-          <template slot-scope="accountsData">
-            <div @click="accountsData.openLogin(); stopRouting($event)" style="text-align:center">
-              <img src="./../../assets/images/heart-empty.svg" />
-            </div>
-          </template>
-        </fdk-accounts>
-
-        <div class="product-image">
-          <img
-            class="fy-lazy-img background-image"
-            :style="{ backgroundColor: getProductColor }"
-            v-bind:src="getImageURL"
-          />
-        </div>
-      </div>
-      <div class="product-desc">
-        <p class="product-name">{{ product.name }}</p>
-        <p class="price">₹ {{ product.price.marked.max }}</p>
-      </div>
-    </template> -->
   </fdk-product-card>
 </template>
 
 <script>
+import { isBrowser, isNode } from "browser-or-node";
+import NoSSR from "vue-no-ssr";
+import nmImage from "./common/nm-image.vue";
+
 const PLACEHOLDER_SRC =
-  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANsAAAFWAQMAAADaFHqxAAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAACBJREFUaN7twTEBAAAAwqD1T20LL6AAAAAAAAAAAADgbSa+AAGGhRJaAAAAAElFTkSuQmCC';
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANsAAAFWAQMAAADaFHqxAAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAACBJREFUaN7twTEBAAAAwqD1T20LL6AAAAAAAAAAAADgbSa+AAGGhRJaAAAAAElFTkSuQmCC";
+
 export default {
   props: {
     product: {},
     context: {},
+    listing_price_config: {
+      type: String,
+    },
   },
-
-  mounted() {},
+  mounted() {
+    this.isMounted = true;
+  },
+  components: {
+    "no-ssr": NoSSR,
+    "nm-image": nmImage,
+  },
   data() {
     return {
       imageLoading: false,
       imageFullyLoaded: false,
+      isMounted: false,
     };
   },
   methods: {
@@ -170,35 +189,41 @@ export default {
     getPrice(key) {
       if (this.product.price) {
         return this.product.price[key].min !== this.product.price[key].max
-          ? this.product.price[key].min + ' - ' + this.product.price[key].max
+          ? this.product.price[key].min + " - " + this.product.price[key].max
           : this.product.price[key].min;
       }
     },
     hasDiscount() {
-      return this.getPrice('effective') !== this.getPrice('marked');
+      return this.getPrice("effective") !== this.getPrice("marked");
+    },
+    getListingPrice(key) {
+      let price = "";
+      switch (this.listing_price_config) {
+        case "min":
+          price = this.product.price[key].min;
+          break;
+        case "max":
+          price = this.product.price[key].max;
+          break;
+        case "range":
+          //not handling this as its the default behaviour of getProductPrice
+          break;
+        default:
+          break;
+      }
+      return price;
     },
   },
   computed: {
     getProductColor() {
       return this.product.attributes
-        ? '#' + this.product.primary_color_hex
-        : '';
+        ? "#" + this.product.primary_color_hex
+        : "";
     },
     getImageURL() {
       let imageURL =
-        this.product && this.product.images
-          ? this.product.images[0].secure_url
-          : '';
-      if (this.imageFullyLoaded) {
-        return imageURL;
-      }
-      if (imageURL && !this.imageLoading) {
-        let img = new Image();
-        img.src = imageURL;
-        img.onload = this.imageLoaded.bind(this);
-        this.imageLoading = true;
-      }
-      return PLACEHOLDER_SRC;
+        this.product && this.product.medias ? this.product.medias[0].url : "";
+      return imageURL;
     },
   },
 };
@@ -210,13 +235,27 @@ export default {
 //   position: relative;
 //   cursor: pointer;
 // }
-// .wishlist-container {
-//   position: absolute;
-//   z-index: 1;
-//   right: 15px;
-//   top: 15px;
-// }
+.center-img {
+  position: relative;
+  display: flex;
+  height: 100%;
+  align-items: center;
+  width: 100%;
+  min-height: 180px;
+  background-color: #f1f0ee;
+}
+.product-card-wrap {
+  height: 100%;
+}
+.wishlist-container {
+  position: absolute;
+  z-index: 1;
+  right: 15px;
+  top: 15px;
+  cursor: pointer;
+}
 .product {
+  height: 100%;
   * {
     font-family: Roboto, sans-serif;
   }
@@ -270,7 +309,9 @@ export default {
 // }
 
 .product-tile {
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .product-tile,
@@ -281,23 +322,33 @@ export default {
 .product-tile .tile-body {
   min-height: 58px;
   min-height: 3.625rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
 }
 
 .image-container {
   display: -ms-grid;
   display: grid;
   position: relative;
+  flex: 4;
+  overflow: hidden;
 }
 
 .image-container .tile-image-link {
-  display: -ms-grid;
-  display: grid;
+  display: flex;
+  align-items: center;
 }
 
 .image-container .tile-image {
-  height: auto;
+  height: 100%;
   width: 100%;
   max-height: inherit;
+
+  /deep/ .nm__img {
+    width: 100%;
+    height: 100%;
+  }
 }
 
 .pdp-link {
@@ -337,7 +388,6 @@ export default {
   }
 }
 
-.tile-promo__extra-info,
 .product-color {
   color: #000;
   text-transform: uppercase;
@@ -347,20 +397,22 @@ export default {
   letter-spacing: 0.01812rem;
   line-height: 16px;
   line-height: 1rem;
-  padding-top: 4px;
-  padding-top: 0.25rem;
 }
-
+.tile-promo__extra-info {
+  padding-top: 8px;
+  height: 30px;
+}
 @media (min-width: 992px) {
-  .tile-promo__extra-info,
   .product-color {
     font-size: 0.625rem;
     letter-spacing: 0.42px;
     letter-spacing: 0.02625rem;
-    padding-top: 9px;
-    padding-top: 0.5625rem;
     line-height: 14px;
     line-height: 0.875rem;
+  }
+  .tile-promo__extra-info {
+    padding-top: 18px;
+    height: 30px;
   }
 }
 

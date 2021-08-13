@@ -1,56 +1,142 @@
 {
   "theme": {
-    "name": "default-theme",
     "colors": {
-      "primary_color": "",
-      "secondary_color": "",
-      "accent_color": "",
-      "link_color": "",
-      "button_secondary_color": ""
+      "primary_color": "#000000",
+      "secondary_color": "#41434C",
+      "accent_color": "#FFFFFF",
+      "link_color": "#33B1C0",
+      "button_secondary_color": "#000000",
+      "bg_color": "#FFFFFF"
     },
     "styles": {
       "default": {
+        "sub_header": {
+          "background_color": "#FFFFFF"
+        },
+        "snackbar": {
+          "positive": {
+            "title_color": "#FFFFFF",
+            "action_color": "#FFFFFF",
+            "background_color": "#33CC99"
+          },
+          "negative": {
+            "title_color": "#FFFFFF",
+            "action_color": "#FFFFFF",
+            "background_color": "#ED365E"
+          }
+        },
         "status_bar": {
-          "preferred": "dark"
+          "background_color": "#41434C",
+          "is_dark": false
+        },
+        "tab_bar": {
+          "background_color": "#FFFFFF",
+          "selected_color": "#41434C",
+          "default_color": "#41434c"
         },
         "header": {
-          "background_color": "#F3F3F3",
-          "title_color": "#41434c",
-          "shadow_color": "#41434c"
+          "background_color": "#41434C",
+          "title_color": "#FFFFFF",
+          "cart_tag": {
+            "background_color": "#EE478D",
+            "title_color": "#FFFFFF"
+          },
+          "search_bar": {
+            "background_color": "#2D2F38",
+            "accessory_color": "#FFFFFF",
+            "title_color": "#FFFFFF"
+          },
+          "shadow_color": "#41434C"
         },
-        "primary_button": {
-          "default": {
-            "title_color": "#FFFFFF",
-            "background_color": "#FE8F46",
-            "border_color": "#FFFFFF"
+        "breadcrumb": {
+          "title_color": "#41434C",
+          "background_color": "#FFFFFF",
+          "border_color": "#41434C"
+        },
+        "error_state": {
+          "title_color": "#41434C"
+        },
+        "button": {
+          "primary": {
+            "default": {
+              "title_color": "#FFFFFF",
+              "background_color": "#41434C",
+              "border_color": "#41434C"
+            }
+          },
+          "secondary": {
+            "default": {
+              "title_color": "#41434C",
+              "background_color": "#FFFFFF",
+              "border_color": "#41434C"
+            }
+          },
+          "single_select": {
+            "selected": {
+              "title_color": "#FFFFFF",
+              "background_color": "#41434C",
+              "border_color": "#41434C"
+            },
+            "default": {
+              "title_color": "#41434c",
+              "background_color": "#ffffff",
+              "border_color": "#EEEEEE"
+            },
+            "on_hover": {
+              "title_color": "#41434c",
+              "background_color": "#e8baf5",
+              "border_color": "#EEEEEE"
+            }
+          },
+          "multi_select": {
+            "selected": {
+              "title_color": "#FFFFFF",
+              "background_color": "#41434C",
+              "border_color": "#41434C"
+            },
+            "default": {
+              "title_color": "#41434c",
+              "background_color": "#ffffff",
+              "border_color": "#EEEEEE"
+            },
+            "on_hover": {
+              "title_color": "#41434c",
+              "background_color": "#e8baf5",
+              "border_color": "#EEEEEE"
+            }
           }
         },
-        "secondary_button": {
-          "selected": {
-            "title_color": "#41434c",
-            "background_color": "#e8baf5",
-            "border_color": "#EEEEEE"
-          },
-          "default": {
-            "title_color": "#41434c",
-            "background_color": "#e8baf5",
-            "border_color": "#EEEEEE"
-          },
-          "onHover": {
-            "title_color": "#41434c",
-            "background_color": "#e8baf5",
-            "border_color": "#EEEEEE"
-          }
+        "side_bar": {
+          "background_color": "#41434C",
+          "title_color": "#FFFFFF"
         },
         "link": {
           "selected": {
-            "title_color": "#EE478D"
+            "title_color": "#41434C"
           },
           "default": {
-            "title_color": "#EE478D"
+            "title_color": "#41434C"
           },
-          "onHover": {
-            "title_color": "#EE478D"
+          "on_hover": {
+            "title_color": "#41434C"
+          }
+        }
+      },
+      "pdp": {
+        "button": {
+          "primary": {
+            "default": {
+              "title_color": "#FFFFFF",
+              "background_color": "#41434C",
+              "border_color": "#41434C"
+            }
+          },
+          "secondary": {
+            "default": {
+              "title_color": "#41434C",
+              "background_color": "#FFFFFF",
+              "border_color": "#41434C"
+            }
           }
         }
       }
@@ -59,26 +145,26 @@
       "variants": {
         "light": {
           "name": "300",
-          "file": "https://fonts.gstatic.com/s/montserrat/v14/JTURjIg1_i6t8kCHKm45_cJD7g7J_950vCo.ttf"
+          "file": "https://fonts.gstatic.com/s/robotocondensed/v19/ieVi2ZhZI2eCN5jzbjEETS9weq8-33mZKCMSbvtdYyQ.ttf"
         },
         "regular": {
           "name": "regular",
-          "file": "https://fonts.gstatic.com/s/montserrat/v14/JTUSjIg1_i6t8kCHKm45xW5rygbi49c.ttf"
+          "file": "https://fonts.gstatic.com/s/robotocondensed/v19/ieVl2ZhZI2eCN5jzbjEETS9weq8-59WxDCs5cvI.ttf"
         },
         "medium": {
           "name": "500",
-          "file": "https://fonts.gstatic.com/s/montserrat/v14/JTURjIg1_i6t8kCHKm45_ZpC7g7J_950vCo.ttf"
+          "file": ""
         },
         "semi_bold": {
           "name": "600",
-          "file": "https://fonts.gstatic.com/s/montserrat/v14/JTURjIg1_i6t8kCHKm45_bZF7g7J_950vCo.ttf"
+          "file": ""
         },
         "bold": {
           "name": "700",
-          "file": "https://fonts.gstatic.com/s/montserrat/v14/JTURjIg1_i6t8kCHKm45_dJE7g7J_950vCo.ttf"
+          "file": "https://fonts.gstatic.com/s/robotocondensed/v19/ieVi2ZhZI2eCN5jzbjEETS9weq8-32meKCMSbvtdYyQ.ttf"
         }
       },
-      "family": "Montserrat"
+      "family": "Roboto Condensed"
     }
   }
 }

@@ -2,11 +2,13 @@
   <div>
     <div class="compare-desktop-container">
       <div class="compare-container">
-        <h3
-          class="compare-title bold-lg"
-          v-if="settings.props.heading.value"
-        >{{ settings.props.heading.value }}</h3>
-        <div class="comp-outer" v-if="compare.products && compare.products.length">
+        <h3 class="compare-title bold-lg" v-if="settings.props.heading.value">
+          {{ settings.props.heading.value }}
+        </h3>
+        <div
+          class="comp-outer"
+          v-if="compare.products && compare.products.length"
+        >
           <div class="comp-inner">
             <table>
               <tbody>
@@ -14,49 +16,63 @@
                   <td class="comp-col comp-attr"></td>
                   <td
                     class="comp-col"
-                    v-for="(item,
-                    id) in compare.products.slice(
-                      0,
-                      settings.props.item_count.value
-                    )"
+                    v-for="(item, id) in compare.products &&
+                      compare.products.slice(
+                        0,
+                        settings.props.item_count.value
+                      )"
                     :key="id"
                   >
                     <div class="comp-product">
                       <fdk-link :link="getProductLink(item)" class="img-cont">
-                        <img v-bind:src="getImageUrl(item.images)" />
+                        <nm-image
+                          :src="getImageUrl(item.medias)"
+                          :alt="item.name"
+                        />
                       </fdk-link>
                       <div class="jm-product-cont">
                         <fdk-link :link="getProductLink(item)">
-                          <div class="product-title product-name-small">{{ item.name }}</div>
+                          <div class="product-title product-name-small">
+                            {{ item.name }}
+                          </div>
                           <h5
                             v-if="item.attributes.subtitle"
                             class="product-subtitle-small"
-                          >{{ item.attributes.subtitle }}</h5>
+                          >
+                            {{ item.attributes.subtitle }}
+                          </h5>
                         </fdk-link>
                         <div class="price">
-                          <div class="price-effective">{{ getPrice(item.price.effective) }}</div>
+                          <div class="price-effective">
+                            {{ getPrice(item.price.effective) }}
+                          </div>
                           <div
                             class="price-marked"
                             v-if="
                               item.price.effective.min != item.price.marked.min
                             "
-                          >{{ getPrice(item.price.marked) }}</div>
+                          >
+                            {{ getPrice(item.price.marked) }}
+                          </div>
                         </div>
                       </div>
                     </div>
                   </td>
                 </tr>
                 <template
-                  v-for="(attribute_metadata, id) in (compare.attributes_metadata || [])"
+                  v-for="(attribute_metadata,
+                  id) in compare.attributes_metadata || []"
                 >
                   <tr class="comp-row comp-group-heading" :key="'pr' + id">
-                    <td class="comp-col comp-attr bold-sm">{{ attribute_metadata.title }}</td>
+                    <td class="comp-col comp-attr bold-sm">
+                      {{ attribute_metadata.title }}
+                    </td>
                     <td
-                      v-for="(cProduct,
-                      id) in compare.products.slice(
-                        0,
-                        settings.props.item_count.value
-                      )"
+                      v-for="(cProduct, id) in compare.products &&
+                        compare.products.slice(
+                          0,
+                          settings.props.item_count.value
+                        )"
                       :key="'d' + id"
                       class="comp-col"
                     ></td>
@@ -68,11 +84,11 @@
                   >
                     <td class="comp-col comp-attr">{{ attribute.display }}</td>
                     <td
-                      v-for="(cProduct,
-                      id) in compare.products.slice(
-                        0,
-                        settings.props.item_count.value
-                      )"
+                      v-for="(cProduct, id) in compare.products &&
+                        compare.products.slice(
+                          0,
+                          settings.props.item_count.value
+                        )"
                       :key="'cp' + id"
                       class="comp-col"
                     >
@@ -80,7 +96,9 @@
                         v-if="checkHtml(getAttribute(cProduct, attribute))"
                         v-html="getAttribute(cProduct, attribute)"
                       ></span>
-                      <span v-else>{{ getAttribute(cProduct, attribute) }}</span>
+                      <span v-else>{{
+                        getAttribute(cProduct, attribute)
+                      }}</span>
                     </td>
                   </tr>
                 </template>
@@ -92,10 +110,9 @@
     </div>
     <div class="compare-mobile-container">
       <div class="compare-container">
-        <h3
-          class="compare-title bold-lg"
-          v-if="settings.props.heading.value"
-        >{{ settings.props.heading.value }}</h3>
+        <h3 class="compare-title bold-lg" v-if="settings.props.heading.value">
+          {{ settings.props.heading.value }}
+        </h3>
       </div>
       <div
         class="compare-product-container slider"
@@ -104,18 +121,15 @@
         ref="productContainerBig"
       >
         <div
-          v-for="(item,
-          index) in compare.products.slice(
-            0,
-            settings.props.item_count.value
-          )"
+          v-for="(item, index) in compare.products &&
+            compare.products.slice(0, settings.props.item_count.value)"
           :key="index"
           class="container"
         >
           <div class="product">
-            <router-link :to="getProductLink(item)" class="img-cont">
-              <img v-bind:src="getImageUrl(item.images)" />
-            </router-link>
+            <fdk-link :link="getProductLink(item)" class="img-cont">
+              <nm-image :src="getImageUrl(item.images)" :alt="item.name" />
+            </fdk-link>
             <div class="regular-xs text">{{ item.brand.name }}</div>
             <div class="regular-xs text">{{ item.name }}</div>
             <div class="bold-xs text">
@@ -123,7 +137,8 @@
               <span
                 class="regular-xs text price-marked"
                 v-if="item.price.effective.min != item.price.marked.min"
-              >{{ getPrice(item.price.marked) }}</span>
+                >{{ getPrice(item.price.marked) }}</span
+              >
             </div>
           </div>
         </div>
@@ -131,11 +146,15 @@
       <div class="attribute-list">
         <div class="attribute">
           <div
-            v-for="(attributes_metadata, id) in (compare.attributes_metadata || [])"
+            v-for="(attributes_metadata, id) in compare.attributes_metadata ||
+              []"
             :key="id"
           >
             <div class="attr-title">{{ attributes_metadata.title }}</div>
-            <div v-for="(attribute, aid) in attributes_metadata.details" :key="'cl' + id + aid">
+            <div
+              v-for="(attribute, aid) in attributes_metadata.details"
+              :key="'cl' + id + aid"
+            >
               <div class="attr-name">{{ attribute.display }}</div>
               <div
                 class="attr-desc slider"
@@ -148,14 +167,16 @@
                   :key="'cp' + id"
                   class="attr-desc-name d-flex"
                 >
-                  <img :src="attribute.logo" alt />
+                  <nm-image :src="attribute.logo" alt />
                   <span
                     class="attr"
                     v-if="checkHtml(getAttribute(cProduct, attribute))"
                     style="text-align: left;"
                     v-html="getAttribute(cProduct, attribute)"
                   ></span>
-                  <span class="attr" v-else>{{ getAttribute(cProduct, attribute) }}</span>
+                  <span class="attr" v-else>{{
+                    getAttribute(cProduct, attribute)
+                  }}</span>
                 </div>
               </div>
             </div>
@@ -249,7 +270,7 @@
       .comp-product {
         position: relative;
         .img-cont {
-          img {
+          /deep/ .nm__img {
             height: 100%;
             width: 100%;
             @media @mobile {
@@ -318,7 +339,7 @@
       max-width: 150px;
       border-right: 1px solid #cecece;
       .product {
-        img {
+        /deep/ .nm__img {
           width: 120px;
         }
       }
@@ -379,25 +400,31 @@
 
 <script>
 import { checkHtml } from "./../helper/utils";
+import nmImage from "./../global/components/common/nm-image.vue";
 export default {
-  props: ["settings", "provider"],
-  watch: {
-    settings: function(newVal, oldVal) {}
+  components: {
+    "nm-image": nmImage,
+  },
+  props: ["settings", "apiSDK", "serverProps"],
+  initializeServerProps({ settings, route, apiSDK }) {
+    return apiSDK.catalog
+      .getComparedFrequentlyProductBySlug({
+        slug: settings?.props?.product?.value,
+      })
+      .then((res) => {
+        return res;
+      });
   },
   mounted() {
-    this.settings = this.settings || {};
-    this.settings.props = this.settings.props || {};
-
-    let { product } = this.settings.props;
-    product = product.value;
-    this.provider.ProductDetail.fetchFrequentlyCompareProductDetails(
-      product
-    ).then(({ data }) => {
-      console.log('results----------');
-      console.log(data);
-      
-      this.compare = data;
-    });
+    if (Object.keys(this.compare).length == 0) {
+      this.$apiSDK.catalog
+        .getComparedFrequentlyProductBySlug({
+          slug: this.settings?.props?.product?.value,
+        })
+        .then((res) => {
+          this.compare = res;
+        });
+    }
   },
   methods: {
     checkHtml,
@@ -434,10 +461,9 @@ export default {
         slider = document.querySelector(".compare-product-container");
       }
       e.preventDefault();
-      console.log(slider, "Slider");
       const x = e.changedTouches[0].pageX - slider.offsetLeft;
       const walk = x - this.startX;
-      document.querySelectorAll(".slider").forEach(sliderItem => {
+      document.querySelectorAll(".slider").forEach((sliderItem) => {
         sliderItem.scrollLeft = this.scrollLeft - walk;
       });
     },
@@ -450,12 +476,12 @@ export default {
       }
       this.startX = e.changedTouches[0].pageX - slider.offsetLeft;
       this.scrollLeft = slider.scrollLeft;
-    }
+    },
   },
   data: function() {
     return {
-      compare: {}
+      compare: this.serverProps || {},
     };
-  }
+  },
 };
 </script>

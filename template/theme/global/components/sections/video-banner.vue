@@ -426,43 +426,7 @@ button.secondary-white-btn:hover,.button.secondary-white-btn:hover {
 
 </style>
 <script>
-/**
- * Component Attributes:
- * video : {
-        mobile: {
-            urls: [
-              {
-                url:
-                "https://res.cloudinary.com/dwzm9bysq/video/upload/v1590555153/x0/applications/app_5ec3d224848a007bfeacb550/media/assets/screen_saver/fiop4goo9vhtyhts3xdk.mp4",
-                type: "video/mp4"
-              }
-            ],
-            poster: "https://hdn-1.addsale.com/x0/company/7/applications/5ec3d224848a007bfeacb550/screensaver/pictures/free-banner/original/9WvgQmSv2-Screensaver.jpeg",
-          },
-          desktop: {
-            urls: [
-              {
-                url: "https://res.cloudinary.com/dwzm9bysq/video/upload/v1590513588/x0/applications/app_5ec3d224848a007bfeacb550/media/assets/screen_saver/wgjsskk4cs90cgzdacf7.mp4",
-                type: "video/mp4"
-              }
-            ],
-            poster: "https://hdn-1.addsale.com/x0/company/7/applications/5ec3d224848a007bfeacb550/screensaver/pictures/free-banner/original/hASOMMCjV-Screensaver.jpeg"
-          }
-    },
-    content: {
-        mobile: {
-            title: "DIESEL SPRING SALE",
-            paragraph: "Shop the SS20 collection for your summer time at up to 30% off.",
-            ctaLink: "/spring-sale/"
-        },
-        desktop: {
-            title: "DIESEL SPRING SALE",
-            paragraph: "Shop the SS20 collection for your summer time at up to 30% off.",
-            ctaLink: "/spring-sale/"
-        }
-    }
- * 
- */
+
 export default {
   data() {
     return {};

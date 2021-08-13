@@ -9,21 +9,14 @@
 export default {
   data: function data() {
     return {
-      text: "Hello"
+      text: "Hello",
     };
   },
   methods: {
     exampleMethod: function exampleMethod() {
       alert("Hello");
-    }
+    },
   },
-  computed: {},
-  mounted: function mounted() {
-    console.log("Component Mounted");
-  },
-  destroyed: function destroyed() {
-    console.log("Component Destroyed");
-  }
 };
 </script>
 

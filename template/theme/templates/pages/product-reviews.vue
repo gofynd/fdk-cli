@@ -8,20 +8,22 @@
         <p>User Images</p>
 
         <review-media-list
+          v-if="reviewMediaData.length"
           :media="reviewMediaData"
           :max_limit="5"
           @click="showImageModal = true"
         />
+        <div v-else>No images found</div>
       </div>
     </div>
     <div class="right">
       <fdk-infinite-reviews
-        v-if="context && context.reviews && context.reviews.data"
+        v-if="context && context.reviews && context.reviews.items && context.reviews.items.length"
         class="list-items"
       >
         <template slot-scope="infiniteReviews">
           <review-list
-            :reviews="context.reviews.data"
+            :reviews="context.reviews.items"
             :product="context.product"
             :reviewspage="true"
             :title="context.product.name"
@@ -34,9 +36,7 @@
         </template>
       </fdk-infinite-reviews>
 
-      <div v-else>
-        No reviews found
-      </div>
+      <div v-else>No reviews found</div>
     </div>
     <review-image-modal
       :isOpen="showImageModal"
@@ -48,22 +48,22 @@
 </template>
 
 <script>
-import productcard from './../../global/components/product-card';
-import ratinglist from './../../global/components/reviews/review-list';
-import reviewmedialist from './../../global/components/reviews/review-media-list';
-import reviewimagemodal from './../../global/components/reviews/review-image-modal';
-import loader from './../components/loader';
+import productcard from "./../../global/components/product-card.vue";
+import ratinglist from "./../../global/components/reviews/review-list";
+import reviewmedialist from "./../../global/components/reviews/review-media-list";
+import reviewimagemodal from "./../../global/components/reviews/review-image-modal";
+import loader from "./../components/loader";
 
 export default {
-  name: 'reviews-page',
+  name: "reviews-page",
   props: {
     context: {},
   },
   components: {
-    'review-list': ratinglist,
-    'product-card': productcard,
-    'review-media-list': reviewmedialist,
-    'review-image-modal': reviewimagemodal,
+    "review-list": ratinglist,
+    "product-card": productcard,
+    "review-media-list": reviewmedialist,
+    "review-image-modal": reviewimagemodal,
     loader,
   },
   data() {
@@ -84,20 +84,18 @@ export default {
     },
     reviewMediaData() {
       let mediaArr = [];
-      (this.context.reviews.data || []).forEach((reviewitem) => {
-        //   console.log(s, reviewitem);
+      (this.context.reviews.items || []).forEach((reviewitem) => {
         if (this.hasMedia(reviewitem) && reviewitem.review) {
           reviewitem.review.media_meta.map((i) => (i._review = reviewitem));
           mediaArr.push(...reviewitem.review.media_meta);
         }
       }, []);
-      console.log(mediaArr);
       return mediaArr;
     },
   },
   methods: {
     redirectToProduct() {
-      window.open(`/product/${this.context.product.slug}`, '_blank');
+      window.open(`/product/${this.context.product.slug}`, "_blank");
     },
     hasMedia(reviewitem) {
       if (reviewitem.review) {
@@ -116,12 +114,16 @@ export default {
   display: flex;
 
   .left {
+    padding: 20px;
     width: 25%;
     box-sizing: border-box;
     border-right: 1px solid #ccc;
     .product-card {
-      padding: 20px;
+      // padding: 20px;
       border-bottom: 1px solid #ccc;
+      /deep/.product-desc {
+        width: 100%;
+      }
     }
     .images {
       padding: 20px;

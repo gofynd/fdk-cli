@@ -25,10 +25,6 @@ To see the available theme commands, enter:
 ```sh
 fdk theme
 ```
-To see the available context commands, enter:
-```sh
-fdk context
-```
 To see the available extension commands, enter:
 ```sh
 fdk extension
@@ -51,27 +47,32 @@ This command can be broken down as follows:
 
 ## Commands
 ___
+### Environment Commands
+| Command        | Description           | 
+| ------------- |-------------| 
+| [env](#env)     | List environments |
+| [current-env](#current-env)     | Shows current environment |
+
+### Authentication Commands
+| Command        | Description           | 
+| ------------- |-------------| 
+| [login](#login)     | Login user |
+| [user](#user)     | Shows user details of logged in user |
+| [logout](#logout)     | Logout user |
+
+
 ### Theme Commands
 | Command        | Description           | 
 | ------------- |-------------| 
 | [new](#theme-new)     | Create new theme |
 | [init](#theme-init)     | Initialize an existing theme |
-| [serve](#theme-serve)     | Locally run a theme |
+| [context](#theme-context)     | Add context of a theme |
+| [context-list](#theme-context-list)     | List all available contexts |
 | [sync](#theme-sync)     | Sync theme to application |
 | [pull](#theme-pull)     | Pull latest theme code |
 | [pull-config](#theme-pull-config)     | Pull latest theme config |
 | [publish](#theme-publish)     | Publish theme to library |
 | [unpublish](#theme-unpublish)     | Unpublish theme |
-| [list](#theme-list)     | List themes added to application |
-
-### Context Commands
-| Command        | Description           | 
-| ------------- |-------------| 
-| [add](#context-add)     | Add new context |
-| [update](#context-update)     | Update active context |
-| [get](#context-get)     | Get active context |
-| [list](#context-list)     | List all available contexts |
-| [set](#context-set)     | Set active context |
 
 ### Extension Commands
 | Command        | Description           | 
@@ -88,6 +89,83 @@ ___
 
 ## Commands Reference
 ___
+### Environment Commands
+Before you setup a theme using FDK CLI you will have to set an environment in which you will be initializing your theme
+<div id="envs"></div>
+
+#### **env**
+This command show a list of all available envorinments for the user to choose from
+#### **Command Options**
+| Option        | Description           | 
+| ------------- |-------------| 
+| --name, -n   | Environment name |
+| --help    | Show help |
+
+#### **Example**
+```sh
+fdk env -n [your-env]
+```
+#### **Syntax**
+```sh
+fdk env
+```
+
+<div id="current-env"></div>
+
+___
+#### **current-env**
+This command show the current environment set by the user.
+#### **Syntax**
+```sh
+fdk current-env
+```
+___
+### Authentication Commands
+After setting the environment the user has to login to the cli. They can use their email ID or phone number to login.
+<div id="login"></div>
+
+#### **login**
+This command allows user to login with email or password
+#### **Syntax**
+```sh
+fdk login
+```
+#### **Command Options**
+| Option        | Description           | 
+| ------------- |-------------| 
+| --email, -e   | Email |
+| --mobile, -m    | Mobile |
+| --help    | Show help |
+
+#### **Example**
+```sh
+fdk login -e [your-email]
+```
+
+```sh
+fdk login -m [your-mobile]
+```
+
+<div id="user"></div>
+
+___
+#### **user**
+This command show user details of the currently logged in user.
+#### **Syntax**
+```sh
+fdk user
+```
+
+<div id="logout"></div>
+
+___
+#### **logout**
+This command will logout the user.
+#### **Syntax**
+```sh
+fdk logout
+```
+___
 ### Theme Commands
 A theme is a VueJS project that developers can scaffold using this cli tool. Themes change the look and feel of websites built using Fynd Platform. Always create a new directory while creating or initializing a theme.
 <div id="theme-new"></div>
@@ -102,21 +180,15 @@ fdk theme new [options]
 #### **Command Options**
 | Option        | Description           | 
 | ------------- |-------------| 
-| --email    | Email |
-| --password    | Password |
-| --app-id    | Application ID |
-| --app-token    | Application token |
-| --company-id    | Company ID |
-| --host    | Host |
-| --theme-name    | Theme name |
-| --context-name    | Context name |
+| --token, -t    | Theme token |
+| --name, -n    | Theme name |
 | --help    | Show help |
 
-You can find the application ID and application token under the developers panel of Fynd Platform. [Reference](https://hdn-1.fynd.com/company/884/applications/000000000000000000000003/theme/pictures/free/original/theme-image-1625635306591.png)
+You can find the theme token under the themes panel of Fynd Platform. [Reference](https://hdn-1.addsale.com/x0/company/1/applications/000000000000000000000001/theme/pictures/free/original/theme-image-1628752638519.png)
 
 #### **Example**
 ```sh
-fdk theme new --email [your-email] --password '[your-password]' --app-id [your-application-id] --app-token [your-application-token] --host api.fynd.com --theme-name [your-theme-name] --context-name [context-name] --company-id [your-company-id]
+fdk theme new -t [theme-token] -n [your-theme-name] 
 ```
 
 ___
@@ -133,22 +205,48 @@ fdk theme init [options]
 #### **Command Options**
 | Option        | Description           | 
 | ------------- |-------------| 
-| --email    | Email |
-| --password    | Password |
-| --app-id    | Application ID |
-| --app-token    | Application token |
-| --company-id    | Company ID |
-| --host    | Host |
-| --theme-id    | Theme ID |
-| --context-name    | Context name |
+| --token, -t   | Theme token |
 | --help    | Show help |
 
-You can find the application ID and application token under the developers panel of Fynd Platform. [Reference](https://hdn-1.fynd.com/company/884/applications/000000000000000000000003/theme/pictures/free/original/theme-image-1625635306591.png)
-For theme ID view the theme modal in under Appearance -> Theme. [Reference](https://hdn-1.fynd.com/company/884/applications/000000000000000000000003/theme/pictures/free/original/theme-image-1625636390802.png)
+You can find the theme token under the themes panel of Fynd Platform. [Reference](https://hdn-1.addsale.com/x0/company/1/applications/000000000000000000000001/theme/pictures/free/original/theme-image-1628752713854.png)
+
 
 #### **Example**
 ```sh
-fdk theme init --email [your-email] --password '[your-password]' --app-id [your-application-id] --app-token [your-application-token]  --host api.fynd.com  --theme-name [your-theme-name] --context-name [context-name] --company-id [your-company-id] --theme-id [your-theme-id]
+fdk theme init -t [your-theme-token]
+```
+___
+
+<div id="theme-context"></div>
+
+#### **context**
+Context is a JSON object which holds the configurations related the the application and theme. When you initialize or create a new theme a context is created with the name provided in the commands and assigned as the active context. You can add multiple contexts if you want to use the same theme on multiple applications or envoirnments. <br/> <br/>
+This command is used to add a new context.
+#### **Syntax**
+```sh
+fdk theme context [options]
+```
+#### **Command Options**
+| Option        | Description           | 
+| ------------- |-------------| 
+| --token, -t    | Theme token |
+| --name, -n    | Context name |
+| --help    | Show help |
+
+You can find the theme token under the theme panel of Fynd Platform. [Reference](https://hdn-1.addsale.com/x0/company/1/applications/000000000000000000000001/theme/pictures/free/original/theme-image-1628752713854.png)
+
+#### **Example**
+```sh
+fdk theme context -t [your-theme-token] -n [context-name] 
+```
+___
+<div id="theme-context-list"></div>
+
+#### **context-list**
+This command is used to get a list of available context. You can also set active context by selecting one of the options in the list
+#### **Syntax**
+```sh
+fdk theme context-list
 ```
 ___
 
@@ -167,7 +265,7 @@ fdk theme serve [options]
 | --ssr    | Enable/disable Server-side rendering |
 | --help    | Show help |
 
-By default Server-side rendering is enable. To disable it use `--ssr=false` with the serve command
+By default Server-side rendering is enable. To disable it use `--ssr false` with the serve command
 
 #### **Example**
 ```sh
@@ -221,117 +319,6 @@ This command is used to unpublish your theme.
 fdk theme unpublish
 ```
 ___
-<div id="theme-list"></div>
-
-#### **list**
-This command is used to publish your theme.
-#### **Syntax**
-```sh
-fdk theme list [options]
-```
-#### **Command Options**
-| Option        | Description           | 
-| ------------- |-------------| 
-| --app-id    | Application ID |
-| --app-token    | Application token |
-| --host    | Host |
-| --help    | Show help |
-
-#### **Example**
-```sh
-fdk theme list --app-id [your-application-id] --app-token [your-application-token]  --host api.fynd.com
-```
-___
-<div id="context-commands"></div>
-
-### Context Commands
-Context is a JSON object which holds the configurations related the the application and theme. When you initialize or create a new theme a context is created with the name provided in the commands and assigned as the active context. You can add multiple contexts if you want to use the same theme on multiple applications or envoirnments.
-
-<div id="context-add"></div>
-
-#### **add**
-This command is used to add a new context.
-#### **Syntax**
-```sh
-fdk context add [options]
-```
-#### **Command Options**
-| Option        | Description           | 
-| ------------- |-------------| 
-| --email    | Email |
-| --password    | Password |
-| --app-id    | Application ID |
-| --app-token    | Application token |
-| --company-id    | Company ID |
-| --theme-id    | Theme ID |
-| --host    | Host |
-| --context-name    | Context name |
-| --help    | Show help |
-
-You can find the application ID and application token under the developers panel of Fynd Platform. [Reference](https://hdn-1.fynd.com/company/884/applications/000000000000000000000003/theme/pictures/free/original/theme-image-1625635306591.png)
-For theme ID view the theme modal in under Appearance -> Theme. [Reference](https://hdn-1.fynd.com/company/884/applications/000000000000000000000003/theme/pictures/free/original/theme-image-1625636390802.png)
-#### **Example**
-```sh
-fdk context add --email [your-email] --password '[your-password]' --app-id [your-application-id] --app-token [your-application-token]  --host api.fynd.com --context-name [context-name] --company-id [your-company-id] --theme-id [your-theme-id]
-```
-___
-<div id="context-update"></div>
-
-#### **update**
-Sometimes you can get Unauthenticated errors in between sync. This might have happened because your session has expired. For this update your context using this command.
-#### **Syntax**
-```sh
-fdk context update [options]
-```
-#### **Command Options**
-| Option        | Description  | 
-| ------------- |-------------| 
-| --email, -e    | Email |
-| --password, -p    | Password |
-| --help    | Show help |
-
-#### **Example**
-```sh
-fdk context update -e [your-email] -p '[your-password]'
-```
-___
-<div id="context-get"></div>
-
-#### **get**
-This command is used to get active context.
-#### **Syntax**
-```sh
-fdk context get
-```
-___
-<div id="context-list"></div>
-
-#### **list**
-This command is used to get a list of available context. You can also set active context by selecting one of the options in the list
-#### **Syntax**
-```sh
-fdk context list
-```
-___
-<div id="context-set"></div>
-
-#### **set**
-This command is used to set a active context.
-#### **Syntax**
-```sh
-fdk context set [options]
-```
-#### **Command Options**
-| Option        | Description  | 
-| ------------- |-------------| 
-| --name, -n    | Context name |
-| --help    | Show help |
-
-#### **Example**
-```sh
-fdk context set -n [example-context]
-```
-___
 ### Extension Commands
 Extensions are pluggable snippets of code that can be installed in your applications so improve the feature set of your application. To know more visit - [Fynd Partners](https://partners.fynd.com/)
 
@@ -346,13 +333,13 @@ fdk extension init [options]
 #### **Command Options**
 | Option        | Description           | 
 | ------------- |-------------| 
-| --dir    | Target Directory |
+| --target-dir    | Target Directory |
 | --host    | Host |
 | --help    | Show help |
 
 #### **Example**
 ```sh
-fdk extension init --dir [your-directory] --host [your_host]
+fdk extension init --target-dir [your-directory] --host [your_host]
 ```
 ___
 <div id="extension-launch-url"></div>
@@ -428,3 +415,4 @@ ___
 
 
 
+****

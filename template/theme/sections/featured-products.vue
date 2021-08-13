@@ -5,10 +5,9 @@
       'full-width-section': settings.props.full_width.value,
     }"
   >
-    <h1
-      class="section-heading"
-      v-if="settings && settings.props.heading.value"
-    >{{ settings.props.heading.value }}</h1>
+    <h1 class="section-heading" v-if="settings && settings.props.heading.value">
+      {{ settings.props.heading.value }}
+    </h1>
     <div class="section__items">
       <div
         class="item"
@@ -20,18 +19,35 @@
         }"
         v-for="(product, index) in products"
         :key="'feat-item-' + index"
+        target="_blank"
       >
         <!-- {{ block }} -->
-        <fdk-link :link="`/product/${product.slug}`" class="product-link">
-          <img
-            alt="Shop Now"
+        <fdk-link
+          :link="`/product/${product.slug}`"
+          class="product-link"
+          v-if="product"
+        >
+          <nm-image
+            :alt="product.name"
             class="product-image"
-            :src="product.images[0].url"
+            :src="product.medias.length > 0 ? product.medias[0].url : ''"
             :title="product.name"
-          />
+          ></nm-image>
         </fdk-link>
-        <h3 class="product-title">{{ product.name }}</h3>
+        <fdk-placeholder type="product-2" v-else />
+        <h3 class="product-title" v-if="product && product.name">
+          {{ product.name }}
+        </h3>
+        <h3 class="product-title" v-else>Product{{ index }}</h3>
       </div>
+    </div>
+    <div v-if="products.length === 0">
+      <placeholder-items
+        :count="10"
+        type="collection-1"
+        text="Product"
+        :layout="`grid`"
+      />
     </div>
   </div>
 </template>
@@ -78,19 +94,40 @@
       "label": "Full width",
       "info":"Check to allow items to take entire width of the viewport"
     }
-  ]
+  ],
+  "preset":{
+    "blocks":[
+      {
+        "name":"Product"
+      },
+       {
+        "name":"Product"
+      }    
+    ]
+  }
 }
 </settings>
 <style scoped lang="less">
 .item {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  a {
+    display: flex;
+    align-items: center;
+    height: 100%;
+  }
   .product-link {
-    display: block;
+    // display: block;
     text-align: center;
   }
   .product-image {
-    width: 100%;
-    @media @mobile {
-      width: 80%;
+    /deep/ .nm__img {
+      width: 100%;
+      @media @mobile {
+        width: 80%;
+      }
     }
   }
   .product-title {
@@ -102,39 +139,80 @@
 }
 </style>
 <script>
+import placeholderItemsVue from "../global/components/sections/placeholder-items.vue";
+import nmImage from "./../global/components/common/nm-image.vue";
+
 export default {
-  props: ["settings", "provider"],
+  props: ["settings", "apiSDK", "serverProps"],
+  components: {
+    "nm-image": nmImage,
+    "placeholder-items": placeholderItemsVue,
+  },
+  initializeServerProps({ apiSDK, settings }) {
+    const products =
+      settings?.blocks?.map((b) => {
+        return b?.props?.product?.value;
+      }) || [];
+    return Promise.all(
+      products.map((slug) => {
+        return apiSDK.catalog.getProductDetailBySlug({
+          slug,
+        });
+      })
+    )
+      .then((results) => {
+        return results;
+      })
+      .catch((e) => console.log);
+  },
   watch: {
-    settings: function(newVal, oldVal) {}
+    settings(newSettings, oldSettings) {
+      if (newSettings?.blocks.length !== oldSettings?.blocks.length) {
+        const products =
+          newSettings?.blocks?.map((b) => {
+            return b?.props?.product?.value;
+          }) || [];
+        Promise.all(products.map(this.getProductDetails))
+          .then((results) => {
+            this.products = results;
+          })
+          .catch((e) => console.log);
+      }
+    },
   },
   mounted() {
-    this.settings = this.settings || {};
-    this.settings.blocks = this.settings.blocks || [];
-    let products = this.settings.blocks.map(b => {
-      b.props = b.props || {};
-      b.props.product = b.props.product || {};
-      return b.props.product.value;
-    });
-    Promise.all(products.map(this.getProductDetails))
-      .then(results => {
-        this.products = results;
-      })
-      .catch(e => console.log);
+    if (
+      !this.products.length ||
+      this.products.length == 0 ||
+      this.settings?.blocks?.length !== this.products?.length
+    ) {
+      const products =
+        this.settings?.blocks?.map((b) => {
+          return b?.props?.product?.value;
+        }) || [];
+      Promise.all(products.map(this.getProductDetails))
+        .then((results) => {
+          this.products = results;
+        })
+        .catch((e) => console.log);
+    }
   },
-  data: function() {
+  data() {
     return {
-      products: []
+      products: this.serverProps || [],
     };
   },
   methods: {
     getProductDetails(slug) {
-      return this.provider.ProductDetail.fetchProductDetails({
-        slug,
-        image_size: "med"
-      }).then(res => {
-        return res.data || {};
-      });
-    }
-  }
+      if (!slug) return;
+      return this.$apiSDK.catalog
+        .getProductDetailBySlug({
+          slug,
+        })
+        .then((res) => {
+          return res || {};
+        });
+    },
+  },
 };
 </script>

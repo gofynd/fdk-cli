@@ -5,6 +5,8 @@ import CartDelivery from './templates/pages/cart-delivery.vue';
 import Categories from './templates/pages/categories.vue';
 import Collections from './templates/pages/collections.vue';
 import CollectionListing from './templates/pages/collection-listing.vue';
+import BrandListing from './templates/pages/brand-listing.vue';
+import CategoryListing from './templates/pages/category-listing.vue';
 import CompareProducts from './templates/pages/compare-products.vue';
 import OrderTrackingDetails from './templates/pages/order-tracking-details.vue';
 import OrderTracking from './templates/pages/order-tracking.vue';
@@ -19,9 +21,8 @@ import ProfileDetails from './templates/pages/profile-details.vue';
 import ProfileAddress from './templates/pages/profile-address.vue';
 import ShipmentDetails from './templates/pages/shipment-details.vue';
 import Home from './templates/pages/home.vue';
-import SharedCart from './templates/pages/shared-cart.vue';
-import LocateUs from './templates/pages/locate-us.vue';
-
+import AddProductReview from './templates/pages/add-product-review.vue';
+import ProductReviews from './templates/pages/product-reviews.vue';
 // component templates
 import ScreenSaver from './templates/components/screen-saver.vue';
 import Loader from './templates/components/loader.vue';
@@ -33,51 +34,17 @@ import sections from './sections';
 import CustomTemplates from './custom-templates';
 import styles from './global/head.less';
 
-/* UNCOMMENT TO APPLY FYND THEME */
-
-// export default {
-//   getCartLanding: () => CartLanding,
-//   getCartReview: () => CartReview,
-//   getCartDelivery: () => CartDelivery,
-//   getCategories: () => Categories,
-//   getCollections: () => Collections,
-//   getCompareProducts: () => CompareProducts,
-//   getFooter: () => Footer,
-//   getHeader: () => Header,
-//   getOrderTrackingDetails: () => OrderTrackingDetails,
-//   getOrderTracking: () => OrderTracking,
-//   getOrderStatus: () => OrderStatus,
-//   getProductDescription: () => ProductDescription,
-//   getProductListing: () => ProductListing,
-//   getOrdersList: () => OrdersList,
-//   getScreenSaver: () => ScreenSaver,
-//   getBlog: () => Blog,
-//   getBrands: () => Brands,
-//   getLoader: () => Loader,
-//   getWishList: () => Wishlist,
-//   getProfileDetails: () => ProfileDetails,
-//   getShipmentDetails: () => ShipmentDetails,
-//   getProfileAddress: () => ProfileAddress,
-//   getSharedCart: () => SharedCart,
-//   getLocateUs: () => LocateUs,
-//   getEmptyState: () => null,
-//   getHome: () => Home,
-//   getCustomTemplates: () => {
-//     return CustomTemplates;
-//   },
-// };
-
 export default {
-  getLocateUs: () => null,
   getCartLanding: () => CartLanding,
   getCartReview: () => CartReview,
   getCategories: () => Categories,
   getCollections: () => Collections,
   getCollectionListing: () => CollectionListing,
+  getCategoryListing: () => CategoryListing,
+  getBrandListing: () => BrandListing,
   getCompareProducts: () => CompareProducts,
   getFooter: () => Footer,
   getHeader: () => Header,
-  getOrderReview: () => OrderReview,
   getOrderTrackingDetails: () => OrderTrackingDetails,
   getOrderTracking: () => OrderTracking,
   getProductDescription: () => ProductDescription,
@@ -97,12 +64,6 @@ export default {
   getCustomTemplates: () => CustomTemplates,
   getEmptyState: () => EmptyState,
   getProductReviews: () => ProductReviews,
-  getCustomTemplates: () => {
-    return CustomTemplates;
-  },
-  bootstrapTheme: (vueApp) => {
-    console.log(vueApp);
-    return Promise.resolve();
-  },
-  sections
+  getAddProductReview: ()=> AddProductReview,
+  sections,
 };

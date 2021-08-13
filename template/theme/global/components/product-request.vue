@@ -156,7 +156,7 @@ export default {
   },
   mounted() {
     if (this.isPdpPage) {
-      this.images = this.product.images.map((res) => {
+      this.images = this.product.medias.map((res) => {
         return res.url;
       });
     }
@@ -203,8 +203,9 @@ export default {
       return {
         brand: this.formFields[1].value,
         description: this.formFields[2].value,
-        images: this.images,
-        item_id: this.formFields[0].value,
+        medias: this.images,
+        product_identifier: this.formFields[0].value,
+        item_id: (this.product && this.product.uid) || "",
         size_details: this.getSizeDetails(),
       };
     },

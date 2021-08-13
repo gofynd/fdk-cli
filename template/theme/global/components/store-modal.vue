@@ -11,7 +11,7 @@
       </div>
       <div v-if="!isDataLoading">
         <div class="store-header">
-          <div>Available in {{ allStoresInfo.data.length }} stores</div>
+          <div>Available in {{ allStoresInfo.items.length }} stores</div>
           <div class="filters">
             <select class="custom-select" @change="selectionChange">
               <option
@@ -24,15 +24,20 @@
             </select>
           </div>
         </div>
-        <div class="data">
-          <store
-            v-for="item in allStoresInfo.data"
-            :key="item.store_name"
-            :storeitem="item"
-            :activeStoreInfo="activeStoreInfo"
-            v-on:select-store-item="setActiveStore"
-          ></store>
-        </div>
+        <fdk-infinite-scrolling
+          @loadmore="loadMoreData(sellerData)"
+          :loadingData="loading"
+        >
+          <div class="data">
+            <store
+              v-for="item in allStoresInfo.items"
+              :key="item.store_name"
+              :storeitem="item"
+              :activeStoreInfo="activeStoreInfo"
+              v-on:select-store-item="setActiveStore"
+            ></store>
+          </div>
+        </fdk-infinite-scrolling>
 
         <div class="modal-footer" @click="storeSelected">
           <div class="common-btn checkout">SELECT SELLER</div>
@@ -121,6 +126,7 @@ export default {
     activeStoreInfo: {},
     productName: String,
     allStoresInfo: {},
+    sellerData: {},
   },
   data() {
     return {
@@ -133,6 +139,14 @@ export default {
     },
   },
   methods: {
+    loadMoreData(sellerData) {
+      if (this.all_stores_info.page.has_next) {
+        this.loading = true;
+        sellerData.loadMoreStores().then((res) => {
+          this.loading = false;
+        });
+      }
+    },
     closeDailog() {
       this.$emit("closedialog");
     },

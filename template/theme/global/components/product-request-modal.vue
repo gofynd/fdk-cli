@@ -10,7 +10,7 @@
         v-if="!showSuccessScreen"
         :product="productInfo"
         :isPdpPage="isPdpPage"
-        @closeDialog="closeDialog"
+        
         @formSubmitted="showSuccessPage"
       ></product-request>
       <div v-if="showSuccessScreen" class="success-container">

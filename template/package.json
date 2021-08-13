@@ -1,17 +1,22 @@
 {
-  "name": "theme-monorepo",
-  "version": "1.0.0",
+  "name": "Namaste",
+  "version": "1.0.53",
   "description": "theme",
-  "main": "index.js",
+  "author": "",
   "scripts": {
+    "addBabel": "vue add babel",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "main": "index.js",
   "dependencies": {
+    "@google/model-viewer": "^1.5.0",
     "@vue/cli": "4.2.2",
     "@vue/cli-service": "4.4.6",
     "@vue/cli-service-global": "4.2.2",
     "archiver": "3.1.1",
     "browser-or-node": "^1.2.1",
+    "core-js": "^3.6.5",
+    "drift-zoom": "^1.4.0",
     "glob": "7.1.6",
     "jquery": "^3.5.1",
     "less": "3.11.1",
@@ -20,14 +25,16 @@
     "style-resources-loader": "1.3.3",
     "text-transform-loader": "2.0.0",
     "url-join": "4.0.1",
-    "vue-select": "^3.10.5",
     "vue-no-ssr": "^1.1.1",
+    "vue-select": "^3.10.5",
     "vue-slick": "^1.1.15",
+    "vue-slick-carousel": "^1.0.6",
     "vue-slider-component": "2.8.16",
-    "hammerjs": "2.0.8",
-    "vue-star-rating": "^1.6.1",
-    "window-or-global": "^1.0.1"
+    "vue-star-rating": "1.6.1"
   },
-  "author": "",
+  "devDependencies": {
+    "@babel/plugin-proposal-optional-chaining": "^7.11.0",
+    "@vue/cli-plugin-babel": "^4.5.7"
+  },
   "license": "ISC"
 }
