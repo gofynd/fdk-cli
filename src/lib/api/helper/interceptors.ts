@@ -23,8 +23,10 @@ function getTransformer(config) {
 }
 
 function getCompanyId(path: string): number {
-    const companySubStr = '/company/';
-    return Number(path[path.indexOf(companySubStr) + companySubStr.length]);
+    const pathArr = path.split('/');
+    const companyId = pathArr[pathArr.findIndex(p => p === 'company') + 1];
+    
+    return Number(companyId);
 }
 function interceptorFn(options) {
     return async config => {

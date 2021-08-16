@@ -8,7 +8,7 @@ import { createDirectory } from './file.utils';
 const FDK_PATH = () => path.join(process.cwd(), '.fdk');
 const CONTEXT_PATH = () => path.join(FDK_PATH(), 'context.json');
 const DEFAULT_CONTEXT = { theme: {active_context: '', contexts: {}}, partners: {} };
-export interface ContextInterface {
+export interface ThemeContextInterface {
   application_id?: string;
   application_token?: string;
   theme_id?: string;
@@ -40,7 +40,7 @@ export const decodeBase64 = encodedString => {
   return Buffer.from(encodedString, 'base64').toString('utf8');
 };
 
-export const getActiveContext = (): ContextInterface => {
+export const getActiveContext = (): ThemeContextInterface => {
   if (isAThemeDirectory() && hasContext()) {
     const contextData = fs.readJSONSync(CONTEXT_PATH());
     if (!contextData)

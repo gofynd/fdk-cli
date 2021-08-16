@@ -1,6 +1,6 @@
 import commander from 'commander';
 import Theme from '../../lib/Theme';
-import Context from '../../lib/Context';
+import ThemeContext from '../../lib/ThemeContext';
 export default function themeCommandBuilder() {
     const theme = new commander.Command('theme').description('Theme Commands');
     theme
@@ -41,9 +41,9 @@ export default function themeCommandBuilder() {
         .description('Add context')
         .requiredOption('-t, --token [token]', 'Token')
         .requiredOption('-n, --name [name]', 'Context name')
-        .asyncAction(Context.addContext);
+        .asyncAction(ThemeContext.addThemeContext);
 
-    theme.command('context-list').description('List all contexts').asyncAction(Context.listContext);
+    theme.command('context-list').description('List all contexts').asyncAction(ThemeContext.listThemeContext);
 
     return theme;
 }
