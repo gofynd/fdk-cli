@@ -122,6 +122,7 @@ export async function startServer({ domain, host, isSSR }) {
 					<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
 					<script>
 					var socket = io();
+					console.log('Initialized sockets')
 					socket.on('reload',function(){
 						location.reload();
 					});

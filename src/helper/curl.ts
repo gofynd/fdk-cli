@@ -10,7 +10,7 @@ export default class CurlHelper {
 
     // get the headers concerning the appropriate method (defined in the global axios instance)
     if (headers.hasOwnProperty("common")) {
-      headers = this.request.headers[this.request.method];
+      headers = this.request.headers[this.request?.method];
     }
 
     // add any custom headers (defined upon calling methods like .get(), .post(), etc.)
@@ -35,7 +35,7 @@ export default class CurlHelper {
   }
 
   getMethod() {
-    return `-X ${this.request.method.toUpperCase()}`;
+    return `-X ${this.request?.method.toUpperCase()}`;
   }
 
   getBody() {
@@ -43,7 +43,7 @@ export default class CurlHelper {
       typeof this.request.data !== "undefined" &&
       this.request.data !== "" &&
       this.request.data !== null &&
-      this.request.method.toUpperCase() !== "GET"
+      this.request?.method.toUpperCase() !== "GET"
     ) {
       let data =
         typeof this.request.data === "object" ||
