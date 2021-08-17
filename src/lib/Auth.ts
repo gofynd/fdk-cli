@@ -2,7 +2,7 @@ import CommandError from './CommandError';
 import Logger from './Logger';
 import AuthService from './api/services/auth.service';
 import inquirer from 'inquirer';
-import configStore, { CONFIG_KEYS } from './Config';
+import ConfigStore, { CONFIG_KEYS } from './Config';
 
 export default class Auth {
     constructor() {}
@@ -16,8 +16,8 @@ export default class Auth {
             const { data, headers } = await AuthService.loginUserWithEmailAndPassword(requestData);
             delete data.user.roles;
             const cookie = headers['set-cookie'][0];
-            configStore.set(CONFIG_KEYS.COOKIE, cookie);
-            configStore.set(CONFIG_KEYS.USER, data.user);
+            ConfigStore.set(CONFIG_KEYS.COOKIE, cookie);
+            ConfigStore.set(CONFIG_KEYS.USER, data.user);
             Logger.success('User logged in successfully');
         } catch (error) {
             throw new CommandError(error.message, error.code);
@@ -46,8 +46,8 @@ export default class Auth {
                 const { data, headers } = await AuthService.verifyMobileOtp(requestData);
                 delete data.user.roles;
                 const cookie = headers['set-cookie'][0];
-                configStore.set(CONFIG_KEYS.COOKIE, cookie);
-                configStore.set(CONFIG_KEYS.USER, data.user);
+                ConfigStore.set(CONFIG_KEYS.COOKIE, cookie);
+                ConfigStore.set(CONFIG_KEYS.USER, data.user);
                 Logger.success('User logged in successfully');
             });
         } catch (error) {
@@ -66,7 +66,7 @@ export default class Auth {
             ];
             await inquirer.prompt(questions).then(answers => {
                 if (answers.confirmLogout === 'Yes') {
-                    configStore.clear();
+                    ConfigStore.clear();
                     Logger.success(`User logged out successfully`);
                 }
             });
@@ -76,7 +76,7 @@ export default class Auth {
     }
     public static getUserInfo() {
         try {
-            const user = configStore.get(CONFIG_KEYS.USER);
+            const user = ConfigStore.get(CONFIG_KEYS.USER);
             const activeEmail =
                 user.emails.find(e => e.active && e.primary)?.email || 'Not primary email set';
             Logger.success(`Name: ${user.first_name} ${user.last_name}`);

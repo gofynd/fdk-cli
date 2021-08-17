@@ -1,6 +1,6 @@
 export default class CurlHelper {
 	request;
-  constructor(config) {
+  constructor(config = {}) {
     this.request = config;
   }
 

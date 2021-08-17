@@ -22,7 +22,7 @@ interface ApiEngine {
   postMisc: (url: any, opt: any) => Promise<AxiosResponse<any>>;
 }
 let engine: ApiEngine = {
-  head: function (url, opt) {
+  head: function (url, opt = {}) {
     return axios.head(url, {
       headers: opt.headers,
       params: opt.params,
@@ -31,7 +31,7 @@ let engine: ApiEngine = {
       },
     });
   },
-  get: function (url, opt, config = {}) {
+  get: function (url, opt = {}, config = {}) {
     return axios.get(url, {
       params: opt.params,
       headers: opt.headers,
@@ -41,32 +41,32 @@ let engine: ApiEngine = {
       ...config,
     });
   },
-  post: function (url, opt) {
+  post: function (url, opt = {}) {
     return axios.post(url, opt.data, {
       headers: opt.headers,
       params: opt.params,
     });
   },
-  put: function (url, opt) {
+  put: function (url, opt = {}) {
     return axios.put(url, opt.data, {
       headers: opt.headers,
       params: opt.params,
     });
   },
-  patch: function (url, opt) {
+  patch: function (url, opt = {}) {
     return axios.patch(url, opt.data, {
       headers: opt.headers,
       params: opt.params,
     });
   },
-  del: function (url, opt) {
+  del: function (url, opt = {}) {
     return axios.delete(url, {
       data: opt.data,
       headers: opt.headers,
       params: opt.params,
     });
   },
-  getMisc: function (url, opt) {
+  getMisc: function (url, opt = {}) {
     return axiosMisc.get(url, {
       params: opt.params,
       headers: opt.headers,
@@ -75,7 +75,7 @@ let engine: ApiEngine = {
       },
     });
   },
-  postMisc: function (url, opt) {
+  postMisc: function (url, opt = {}) {
     return axiosMisc.post(url, opt.data, { headers: opt.headers });
   },
 };

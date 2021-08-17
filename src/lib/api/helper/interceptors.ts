@@ -50,6 +50,7 @@ function interceptorFn(options) {
                     try {
                         data = (await AuthenticationService.getOauthToken(company_id)).data || {};
                     } catch (error) {
+                        Logger.error("Failed to fetch OAuth token")
                         ConfigStore.delete(CONFIG_KEYS.USER);
                         ConfigStore.delete(CONFIG_KEYS.COOKIE);
                         throw new Error(error);
