@@ -41,20 +41,20 @@ export default class Env {
         Logger.success(`Env set to: ${options.name}`)
         return;
       }
-      const env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE) || 'Not set'
-      Logger.success(`Active Envoirnment: ${env}`)
-      const questions = [
-        {
-          type: 'list',
-          name: 'ctx',
-          message: 'Availabe Envs. Select on to set active context',
-          choices: Object.keys(AVAILABLE_ENVS),
-        },
-      ];
-      await inquirer.prompt(questions).then(answers => {
-        Env.setEnv(answers.ctx);
-        Logger.success(`Env set to: ${answers.ctx}`)
-      });
+      // const env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE) || 'Not set'
+      // Logger.success(`Active Envoirnment: ${env}`)
+      // const questions = [
+      //   {
+      //     type: 'list',
+      //     name: 'ctx',
+      //     message: 'Availabe Envs. Select on to set active context',
+      //     choices: Object.keys(AVAILABLE_ENVS),
+      //   },
+      // ];
+      // await inquirer.prompt(questions).then(answers => {
+      //   Env.setEnv(answers.ctx);
+      //   Logger.success(`Env set to: ${answers.ctx}`)
+      // });
     } catch (error) {
         throw new CommandError(error.message)
     }

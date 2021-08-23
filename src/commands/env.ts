@@ -6,7 +6,7 @@ export default function env(program: CommanderStatic) {
   program
     .command('env')
     .alias('env ls')
-    .option('-n, --name [env-name]', 'Environment name')
+    .requiredOption('-n, --name [env-name]', 'Environment name')
     .description('Shows a list of all available envs')
     .asyncAction(Env.listEnvs);
 
