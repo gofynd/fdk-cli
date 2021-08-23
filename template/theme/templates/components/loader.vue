@@ -10,20 +10,13 @@
 export default {
   data: function data() {
     return {
-      text: 'Loading...',
+      text: "Loading...",
     };
   },
   methods: {
     exampleMethod: function exampleMethod() {
-      alert('Hello');
+      alert("Hello");
     },
-  },
-  computed: {},
-  mounted: function mounted() {
-    console.log('Component Mounted');
-  },
-  destroyed: function destroyed() {
-    console.log('Component Destroyed');
   },
 };
 </script>

@@ -1,63 +1,53 @@
 <template>
   <div class="coll-cont">
     <sections page="categories" />
-    <!-- <div v-for="(chunks, index) in featuredMeta.featuredItems" :key="'feat-item-chunk'+index">
-      <featured-banner :featuredItems="chunks" :title="''" class="slot-margin"></featured-banner>
-    </div> -->
   </div>
 </template>
 <style scoped></style>
 <script>
-import featuredBanner from '../../global/components/sections/featured-banner';
-import * as _ from 'lodash';
+import featuredBanner from "../../global/components/sections/featured-banner";
+import chunk from "lodash/chunk";
 
 export default {
   data() {
     return {
       featuredMeta: {
         featuredItems: [],
-        title: '',
+        title: "",
       },
     };
   },
   methods: {
-    genOptiUrl: function genOptiUrl(url, cloudinaryWidth) {
-      cloudinaryWidth = cloudinaryWidth || 'w_600';
-      var splt = url.split('/');
-      var idx = splt.indexOf('upload');
-      idx = idx + 1;
-      splt.splice(idx, 0, cloudinaryWidth, 'q_auto');
-      return splt.join('/');
-    },
     objectToQuerystring(obj) {
-      return Object.keys(obj).reduce(function(str, key, i) {
+      return Object.keys(obj).reduce(function (str, key, i) {
         var delimiter, val;
-        delimiter = i === 0 ? '?' : '&';
+        delimiter = i === 0 ? "?" : "&";
         key = encodeURIComponent(key);
         val = encodeURIComponent(obj[key]);
-        return [str, delimiter, key, '=', val].join('');
-      }, '');
+        return [str, delimiter, key, "=", val].join("");
+      }, "");
     },
   },
   components: {
-    'featured-banner': featuredBanner,
+    "featured-banner": featuredBanner,
   },
   watch: {
-    context: function(newValue) {
-      console.log(newValue);
+    context: function (newValue) {
       let items = newValue.categories.items;
       if (!items || !items.length) {
         return;
       }
       let featuredItems = [];
       featuredItems = items.map((entry) => {
-        return {
-          title: entry.name,
-          url: '/products/' + this.objectToQuerystring(entry.action.query),
-          image: entry.image.secure_url,
-        };
+        if (entry && entry.action && entry.action.query) {
+          return {
+            title: entry.name,
+            url: "/products/" + this.objectToQuerystring(entry.action.query),
+            image: entry.image.url,
+          };
+        }
       });
-      this.featuredMeta.featuredItems = _.chunk(featuredItems, 2);
+      this.featuredMeta.featuredItems = chunk(featuredItems, 2);
     },
   },
 };

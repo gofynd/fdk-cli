@@ -113,6 +113,7 @@ export default {
   .show-more {
     margin-bottom: 10px;
     span {
+      font-weight: 700;
       text-decoration: underline;
       cursor: pointer;
     }

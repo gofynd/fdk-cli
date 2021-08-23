@@ -7,11 +7,18 @@
   >
     <h2
       class="section-heading"
-      v-if="settings.props.heading.value.length > 0"
-    >{{ settings.props.heading.value }}</h2>
-    <div class="section__items" v-if="collections.length">
-      <fdk-link
-        :link="`/collection/${collection.slug}`"
+      v-if="
+        settings &&
+        settings.props &&
+        settings.props.heading &&
+        settings.props.heading.value &&
+        settings.props.heading.value.length > 0
+      "
+    >
+      {{ settings.props.heading.value }}
+    </h2>
+    <div class="section__items" v-if="collections.length > 0">
+      <div
         v-for="(collection, index) in collections"
         :key="index"
         class="item"
@@ -22,19 +29,32 @@
           'item__five-item': settings.props.item_count.value === 5,
         }"
       >
-        <div class="item__image">
-          <img
-            v-if="
-              collection.banners
-            "
-            :src="collection.banners.portrait.url"
-            alt
-          />
+        <fdk-link :link="`/collection/${collection.slug}`" v-if="collection">
+          <div class="item__image">
+            <nm-image
+              v-if="collection.banners"
+              :src="collection.banners.portrait.url"
+              :alt="collection.name"
+            />
+            <div class="overlay">&nbsp;</div>
+          </div>
+        </fdk-link>
+        <div v-else>
           <div class="overlay">&nbsp;</div>
-        </div>
 
-        <p class="item__name">{{ collection.name }}</p>
-      </fdk-link>
+          <fdk-placeholder type="collection-1" />
+        </div>
+        <p class="item__name" v-if="collection">{{ collection.name }}</p>
+        <p class="item__name" v-else>Collection{{ index }}</p>
+      </div>
+    </div>
+    <div v-else-if="collections.length === 0">
+      <placeholder-items
+        :count="4"
+        type="collection-1"
+        text="Collection"
+        :layout="`grid`"
+      />
     </div>
   </div>
 </template>
@@ -72,7 +92,7 @@
             "step": 1,
             "unit": "",
             "label": "Collections per row",
-            "default": 2,
+            "default": 4,
             "info": "Maximum items allowed per row"
         },
         {
@@ -83,50 +103,98 @@
           "info":"Check to allow items to take entire width of the viewport"
 
         }
-    ]
+    ],
+    "preset":{
+      "blocks":[
+        {
+          "name":"Collection"
+        },
+        {
+          "name":"Collection"
+        },
+        {
+          "name":"Collection"
+        },
+        {
+          "name":"Collection"
+        }
+      ]
+    }
 }
 
 </settings>
 <script>
+import nmImage from "./../global/components/common/nm-image.vue";
+import placeholderItemsVue from "../global/components/sections/placeholder-items.vue";
+
 export default {
-  props: ["settings", "provider"],
+  props: ["settings", "apiSDK", "serverProps"],
+  components: {
+    "placeholder-items": placeholderItemsVue,
+    "nm-image": nmImage,
+  },
   mounted() {
-    this.settings = this.settings || {};
-    this.settings.blocks = this.settings.blocks || [];
-    let collections = this.settings.blocks.map(b => {
-      b.props = b.props || {};
-      b.props.collection = b.props.collection || {};
-      return b.props.collection.value;
-    });
-    Promise.all(collections.map(this.getCollectionMeta))
-      .then(results => {
-        this.collections = results;
-      })
-      .catch(e => console.log);
+    if (this.collections.length == 0) {
+      this.settings = this.settings || {};
+      this.settings.blocks = this.settings.blocks || [];
+      let collections = this.settings.blocks.map((b) => {
+        b.props = b.props || {};
+        b.props.collection = b.props.collection || {};
+        return b.props.collection.value || "";
+      });
+      Promise.all(collections.map(this.getCollectionMeta))
+        .then((results) => {
+          this.collections = results;
+        })
+        .catch((e) => console.log);
+    }
   },
   data() {
     return {
-      collections: []
+      collections: this.serverProps || [],
     };
+  },
+  initializeServerProps({ apiSDK, settings }) {
+    const collections =
+      settings?.blocks?.map((b) => {
+        const slug = b?.props?.collection?.value || "";
+        return apiSDK.catalog
+          .getCollectionDetailBySlug({
+            slug: slug,
+          })
+          .then((res) => {
+            return res || {};
+          });
+      }) || [];
+    return Promise.all(collections);
   },
   methods: {
     getCollectionMeta(slug) {
-      return this.provider.ProductListing.fetchCollectionListingMetaInfo({
-        slug
-      }).then(res => {
-        res.data = res.data || {};
-        res.data.data = res.data.data || [];
-        return res.data.data[0] || {};
-      });
-    }
-  }
+      if (!slug) return;
+      return this.$apiSDK.catalog
+        .getCollectionDetailBySlug({
+          slug: slug,
+        })
+        .then((res) => {
+          return res || {};
+        });
+    },
+  },
 };
 </script>
 
 <style lang="less" scoped>
 .item {
-  img {
+  display: flex;
+  align-items: center;
+  /deep/ .nm__img {
     width: 100%;
+  }
+  a {
+    width: 100%;
+  }
+  &__image {
+    height: 100%;
   }
   .overlay {
     position: absolute;

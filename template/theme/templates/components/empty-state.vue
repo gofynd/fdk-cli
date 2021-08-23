@@ -17,40 +17,25 @@
 </template>
 
 <script>
-import button from '../../global/components/common/button';
+import button from "../../global/components/common/button";
 export default {
   components: {
-    'namaste-button': button,
+    "namaste-button": button,
   },
-  props: ['title', 'subtitle'],
+  props: ["title", "subtitle"],
   data: function data() {
     return {
-      text: 'Empty',
+      text: "Empty",
     };
-  },
-
-  methods: {
-    exampleMethod: function exampleMethod() {
-      alert('Empty');
-    },
-  },
-  computed: {},
-  mounted: function mounted() {
-    console.log('Component Mounted');
-  },
-  destroyed: function destroyed() {
-    console.log('Component Destroyed');
   },
 };
 </script>
 
 <style lang="less" scoped>
 .container {
-  width: 1200px;
   margin: 0 auto;
   height: 500px;
   position: relative;
-  margin-top: -50px;
   @media @mobile {
     width: 100%;
   }

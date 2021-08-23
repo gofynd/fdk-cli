@@ -18,6 +18,7 @@
         v-bind="options"
         @drag-start="updateSlider()"
         @click.native="updateSliderInfo($event)"
+        @touchend.native="updateSliderInfo($event)"
       />
     </no-ssr>
   </div>
@@ -34,15 +35,15 @@
 </style>
 
 <script>
-import { debounce } from './../../helper/utils';
-import vueSlider from 'vue-slider-component/src/vue2-slider.vue';
-import NoSSR from 'vue-no-ssr';
+import { debounce } from "./../../helper/utils";
+import vueSlider from "vue-slider-component/src/vue2-slider.vue";
+import NoSSR from "vue-no-ssr";
 
 export default {
-  name: 'slider-filter',
+  name: "slider-filter",
   components: {
-    'vue-slider': vueSlider,
-    'no-ssr': NoSSR,
+    "vue-slider": vueSlider,
+    "no-ssr": NoSSR,
   },
   props: {
     filteritem: {},
@@ -57,7 +58,6 @@ export default {
     reset: {
       type: Boolean,
     },
-    options: {},
   },
   data() {
     const sliderInfo = this.filteritem.values[0];
@@ -72,17 +72,17 @@ export default {
       options: {
         dotSize: 15,
         processStyle: {
-          backgroundColor: '#000',
-          borderColor: '#000',
-          height: '5px',
+          backgroundColor: "#000",
+          borderColor: "#000",
+          height: "5px",
         },
         railStyle: {
-          backgroundColor: '#ECECEC',
-          borderColor: '#ECECEC',
-          height: '4px',
+          backgroundColor: "#ECECEC",
+          borderColor: "#ECECEC",
+          height: "4px",
         },
-        tooltip: 'none',
-        dotStyle: { backgroundColor: '#000', borderColor: '#000' },
+        tooltip: "none",
+        dotStyle: { backgroundColor: "#000", borderColor: "#000" },
       },
     };
   },
@@ -92,7 +92,7 @@ export default {
     },
 
     getSliderValue() {
-      if (this.filteritem.key.kind === 'range') {
+      if (this.filteritem.key.kind === "range") {
         const sliderInfo = this.filteritem.values[0];
         if (sliderInfo.selected_max) {
           const data = [
@@ -113,7 +113,7 @@ export default {
         this.maxInput = data[1];
       }
       let strQuery = this.generateQuery(this.filteritem, data);
-      this.$emit('slider-query', strQuery);
+      this.$emit("slider-query", strQuery);
     },
     generateQuery(filter, data) {
       let count = 0;
@@ -134,7 +134,7 @@ export default {
         if (Number(this.minInput) < Number(this.maxInput)) {
           this.sliderVal = [this.minInput, this.maxInput];
           let strQuery = this.generateQuery(this.filteritem, this.sliderVal);
-          this.$emit('slider-query', strQuery);
+          this.$emit("slider-query", strQuery);
         }
       }
     },

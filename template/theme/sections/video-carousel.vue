@@ -12,7 +12,7 @@
       ref="nextArrow"
       @click="nextSlide"
     ></button>
-    <VueSlickCarousel ref="slick" :options="slickOptions">
+    <VueSlickCarousel ref="slick" v-bind="slickOptions">
       <div
         class="slick-slide"
         v-for="(block, index) in settings.blocks"
@@ -138,15 +138,11 @@
 </settings>
 <script>
 import { isBrowser, isNode } from 'browser-or-node';
-
+import VueSlickCarousel from "vue-slick-carousel";
 export default {
   props: ['settings'],
   components: {
-    VueSlickCarousel: () => {
-      return isNode
-        ? Promise.resolve(null)
-        : Promise.resolve(require('vue-slick').default);
-    },
+    VueSlickCarousel,
   },
   mounted() {
     var j = document.createElement('script'),
@@ -168,7 +164,7 @@ export default {
       slickOptions: {
         autoplaySpeed: this.settings.props.autoplay.value
           ? this.settings.props.slide_interval.value * 1000
-          : null, //convert to ms
+          : undefined, //convert to ms
         autoplay: this.settings.props.autoplay.value,
         arrows: true,
         dots: true,
@@ -228,7 +224,11 @@ export default {
         if (players[videoID]) {
           return;
         } else {
-          players[videoID] = {};
+          if (players[videoID]) {
+            return;
+          } else {
+            players[videoID] = {};
+          }
         }
         let videoMeta = JSON.parse(node.dataset.videometa);
         let controls = videoMeta.showcontrols.value;
@@ -280,8 +280,8 @@ export default {
 </script>
 
 <style lang="less" scoped>
-@import '../../node_modules/slick-carousel/slick/slick.css';
-@import '../../node_modules/slick-carousel/slick/slick-theme.css';
+@import "../../node_modules/vue-slick-carousel/dist/vue-slick-carousel.css";
+@import "../../node_modules/vue-slick-carousel/dist/vue-slick-carousel-theme.css";
 .iframe {
   width: 100%;
   height: 100%;

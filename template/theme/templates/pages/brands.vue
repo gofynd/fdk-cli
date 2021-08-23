@@ -9,7 +9,7 @@
 <style scoped></style>
 <script>
 import featuredBanner from '../../global/components/sections/featured-banner';
-import * as _ from 'lodash';
+import chunk from 'lodash/chunk';
 
 export default {
   data() {
@@ -21,22 +21,14 @@ export default {
     };
   },
   methods: {
-    genOptiUrl: function genOptiUrl(url, cloudinaryWidth) {
-      cloudinaryWidth = cloudinaryWidth || 'w_600';
-      var splt = url.split('/');
-      var idx = splt.indexOf('upload');
-      idx = idx + 1;
-      splt.splice(idx, 0, cloudinaryWidth, 'q_auto');
-      return splt.join('/');
-    },
+   
   },
   components: {
     'featured-banner': featuredBanner,
   },
   watch: {
     context: function(newValue) {
-      console.log(newValue);
-      let items = newValue.brands.data;
+      let items = newValue.brands.items;
       if (!items || !items.length) {
         return;
       }
@@ -45,10 +37,10 @@ export default {
         return {
           title: entry.name,
           url: '/products/?brand=' + entry.slug,
-          image: this.genOptiUrl(entry.image.secure_url),
+          image: entry.banners.portrait.url,
         };
       });
-      this.featuredMeta.featuredItems = _.chunk(featuredItems, 2);
+      this.featuredMeta.featuredItems = chunk(featuredItems, 2);
     },
   },
 };

@@ -1,13 +1,5 @@
 <template>
   <div class="main-blog-container">
-    <div class="main-header">
-      <img src="./../../assets/images/banner.png" alt class="banner" />
-      <div class="caption">
-        <h4>our latest blogs</h4>
-        <h2>Diesel Diaries</h2>
-      </div>
-    </div>
-
     <div class="content-container">
       <div class="blog-container">
         <div
@@ -23,13 +15,18 @@
                     <div class="day">{{ getDate(blog.created_at) }}</div>
                     <div class="month">{{ getMonth(blog.created_at) }}</div>
                   </div>
-                  <img :src="getFeatureImage(blog.feature_image.secure_url)" />
+                  <nm-image
+                    :src="getFeatureImage(blog.feature_image.secure_url)"
+                    :alt="blog.title"
+                  />
                 </div>
                 <div class="post-content">
                   <h1 class="title">{{ blog.title }}</h1>
                   <div class="post-meta">
                     <span class="timestamp" :title="getTime(blog.updated_at)">
-                      <i class="fa fa-clock-o"></i> Last updated on {{getDate(blog.updated_at)}} {{ getMonth(blog.updated_at) }}
+                      <i class="fa fa-clock-o"></i> Last updated on
+                      {{ getDate(blog.updated_at) }}
+                      {{ getMonth(blog.updated_at) }}
                     </span>
                   </div>
                 </div>
@@ -48,7 +45,10 @@
             :link="'/blog/' + blog.slug"
           >
             <div class="list-img">
-              <img :src="blog.feature_image.secure_url" alt />
+              <nm-image
+                :src="blog.feature_image.secure_url"
+                :alt="blog.title"
+              />
             </div>
             <div class="list-details">
               <p class="list-title">{{ blog.title }}</p>
@@ -61,16 +61,22 @@
 </template>
 
 <script>
+import nmImage from "./../../global/components/common/nm-image.vue";
 export default {
   name: "blog",
   props: {
-    context: {}
+    context: {},
+  },
+  components: {
+    "nm-image": nmImage,
   },
   methods: {
-    getFeatureImage(item){
-      let image_url = item.replace('/upload', '/upload/w_375,h_250,c_scale/q_auto');
+    getFeatureImage(item) {
+      let image_url = item.replace(
+        "/upload",
+        "/upload/w_375,h_250,c_scale/q_auto"
+      );
       return image_url;
-      
     },
     getDate(date) {
       let d = new Date(date);
@@ -80,11 +86,11 @@ export default {
       var d = new Date(date);
       return d.toLocaleString("default", { month: "short" });
     },
-    getTime(date){
+    getTime(date) {
       var d = new Date(date);
       return d.toLocaleString("default", { time: "short" });
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -181,10 +187,12 @@ export default {
   font-size: 12px;
   text-transform: uppercase;
 }
-.post-module .thumbnail img {
-  display: block;
-  width: 375px;
-  height: 250px;
+.post-module .thumbnail {
+  /deep/ .nm__img {
+    display: block;
+    width: 375px;
+    height: 250px;
+  }
 }
 .post-module .post-content {
   bottom: 0;
@@ -293,9 +301,11 @@ export default {
   border-bottom: 1px solid #dad6d6;
 }
 
-.list-img > img {
-  width: 120px;
-  min-height: 90px;
+.list-img {
+  /deep/ .nm__img {
+    width: 120px;
+    min-height: 90px;
+  }
 }
 .list-details {
   padding: 0 1em;

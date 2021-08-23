@@ -5,13 +5,13 @@
   >
     <div class="section-wrapper">
       <div class="section-slide fullbleed-module">
-        <picture class="fullbleed-picture">
-          <img
-            :src="settings.props.image.value"
-            alt="Shop"
-            onerror="this.style.display='none'"
-          />
-        </picture>
+        <nm-image
+          class="fullbleed-picture"
+          :src="settings.props.image.value"
+          placeholder=""
+          v-if="settings.props.image.value"
+        />
+        <fdk-placeholder type="banner-2" v-else />
 
         <div class="fullbleed-asset " style="color: #FFF">
           <div
@@ -25,14 +25,18 @@
                 settings.props.overlayLayout.value === 'right',
             }"
           >
-            <p class="overlay-img-wrapper">
-              <img alt :src="settings.props.overlayImage.value" title />
+            <p
+              class="overlay-img-wrapper"
+              v-if="settings.props.overlayImage.value"
+            >
+              <nm-image :src="settings.props.overlayImage.value" />
             </p>
             <h2 class="module-head-small">
               {{ settings.props.text.value }}
             </h2>
             <br />
             <fdk-link
+              v-if="settings.props.ctaText.value.length > 0"
               class="button secondary-white-btn"
               :link="settings.props.ctaLink.value"
               role="button"
@@ -53,7 +57,7 @@
       "id": "image",
       "type": "image_picker",
       "label": "Hero Image",
-      "default": "https://place-hold.it/1920x450"
+      "default": ""
     },
     {
       "id": "layout",
@@ -144,7 +148,7 @@
     {
       "type": "text",
       "id": "ctaText",
-      "default": "Shop Now",
+      "default": "",
       "label": "Button Text"
     }
   ]
@@ -191,15 +195,9 @@ button,
 
 button.secondary-white-btn,
 .button.secondary-white-btn {
-  background: none repeat scroll 0 0 #fff;
+  background: var(--primaryColor);
   border: 1px solid #fff;
-  color: #000;
-}
-
-button.secondary-white-btn:hover,
-.button.secondary-white-btn:hover {
-  background-color: transparent;
-  color: #fff;
+  color: var(--secondaryColor);
 }
 
 .section-container {
@@ -249,8 +247,10 @@ button.secondary-white-btn:hover,
 .section-slide img {
   max-width: 100%;
 }
-.section-slide .fullbleed-picture img {
-  width: 100%;
+.section-slide .fullbleed-picture {
+  /deep/ .nm__img {
+    width: 100%;
+  }
 }
 
 .fullbleed-top-left,
@@ -474,7 +474,6 @@ button.secondary-white-btn:hover,
   &.small {
     width: 1200px;
   }
-
   &.h-auto {
     height: auto;
   }
@@ -499,26 +498,23 @@ button.secondary-white-btn:hover,
   }
   .overlay-img-wrapper {
     margin-right: 10px;
-    img {
+    /deep/ .nm__img {
       max-width: 35%;
     }
   }
-  .section-slide .fullbleed-picture img {
-    width: 100vw;
+  .section-slide .fullbleed-picture {
+    /deep/ .nm__img {
+      width: 100vw;
+    }
   }
 }
 </style>
 <script>
+import nmImage from "./../global/components/common/nm-image.vue";
 export default {
-  props: ['settings'],
-  watch: {
-    settings: function(newVal, oldVal) {},
-  },
-  mounted() {},
-  data: function() {
-    return {
-      // url: ""
-    };
+  props: ["settings"],
+  components: {
+    "nm-image": nmImage,
   },
 };
 </script>

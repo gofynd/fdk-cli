@@ -5,38 +5,79 @@
       'full-width-section': settings.props.full_width.value,
     }"
   >
-    <namaste-loader v-if="isLoading" />
-    <template v-else>
-      <template v-if="brands.length > 0">
-        <h2 class="section-heading">Brands</h2>
-        <div class="section__items">
-          <fdk-link
-            :link="`/products/?brand=${brand.uid}`"
-            v-for="(brand, index) in brands"
-            :key="index"
-            class="item"
-            :class="{
-              'item__two-item': settings.props.item_count.value === 2,
-              'item__three-item': settings.props.item_count.value === 3,
-              'item__four-item': settings.props.item_count.value === 4,
-              'item__five-item': settings.props.item_count.value === 5,
-            }"
-          >
-            <div class="item__image">
-              <img
-                class="item__brand-image"
-                v-if="brand && brand.image"
-                :src="brand.image.url"
-                alt
-              />
-              <div class="overlay" v-if="brand && brand.logo">&nbsp;</div>
-              <img class="item__logo" :src="brand.logo.url" alt />
-            </div>
-            <p class="item__name">{{ brand.name }}</p>
-          </fdk-link>
-        </div>
-      </template>
-      <empty-state v-else title="No brands found" />
+    <!-- <namaste-loader v-if="isLoading" /> -->
+    <template>
+      <fdk-brands-listing ref="infinite_brand">
+        <template slot-scope="brandListing">
+          <div>
+            <fdk-infinite-scrolling
+              @loadmore="loadMoreData(brandListing)"
+              :loadingData="loading"
+            >
+              <template>
+                <h2 class="section-heading">
+                  {{
+                    (settings.props.title && settings.props.title.value) ||
+                    "Brands"
+                  }}
+                </h2>
+                <div class="section__items" v-if="brands.length > 0">
+                  <fdk-link
+                    :link="`/products/?brand=${brand.slug}`"
+                    v-for="(brand, index) in brands"
+                    :key="index"
+                    class="item"
+                    :class="{
+                      'item__two-item': settings.props.item_count.value === 2,
+                      'item__three-item': settings.props.item_count.value === 3,
+                      'item__four-item': settings.props.item_count.value === 4,
+                      'item__five-item': settings.props.item_count.value === 5,
+                    }"
+                  >
+                    <div class="item__image">
+                      <nm-image
+                        class="item__brand-image"
+                        v-if="
+                          brand &&
+                          brand.banners &&
+                          brand.banners.portrait &&
+                          brand.banners.portrait.url
+                        "
+                        :src="brand.banners.portrait.url"
+                        :alt="brand.name"
+                      />
+                      <div
+                        class="overlay"
+                        v-if="brand && brand.logo && brand.logo.url"
+                      >
+                        &nbsp;
+                      </div>
+                      <nm-image
+                        class="item__logo"
+                        :src="brand.logo.url"
+                        :alt="brand.name"
+                      />
+                    </div>
+                    <p class="item__name">{{ brand.name }}</p>
+                  </fdk-link>
+                </div>
+
+                <div v-else-if="brands.length === 0 && !isLoading && isMounted">
+                  <placeholder-items
+                    :count="10"
+                    type="collection-1"
+                    text="Brand"
+                    :layout="`grid`"
+                  />
+                </div>
+                <div class="loader-center" v-if="page.has_next && isMounted">
+                  <img src="../assets/images/loader.gif" alt />
+                </div>
+              </template>
+            </fdk-infinite-scrolling>
+          </div>
+        </template>
+      </fdk-brands-listing>
     </template>
   </div>
 </template>
@@ -45,6 +86,12 @@
   "name": "brandTemplate",
   "label": "Brands List Page",
   "props": [
+    {
+        "type": "text",
+        "id": "title",
+        "default": "Brands",
+        "label": "Title"
+    },
     {
       "type": "range",
       "id": "item_count",
@@ -68,43 +115,94 @@
 
 </settings>
 <script>
-import loader from './../templates/components/loader';
-import emptystate from './../templates/components/empty-state';
+import loader from "./../templates/components/loader";
+import emptystate from "./../templates/components/empty-state";
+import placeholderImage from "./../assets/images/placeholder.png";
+import nmImage from "./../global/components/common/nm-image.vue";
+import placeholderItemsVue from "../global/components/sections/placeholder-items.vue";
+
 export default {
-  props: ['settings', 'provider'],
+  props: ["settings", "apiSDK", "serverProps"],
   components: {
-    'namaste-loader': loader,
-    'empty-state': emptystate,
+    "namaste-loader": loader,
+    "empty-state": emptystate,
+    "nm-image": nmImage,
+    "placeholder-items": placeholderItemsVue,
   },
   data() {
     return {
-      brands: [],
+      brands: this.serverProps?.items || [],
       isLoading: false,
+      isMounted: false,
+      page: this.serverProps?.page || { current: 0, has_next: true },
     };
   },
-  watch: {
-    settings: function(newVal, oldVal) {},
+  initializeServerProps({ apiSDK, route }) {
+    return apiSDK.catalog
+      .getBrands({
+        department: "",
+        pageNo: 1,
+      })
+      .then((res) => res);
   },
   mounted() {
-    this.isLoading = true;
-    this.provider.Brand.fetchBrands({
-      department: '',
-      image_size: 'large',
-    }).then(({ data }) => {
-      this.brands = data.data;
-      this.isLoading = false;
-    });
+    this.isMounted = true;
+    if (this.brands.length === 0) {
+      this.fetchBrands();
+    }
+  },
+  methods: {
+    replaceByDefault(e) {
+      e.target.src = placeholderImage;
+    },
+    loadMoreData() {
+      this.fetchBrands();
+    },
+    fetchBrands() {
+      if (this.page && this.page.has_next && !this.isLoading) {
+        this.isLoading = true;
+        return this.$apiSDK.catalog
+          .getBrands({
+            department: "",
+            pageNo: this.page.current + 1,
+          })
+          .then((data) => {
+            this.brands = [...this.brands, ...data.items];
+            this.page = data.page;
+            this.isLoading = false;
+            this.isMounted = true;
+          });
+      }
+    },
   },
 };
 </script>
 
 <style lang="less" scoped>
+.loader-center {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0px;
+}
 .item {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
   &__image {
     position: relative;
+    min-height: 250px;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    @media @mobile {
+      min-height: 230px;
+    }
   }
   &__brand-image {
-    width: 100%;
+    /deep/ .nm__img {
+      width: 100%;
+      background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANsAAAFWAQMAAADaFHqxAAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAACBJREFUaN7twTEBAAAAwqD1T20LL6AAAAAAAAAAAADgbSa+AAGGhRJaAAAAAElFTkSuQmCC");
+    }
   }
   .overlay {
     position: absolute;
@@ -119,16 +217,31 @@ export default {
     }
   }
   &__logo {
-    top: 70%;
-    position: absolute;
-    width: 50px;
-    left: 50%;
-    transform: translateX(-50%);
+    /deep/ .nm__img {
+      top: 70%;
+      position: absolute;
+      width: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
   }
   &__name {
     font-size: 20px;
     margin-top: 10px;
-    font-weight: 700;
+    text-align: center;
+    @media @mobile {
+      font-size: 16px;
+    }
+  }
+}
+@media @mobile {
+  /deep/ .section__items .item {
+    width: 47% !important;
+    margin-bottom: 20px;
+
+    &:not(:nth-child(2n + 0)) {
+      margin-right: 19px !important;
+    }
   }
 }
 </style>

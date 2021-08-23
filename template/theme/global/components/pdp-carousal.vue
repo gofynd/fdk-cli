@@ -17,7 +17,7 @@
             >
               <slide
                 class="slide"
-                v-for="(img, id) in context.product.images"
+                v-for="(img, id) in context.product.media"
                 :key="id"
                 :index="id"
               >
@@ -26,21 +26,28 @@
                     imageIndex,
                     imageIsCurrent,
                     imageLeftIndex,
-                    imageRightIndex
+                    imageRightIndex,
                   }"
                 >
-                  <img v-bind:src="img.secure_url" />
+                  <img v-if="img.type === 'image'" v-bind:src="img.url" />
+                  <video
+                    v-if="img.type === 'video'"
+                    :src="img.url"
+                    controls
+                    width="280"
+                    height="480"
+                  />
                 </template>
               </slide>
             </carousel-3d>
           </div>
           <span class="bullet-container">
-            <template v-for="(img, id) in context.product.images">
+            <template v-for="(img, id) in context.product.media">
               <span
                 :key="id"
                 v-bind:class="{
                   bullet: true,
-                  active: innerCarousalCurrentIndex == id
+                  active: innerCarousalCurrentIndex == id,
                 }"
                 v-on:click="onCarouselButtonClick(id)"
                 v-if="id < 10"
@@ -54,27 +61,28 @@
 </template>
 
 <script>
+import nmImage from "./common/nm-image.vue";
 export default {
-  data: function data() {
+  data() {
     return {
       compareWarning: "You have already selected 3 products",
       innerCarousalCurrentIndex: 0,
       zoomCarousalCurrentIndex: 0,
-      showZoomModal: false
+      showZoomModal: false,
     };
+  },
+  components: {
+    "nm-image": nmImage,
   },
   props: {
     context: {
-      type: Object
+      type: Object,
     },
     browser_meta: {
-      type: Object
-    }
+      type: Object,
+    },
   },
   methods: {
-    getImageUrl: function getImageUrl(images) {
-      return images[0].secure_url;
-    },
     toggleScroll(show) {
       if (show) {
         document.body.style.overflowY = "hidden";
@@ -85,35 +93,6 @@ export default {
     toggleZoomModal() {
       this.showZoomModal = !this.showZoomModal;
       this.toggleScroll(this.showZoomModal);
-    },
-    addToCart() {
-      let data = {
-        slug: this.context.product.slug,
-        size: "OS"
-      };
-      this.$themeAction
-        .dispatch(this.context.THEME_ACTIONS.FETCH_PRODUCT_SIZE_PRICE, data)
-        .then(res => {
-          let sizePrice = res.data;
-          let addItemData = {
-            items: [
-              {
-                item_id: this.context.product.uid,
-                item_size: "OS",
-                quantity: 1,
-                article_assignment: sizePrice.article_assignment,
-                seller_id: sizePrice.seller.uid,
-                store_id: sizePrice.store.uid
-              }
-            ]
-          };
-          this.$themeAction.dispatch(
-            this.context.THEME_ACTIONS.ADD_CART_ITEMS,
-            { body: addItemData }
-          );
-          return this.$router.push("/cart/bag");
-        })
-        .catch(console.error);
     },
     onAfterInnerSlideChange(e) {
       this.innerCarousalCurrentIndex = e;
@@ -129,21 +108,19 @@ export default {
       this.zoomCarousalCurrentIndex = e;
       this.$refs.zoomCarousel.goSlide(e);
     },
-    showToast: function showToast() {
+    showToast() {
       var x = document.getElementById("toast");
       x.className = "show";
       setTimeout(function() {
         x.className = x.className.replace("show", "hide");
       }, 3000);
-    }
+    },
   },
   computed: {
     getPopupHeight: function() {
       return this.browser_meta.screenHeight * 0.8 - 40 - 100;
-    }
+    },
   },
-  mounted: function mounted() {},
-  destroyed: function destroyed() {},
   watch: {
     context: function(data, oldData) {
       if (data.product.slug !== oldData.product.slug) {
@@ -153,8 +130,8 @@ export default {
           this.$refs.pdpCarousel.goSlide(0);
         }
       }
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -203,7 +180,7 @@ export default {
   background-color: rgb(0, 0, 0); /* Fallback color */
   background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
   overflow-y: hidden;
-  @media @mobile{
+  @media @mobile {
     top: 70px;
   }
   .modal-content {

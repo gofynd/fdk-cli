@@ -1,11 +1,11 @@
 <template>
   <div class="review-list">
-    <h2 class="review-list__title">
+    <h2 class="review-list__title" v-if="showtitle">
       {{ title }}
     </h2>
     <!-- ★ -->
     <!-- ♥ -->
-    <div class="review-list__overall-rating">
+    <div class="review-list__overall-rating" v-if="product.rating">
       Overall
       <span>
         <rating-star :stars="product.rating" />
@@ -25,18 +25,22 @@
 </template>
 
 <script>
-import ratingstar from './rating-star';
-import reviewitem from './review-item';
+import ratingstar from "./rating-star";
+import reviewitem from "./review-item";
 export default {
-  name: 'review-list',
+  name: "review-list",
   components: {
-    'rating-star': ratingstar,
-    'review-item': reviewitem,
+    "rating-star": ratingstar,
+    "review-item": reviewitem,
   },
   props: {
     reviews: {
       type: Array,
       default: [],
+    },
+    showtitle: {
+      type: Boolean,
+      default: true,
     },
     product: {
       type: Object,
@@ -48,7 +52,7 @@ export default {
     },
     title: {
       type: String,
-      default: 'Ratings and Review',
+      default: "Ratings and Review",
     },
   },
 };
@@ -56,7 +60,7 @@ export default {
 
 <style lang="less" scoped>
 .review-list {
-  margin-top: 50px;
+  margin-top: 30px;
   font-family: roboto condensed, Arial, Helvetica, sans-serif;
   &__title {
     font-size: 28px;

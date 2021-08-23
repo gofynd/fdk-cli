@@ -16,8 +16,10 @@
 
 <script>
 export default {
-  props: ['settings'],
+  props: ["settings"],
 };
 </script>
 
-<style></style>
+<style lang="less" scoped>
+
+</style>

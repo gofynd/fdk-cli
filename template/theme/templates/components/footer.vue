@@ -1,57 +1,63 @@
 <template>
   <div>
-    <div class="footer">
-      <div class="left">
-        <img :src="context.logo.secure_url" class="footer__logo" />
-        <p class="footer__desc">
-          {{ context.description }}
-        </p>
-      </div>
-      <div class="right">
-        <p class="footer__connect">Connect with us on social media</p>
-        <ul class="footer__social">
-          <li
-            v-for="(link, index) in context.socialLinks"
-            :key="index"
-            class="footer__social--icon"
-          >
-            <a :href="link.link" :class="getIconClass(link.title)"> </a>
-          </li>
-        </ul>
+    <div class="footer-main">
+      <div class="footer">
+        <div class="left">
+          <img :src="context.mobile_logo && context.mobile_logo.secure_url" class="footer__logo" />
+          <p class="footer__desc">
+            {{ context.description }}
+          </p>
+        </div>
+        <div class="right" v-if="context.social_links ">
+          <p class="footer__connect">Connect with us on social media</p>
+          <ul class="footer__social">
+            <li
+              v-for="(link, index) in context.social_links"
+              :key="index"
+              class="footer__social--icon"
+            >
+              <fdk-link :link="link.link"  :class="getIconClass(link.title)" target="_blank">
+                
+              </fdk-link>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
-
-    <ul class="footer-links desc">
-      <li
-        class="link-item"
-        v-for="(item, index) in navs"
-        :key="index"
-        @click="shouldRedirect(item)"
-      >
-        <div class="nav-item">
-          <span>{{ item.display }}</span>
-          <span
-            class="dropdown-arrow"
-            :class="{ 'rotate-arrow': item.isOpen }"
-            v-if="item.sub_navigation"
-          ></span>
-        </div>
-        <ul
-          class="sub-navigation"
-          :class="{ 'toggle-dropdown': item.isOpen }"
-          v-if="item.sub_navigation"
+    <div class="footer-links-main">
+      <ul class="footer-links desc">
+        <li
+          class="link-item"
+          v-for="(item, index) in navs"
+          :key="index"
         >
-          <li
-            class="subnav-item"
-            v-for="(subnav, index) in item.sub_navigation"
-            :key="index"
-            @click="shouldRedirect(subnav)"
+          <div class="nav-item">
+            <fdk-link :link="item.link"><span>{{ item.display }}</span></fdk-link>
+           
+          </div>
+          <ul
+            class="sub-navigation"
+            :class="{ 'toggle-dropdown': item.isOpen }"
+            v-if="item.sub_navigation"
           >
-            {{ subnav.display }}
-          </li>
-        </ul>
-      </li>
-    </ul>
+            <li
+              class="subnav-item"
+              v-for="(subnav, index) in item.sub_navigation"
+              :key="index"
+            >
+              <fdk-link :link="subnav.link">{{ subnav.display }}</fdk-link>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+    <div class="footer-copyright-main">
+      <div class="footer__copyrightText">
+        <div v-if="context.app_info.copyright_text">
+          {{ context.app_info.copyright_text }}
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -79,35 +85,85 @@ export default {
       if (title === 'Youtube') return 'icon-youtube';
       if (title === 'Twitter') return 'icon-twitter-black-sm';
       if (title === 'Facebook') return 'icon-facebook-black';
+      if (title === 'Pinterest') return 'icon-pinterest';
+      if(title === 'Google+') return 'icon-google';
+      if(title === 'LinkedIn') return 'icon-linkedin';
+      if(title === 'Blog') return 'icon-blog';
+      if(title === 'Vimeo') return 'icon-vimeo';
     },
-    shouldRedirect(navigation) {
+    openDropDown(navigation) {
       if (navigation.sub_navigation) {
         navigation.isOpen = !navigation.isOpen;
-        return;
       }
-      this.$router.push(navigation.link);
-    },
-  },
+    }
+  }
 };
 </script>
 
 <style lang="less" scoped>
+.icon-vimeo{
+  width: 20px;
+  height: 20px;
+  content: url('./../../assets/images/vimeo.png');
+}
+.icon-blog{
+  width: 20px;
+  height: 20px;
+  content: url('./../../assets/images/blog.png');
+}
+.icon-linkedin{
+  width: 20px;
+  height: 20px;
+  content: url('./../../assets/images/linkedin.png');
+}
+.icon-google{
+  width: 20px;
+  height: 20px;
+  content: url('./../../assets/images/google-plus.png');
+}
+.icon-pinterest{
+  width: 20px;
+  height: 20px;
+  content: url('./../../assets/images/pinterest.png');
+}
+.footer-main {
+  width: 100%;
+  background-color: #ffffff;
+  margin-top: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.1);
+  border-top: 1px solid #eee;
+}
+.footer-links-main {
+  width: 100%;
+  background-color: #ffffff;
+}
+.footer-copyright-main {
+  width: 100%;
+  background: #ffffff;
+}
+
 .footer {
-  margin-top: 50px;
-  background-color: #fff;
-  border-top: 1px solid #ccc;
   display: flex;
   align-items: center;
-  padding: 50px 200px;
+  color: @Black;
+  max-width: 1200px;
+  padding: 20px 0;
+  width: 100%;
+  margin: 0 auto;
   box-sizing: border-box;
   @media @mobile {
     padding: 20px 10px;
     flex-direction: column;
     justify-content: center;
   }
-  .left,
+  .left {
+    width: 75%;
+    @media @mobile {
+      width: 100%;
+    }
+  }
   .right {
-    width: 50%;
+    width: 25%;
     @media @mobile {
       width: 100%;
       text-align: center;
@@ -116,16 +172,15 @@ export default {
   .right {
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: flex-start;
+    text-align: left;
     @media @mobile {
       margin-top: 20px;
-      align-items: center;
     }
   }
   &__logo {
     margin-bottom: 10px;
-    height: 60px;
-    max-width: 150px;
+    max-width: 100%;
   }
   &__desc {
     line-height: 20px;
@@ -144,16 +199,41 @@ export default {
 
   &__social {
     display: flex;
-    justify-content: space-evenly;
-    width: 300px;
+    justify-content: space-between;
+    width: 100%;
+    flex-wrap: wrap;
+    @media @mobile{
+      width: 300px;
+    }
+  }
+  &__social--icon{
+    display: flex;
+    align-items: center;
+  }
+  &__copyrightText {
+    border-top: 1px solid hsla(0, 0%, 100%, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: @Black;
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    padding: 20px 0;
+    text-align: center;
   }
 }
 .footer-links {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
   display: flex;
-  border-top: 1px solid #ccc;
-  padding: 20px 200px;
+  padding: 20px 0;
+  border-top: 1px solid hsla(0, 0%, 100%, 0.1);
   justify-content: space-between;
-  background-color: #fff;
+  background-color: #ffffff;
+  color: @Black;
   @media @mobile {
     padding: 0;
     flex-direction: column;
@@ -166,8 +246,8 @@ export default {
       text-transform: uppercase;
       font-weight: bold;
       @media @mobile {
-        padding: 10px 10px 20px;
-        border-bottom: 1px solid #ccc;
+        padding: 10px 10px;
+        border-bottom: 1px solid @ds-light-border-color;
         justify-content: space-between;
       }
       .dropdown-arrow {
@@ -193,14 +273,14 @@ export default {
       overflow: hidden;
       .subnav-item {
         padding: 10px 0;
+        text-transform: capitalize;
         &:hover {
           text-decoration: underline;
         }
         @media @mobile {
           padding: 10px 20px;
-          background-color: #f1f1f1;
           &:last-child {
-            border-bottom: 1px solid #ccc;
+            border-bottom: 1px solid hsla(0, 0%, 100%, 0.1);
           }
         }
       }
@@ -208,6 +288,7 @@ export default {
     .toggle-dropdown {
       opacity: 1;
       max-height: 360px;
+      padding-top: 10px;
     }
   }
 }

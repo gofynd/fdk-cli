@@ -1,266 +1,281 @@
 {
-  "information": {
-    "features": [
-      "Responsive"
-    ]
-  },
-  "current": "default",
   "list": [
     {
       "name": "default",
       "global": {
         "static": {
           "props": {
-            "primary_color": "#000",
-            "secondary_color": "#41434C",
-            "accent_color": "#FFFFFF",
-            "link_color": "#33B1C0",
-            "button_secondary_color": "#000000",
-            "bg_color": "#fff"
+            "colors": {
+              "primary_color": "#7043f7",
+              "secondary_color": "#02d1cb",
+              "accent_color": "#FFFFFF",
+              "link_color": "#7043f7",
+              "button_secondary_color": "#000000",
+              "bg_color": "#F8F8F8"
+            }
           }
         },
         "custom": {
           "props": {
-            "test": true
+            "disable_cart": false
           }
         }
       },
       "page": [
         {
-          "page": "home",
           "settings": {
             "props": {
-              "test": true
+              "bulk_prices": true,
+              "share": false,
+              "wishlist": false
             }
-          }
+          },
+          "page": "product-description"
+        },
+        {
+          "settings": {
+            "props": {
+              "header": false,
+              "footer": true
+            }
+          },
+          "page": "category-page"
+        },
+        {
+          "settings": {
+            "props": {
+              "header": true,
+              "footer": true
+            }
+          },
+          "page": "apple-showcase"
         }
       ]
     }
   ],
+  "current": "default",
   "preset": {
-    "sections": {
-      "home": [
-        {
-          "name": "slideshow",
-          "props": {
-            "slide_height": {
-              "type": "select",
-              "value": "adapt"
-            },
-            "autoplay": {
-              "type": "checkbox",
-              "value": false
-            },
-            "slide_interval": {
-              "type": "range",
-              "value": 2
-            }
-          },
-          "blocks": [
-            {
-              "type": "gallery_image",
-              "name": "Image",
-              "props": {
-                "image": {
-                  "type": "image_picker",
-                  "value": "https://hdn-1.addsale.com/x0/company/7/applications/5ec3d224848a007bfeacb550/theme/pictures/free/original/theme-image-1593022382417.jpeg"
-                },
-                "slide_link": {
-                  "type": "url",
-                  "value": "/products"
-                }
+    "pages": [
+      {
+        "sections": [
+          {
+            "blocks": [],
+            "predicate": {
+              "screen": {
+                "mobile": true,
+                "desktop": true,
+                "tablet": true
+              },
+              "user": {
+                "authenticated": true,
+                "anonymous": true
+              },
+              "route": {
+                "selected": "none",
+                "exact_url": ""
               }
             },
-            {
-              "type": "gallery_image",
-              "name": "Image",
-              "props": {
-                "image": {
-                  "type": "image_picker",
-                  "value": "https://hdn-1.addsale.com/x0/company/7/applications/5ec3d224848a007bfeacb550/theme/pictures/free/original/theme-image-1593022410921.jpeg"
-                },
-                "slide_link": {
-                  "type": "url",
-                  "value": "/products"
-                }
+            "name": "ApplicationBanner",
+            "props": {
+              "ctaLink": {
+                "value": "",
+                "type": "url"
               }
             }
-          ]
-        },
-        {
-          "name": "imageBanner",
-          "props": {
-            "image": {
-              "type": "image_picker",
-              "value": "https://hdn-1.addsale.com/x0/company/7/applications/5ec3d224848a007bfeacb550/theme/pictures/free/original/theme-image-1593021520606.jpeg"
-            },
-            "layout": {
-              "type": "select",
-              "value": "full"
-            },
-            "height": {
-              "type": "select",
-              "value": "h-auto"
-            },
-            "overlayLayout": {
-              "type": "select",
-              "value": "center"
-            },
-            "overlayImage": {
-              "type": "image_picker",
-              "value": ""
-            },
-            "text": {
-              "type": "text",
-              "value": "SALE"
-            },
-            "ctaLink": {
-              "type": "url",
-              "value": "/products"
-            },
-            "ctaText": {
-              "type": "text",
-              "value": "Shop Now"
-            }
           },
-          "blocks": []
-        },
-        {
-          "name": "gallery",
-          "props": {
-            "item_count": {
-              "type": "range",
-              "value": 4
-            }
-          },
-          "blocks": [
-            {
-              "type": "gallery_image",
-              "name": "Image",
-              "props": {
-                "image": {
-                  "type": "image_picker",
-                  "value": "https://hdn-1.addsale.com/x0/company/7/applications/5ec3d224848a007bfeacb550/theme/pictures/free/original/theme-image-1593021942126.jpeg"
-                },
-                "caption": {
-                  "type": "text",
-                  "value": "Jackets"
-                },
-                "link": {
-                  "type": "url",
-                  "value": "/products"
-                }
+          {
+            "blocks": [],
+            "predicate": {
+              "screen": {
+                "mobile": true,
+                "desktop": true,
+                "tablet": true
+              },
+              "user": {
+                "authenticated": true,
+                "anonymous": true
+              },
+              "route": {
+                "selected": "none",
+                "exact_url": ""
               }
             },
-            {
-              "type": "gallery_image",
-              "name": "Image",
-              "props": {
-                "image": {
-                  "type": "image_picker",
-                  "value": "https://hdn-1.addsale.com/x0/company/7/applications/5ec3d224848a007bfeacb550/theme/pictures/free/original/theme-image-1593021959727.jpeg"
-                },
-                "caption": {
-                  "type": "text",
-                  "value": "Shoes"
-                },
-                "link": {
-                  "type": "url",
-                  "value": "/products"
-                }
-              }
-            },
-            {
-              "type": "gallery_image",
-              "name": "Image",
-              "props": {
-                "image": {
-                  "type": "image_picker",
-                  "value": "https://hdn-1.addsale.com/x0/company/7/applications/5ec3d224848a007bfeacb550/theme/pictures/free/original/theme-image-1593022734709.jpeg"
-                },
-                "caption": {
-                  "type": "text",
-                  "value": "Hoodies"
-                },
-                "link": {
-                  "type": "url",
-                  "value": "/products"
-                }
-              }
-            },
-            {
-              "type": "gallery_image",
-              "name": "Image",
-              "props": {
-                "image": {
-                  "type": "image_picker",
-                  "value": "https://hdn-1.addsale.com/x0/company/7/applications/5ec3d224848a007bfeacb550/theme/pictures/free/original/theme-image-1593021942126.jpeg"
-                },
-                "caption": {
-                  "type": "text",
-                  "value": ""
-                },
-                "link": {
-                  "type": "url",
-                  "value": "/products"
-                }
+            "name": "categoriesTemplate",
+            "props": {
+              "item_count": {
+                "type": "range",
+                "value": 4
+              },
+              "full_width": {
+                "type": "checkbox",
+                "value": false
               }
             }
-          ]
-        }
-      ],
-      "brands": [
-        {
-          "name": "brandTemplate",
-          "props": {
-            "item_count": {
-              "type": "range",
-              "value": 5
+          }
+        ],
+        "value": "home"
+      },
+      {
+        "sections": [
+          {
+            "blocks": [],
+            "predicate": {
+              "screen": {
+                "mobile": true,
+                "desktop": true,
+                "tablet": true
+              },
+              "user": {
+                "authenticated": true,
+                "anonymous": true
+              },
+              "route": {
+                "selected": "none",
+                "exact_url": ""
+              }
             },
-            "full_width": {
-              "type": "checkbox",
-              "value": false
+            "name": "brandTemplate",
+            "props": {
+              "title": {
+                "type": "text",
+                "value": "Brands"
+              },
+              "item_count": {
+                "type": "range",
+                "value": 4
+              },
+              "full_width": {
+                "type": "checkbox",
+                "value": false
+              }
             }
-          },
-          "blocks": []
-        }
-      ],
-      "categories": [
-        {
-          "name": "categoriesTemplate",
-          "props": {
-            "item_count": {
-              "type": "range",
-              "value": 4
+          }
+        ],
+        "value": "brands"
+      },
+      {
+        "sections": [],
+        "value": "cart-landing"
+      },
+      {
+        "sections": [
+          {
+            "blocks": [],
+            "predicate": {
+              "screen": {
+                "mobile": true,
+                "desktop": true,
+                "tablet": true
+              },
+              "user": {
+                "authenticated": true,
+                "anonymous": true
+              },
+              "route": {
+                "selected": "none",
+                "exact_url": ""
+              }
             },
-            "full_width": {
-              "type": "checkbox",
-              "value": false
+            "name": "categoriesTemplate",
+            "props": {
+              "item_count": {
+                "type": "range",
+                "value": 4
+              },
+              "full_width": {
+                "type": "checkbox",
+                "value": false
+              }
             }
-          },
-          "blocks": []
-        }
-      ],
-      "collections": [
-        {
-          "name": "collectionTemplate",
-          "props": {
-            "heading": {
-              "type": "text",
-              "value": "Featured Collections"
+          }
+        ],
+        "value": "categories"
+      },
+      {
+        "sections": [
+          {
+            "blocks": [],
+            "predicate": {
+              "screen": {
+                "mobile": true,
+                "desktop": true,
+                "tablet": true
+              },
+              "user": {
+                "authenticated": true,
+                "anonymous": true
+              },
+              "route": {
+                "selected": "none",
+                "exact_url": ""
+              }
             },
-            "item_count": {
-              "type": "range",
-              "value": 4
-            },
-            "full_width": {
-              "type": "checkbox",
-              "value": false
+            "name": "collectionTemplate",
+            "props": {
+              "heading": {
+                "type": "text",
+                "value": "Featured Collections"
+              },
+              "item_count": {
+                "type": "range",
+                "value": 4
+              },
+              "full_width": {
+                "type": "checkbox",
+                "value": false
+              }
             }
-          },
-          "blocks": []
-        }
-      ]
-    }
+          }
+        ],
+        "value": "collections"
+      },
+      {
+        "sections": [],
+        "value": "compare-products"
+      },
+      {
+        "sections": [],
+        "value": "product-description"
+      },
+      {
+        "sections": [],
+        "value": "product-listing"
+      },
+      {
+        "sections": [
+          {
+            "blocks": [],
+            "predicate": {
+              "screen": {
+                "mobile": true,
+                "desktop": true,
+                "tablet": true
+              },
+              "user": {
+                "authenticated": true,
+                "anonymous": true
+              },
+              "route": {
+                "selected": "none",
+                "exact_url": ""
+              }
+            },
+            "name": "infiniteWishlistListing",
+            "props": {
+              "heading": {
+                "type": "text",
+                "value": "Favourites"
+              }
+            }
+          }
+        ],
+        "value": "wishlist"
+      }
+    ]
+  },
+  "information": {
+    "features": [
+      "Slideshow with sliding effect"
+    ]
   }
 }
