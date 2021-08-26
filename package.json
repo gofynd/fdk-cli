@@ -6,6 +6,7 @@
   "bin": {
     "fdk": "./bin/fdk.js"
   },
+  "files": ["bin", "dist", "src", "template"],
   "scripts": {
     "clean": "del ./dist/*",
     "build": "npm run clean && tsc",
