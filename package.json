@@ -1,12 +1,17 @@
 {
   "name": "@gofynd/fdk-cli",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "main": "index.js",
   "license": "MIT",
   "bin": {
     "fdk": "./bin/fdk.js"
   },
-  "files": ["bin", "dist", "src", "template"],
+  "files": [
+    "bin",
+    "dist",
+    "src",
+    "template"
+  ],
   "scripts": {
     "clean": "del ./dist/*",
     "build": "npm run clean && tsc",
