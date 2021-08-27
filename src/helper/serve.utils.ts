@@ -105,6 +105,7 @@ export async function startServer({ domain, host, isSSR }) {
 		}
 		console.log(req.hostname, req.url)
 		const jetfireUrl = new URL(urlJoin(domain, req.originalUrl));
+		jetfireUrl.searchParams.append('__cli', 'true');
 		if (isSSR) {
 			if (!isTunnelRunning()) {
 				await createTunnel()
@@ -128,14 +129,6 @@ export async function startServer({ domain, host, isSSR }) {
 					});
 					</script>
 				`);
-			$('head').append(`
-					<script>
-						if(window.env) {
-							window.env.SENTRY_DSN='';
-							window.env.SENTRY_ENVIRONMENT='development';
-						}
-					</script>
-				`);
 			$('#theme-umd-js').attr(
 				'src',
 				urlJoin(getFullLocalUrl(host), 'themeBundle.umd.js')
@@ -151,7 +144,7 @@ export async function startServer({ domain, host, isSSR }) {
 			res.send($.html({ decodeEntities: false }));
 		} catch (e) {
 			if (e.response && e.response.status == 504) {
-				if (!isTunnelRunning()) {
+				if (isSSR && !isTunnelRunning()) {
 					await createTunnel()
 				}
 				res.redirect(req.originalUrl)
