@@ -13,10 +13,10 @@
     "template"
   ],
   "scripts": {
-    "clean": "del ./dist/*",
+    "clean": "rimraf ./dist",
     "build": "npm run clean && tsc",
     "watch": "tsc --watch",
-    "prepare": "npm run build"
+    "prepublishOnly": "npm run build"
   },
   "devDependencies": {
     "@types/async": "^3.2.6",

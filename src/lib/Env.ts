@@ -12,6 +12,7 @@ export const AVAILABLE_ENVS = {
   jiox0: 'api.jiox0.de',
   jioretailer: 'api.jioretailer.com',
   jioecomm: 'api.jioecomm.com',
+  jiox5: 'api.jiox5.de'
 };
 
 type EnvType = keyof typeof AVAILABLE_ENVS;
