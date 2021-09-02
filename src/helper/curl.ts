@@ -35,7 +35,7 @@ export default class CurlHelper {
   }
 
   getMethod() {
-    return `-X ${this.request?.method.toUpperCase()}`;
+    return `-X ${this.request?.method?.toUpperCase()}`;
   }
 
   getBody() {
@@ -43,7 +43,7 @@ export default class CurlHelper {
       typeof this.request.data !== "undefined" &&
       this.request.data !== "" &&
       this.request.data !== null &&
-      this.request?.method.toUpperCase() !== "GET"
+      this.request?.method?.toUpperCase() !== "GET"
     ) {
       let data =
         typeof this.request.data === "object" ||

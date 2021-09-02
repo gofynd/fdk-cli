@@ -99,7 +99,7 @@ export const pageNameModifier = (page) => {
   let pageArr = page.split('-');
   let res = ''
   pageArr.forEach(p => {
-    res+= p[0].toUpperCase() + p.substring(1) + ' '
+    res+= p[0]?.toUpperCase() + p.substring(1) + ' '
   })
   return res.trim()
 }

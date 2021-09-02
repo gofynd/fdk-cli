@@ -12,7 +12,7 @@ const FDKCustomLevels = {
   },
 };
 const consoleFormat = printf(({ level, message, label, timestamp }) => {
-  const levelUpper = level.toUpperCase();
+  const levelUpper = level?.toUpperCase();
   switch (levelUpper) {
     case 'INFO':
       message = chalk.blue(message);

@@ -4,7 +4,7 @@ import CommandError from './CommandError';
 import Logger, { COMMON_LOG_MESSAGES } from './Logger';
 
 export const AVAILABLE_ENVS = {
-  x1: 'api.fyndx1.de',
+  fyndx1: 'api.fyndx1.de',
   fyndx0: 'api.fyndx0.de',
   fynd: 'api.fynd.com',
   jiox2: 'api.jiox2.de',
