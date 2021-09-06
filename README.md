@@ -321,6 +321,7 @@ fdk theme unpublish
 ___
 ### Extension Commands
 Extensions are pluggable snippets of code that can be installed in your applications so improve the feature set of your application. To know more visit - [Fynd Partners](https://partners.fynd.com/)
+For step-wise guide for building extension visit - [Extension Guide](https://github.com/gofynd/fdk-cli/blob/master/Extension-Guide.md) 
 
 <div id="extension-init"></div>
 
