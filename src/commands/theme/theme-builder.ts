@@ -5,7 +5,7 @@ export default function themeCommandBuilder() {
     const theme = new commander.Command('theme').description('Theme Commands');
     theme
         .command('add')
-        .alias('create')
+        .alias('new')
         .description('Create Theme')
         .requiredOption('-t, --token [token]', 'Token')
         .requiredOption('-n, --name [name]', 'Theme name')
