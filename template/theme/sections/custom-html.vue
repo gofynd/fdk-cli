@@ -1,7 +1,10 @@
-<template> </template>
+<template> 
+  <div class="full-width-section" v-html="settings.props.code.value">
+  </div>
+</template>
 <settings>
 {
-  "name": "customHtml",
+  "name": "custom_html",
   "label": "Custom HTML",
   "props": [
     {
@@ -16,10 +19,8 @@
 
 <script>
 export default {
-  props: ["settings"],
+  props: ['settings']
 };
 </script>
 
-<style lang="less" scoped>
-
-</style>
+<style></style>

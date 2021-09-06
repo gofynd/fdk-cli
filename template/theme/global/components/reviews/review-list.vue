@@ -8,7 +8,7 @@
     <div class="review-list__overall-rating" v-if="product.rating">
       Overall
       <span>
-        <rating-star :stars="product.rating" />
+        <rating-star :size="'medium'" :stars="product.rating" />
       </span>
       <span> {{ product.rating_count }} ratings </span>
     </div>
@@ -25,8 +25,8 @@
 </template>
 
 <script>
-import ratingstar from "./rating-star";
-import reviewitem from "./review-item";
+import ratingstar from "./rating-star.vue";
+import reviewitem from "./review-item.vue";
 export default {
   name: "review-list",
   components: {
@@ -37,10 +37,6 @@ export default {
     reviews: {
       type: Array,
       default: [],
-    },
-    showtitle: {
-      type: Boolean,
-      default: true,
     },
     product: {
       type: Object,
@@ -54,14 +50,20 @@ export default {
       type: String,
       default: "Ratings and Review",
     },
+    showtitle: {
+      type: Boolean,
+      default: true,
+    },
   },
 };
 </script>
 
 <style lang="less" scoped>
 .review-list {
-  margin-top: 30px;
-  font-family: roboto condensed, Arial, Helvetica, sans-serif;
+  margin-top: 20px;
+  @media @mobile {
+    margin-top: 20px;
+  }
   &__title {
     font-size: 28px;
     font-weight: bold;

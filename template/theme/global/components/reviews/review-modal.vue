@@ -6,7 +6,7 @@
     :enableOutsideClick="enableOutsideClick"
   >
     <div class="cross" @click="closeDialog">
-      <img src="../../../assets/images/close.svg" alt="Close" />
+      <img src="../../../assets/images/close-icon.png" alt="Close" />
     </div>
     <div class="review-modal-body">
       <div class="review__media" v-if="hasMedia">
@@ -55,13 +55,13 @@
 </template>
 
 <script>
-import modal from '../modal';
-import ratingstar from './rating-star';
+import modal from "../modal";
+import ratingstar from "./rating-star";
 
 export default {
-  name: 'review-modal',
+  name: "review-modal",
   components: {
-    'rating-star': ratingstar,
+    "rating-star": ratingstar,
     modal,
   },
   props: {
@@ -77,13 +77,27 @@ export default {
       type: Boolean,
       default: true,
     },
+    activeImageIndex: {
+      type: Number,
+      default: null,
+    },
+  },
+  watch: {
+    activeImageIndex() {
+      if (this.activeImageIndex != null) {
+        this.selectedIndex = this.activeImageIndex;
+        this.selectedMedia = this.reviewitem.review.media_meta
+          ? this.reviewitem.review.media_meta[this.selectedIndex]
+          : {};
+      }
+    },
   },
   data() {
     return {
       selectedMedia: this.reviewitem.review.media_meta
         ? this.reviewitem.review.media_meta[0]
         : {},
-      selectedIndex: 0,
+      selectedIndex: this.activeImageIndex || 0,
     };
   },
   computed: {
@@ -94,20 +108,25 @@ export default {
       );
     },
   },
-
+  mounted () {
+    document.addEventListener("backbutton", this.closeDialog, false);
+  },
+  beforeDestroy () {
+    document.removeEventListener("backbutton", this.closeDialog);
+  },
   methods: {
     closeDialog() {
-      this.$emit('closereviewdialog');
+      this.$emit("closereviewdialog");
     },
     getEmbedURL(url) {
-      if (url.indexOf('youtu.be')) {
-        return url.replace('youtu.be', 'youtube.com/embed');
-      } else if (url.indexOf('youtube.com/watch')) {
-        return url.replace('youtube.com/watch', 'youtube.com/embed');
+      if (url.indexOf("youtu.be")) {
+        return url.replace("youtu.be", "youtube.com/embed");
+      } else if (url.indexOf("youtube.com/watch")) {
+        return url.replace("youtube.com/watch", "youtube.com/embed");
       }
     },
     isYoutube(url) {
-      return url.indexOf('youtu.be') || url.indexOf('youtube.com/watch');
+      return url.indexOf("youtu.be") || url.indexOf("youtube.com/watch");
     },
     next() {
       this.selectedIndex++;
@@ -126,6 +145,14 @@ export default {
 </script>
 
 <style lang="less" scoped>
+/deep/.modal-container {
+  max-height: 500px;
+  overflow: hidden !important;
+  @media @mobile {
+    max-height: inherit !important;
+    overflow: inherit !important;
+  }
+}
 .review-modal-body {
   display: flex;
   @media @mobile {
@@ -143,10 +170,11 @@ export default {
       }
       &--image {
         width: 100%;
+        height: 450px;
       }
       &--video {
         width: 100%;
-        height: 300px;
+        height: 450px;
       }
     }
     &__data {
@@ -168,11 +196,12 @@ export default {
     &__desc {
       margin-top: 20px;
       line-height: 25px;
-      height: 90%;
+      height: 400px;
       overflow: hidden;
-      overflow-y: auto;
+      overflow-y: scroll;
       @media @mobile {
-        overflow-y: auto;
+        overflow-y: hidden;;
+        height: inherit;
       }
     }
   }
@@ -191,16 +220,16 @@ export default {
   cursor: pointer;
   border-style: solid;
   border-width: 0.2em 0.2em 0 0;
-  content: '';
+  content: "";
   display: inline-block;
-  height: 0.45em;
+  height: 1em;
   border-color: #000;
   left: 0.15em;
   position: absolute;
   top: 50%;
   transform: rotate(-45deg), translateY(-50%);
   vertical-align: top;
-  width: 0.45em;
+  width: 1em;
 }
 
 .chevron.right:before {

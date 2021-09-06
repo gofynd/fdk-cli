@@ -21,38 +21,15 @@ export default {
     },
     type: {
       type: String,
-      validator: (prop) => ['primary', 'secondary'].includes(prop),
-      default: 'primary',
+      validator: (prop) => ["primary", "secondary"].includes(prop),
+      default: "primary",
     },
     disabled: {
       type: Boolean,
       default: false,
     },
   },
-  methods: {
-    getBackgroundColor() {
-      if (this.type == 'primary') {
-        return 'black';
-      }
-      if (this.backgroundcolortype == 'secondary') {
-        return '#ffffff';
-      }
-      return 'black';
-    },
-
-    getColor() {
-      if (this.type == 'secondary') {
-        return '#000';
-      }
-      return '#ffffff';
-    },
-    getBorder() {
-      if (this.type == 'secondary') {
-        return '1px solid #000';
-      }
-      return 'none';
-    },
-  },
+  methods: {},
   computed: {},
   mounted: function mounted() {},
   destroyed: function destroyed() {},
@@ -60,48 +37,40 @@ export default {
 </script>
 
 <style lang="less" scoped>
-@tablet-screen: ~'(max-width: 1280px)';
+@tablet-screen: ~"(max-width: 1280px)";
 @disabled-background-color: #808080;
 
 .common-button {
-  height: 40px;
-  display: inline-flex;
-  border-radius: 3px;
-  align-items: center;
-  justify-content: center;
-  outline: none;
-  font-size: 16px;
-  cursor: pointer;
-  padding: 10px;
-  @media @tablet-screen {
+    text-align: center;
+    color: @White;
+    cursor: pointer;
+    background-color: @PrimaryColor;
+    border-radius: 3px;
+    margin: 10px auto;
+    width: calc(100% - 50px);
+    font-weight: bold;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 16px;
-  }
-  border: none;
-  transition: all 0.4s ease;
+    height: 44px;
 }
+
 .primary {
-  background-color: @ds-black;
-  border: 1px solid @ds-black;
-  color: @ds-white;
-  &:hover {
-    background-color: @ds-white;
-    color: @ds-black;
-  }
+  background-color: @PrimaryColor;
+  color: @White;
+  letter-spacing: 0 !important;
 }
 
 .secondary {
-  background-color: #fff;
-  color: #000;
-  border: 1px solid #000;
-  &:hover {
-    background-color: #000;
-    color: #fff;
-  }
+  background-color: @SecondaryColor;
+  color: @White;
+  letter-spacing: 0 !important;
 }
+
 .common-button[disabled] {
-  background-color: @disabled-background-color !important;
-  color: #fff !important;
-  border: none !important;
   cursor: not-allowed;
 }
+
 </style>
