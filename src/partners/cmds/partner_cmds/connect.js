@@ -48,11 +48,13 @@ exports.handler = async args => {
         {
             title: 'Verifying access token',
             task: async ctx => {
-                organizationInfo = await getOrganizationInfo(context.host, answers.partner_access_token, args.verbose);           
+                organizationInfo = await getOrganizationInfo(context.host, answers.partner_access_token, args.verbose);
             }
         }]);
-
-    await tasks.run();
+    try {
+        await tasks.run();
+    }
+    catch {}
     if (!organizationInfo) {
         console.log(chalk.red('Invalid or expired token. Please add valid token'));
         process.exit(0);

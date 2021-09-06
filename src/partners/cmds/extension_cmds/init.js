@@ -49,25 +49,25 @@ const questions = [
         choices: ['Private', 'Public'],
         default: 'Private',
         name: 'type',
-        message: 'Extension type :',
+        message: 'Choose Extension type :',
         validate: validateEmpty
-    },
-    {
-        type: 'list',
-        choices: ['Node', 'Node + Vue.js'],
-        default: 'Node + Vue.js',
-        name: 'project_type',
-        message: 'Development Language :',
-        validate: validateEmpty
-    },
+    }
+    // {
+    //     type: 'list',
+    //     choices: ['Node', 'Node + Vue.js'],
+    //     default: 'Node + Vue.js',
+    //     name: 'project_type',
+    //     message: 'Development Language :',
+    //     validate: validateEmpty
+    // },
 ];
 exports.command = 'init';
 exports.desc = 'Initialize extension';
 exports.builder = function (yargs) {
     return yargs
-        .options('template', {
-            describe: 'Language'
-        })
+        // .options('template', {
+        //     describe: 'Language'
+        // })
         .options('target-dir', {
             describe: 'Target directory for creating extension repository'
         })

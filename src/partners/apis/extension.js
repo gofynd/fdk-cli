@@ -128,7 +128,7 @@ const getOrganizationInfo = async (host, token, verbose = false) => {
     }
     let errorMsg = err.message || 'Failed to fetch data';
     if (err.response && err.response.status < 500) {
-      errorMsg = err.response.message || errorMsg;
+      errorMsg = err.response.data.message || errorMsg;
     }
     throw Error(errorMsg);
   }
