@@ -17,7 +17,7 @@ export default function themeCommandBuilder() {
         .requiredOption('-t, --token [token]', 'Token')
         .asyncAction(Theme.initTheme); // todo
 
-    theme.command('sync').description('Sync theme').asyncAction(Theme.syncTheme);
+    theme.command('sync').description('Sync theme').asyncAction(Theme.syncThemeWrapper);
 
     theme
         .command('serve')

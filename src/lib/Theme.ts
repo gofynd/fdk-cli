@@ -211,7 +211,10 @@ export default class Theme {
             throw new CommandError(error.message, error.code);
         }
     };
-    public static syncTheme = async (isNew = false) => {
+    public static syncThemeWrapper = async() => {
+        await Theme.syncTheme()
+    }
+    private static syncTheme = async (isNew = false) => {
         try {
             const currentContext = getActiveContext();
             const env = Env.getEnvValue();
@@ -234,7 +237,7 @@ export default class Theme {
                     message: 'Do you wish to pull config from remote?',
                 },
             ];
-            if (!isNew && sortString(JSON.stringify(newConfig)) !== sortString(oldConfig)) {
+            if (!isNew && !_.isEqual(newConfig, oldConfig)) {
                 await inquirer.prompt(questions).then(async answers => {
                     if (answers.pullConfig) {
                         await fs.writeJSON('./theme/config/settings_data.json', newConfig, {
