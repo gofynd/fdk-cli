@@ -264,10 +264,10 @@ export default class Theme {
             Theme.createSectionsIndexFile(available_sections);
 
             let imageCdnUrl = '';
-
+            let assetCdnUrl = '';
             // get image cdn base url
             {
-                const startData = {
+                let startData = {
                     file_name: 'test.jpg',
                     content_type: 'image/jpeg',
                     size: '1',
@@ -277,10 +277,22 @@ export default class Theme {
                 ).data;
                 imageCdnUrl = path.dirname(startAssetData.cdn.url);
             }
+            // get asset cdn base url
+            {
+                let startData = {
+                    file_name: 'test.ttf',
+                    content_type: 'font/ttf',
+                    size: '10',
+                };
+                let startAssetData = (
+                    await UploadService.startUpload(startData, 'application-theme-assets')
+                ).data;
 
+                assetCdnUrl = path.dirname(startAssetData.cdn.url);
+            }
             Logger.warn('Building Assets...');
             // build js css
-            await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl });
+            await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl });
             // check if build folder exists, as during build, vue fails with non-error code even when it errors out
             if (!fs.existsSync(Theme.BUILD_FOLDER)) {
                 throw new Error('Build Failed');
@@ -383,6 +395,19 @@ export default class Theme {
                     const assetPath = path.join(Theme.BUILD_FOLDER, 'assets/images', img);
                     await UploadService.uploadFile(assetPath, 'application-theme-images');
                 });
+            }
+            // upload fonts
+            {
+                console.log(path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts'), fs.existsSync(path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts')))
+                if(fs.existsSync(path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts'))) {
+                    const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts');
+                    const fonts = glob.sync('**/**.**', { cwd });
+                    Logger.warn('Uploading fonts...');
+                    await asyncForEach(fonts, async font => {
+                        const assetPath = path.join(Theme.BUILD_FOLDER, 'assets/fonts', font);
+                        await UploadService.uploadFile(assetPath, 'application-theme-assets');
+                    });
+                }
             }
             //copy files to .fdk
             Logger.warn('Archiving src...');
