@@ -1,294 +1,389 @@
 <template>
-  <div>
-    <div class="footer-main">
-      <div class="footer">
-        <div class="left">
-          <img :src="context.mobile_logo && context.mobile_logo.secure_url" class="footer__logo" />
-          <p class="footer__desc">
-            {{ context.description }}
-          </p>
-        </div>
-        <div class="right" v-if="context.social_links ">
-          <p class="footer__connect">Connect with us on social media</p>
-          <ul class="footer__social">
-            <li
-              v-for="(link, index) in context.social_links"
-              :key="index"
-              class="footer__social--icon"
-            >
-              <fdk-link :link="link.link"  :class="getIconClass(link.title)" target="_blank">
-                
+  <div
+    class="main-footer"
+    :style="
+      `--footer_nav_hover_color:${global_config.props.footer_nav_hover_color};border-top: 1px solid ${global_config.props.footer_border_color};background-color: ${global_config.props.footer_bg_color};color: ${global_config.props.footer_text_color}`
+    "
+  >
+    <div class="main-footer__bottom">
+      <div class="about-block" v-if="context.description !== ''">
+        <h5 class="footer-head">ABOUT US</h5>
+        <p class="desc">
+          {{ context.description }}
+        </p>
+      </div>
+      <div class="item-block">
+        <div
+          class="link-block"
+          v-for="(item, index) in context.navigation"
+          :key="index"
+        >
+          <h5 class="footer-head">
+            <fdk-link :link="item.link">
+              {{ item.display }}
+            </fdk-link>
+          </h5>
+          <ul
+            class="list"
+            v-for="(subItem, index) in item.sub_navigation"
+            :key="index"
+          >
+            <li>
+              <fdk-link :link="subItem.link">
+                {{ subItem.display }}
               </fdk-link>
             </li>
           </ul>
         </div>
       </div>
-    </div>
-    <div class="footer-links-main">
-      <ul class="footer-links desc">
-        <li
-          class="link-item"
-          v-for="(item, index) in navs"
-          :key="index"
-        >
-          <div class="nav-item">
-            <fdk-link :link="item.link"><span>{{ item.display }}</span></fdk-link>
-           
-          </div>
+      <div class="social-link-block">
+        <h5 class="footer-head">GET IN TOUCH</h5>
+        <div class="flat">
           <ul
-            class="sub-navigation"
-            :class="{ 'toggle-dropdown': item.isOpen }"
-            v-if="item.sub_navigation"
+            class="list"
+            v-if="
+              context.support.contact.email.active &&
+                context.support.contact.email.email.length > 0
+            "
           >
+            <li>Email: {{ context.support.contact.email.email[0].value }}</li>
+          </ul>
+          <ul
+            class="list"
+            v-if="
+              context.support.contact.phone.active &&
+                context.support.contact.phone.phone.length > 0
+            "
+          >
+            <li>Call : {{ context.support.contact.phone.phone[0].number }}</li>
+          </ul>
+          <ul class="row">
             <li
-              class="subnav-item"
-              v-for="(subnav, index) in item.sub_navigation"
+              v-for="(item, index) in context &&
+                context.app_info &&
+                context.app_info.social_links"
               :key="index"
             >
-              <fdk-link :link="subnav.link">{{ subnav.display }}</fdk-link>
+              <span v-if="item.link">
+                <fdk-link :link="item.link" target="_blank" :title="item.title">
+                  <img alt="social.title" :src="item.icon" />
+                </fdk-link>
+              </span>
             </li>
           </ul>
-        </li>
-      </ul>
-    </div>
-    <div class="footer-copyright-main">
-      <div class="footer__copyrightText">
-        <div v-if="context.app_info.copyright_text">
-          {{ context.app_info.copyright_text }}
         </div>
       </div>
+    </div>
+    <div class="sub-footer_bottom">
+      <div>{{ context.app_info.copyright_text }}</div>
+      <div></div>
     </div>
   </div>
 </template>
 
 <script>
+import { logoUrl } from "../../helper/utils";
 export default {
   props: {
     context: {},
   },
-
   data() {
     return {
-      navs: [],
+      isMounted: false,
     };
   },
   mounted() {
-    this.context.navigation.forEach((item, index) => {
-      item.isOpen = false;
-      this.navs.push(item);
-    });
+    this.isMounted = true;
   },
-  computed: {},
-  methods: {
-    getIconClass(title) {
-      if (title === 'Instagram') return 'icon-instagram';
-      if (title === 'Youtube') return 'icon-youtube';
-      if (title === 'Twitter') return 'icon-twitter-black-sm';
-      if (title === 'Facebook') return 'icon-facebook-black';
-      if (title === 'Pinterest') return 'icon-pinterest';
-      if(title === 'Google+') return 'icon-google';
-      if(title === 'LinkedIn') return 'icon-linkedin';
-      if(title === 'Blog') return 'icon-blog';
-      if(title === 'Vimeo') return 'icon-vimeo';
+  computed: {
+    getLogoUrl() {
+      return logoUrl(this.context.logo, this.context.mobileLogo);
     },
-    openDropDown(navigation) {
-      if (navigation.sub_navigation) {
-        navigation.isOpen = !navigation.isOpen;
-      }
-    }
-  }
+  },
 };
 </script>
 
 <style lang="less" scoped>
-.icon-vimeo{
-  width: 20px;
-  height: 20px;
-  content: url('./../../assets/images/vimeo.png');
-}
-.icon-blog{
-  width: 20px;
-  height: 20px;
-  content: url('./../../assets/images/blog.png');
-}
-.icon-linkedin{
-  width: 20px;
-  height: 20px;
-  content: url('./../../assets/images/linkedin.png');
-}
-.icon-google{
-  width: 20px;
-  height: 20px;
-  content: url('./../../assets/images/google-plus.png');
-}
-.icon-pinterest{
-  width: 20px;
-  height: 20px;
-  content: url('./../../assets/images/pinterest.png');
-}
-.footer-main {
-  width: 100%;
-  background-color: #ffffff;
-  margin-top: 10px;
-  box-shadow: 0 1px 3px rgba(0,0,0,.1);
-  border-top: 1px solid #eee;
-}
-.footer-links-main {
-  width: 100%;
-  background-color: #ffffff;
-}
-.footer-copyright-main {
-  width: 100%;
-  background: #ffffff;
-}
-
-.footer {
-  display: flex;
-  align-items: center;
-  color: @Black;
-  max-width: 1200px;
-  padding: 20px 0;
-  width: 100%;
-  margin: 0 auto;
-  box-sizing: border-box;
+.main-footer {
+  margin-top: 3.125rem;
+  font-size: 0.8125rem;
+  letter-spacing: 0.65px;
+  font-size: 12px;
+  color: white;
+  overflow-x:hidden;
   @media @mobile {
-    padding: 20px 10px;
-    flex-direction: column;
-    justify-content: center;
-  }
-  .left {
-    width: 75%;
-    @media @mobile {
-      width: 100%;
-    }
-  }
-  .right {
-    width: 25%;
-    @media @mobile {
-      width: 100%;
-      text-align: center;
-    }
-  }
-  .right {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    text-align: left;
-    @media @mobile {
-      margin-top: 20px;
-    }
-  }
-  &__logo {
-    margin-bottom: 10px;
-    max-width: 100%;
-  }
-  &__desc {
-    line-height: 20px;
-    width: 75%;
-    @media @mobile {
-      width: 100%;
-    }
-  }
-  &__connect {
-    font-size: 18px;
-    text-transform: uppercase;
-    font-weight: bold;
-    margin-bottom: 10px;
-    display: inline-block;
-  }
-
-  &__social {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    flex-wrap: wrap;
-    @media @mobile{
-      width: 300px;
-    }
-  }
-  &__social--icon{
-    display: flex;
-    align-items: center;
-  }
-  &__copyrightText {
-    border-top: 1px solid hsla(0, 0%, 100%, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: @Black;
-    max-width: 1200px;
-    width: 100%;
-    margin: 0 auto;
-    display: flex;
-    padding: 20px 0;
     text-align: center;
   }
-}
-.footer-links {
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto;
-  display: flex;
-  padding: 20px 0;
-  border-top: 1px solid hsla(0, 0%, 100%, 0.1);
-  justify-content: space-between;
-  background-color: #ffffff;
-  color: @Black;
-  @media @mobile {
-    padding: 0;
-    flex-direction: column;
+  .sub-footer_bottom {
+    padding: 36px 24px;
+    display: flex;
+    flex-direction: row;
+
+    @media @mobile {
+      flex-direction: column;
+    }
+    @media screen and (max-width: 709px) {
+      flex-direction: column;
+    }
+    justify-content: space-between;
   }
-  .link-item {
-    cursor: pointer;
-    .nav-item {
-      display: flex;
-      align-items: center;
-      text-transform: uppercase;
-      font-weight: bold;
+
+  .footer-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    @media @mobile {
+      flex-wrap: wrap;
+    }
+    .link-item {
+      margin-right: 0.9375rem;
       @media @mobile {
-        padding: 10px 10px;
-        border-bottom: 1px solid @ds-light-border-color;
-        justify-content: space-between;
+        margin-bottom: 0.625rem;
       }
-      .dropdown-arrow {
-        content: '';
-        display: inline-block;
-        background-image: url(../../assets/images/sprite-icons.svg);
-        background-position: -586px -2px;
-        background-repeat: no-repeat;
-        height: 1.5rem;
-        width: 1.5rem;
-        margin-left: 8px;
+      // color: @color-gray;
+      position: relative;
+      &:after {
+        bottom: 0;
+        content: "";
+        display: block;
+        height: 1px;
+        left: 50%;
+        position: absolute;
+        background: var(--footer_nav_hover_color);
+        transition: width 0.3s ease 0s, left 0.3s ease 0s;
+        width: 0;
       }
-      .rotate-arrow {
-        transform: rotate(180deg);
+      &:hover {
+        &:after {
+          width: 100%;
+          left: 0;
+        }
+        color: var(--footer_nav_hover_color);
       }
     }
-    .sub-navigation {
-      max-height: 0;
-      opacity: 0;
-      transition: all 0.7s ease-out;
-      transition-delay: 0.3s;
-      position: relative;
-      overflow: hidden;
-      .subnav-item {
-        padding: 10px 0;
-        text-transform: capitalize;
-        &:hover {
-          text-decoration: underline;
+  }
+
+  &__bottom {
+    padding: 25px 25px;
+    display: flex;
+    flex-direction: row;
+    @media screen and (max-width: 709px) {
+      flex-direction: column;
+    }
+    justify-content: space-between;
+    .about-block {
+      .footer-head {
+        font-size: 16px;
+        margin-bottom: 16px;
+        @media @mobile {
+          font-size: 16px;
+        }
+      }
+      .desc {
+        margin-bottom: 10px;
+        width: 250px;
+        line-height: 2;
+        @media screen and (max-width: 1111px) {
+          max-width: 128px;
+        }
+
+        @media @tablet {
+          max-width: 112px;
+        }
+        @media screen and (max-width: 709px) {
+          max-width: max-content;
         }
         @media @mobile {
-          padding: 10px 20px;
+          max-width: max-content;
+        }
+      }
+
+      .email {
+        width: 250px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+        height: 30px;
+        border: 1px solid white;
+      }
+      input[type="text"],
+      textarea {
+        background-color: var(--footer_bg_color);
+        border-color: white;
+      }
+      .btn {
+        width: 140px;
+        height: 30px;
+        color: white;
+        background-color: black;
+        margin-top: 30px;
+        margin-bottom: 30px;
+        letter-spacing: 4px;
+      }
+      ::placeholder {
+        color: white;
+      }
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      width: 25%;
+      @media screen and (max-width: 709px) {
+        width: 100%;
+        align-items: center;
+        text-align: center;
+      }
+      @media @mobile {
+        width: auto;
+      }
+    }
+    .link-block {
+      @media @mobile {
+        margin: 8px;
+        width: auto;
+      }
+      .footer-head {
+        font-size: 16px;
+
+        margin-bottom: 16px;
+        @media @mobile {
+          font-size: 16px;
+        }
+      }
+      li {
+        margin-bottom: 10px;
+        @media @mobile {
+          font-size: 14px;
+        }
+      }
+      .row {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        @media @mobile {
+          justify-content: center;
+        }
+        li {
+          margin: auto 2px;
+          img {
+            width: 30px;
+            color: var(--footer_bg_color);
+          }
+        }
+      }
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      width: 25%;
+    }
+    .social-link-block {
+      @media screen and (max-width: 709px) {
+        width: 100%;
+        align-items: center;
+        text-align: center;
+        margin-top: 10px;
+      }
+      @media @mobile {
+        margin: 8px;
+        width: auto;
+      }
+      .flat {
+        @media screen and (max-width: 709px) {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-evenly;
+          width: 100%;
+        }
+        @media @mobile {
+          flex-direction: column;
+          width: auto;
+          justify-content: space-evenly;
+        }
+      }
+      .footer-head {
+        font-size: 16px;
+
+        margin-bottom: 16px;
+        @media @mobile {
+          font-size: 16px;
+        }
+      }
+      li {
+        margin-bottom: 10px;
+        @media @mobile {
+          font-size: 14px;
+        }
+      }
+      .row {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        @media screen and (max-width: 709px) {
+          justify-content: center;
+        }
+        @media @mobile {
+          justify-content: center;
+        }
+        li {
+          margin: auto 2px;
+          img {
+            width: 30px;
+            color: var(--footer_bg_color);
+          }
+        }
+      }
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      width: 25%;
+    }
+    .item-block {
+      display: flex;
+      flex-wrap: wrap;
+      @media screen and (min-width: 709px) {
+        justify-content: space-evenly;
+        width: 50%;
+      }
+      @media screen and (max-width: 709px) {
+        justify-content: center;
+      }
+      @media @mobile {
+        flex-direction: column;
+      }
+    }
+    @media @tablet {
+      padding: 1.25rem 3.125rem 1.875rem 3.125rem;
+    }
+    @media @mobile {
+      flex-direction: column;
+    }
+    .logo-block {
+    }
+    .social-block {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      flex: 0 0 17%;
+      justify-content: flex-end;
+      @media @mobile {
+        flex: 0 0 100%;
+        margin-top: 30px;
+        justify-content: center;
+        margin-left: unset;
+      }
+      .icons-box {
+        display: flex;
+        flex-wrap: wrap;
+        li {
+          margin-right: 5px;
           &:last-child {
-            border-bottom: 1px solid hsla(0, 0%, 100%, 0.1);
+            margin-right: 0;
           }
         }
       }
     }
-    .toggle-dropdown {
-      opacity: 1;
-      max-height: 360px;
-      padding-top: 10px;
+
+    .app-logo {
+      max-width: 80px;
+      margin-bottom: 0.3125rem;
     }
   }
 }

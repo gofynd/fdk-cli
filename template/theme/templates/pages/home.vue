@@ -1,24 +1,25 @@
 <template>
-    <div class="home-cont">
-        <sections page="home" />
-    </div>
+  <div class="home-cont" :style="global_config ? 'color:' + global_config.props.text_body_color : ''">
+    <sections page="home" />
+  </div>
 </template>
-<style scoped>
-.home-cont {
-    background-color: #ffffff;
+<style scoped lang="less">
+
+.content,
+.view {
+  max-width: none !important;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin: 0 !important;
 }
-
-
 </style>
-
 
 <script>
 export default {
-    data() {
-        return {
-        }
-    },
-    components: {
-    }
-}
+  data() {
+    return {};
+  },
+  components: {},
+};
 </script>
