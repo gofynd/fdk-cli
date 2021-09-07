@@ -1,289 +1,204 @@
 <template>
-  <div>
-    <div
-      v-if="
-        context.bag_data &&
-          context.bag_data.pageError &&
-          context.bag_data.pageError.statusCode == '500'
-      "
-    >
-      <empty-state :title="'Oops! Something went wrong'"></empty-state>
-    </div>
+  <div class="cart-page-cont">
     <div class="cart-message error" v-if="context.bag_data.message">
       {{ context.bag_data.message }}
     </div>
-    <fdk-cart>
+
+    <fdk-cart
+      class="cart"
+      v-if="context && context.bag_data && context.bag_data.items"
+    >
       <template slot-scope="cart">
-        <div
-          class="cart"
-          v-if="context && context.bag_data && context.bag_data.items"
-        >
-          <template v-if="context.bag_data.items.length > 0">
-            <div class="left">
-              <div class="cart__title">
-                <p>Shopping Bag</p>
-                <span>( {{ context.bag_data.items.length }} items )</span>
+        <template v-if="context.bag_data.items.length > 0">
+          <div class="cart-heading" style="flex: 0 0 100%">
+            <div class="cart__title">
+              <p>Bag</p>
+              <span>
+                {{ context.bag_data.items.length }} Item{{
+                  context.bag_data.items.length > 1 ? "s" : ""
+                }}
+                | {{ getPiecesTxt() }}</span
+              >
 
-                <fdk-share
-                  v-click-outside="hideShare"
-                  class="share_popup"
-                  v-if="pageConfig.share_cart"
-                  :class="{ share_modal: showShare }"
-                >
-                  <template slot-scope="share">
-                    <div class="cart-share" @click="getCartShareLink(share)">
-                      <img
-                        src="./../../assets/images/share.svg"
-                        class="share-img"
+              <fdk-share
+                v-click-outside="hideShare"
+                class="share_popup"
+                :class="{ share_modal: showShare, topLayer: showShare }"
+              >
+                <template slot-scope="share">
+                  <div class="cart-share" @click="getCartShareLink(share)">
+                    <fdk-inline-svg :src="'share'"></fdk-inline-svg>
+                    <transition name="fade">
+                      <rd-share
+                        :title="`Spread the shopping delight! Scan QR & share these products with
+                        your loved ones`"
+                        :shareLoading="shareLoading"
+                        :qr_code="qr_code"
+                        @close-share="showShare = false"
+                        v-if="showShare"
+                        :share_link="share_link"
                       />
-                      <transition name="fade">
-                        <share
-                          :title="
-                            `Spread the shopping delight! Scan QR & share these products with
-                      your loved ones`
-                          "
-                          :shareLoading="shareLoading"
-                          :qr_code="qr_code"
-                          @close-share="showShare = false"
-                          v-if="showShare"
-                          :share_link="share_link"
-                        />
-                      </transition>
-                    </div>
-                  </template>
-                </fdk-share>
-              </div>
-              <div class="cart__items">
-                <p class="items-title">ITEMS BEING SHIPPED</p>
-                <cart-item
-                  v-for="(item, index) in context.bag_data.items"
-                  :key="index"
-                  :item="item"
-                  @update-cart="updateCart"
-                ></cart-item>
-              </div>
-            </div>
-            <div class="right">
-              <div
-                class="gst table"
-                v-if="isGST && pageConfig && pageConfig.gst"
-              >
-                <!-- <div class="table__icon">
-            <fdk-inline-svg :src="'kycdetails'"></fdk-inline-svg>
-          </div> -->
-                <div class="table__content">
-                  <p class="heading">GST Details</p>
-                  <input
-                    @input="checkGSTIN(cart)"
-                    :placeholder="gstin.label"
-                    v-model="gstin.value"
-                    required
-                    class="gst-input"
-                  />
-                  <div
-                    class="remove-gst"
-                    @click="
-                      removeGST(cart);
-                      gstin.value = '';
-                    "
-                    v-if="gstin.applied"
-                  >
-                    <button
-                      type="button"
-                      title="Clear Selected"
-                      aria-label="Clear Selected"
-                      class="vs__clear"
-                      style=""
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="10"
-                        height="10"
-                      >
-                        <path
-                          d="M6.895455 5l2.842897-2.842898c.348864-.348863.348864-.914488 0-1.263636L9.106534.261648c-.348864-.348864-.914489-.348864-1.263636 0L5 3.104545 2.157102.261648c-.348863-.348864-.914488-.348864-1.263636 0L.261648.893466c-.348864.348864-.348864.914489 0 1.263636L3.104545 5 .261648 7.842898c-.348864.348863-.348864.914488 0 1.263636l.631818.631818c.348864.348864.914773.348864 1.263636 0L5 6.895455l2.842898 2.842897c.348863.348864.914772.348864 1.263636 0l.631818-.631818c.348864-.348864.348864-.914489 0-1.263636L6.895455 5z"
-                        ></path>
-                      </svg>
-                    </button>
+                    </transition>
                   </div>
-                  <p v-if="gstin.applied" class="gst-applied">
-                    Claim
-                    {{
-                      context.bag_data.breakup_values.raw.gst_charges
-                        | currencyformat
-                    }}
-                    GST input credit
-                  </p>
-                  <p class="gst-error" v-if="gstin.showerror">
-                    {{ gstin.errortext }}
-                  </p>
-                </div>
-              </div>
-              <div
-                v-if="
-                  context.employee_list &&
-                    isStaffSelection &&
-                    pageConfig.staff_selection
-                "
-              >
-                <!-- <div class="table__icon">
-            <fdk-inline-svg :src="'profile_black'"></fdk-inline-svg>
-          </div> -->
-                <fdk-employee>
-                  <template slot-scope="employee">
-                    <div class="employee table">
-                      <div class="table__content">
-                        <p class="heading">Assign Employee</p>
-                        <v-select
-                          placeholder="Employee Name"
-                          class="select"
-                          :options="getEmployeeList"
-                          label="full_name"
-                          :value="getSelectEmployeeValue"
-                          v-on:input="updateEmployee($event, employee)"
-                        ></v-select>
-                      </div></div></template
-                ></fdk-employee>
-              </div>
-              <div @click="updateCoupons(cart)" class="coupons table">
-                <!-- <div class="table__icon">
-            <fdk-inline-svg :src="'coupon'"></fdk-inline-svg>
-          </div> -->
-                <div class="table__content coupons">
-                  <p class="heading">Offers & Coupons</p>
-                  <p
-                    class="subheading"
-                    :style="{
-                      color: context.bag_data.breakup_values.coupon.is_applied
-                        ? 'green'
-                        : 'black',
-                    }"
-                  >
-                    <span
-                      v-if="context.bag_data.breakup_values.coupon.is_applied"
-                    >
-                      Applied {{ context.bag_data.breakup_values.coupon.code }}
-                    </span>
-                    <span v-else style="font-size: 12px">
-                      {{ context.bag_data.coupon_text }}
-                    </span>
-                  </p>
-                </div>
+                </template>
+              </fdk-share>
+            </div>
+          </div>
+          <div class="left">
+            <div class="cart__items">
+              <cart-item
+                v-for="(item, index) in context.bag_data.items"
+                :key="index"
+                :item="item"
+                :updateCart="updateCart"
+                :removeCart="removeCart"
+              ></cart-item>
+            </div>
+          </div>
+          <div class="right">
+            <gst-chip
+              :context="context"
+              :cart="cart"
+              v-if="
+                context.bag_data.breakup_values &&
+                isGST &&
+                page_config &&
+                page_config.props.gst
+              "
+              @hide-error="
+                () => {
+                  gstin.showerror = false;
+                }
+              "
+              @show-error="
+                () => {
+                  gstin.showerror = true;
+                }
+              "
+            ></gst-chip>
 
-                <div
-                  class="icon"
-                  @click.stop="updateCoupons(cart)"
-                  v-if="context.bag_data.breakup_values.coupon.is_applied"
-                >
-                  <button
-                    type="button"
-                    title="Clear Selected"
-                    aria-label="Clear Selected"
-                    class="vs__clear"
-                    style=""
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="10"
-                      height="10"
-                    >
-                      <path
-                        d="M6.895455 5l2.842897-2.842898c.348864-.348863.348864-.914488 0-1.263636L9.106534.261648c-.348864-.348864-.914489-.348864-1.263636 0L5 3.104545 2.157102.261648c-.348863-.348864-.914488-.348864-1.263636 0L.261648.893466c-.348864.348864-.348864.914489 0 1.263636L3.104545 5 .261648 7.842898c-.348864.348863-.348864.914488 0 1.263636l.631818.631818c.348864.348864.914773.348864 1.263636 0L5 6.895455l2.842898 2.842897c.348863.348864.914772.348864 1.263636 0l.631818-.631818c.348864-.348864.348864-.914489 0-1.263636L6.895455 5z"
-                      ></path>
-                    </svg>
-                  </button>
-                </div>
-                <div class="icon" v-else>
-                  <fdk-inline-svg :src="'arrow-right-black'"></fdk-inline-svg>
-                </div>
-              </div>
-              <div class="gst employee table comment">
-                <!-- <div class="table__icon">
-            <fdk-inline-svg :src="'request'"></fdk-inline-svg>
-          </div> -->
-                <div class="table__content">
-                  <p class="heading">Comment</p>
-                  <input
-                    :placeholder="comment.label"
-                    v-model="comment.value"
-                    required
-                    class="gst-input"
-                  />
-                </div>
-              </div>
-              <div class="table__content rewards" v-if="isRewardPoints">
-                <reward-points
-                  :rewards_data="
-                    context.bag_data &&
+            <employee-chip
+              v-if="
+                getEmployeeList.length > 0 &&
+                isStaffSelection &&
+                page_config &&
+                page_config.props.staff_selection
+              "
+              :is_selected="selectedStaffName.length > 0"
+              :displayText="selectedStaffName"
+              :context="context"
+            ></employee-chip>
+
+            <coupons
+              :attrs="getCoupanData()"
+              v-if="context.bag_data.breakup_values"
+              v-on:remove-coupon="updateCoupons(cart)"
+            ></coupons>
+            <fdk-accounts>
+              <template slot-scope="accountsData">
+                <div v-if="accountsData.is_logged_in">
+                  <reward-points
+                    v-if="isRewardPoints"
+                    :rewards_data="
+                      context &&
+                      context.bag_data &&
                       context.bag_data.breakup_values &&
                       context.bag_data.breakup_values.loyalty_points
-                  "
-                  @change-rewards="cart.updateRewardPoints(context.bag_data)"
-                ></reward-points>
-              </div>
-              <div
-                class="price-item"
-                :class="{ total: item.key === 'total' }"
-                v-for="(item, index) in context.bag_data.breakup_values.display"
-                :key="index"
-              >
-                <span>{{ item.display }}</span>
-                <span style="letter-spacing: 0.5px">
-                  {{ item.value | currencyformat }}
-                </span>
-              </div>
-              <checkout-mode
-                :context="context"
-                v-if="isPlacingForCustomers && pageConfig.checkout_mode"
-              ></checkout-mode>
-
-              <fdk-accounts>
-                <template slot-scope="accountsData">
-                  <template v-if="accountsData.is_logged_in">
-                    <namaste-button
-                      class="checkout-btn"
-                      :disabled="
-                        !context.bag_data.is_valid || (gstin && gstin.showerror)
-                      "
-                      @click="routeToCheckout(cart)"
-                    >
-                      Checkout
-                    </namaste-button>
-                  </template>
-                  <template v-else-if="!accountsData.is_logged_in">
-                    <namaste-button
-                      class="checkout-btn"
-                      @click="accountsData.openLogin"
-                    >
-                      Login
-                    </namaste-button>
-                    <div
-                      v-if="isAnonymous && pageConfig.continue_as_guest"
-                      class="guest-checkout dark-xxs"
-                      @click="routeToCheckout(cart)"
-                      v-bind:class="{
-                        'guest-disable':
-                          !context.bag_data.is_valid ||
-                          (gstin && gstin.showerror),
-                      }"
-                    >
-                      Continue as Guest ?
-                    </div>
-                  </template>
-                </template>
-              </fdk-accounts>
-            </div>
-            <namaste-loader v-if="isLoading" />
-          </template>
-          <empty-state v-else :title="'Your Shopping Bag is empty.'" />
-          <toast :id="'toast-message'" :content="toast_message"></toast>
+                    "
+                    @change-rewards="cart.updateRewardPoints(context.bag_data)"
+                  ></reward-points>
+                </div>
+              </template>
+            </fdk-accounts>
+            <comment
+              v-model="comment.value"
+              :value="context.bag_data.comment"
+              :placeholder="comment.label"
+            ></comment>
+            <breakup
+              v-if="context.bag_data.breakup_values"
+              :breakup="context.bag_data.breakup_values.display"
+            ></breakup>
+            <checkout-mode
+              :context="context"
+              v-if="
+                isStaff &&
+                isPlacingForCustomers &&
+                page_config &&
+                page_config.props.enable_customer
+              "
+            ></checkout-mode>
+            <fdk-accounts>
+              <template slot-scope="accountsData">
+                <div v-if="accountsData.is_logged_in">
+                  <white-splash-button
+                    :class="{
+                      secondary: true,
+                      'disabled-ws': !context.bag_data.is_valid || getGstError,
+                    }"
+                    :disabled="!context.bag_data.is_valid || getGstError"
+                    @click="routeToCheckout(cart)"
+                  >
+                    CHECKOUT
+                  </white-splash-button>
+                </div>
+                <div v-else>
+                  <white-splash-button
+                    :class="{
+                      secondary: true,
+                      'disabled-ws': !context.bag_data.is_valid,
+                    }"
+                    @click="accountsData.openLogin"
+                  >
+                    LOGIN
+                  </white-splash-button>
+                  <div
+                    v-if="
+                      isAnonymous &&
+                      page_config &&
+                      page_config.props.enable_guest
+                    "
+                    class="guest-chkout"
+                    @click="routeToCheckout(cart)"
+                    v-bind:class="{
+                      disable: !context.bag_data.is_valid,
+                      'disable-btn': getGstError,
+                    }"
+                  >
+                    Continue as Guest ?
+                  </div>
+                </div>
+                <div class="agree-terms">
+                  By continuing, I agree to the
+                    <fdk-link
+                        :target="`_blank`"
+                        class="link"
+                        :link="`/terms-and-conditions`"
+                      >
+                        Terms of Use
+                      </fdk-link>
+                      &
+                      <fdk-link
+                        :target="`_blank`"
+                        class="link"
+                        :link="`/privacy-policy`"
+                      >
+                        Privacy Policy
+                    </fdk-link>
+                  </div>
+              </template>
+            </fdk-accounts>
+          </div>
+          <fdk-loader class="loader-emerge" v-if="isLoading" />
+        </template>
+        <div class="cart-empty" v-else>
+          <fdk-empty-state :title="'Your Shopping Bag is empty.'" />
         </div>
+        <toast :id="'toast-message'" :content="toast_message"></toast>
       </template>
     </fdk-cart>
   </div>
 </template>
-<!-- #region  -->
-
 <settings>
 {
 "props": [
@@ -292,66 +207,65 @@
       "id": "gst",
       "label": "GST",
       "default": true,
-      "info": "Allows GST Input"
-    },
-    {
-      "type": "checkbox",
-      "id": "share_cart",
-      "label": "Share Cart",
-      "default": true,
-      "info": "Allows Sharing of Cart"
+      "info": "Show GST on cart"
     },
     {
       "type": "checkbox",
       "id": "staff_selection",
       "label": "Staff Selection",
       "default": true,
-      "info": "Show Staff Selection"
-    },
-     {
-      "type": "checkbox",
-      "id": "checkout_mode",
-      "label": "Self Checkout Mode",
-      "default": true,
-      "info": "Show Self Checkout Mode "
+      "info": "Show Staff selection on Cart"
     },
     {
       "type": "checkbox",
-      "id": "continue_as_guest",
-      "label": "Guest Checkout",
+      "id": "enable_customer",
+      "label": "Customer",
       "default": true,
-      "info": "Allows Guest checkout "
+      "info": "Placing on behalf of customer"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_guest",
+      "label": "Enable Guest Checkout",
+      "default": true,
+      "info": "Enable Continue as Guest"
     }
-]
+  ]
 }
-</settings>
 
-<!-- #endregion -->
+</settings>
 <script>
 import button from "./../../global/components/common/button";
 import cartitem from "./../../global/components/cart/cart-item.vue";
-import loader from "../components/loader";
-import emptystate from "../components/empty-state";
 import vSelect from "vue-select";
 import { copyToClipboard } from "./../../helper/utils";
 import toast from "./../../global/components/toast.vue";
-import share from "./../../global/components/common/share";
+import share from "./../../global/components/share.vue";
+import "vue-select/dist/vue-select.css";
+import coupons from "./../../global/components/cart/coupons.vue";
+import cartComment from "./../../global/components/cart/comment.vue";
+import breakup from "./../../global/components/cart/breakup.vue";
+import gstChip from "./../../global/components/cart/gst-chip.vue";
+import employeeChip from "./../../global/components/cart/employee-card.vue";
 import rewardPointsChip from "./../../global/components/cart/reward-points.vue";
 import checkoutMode from "./../../global/components/cart/checkout-mode.vue";
-import "vue-select/dist/vue-select.css";
+
 const GST_NUMBER_LENGTH = 15;
 
 export default {
   name: "cart",
-  props: ["context", "apiSDK"],
+  props: ["context"],
   components: {
     "cart-item": cartitem,
-    "namaste-button": button,
-    "namaste-loader": loader,
-    share: share,
+    "white-splash-button": button,
+    "rd-share": share,
+    "gst-chip": gstChip,
+    "employee-chip": employeeChip,
     "reward-points": rewardPointsChip,
-    "empty-state": emptystate,
     "checkout-mode": checkoutMode,
+    coupons: coupons,
+    comment: cartComment,
+    breakup,
     vSelect,
     toast,
   },
@@ -372,23 +286,41 @@ export default {
       },
       comment: {
         value: "",
-        label: "Enter comment",
+        label: "Add any comments",
       },
     };
   },
   computed: {
-    pageConfig() {
-      return this.page_config.props;
+    getGstError() {
+      return this.gstin.showerror;
     },
-    isGST() {
-      const { feature } = this.context.app_features;
-      if (feature) {
-        return feature && feature.cart && feature.cart.gst_input;
+    getEmployeeList() {
+      return this.context.employee_list.map((e) => {
+        e.full_name = `${e.first_name} ${e.last_name} ${
+          e.employee_code ? `(${e.employee_code})` : ""
+        }`;
+        return e;
+      });
+    },
+    getSelectEmployeeValue() {
+      if (this.context.selected_employee.first_name) {
+        return {
+          ...this.context.selected_employee,
+          full_name: `${this.context.selected_employee.first_name} ${this.context.selected_employee.last_name}`,
+        };
       }
-      return false;
+    },
+    selectedStaffName() {
+      if (
+        this.context.selected_employee &&
+        this.context.selected_employee.first_name
+      ) {
+        return `${this.context.selected_employee.first_name} ${this.context.selected_employee.last_name}`;
+      }
+      return "";
     },
     isRewardPoints() {
-      const { feature } = this.context.app_features;
+      const { feature } = this.context?.app_features;
       if (feature) {
         return (
           feature &&
@@ -398,6 +330,7 @@ export default {
           feature.common.reward_points.debit.enabled
         );
       }
+      return false;
     },
     isAnonymous() {
       const { feature } = this.context.app_features;
@@ -422,7 +355,6 @@ export default {
       }
       return false;
     },
-
     isPlacingForCustomers() {
       const { feature } = this.context.app_features;
       if (feature) {
@@ -430,47 +362,56 @@ export default {
       }
       return false;
     },
-    getEmployeeList() {
-      return this.context.employee_list.map((e) => {
-        e.full_name = `${e.first_name} ${e.last_name} ${
-          e.employee_code ? `(${e.employee_code})` : ""
-        }`;
-        return e;
-      });
-    },
-    getSelectEmployeeValue() {
-      if (this.context?.selected_employee?.employeeData?.first_name) {
-        return {
-          ...this.context.selected_employee.employeeData,
-          full_name: `${this.context.selected_employee.employeeData.first_name} ${this.context.selected_employee.employeeData.last_name}`,
-        };
+    isGST() {
+      const { feature } = this.context.app_features;
+      if (feature) {
+        return feature && feature.cart && feature.cart.gst_input;
       }
+      return false;
     },
   },
-  watch: {
-    context: function(newvalue) {
-      this.comment.value = newvalue.bag_data.comment;
-      this.gstin.value = newvalue.bag_data.gstin || "";
-      if (this.gstin.value) {
-        this.gstin.applied = true;
-      }
-    },
+  mounted() {
+    if (this.context.bag_data.comment.length > 0) {
+      this.comment.value = this.context.bag_data.comment;
+    }
   },
   methods: {
-    updateCart(params) {
+    removeCart(params) {
       this.isLoading = true;
-      if (params.operation === "inc") params.item.quantity++;
-      else if (params.operation === "dec") {
-        if (params.item.article.quantity < params.item.quantity) {
-          params.item.quantity = params.item.article.quantity;
-        } else {
-          params.item.quantity--;
-        }
-      }
+      let item = this.context.bag_data.items[params.item.item_index];
       params
-        .func([params.item])
+        .func([item])
         .then(({ data }) => {
           this.isLoading = false;
+          //   this.validateCart();
+        })
+        .catch((err) => {
+          console.log(err);
+          this.isLoading = false;
+        });
+    },
+    updateCart(params) {
+      this.isLoading = true;
+      let item = this.context.bag_data.items[params.item.item_index];
+      if (params.operation === "inc") item.quantity++;
+      else if (params.operation === "dec") {
+        if (params.item.article.quantity < params.item.quantity) {
+          item.quantity = params.item.article.quantity;
+        } else {
+          item.quantity--;
+        }
+      } else if (params.operation === "size")
+        item.article.size = params.item.item_size;
+      else if (params.operation === "qty") item.quantity = params.item.quantity;
+
+      if (item.quantity <= 0) {
+        item.quantity = 0;
+      }
+      params
+        .func([item])
+        .then(({ data }) => {
+          this.isLoading = false;
+          //   this.validateCart();
         })
         .catch((err) => {
           console.log(err);
@@ -478,16 +419,11 @@ export default {
         });
     },
     checkGSTIN(cart) {
+      this.gstin.applied = false;
       if (this.gstin.value.length === GST_NUMBER_LENGTH) {
         this.applyGST(cart);
-      } else if (
-        this.gstin.applied &&
-        this.gstin.value.length !== GST_NUMBER_LENGTH
-      ) {
-        this.removeGST(cart);
       } else if (this.gstin.value.length >= GST_NUMBER_LENGTH) {
         this.gstin.showerror = true;
-        this.gstin.applied = false;
       } else {
         this.gstin.showerror = false;
       }
@@ -503,6 +439,7 @@ export default {
         .then((res) => {
           if (res.is_valid) {
             this.gstin.applied = true;
+            this.gstin.showerror = false;
             this.isLoading = false;
 
             return;
@@ -517,26 +454,21 @@ export default {
     },
     removeGST(cart) {
       this.isLoading = true;
-      let body = { gstin: "" };
+      let body = {
+        gstin: "",
+      };
       cart
         .updateCartMeta(body, this.context.bag_data.id)
         .then((res) => {
           this.gstin.applied = false;
-          //this.gstin.value = "";
+          this.gstin.value = "";
+          this.gstin.showerror = false;
           this.isLoading = false;
-
           return;
         })
         .catch((err) => {
           this.isLoading = false;
         });
-    },
-    updateEmployee(item, employee) {
-      if (item) {
-        employee.saveEmployee(item);
-      } else {
-        employee.removeEmployee();
-      }
     },
     updateCoupons(cart) {
       if (this.context.bag_data.breakup_values.coupon.is_applied) {
@@ -554,9 +486,6 @@ export default {
           });
         return;
       }
-      this.$router.push(
-        `/cart/available-coupons?id=${this.context.bag_data.id}`
-      );
     },
     routeToCheckout(cart) {
       if (this.comment.value.length > 0) {
@@ -579,7 +508,8 @@ export default {
         share.generateQRCode(res).then((data) => {
           this.qr_code = `
                 <div style="width: 250px;">
-                  ${data.svg}
+                ${data.svg}
+
                 </div>
                 `;
           this.share_link = res;
@@ -590,11 +520,78 @@ export default {
     hideShare() {
       this.showShare = false;
     },
+    getPiecesTxt() {
+      let count = 0;
+      let context = this.context;
+      if (context.bag_data && context.bag_data.items) {
+        for (let i = 0; i < context.bag_data.items.length; i++) {
+          count += context.bag_data.items[i].quantity;
+        }
+      }
+      let piecesStr = "";
+      if (count > 1) {
+        piecesStr = `${count} Pieces`;
+      } else {
+        piecesStr = `${count} Piece`;
+      }
+      return piecesStr;
+    },
+    getCoupanData() {
+      let couponBreakup = this.context.bag_data.breakup_values.coupon;
+      let couponAttrs = {
+        iconClass: "coupon",
+        title: "Offers & Coupons",
+        link: "/cart/available-coupons?id=" + this.context.bag_data.id,
+      };
+      if (couponBreakup && couponBreakup.code && couponBreakup.is_applied) {
+        couponAttrs.hasCancel = true;
+        couponAttrs.subtitle = `Applied: ${couponBreakup.code}`;
+      } else {
+        couponAttrs.subtitle = "View all offers";
+      }
+      return couponAttrs;
+    },
   },
+  watch: {
+    context: function (newvalue) {
+      this.context = newvalue;
+      this.comment.value = newvalue.bag_data.comment;
+      this.gstin.value = newvalue.bag_data.gstin;
+      if (newvalue.bag_data.gstin) {
+        this.gstin.applied = true;
+      } else {
+        this.gstin.applied = false;
+      }
+    },
+  },
+  //end of methods
 };
 </script>
 
 <style lang="less" scoped>
+.disable-btn {
+  pointer-events: none;
+  color: #898a93 !important;
+}
+@disabled-background-color: #808080;
+.cart-empty {
+  width: 100%;
+}
+.cart-page-cont {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1px 0 0 0;
+  .loader-emerge {
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    background-color: rgba(255, 255, 255, 0.4);
+  }
+}
 .cart-message {
   width: 100%;
   padding: 11px 20px;
@@ -615,33 +612,32 @@ export default {
     border-radius: 0;
   }
 }
-.guest-checkout {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 5px;
-  color: @ds-black;
-  cursor: pointer;
-}
-.guest-disable {
-  pointer-events: none;
-  color: #898a93 !important;
-}
 .cart {
   position: relative;
   width: 100%;
   display: flex;
   margin-bottom: 20px;
-  margin-top: 50px;
+  margin-top: 20px;
   box-sizing: border-box;
+  background-color: @White;
+  padding: 20px;
+  flex-wrap: wrap;
   @media @mobile {
     padding: 0;
     margin: 0;
     flex-direction: column;
     justify-content: flex-start;
   }
+  .cart-heading {
+    flex: 0 0 100%;
+    border-bottom: 1px solid @LightGray;
+  }
   .share_popup {
-    z-index: 2;
+    &.topLayer {
+      @media @mobile {
+        z-index: 10;
+      }
+    }
     .cart-share {
       position: absolute;
       right: 10px;
@@ -656,24 +652,20 @@ export default {
     }
   }
 
-  .share_modal {
-    @media @mobile {
-      z-index: 10;
-    }
-  }
-
   .left {
-    width: 55%;
-    margin-right: 5%;
-
+    width: 64%;
+    border-right: 1px solid @LightGray;
+    // border-radius:8px;
+    // margin-right:2%;
     @media @mobile {
-      width: calc(100% - 40px);
-      padding: 20px;
+      width: 100%;
+      padding: 0px;
       margin-right: 0;
+      border-right: 0;
     }
   }
   &__title {
-    padding: 20px 0;
+    /*padding: 20px 0;*/
     font-size: 20px;
     text-transform: uppercase;
     font-weight: bold;
@@ -693,6 +685,7 @@ export default {
       font-weight: 500;
       text-transform: none;
       margin-left: 10px;
+      color: @DustyGray;
       @media @mobile {
         margin-left: 0;
         margin-top: 5px;
@@ -700,28 +693,21 @@ export default {
     }
   }
   &__items {
-    padding: 10px;
-
+    padding: 0px;
     border-radius: 4px;
     @media @mobile {
       padding: 10px;
-    }
-    .items-title {
-      font-weight: bold;
-      text-transform: uppercase;
-      margin: 10px 0;
-      @media @mobile {
-        margin: 10px 0;
-      }
     }
   }
   .heading {
     font-weight: bold;
   }
   .right {
-    width: 40%;
+    width: 34%;
+    background-color: #ffffff;
+    border-radius: 8px;
     @media @mobile {
-      padding: 20px;
+      padding: 0px;
       box-sizing: border-box;
       width: 100%;
     }
@@ -731,7 +717,6 @@ export default {
       // border: 1px solid #ccc;
       box-sizing: border-box;
       margin-bottom: 10px;
-      border: 1px solid #f6f6f6;
       &__icon {
         display: table-cell;
         vertical-align: middle;
@@ -751,47 +736,14 @@ export default {
         }
       }
     }
-    .gst {
-      .gst-input {
-        width: 100%;
-        padding: 10px 40px 5px 0;
-        box-sizing: border-box;
-        border: none;
-        border-bottom: 1px solid #ccc;
-        font-size: 12px;
-        background: transparent;
-      }
-      .gst-applied {
-        margin-top: 10px;
-        color: green;
-        font-size: 12px;
-      }
-      .gst-error {
-        margin-top: 10px;
-        font-size: 12px;
-        color: red;
-      }
-      .remove-gst {
-        cursor: pointer;
-        position: absolute;
-        top: 37px;
-        right: 15px;
-      }
-    }
+
     .employee {
       border-top: none;
-    }
-    .rewards {
-      display: table;
-      width: 100%;
-      @media @mobile {
-        width: calc(100% - 20px);
-      }
     }
     .coupons {
       border-top: none;
       cursor: pointer;
-
+      border: 1px solid #f6f6f6;
       border-radius: 4px;
       .heading {
         padding-left: 0;
@@ -831,6 +783,28 @@ export default {
       margin: 0px 10px;
     }
   }
+  .guest-chkout {
+    text-align: center;
+    padding: 15px 0 0 0;
+    &.disable {
+      display: none;
+    }
+  }
+}
+
+.agree-terms {
+  font-size: 9px;
+  line-height: 15px;
+  text-align: center;
+  padding-bottom: 7px;
+  .link {
+    color: #e8a76c;
+    cursor: pointer;
+  }
+}
+
+/deep/.disabled-ws {
+  background-color: @disabled-background-color !important;
 }
 /deep/.vs__dropdown-toggle {
   border: none;

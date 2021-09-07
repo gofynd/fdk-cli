@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="45px" height="45px" viewBox="0 0 45 45" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Group</title>
+    <g id="sikha-mehta" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="desktop-sections-copy-6" transform="translate(-80.000000, -2617.000000)">
+            <g id="Group" transform="translate(80.000000, 2617.000000)">
+                <circle id="Oval" fill="#FFFFFF" cx="22.5" cy="22.5" r="22.5"></circle>
+                <g id="arrow-down-sign-to-navigate-copy" transform="translate(21.500000, 23.000000) scale(-1, 1) rotate(-90.000000) translate(-21.500000, -23.000000) translate(13.500000, 18.500000)" fill="#1B1B1B" fill-rule="nonzero">
+                    <path d="M7.79612412,8.88806927 C7.51667837,8.88806927 7.23726712,8.78137054 7.02421475,8.5684217 L0.319863243,1.86400117 C-0.106621081,1.43751685 -0.106621081,0.746045621 0.319863243,0.319733838 C0.746175026,-0.106577946 1.43750822,-0.106577946 1.86402705,0.319733838 L7.79612412,6.25217599 L13.7282557,0.319940886 C14.15474,-0.106370898 14.8460042,-0.106370898 15.2722815,0.319940886 C15.6989728,0.746252669 15.6989728,1.43772389 15.2722815,1.86420822 L8.56803348,8.56862875 C8.35487759,8.7816121 8.07546635,8.88806927 7.79612412,8.88806927 Z" id="Path"></path>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

@@ -4,27 +4,43 @@
     <transition name="slide">
       <div class="update-compare-modal">
         <div class="modal-title">
-          
           <div class="cross-btn" v-on:click="hideModal">
             <img src="./../../assets/images/close-icon.png" />
           </div>
           <div class="warning">
-             <img src="./../../assets/images/compare-warning.png" />
+            <img src="./../../assets/images/compare-warning.png" />
           </div>
-          <div class="bold-md primary-text">{{compare_msg.title}}</div>
+          <div class="bold-md primary-text">{{ compare_msg.title }}</div>
           <!-- <div class="regular-md secondary-text">You can compare upto 3 products at a time</div> -->
         </div>
         <div class="modal-content">
           <fdk-compare-action>
             <template slot-scope="compareAction">
               <div class="button-container">
-                <jm-button
-                  :backgroundcolortype="'secondary'"
-                  :bordertype="'secondary'"
-                  class="button"
-                  @click="reset(compareAction.addCompare,compareAction.removeCompare)"
-                >Reset</jm-button>
-                <jm-button class="button" @click="goToCompare">Go to Compare</jm-button>
+                <div>
+                  <jm-button
+                    :backgroundcolortype="'tertiary'"
+                    :bordertype="'tertiary'"
+                    :colortype="'tertiary'"
+                    :btntype="'tertiary'"
+                    :global_config="global_config"
+                    @click="
+                      reset(compareAction.addCompare, compareAction.removeCompare)
+                    "
+                    >Reset
+                  </jm-button>
+                </div>
+                <div>
+                  <jm-button 
+                    :backgroundcolortype="'tertiary'"
+                    :bordertype="'tertiary'"
+                    :colortype="'tertiary'"
+                    :btntype="'tertiary'"
+                    :global_config="global_config"
+                    @click="goToCompare"
+                    >Go to Compare
+                  </jm-button>
+                </div>
               </div>
             </template>
           </fdk-compare-action>
@@ -35,18 +51,19 @@
 </template>
 
 <script>
-import jmbtn from "./../components/common/button.vue";
+import jmbtn from "./../../components/common/button.vue";
 export default {
   name: "compare-action-modal",
   props: {
-    compare_uids: {
-      default: []
+    compare_slugs: {
+      default: [],
     },
     compare_msg: {},
-    product_uid: {}
+    product_uid: {},
+    global_config: {}
   },
   components: {
-    "jm-button": jmbtn
+    "jm-button": jmbtn,
   },
   watch: {},
   data() {
@@ -60,24 +77,24 @@ export default {
     },
     reset(addHandler, removeHandler) {
       //remove all compare products first
-      for (let i = 0; i < this.compare_uids.length; i++) {
-        removeHandler(this.compare_uids[i], false);
+      for (let i = 0; i < this.compare_slugs.length; i++) {
+        removeHandler(this.compare_slugs[i], false);
       }
 
       //add current product uid
       addHandler(this.product_uid)
-        .then(res => {
+        .then((res) => {
           //todo
           this.goToCompare();
         })
-        .catch(err => {
+        .catch((err) => {
           //show error
         });
     },
     goToCompare() {
       this.$router.push({ path: "/compare" });
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -110,51 +127,66 @@ export default {
     z-index: 12;
     .modal-title {
       .primary-text {
-        margin: 20px 0px;
+        // margin: 20px 0px;
         text-align: center;
+        line-height: 27px;
+        padding: 0 70px;
+        @media @mobile {
+          padding: 0 20px;
+        }
       }
-       .cross-btn {
-          cursor: pointer;
-          display: flex;
-          align-self: flex-end;
-          position: absolute;
-          right: 5px;
-          top: 5px;
-          img {
-            width: 12px;
-          }
+      .cross-btn {
+        cursor: pointer;
+        display: flex;
+        align-self: flex-end;
+        position: absolute;
+        right: 20px;
+        top: 20px;
+        img {
+          width: 16px;
         }
-        .warning{
-          img{
-            text-align: center;
-            margin: auto;
-            width: 100%;
-          }
+      }
+      .warning {
+        text-align: center;
+        img {
+          margin: auto;
+          width: 90%;
         }
+      }
     }
 
     .button-container {
-      width: 100%;
+      width: 78%;
       display: flex;
       height: 100px;
-      justify-content: space-evenly;
+      justify-content: space-between;
       align-items: center;
-      position: absolute;
-      bottom: 0px;
-      .button {
-        width: 150px;;
-        border-radius: 4px;
-        opacity: 1;
-        display: flex;
-        font-size: 14px;
-        justify-content: center;
-        align-items: center;
+      bottom: 0;
+      box-sizing: border-box;
+      margin: 0 auto;
+      button {
+        width: 100%;
       }
-      .cancel {
-        color: #383838;
-        border: 1px solid #cecece;
-        margin-right: 10px;
+      &> :first-child { 
+        flex:0 0 40%;
       }
+      &> :nth-child(2) { 
+        flex:0 0 55%;
+      }
+      // .button {
+      //   width: 150px;
+      //   border-radius: 4px;
+      //   opacity: 1;
+      //   display: flex;
+      //   font-size: 14px;
+      //   justify-content: center;
+      //   align-items: center;
+      // }
+      // .cancel {
+      //   color: #383838;
+      //   border: 1px solid #cecece;
+      //   margin-right: 10px;
+      // }
     }
   }
 }

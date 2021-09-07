@@ -27,11 +27,12 @@
         <review-media-list
           v-if="hasMedia"
           :media="reviewitem.review.media_meta"
-          @click="showModal = true"
+          @click="showImageModal($event)"
         />
         <review-modal
           v-if="showMore"
           :reviewitem="reviewitem"
+          :activeImageIndex="activeImageIndex"
           :isOpen="showModal"
           @closereviewdialog="showModal = false"
         />
@@ -40,19 +41,53 @@
         </span>
       </div>
     </div>
+    <div class="review__footer">
+      <div class="review__footer__info">
+        <div class="review__footer__created">
+          Created by <span>{{ reviewitem.created_by.name }}</span>
+          {{ differenceInDays(reviewitem.date_meta.created_on, new Date()) }}
+          ago
+        </div>
+        <!-- <div class="review__footer__date">
+          
+        </div> -->
+      </div>
+      <fdk-vote-review>
+        <template slot-scope="voteReviewData">
+          <div class="review__footer__vote">
+            <div
+              class="review__footer__upvote"
+              @click="voteReview('upvote', voteReviewData)"
+            >
+              <img src="../../../assets/images/like.png" />
+              {{ reviewitem.vote_count.upvote }}
+            </div>
+            <div
+              class="review__footer__downvote"
+              @click="voteReview('downvote', voteReviewData)"
+            >
+              <img class="reverse" src="../../../assets/images/like.png" />
+              {{ reviewitem.vote_count.downvote }}
+            </div>
+          </div>
+        </template>
+      </fdk-vote-review>
+    </div>
   </div>
 </template>
 
 <script>
-import ratingstar from './rating-star';
-import reviewmodal from './review-modal';
-import reviewmedialist from './review-media-list';
+import ratingstar from "./rating-star";
+import reviewmodal from "./review-modal";
+import reviewmedialist from "./review-media-list";
+import { differenceInDays } from "../../../helper/utils";
+
 export default {
-  name: 'review-item',
+  name: "review-item",
   components: {
-    'rating-star': ratingstar,
-    'review-modal': reviewmodal,
-    'review-media-list': reviewmedialist,
+    "rating-star": ratingstar,
+    "review-modal": reviewmodal,
+    "review-media-list": reviewmedialist,
   },
   props: {
     reviewitem: {
@@ -69,6 +104,7 @@ export default {
       trimLength: 60,
       showMore: false,
       showModal: false,
+      activeImageIndex: 0,
     };
   },
   mounted() {
@@ -91,6 +127,36 @@ export default {
       );
     },
   },
+  methods: {
+    differenceInDays,
+    showImageModal(index) {
+      this.activeImageIndex = index || 0;
+      this.showModal = true;
+    },
+    voteReview(type, vote) {
+      const obj = this.getVoteReviewData(type);
+      vote
+        .voteReview(obj)
+        .then((res) => {
+          if (res.success) {
+            type == "upvote"
+              ? this.reviewitem.vote_count.upvote++
+              : this.reviewitem.vote_count.downvote++;
+          }
+        })
+        .catch((err) => {});
+    },
+    getVoteReviewData(type) {
+      const obj = {
+        entity_id: this.reviewitem.entity.id,
+        entity_type: this.reviewitem.entity.type,
+        ref_id: this.reviewitem.id, //review id
+        ref_type: "review",
+        action: type,
+      };
+      return obj;
+    },
+  },
 };
 </script>
 
@@ -107,6 +173,51 @@ export default {
   }
   &__desc {
     margin-top: 10px;
+  }
+  &__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    // color: @Mako;
+    font-size: 14px;
+    margin-bottom: 16px;
+    &__info {
+      // display: flex;
+      line-height: 20px;
+      margin-right: 12px;
+    }
+    &__vote {
+      display: flex;
+      margin-right: 16px;
+      img {
+        height: 18px;
+        width: 18px;
+        margin-right: 12px;
+      }
+    }
+    &__created {
+      span {
+        font-weight: bold;
+      }
+    }
+    // &__date{
+    //   margin-left: 6px;
+    // }
+    &__upvote {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    &__downvote {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      margin-left: 12px;
+      .reverse {
+        -webkit-transform: scaleY(-1);
+        transform: scaleY(-1);
+      }
+    }
   }
 
   .show-less,

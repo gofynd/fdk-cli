@@ -12,11 +12,6 @@ export default {
       text: "Hello",
     };
   },
-  methods: {
-    exampleMethod: function exampleMethod() {
-      alert("Hello");
-    },
-  },
 };
 </script>
 

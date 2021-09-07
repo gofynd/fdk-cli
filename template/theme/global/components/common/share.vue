@@ -11,23 +11,35 @@
       <p style="margin-bottom:10px">OR</p>
       <div class="icons">
         <div class="facebook" @click="copyToClipboard">
-          <img src="../../../assets/images/copy-to-clip.svg" title="copy" alt="" />
+          <img
+            src="https://hdn-1.fynd.com/company/884/applications/000000000000000000000001/theme/pictures/free/original/theme-image-1627555123353.svg"
+            title="copy"
+            alt=""
+          />
         </div>
 
         <div class="facebook" @click="shareOnFacebook">
-          <img src="../../../assets/images/fb.svg" title="facebook" alt="" />
+          <img
+            src="https://hdn-1.fynd.com/company/884/applications/000000000000000000000001/theme/pictures/free/original/theme-image-1627555203705.svg"
+            title="facebook"
+            alt=""
+          />
         </div>
         <div class="twitter" @click="shareOnTwitter">
-          <img src="../../../assets/images/twitter.svg" title="twitter" alt="" />
+          <img
+            src="https://hdn-1.fynd.com/company/884/applications/000000000000000000000001/theme/pictures/free/original/733579.svg"
+            title="twitter"
+            alt=""
+          />
         </div>
       </div>
     </template>
     <div v-else>
       <div class="loader-center" v-if="shareLoading">
-        <img src="../../../assets/images/loader.gif" alt="" />
+        <img src="./../../../assets/images/loader.gif" alt="" />
       </div>
     </div>
-    <toast :id="'toast-message'" :content="toast_message"></toast>
+    <toast :style="`z-index:10;top:30%`" :id="'toast-message'" :content="toast_message"></toast>
   </div>
 </template>
 
@@ -139,7 +151,7 @@ export default {
   .close {
     display: none;
     position: absolute;
-    background-image: url(../../../assets/images/sprite-icons.svg);
+    background-image: url("./../../../assets/images/close-icon.png");
     background-position: -957px 0;
     background-repeat: no-repeat;
     cursor: pointer;

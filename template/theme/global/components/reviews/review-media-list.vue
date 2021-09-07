@@ -3,7 +3,7 @@
     <div
       v-for="(item, index) in media.slice(0, max_limit)"
       :key="index + '-media'"
-      @click="click(item)"
+      @click="click(index)"
     >
       <img
         :src="item.url.main"
@@ -25,7 +25,11 @@
     </div>
 
     <!-- view more -->
-    <div v-if="media.length > max_limit" class="overlay" @click="click">
+    <div
+      v-if="media.length > max_limit"
+      class="overlay"
+      @click="click(max_limit)"
+    >
       <p class="more">MORE</p>
       <img
         :src="media[max_limit + 1].url.main"
@@ -53,7 +57,7 @@
 
 <script>
 export default {
-  name: 'review-media-list',
+  name: "review-media-list",
   props: {
     media: {
       type: Array,
@@ -66,17 +70,17 @@ export default {
   },
   methods: {
     getEmbedURL(url) {
-      if (url.indexOf('youtu.be')) {
-        return url.replace('youtu.be', 'youtube.com/embed');
-      } else if (url.indexOf('youtube.com/watch')) {
-        return url.replace('youtube.com/watch', 'youtube.com/embed');
+      if (url.indexOf("youtu.be")) {
+        return url.replace("youtu.be", "youtube.com/embed");
+      } else if (url.indexOf("youtube.com/watch")) {
+        return url.replace("youtube.com/watch", "youtube.com/embed");
       }
     },
     isYoutube(url) {
-      return url.indexOf('youtu.be') || url.indexOf('youtube.com/watch');
+      return url.indexOf("youtu.be") || url.indexOf("youtube.com/watch");
     },
-    click(item) {
-      this.$emit('click', item);
+    click(index) {
+      this.$emit("click", index);
     },
   },
 };
@@ -87,15 +91,22 @@ export default {
   &__media {
     display: flex;
     flex-wrap: wrap;
+    margin-top: 12px;
+
     div:not(:last-child) {
       margin-right: 10px;
     }
     div {
       margin-bottom: 10px;
       width: 50px;
+      cursor: pointer;
     }
     &--image {
-      width: 100%;
+      // width: 100%;
+      min-width: 50px;
+      min-height: 80px;
+      max-width: 50px;
+      max-height: 80px;
     }
   }
 }
@@ -106,7 +117,7 @@ export default {
   cursor: pointer;
   &:before {
     background: #000;
-    content: '';
+    content: "";
     width: 100%;
     height: 100%;
     position: absolute;

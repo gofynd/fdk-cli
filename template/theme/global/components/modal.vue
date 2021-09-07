@@ -7,11 +7,11 @@
       @keydown.esc="closeDialog"
       v-bind:class="modalClass"
     >
-      <div class="modal-container" v-click-outside="outsideClick">
-        <div class="modal-header" v-if="showHeader">
-          <div class="modal-title">{{ title }}</div>
+      <div class="modal-container" v-click-outside="closeDialog">
+        <div class="modal-header">
+          <div class="modal-title bold-sm">{{ title }}</div>
           <div class="cross" @click="closeDialog" v-if="isCancelable">
-            <img src="./../../assets/images/close.svg" alt="Close" />
+            <fdk-inline-svg :src="'cross-black'"></fdk-inline-svg>
           </div>
         </div>
         <div class="modal-body">
@@ -25,18 +25,17 @@
 <style lang="less" scoped>
 .modal {
   position: fixed;
+  top: 0;
   bottom: 0;
   left: 0;
   right: 0;
-  top: 0;
   z-index: @dialog;
   overflow-y: auto;
   overflow-x: hidden;
   background-color: rgba(82, 78, 78, 0.52);
   transition: opacity 0.25s ease;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+
+  .flex-center();
   @media @mobile {
     background-color: @White;
     height: 100%;
@@ -47,52 +46,24 @@
     background-color: @White;
     min-width: 300px;
     border: 1px solid @White;
-    border-radius: @BorderRadius;
+    border-radius: @border-radius;
     min-height: 100px;
     max-width: 720px;
-    position: relative;
+    max-height: 720px;
     overflow: auto;
-
-    &::-webkit-scrollbar {
-      width: 5px;
-      height: 5px;
-      background-color: #ffffff;
-    }
-    /* Track */
-    &::-webkit-scrollbar-track {
-      box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.4);
-      background-color: #ffffff;
-    }
-    /* Handle */
-    &::-webkit-scrollbar-thumb {
-      border-radius: 2.5px;
-      background-color: #6b6b6b;
-    }
-
     .modal-header {
       padding: 10px 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      @media @mobile {
-        padding: 30px 0 10px 0;
-      }
-    }
-    .modal-body {
-      margin-top: 20px;
+      .flex-center();
     }
     .cross {
-      cursor: pointer;
-      img {
-        width: 17px;
+      span {
+        cursor: pointer;
       }
     }
     .modal-title {
       margin: auto;
       text-align: center;
       color: @Mako;
-      font-size: 20px;
-      font-weight: bold;
     }
   }
 }
@@ -115,6 +86,7 @@
 </style>
 
 <script>
+
 export default {
   name: "modal",
   props: {
@@ -138,14 +110,6 @@ export default {
       type: Boolean,
       default: false,
     },
-    showHeader: {
-      type: Boolean,
-      default: true,
-    },
-    enableOutsideClick: {
-      type: Boolean,
-      default: true,
-    },
   },
   updated() {
     if (this.isOpen && !this.childHandleFocus) {
@@ -160,12 +124,8 @@ export default {
         this.$emit("closedialog");
       }
     },
-    outsideClick() {
-      if (this.enableOutsideClick) {
-        this.closeDialog();
-      }
-    },
   },
+  components: {},
   mounted() {
     this.$root.$el.append(this.$el);
   },

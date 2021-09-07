@@ -1,5 +1,7 @@
 <template>
-  <div>
+  <div
+    :style="global_config ? 'color:' + global_config.props.text_body_color : ''"
+  >
     <fdk-add-review :product_type="product_type" :product_uid="product_uid">
       <template slot-scope="addReview">
         <div
@@ -24,7 +26,7 @@
                 <div class="product-detail">
                   <!-- <div class="product-name">
                     {{ context.product_data.name }}
-                  </div>-->
+                  </div> -->
                   <div
                     v-if="context.product_data.rating"
                     class="product-rating"
@@ -45,7 +47,7 @@
               </div>
             </fdk-link>
           </div>
-          <div class="add-review__body" v-if="!addReview.isEligible">
+          <div class="add-review__body" v-if="!addReview.is_eligible">
             <div class="add-review__body__rating">
               <div class="add-review__body__rating__text">
                 Rate this product
@@ -88,12 +90,13 @@
                 class="submit-button"
                 @click="submitReview(addReview)"
                 :type="'secondary'"
-                >Submit</namaste-button
               >
+                Submit
+              </namaste-button>
             </div>
           </div>
           <div class="not-eligible" v-else>
-            <empty-state :title="'Sorry! You cannot review this product'" />
+            <fdk-empty-state :title="'Sorry! You cannot review this product'" />
           </div>
           <toast :id="'toast-message'" :content="toast_message"></toast>
         </div>
@@ -104,12 +107,10 @@
 
 <script>
 import button from "./../../global/components/common/button";
-import placeholderImage from "../../assets/images/placeholder.png";
+import placeholderImage from "../../assets/images/placeholder-w312.png";
 import ratingstar from "./../../global/components/reviews/rating-star";
-import emptystate from "./../components/empty-state";
 import StarRating from "vue-star-rating";
 import toast from "./../../global/components/toast.vue";
-import { isBrowser } from "browser-or-node";
 
 export default {
   name: "add-product-review",
@@ -117,7 +118,6 @@ export default {
   components: {
     "namaste-button": button,
     "rating-star": ratingstar,
-    "empty-state": emptystate,
     toast,
     StarRating,
   },
@@ -138,26 +138,22 @@ export default {
       let imageURL =
         this.context &&
         this.context.product_data &&
-        this.context.product_data.images
-          ? this.context.product_data.images[0].url
+        this.context.product_data.medias
+          ? this.context.product_data.medias[0].url
           : "";
-      if (isBrowser) {
-        if (this.imageFullyLoaded) {
-          return imageURL;
-        }
-        if (imageURL && !this.imageLoading) {
-          let img = new Image();
-          img.src = imageURL;
-          img.onload = this.imageLoaded.bind(this);
-          this.imageLoading = true;
-        }
-        return placeholderImage;
-      } else {
+      if (this.imageFullyLoaded) {
         return imageURL;
       }
+      if (imageURL && !this.imageLoading) {
+        let img = new Image();
+        img.src = imageURL;
+        img.onload = this.imageLoaded.bind(this);
+        this.imageLoading = true;
+      }
+      return placeholderImage;
     },
   },
-  mounted() {},
+  
   methods: {
     imageLoaded(event) {
       this.imageFullyLoaded = true;
@@ -243,6 +239,7 @@ export default {
 
 <style lang="less" scoped>
 .add-review {
+  margin-top: 20px;
   &__header {
     display: flex;
     justify-content: space-between;
@@ -261,7 +258,7 @@ export default {
       text-overflow: ellipsis;
     }
     &__product {
-      color: @Mako;
+      // color: @Mako;
       display: flex;
       align-items: center;
       cursor: pointer;
@@ -342,7 +339,7 @@ export default {
     }
   }
   .show-error {
-    color: #ff0011;
+    color: @rd-red;
     font-size: 12px;
     margin-top: 4px;
   }

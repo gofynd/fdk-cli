@@ -14,7 +14,7 @@
 
 <script>
 export default {
-  name: 'rating-star',
+  name: "rating-star",
   props: {
     stars: {
       type: Number,
@@ -22,13 +22,13 @@ export default {
     },
     size: {
       type: String,
-      default: 'large',
+      default: "large",
     },
   },
   data() {
     return {
       STAR_IMG:
-        'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMiI+PHBhdGggZmlsbD0iI0ZGRiIgZD0iTTYuNSA5LjQzOWwtMy42NzQgMi4yMy45NC00LjI2LTMuMjEtMi44ODMgNC4yNTQtLjQwNEw2LjUuMTEybDEuNjkgNC4wMSA0LjI1NC40MDQtMy4yMSAyLjg4Mi45NCA0LjI2eiIvPjwvc3ZnPg==',
+        "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMiI+PHBhdGggZmlsbD0iI0ZGRiIgZD0iTTYuNSA5LjQzOWwtMy42NzQgMi4yMy45NC00LjI2LTMuMjEtMi44ODMgNC4yNTQtLjQwNEw2LjUuMTEybDEuNjkgNC4wMSA0LjI1NC40MDQtMy4yMSAyLjg4Mi45NCA0LjI2eiIvPjwvc3ZnPg==",
     };
   },
 };
@@ -52,16 +52,35 @@ export default {
 }
 .large {
   padding: 8px 10px 8px 10px;
+  width: 50px;
+  height: unset;
 }
 .small {
-  width: 35px;
   padding: 0;
   font-size: 12px;
   display: inline-flex;
   border-radius: 10px;
-  padding: 5px;
+  padding: 2px 7px;
   align-items: center;
   justify-content: center;
+  width: 30px;
+  height: 24px;
+  img {
+    margin: 0;
+    margin-left: 1px;
+    height: 10px;
+  }
+}
+.medium {
+  padding: 0;
+  font-size: 12px;
+  display: inline-flex;
+  border-radius: 10px;
+  padding: 2px 7px;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 34px;
   img {
     margin: 0;
     margin-left: 1px;

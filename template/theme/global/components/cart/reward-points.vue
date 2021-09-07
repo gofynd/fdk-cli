@@ -1,8 +1,8 @@
 <template>
     <div class="list" @click="clickIcon">
-        <!-- <div class="icons">
+        <div class="icons">
             <img src="../../../assets/images/kycdetails.svg" />
-        </div> -->
+        </div>
         <div class="offer">
             <div class="desc bold-sm">{{ getTitle }}</div>
             <div class="sub-desc regular-xxxs">{{ getSubtitle }}</div>
@@ -18,19 +18,17 @@
 .list {
     display: flex;
     cursor: pointer;
-    padding: 5px 0px;
-    border-bottom: 1px solid #eeeeee;
+    padding: 5px 10px;
+    border-bottom: 1px solid @LightGray;
     .icons {
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        .flex-center();
         padding: 10px;
     }
     .offer {
         display: block;
         width: 100%;
-        color:#000000;
-        padding: 10px 5px;
+        color: @Mako;
+        padding: 10px;
         .desc {
             text-transform: uppercase;
         }
@@ -38,11 +36,11 @@
             margin-top: 5px;
         }
         .couponapplied {
-            color: #20ce81;
+            color: @Profit;
         }
     }
     &:hover {
-        background-color: #eeeeee;
+        background-color: @LightGray;
     }
 }
 </style>
@@ -68,6 +66,7 @@ export default {
                 return this.rewards_data.subtitle;
             }
             return `Apply ${this.rewards_data.applicable} points of ${this.rewards_data.total} points`;
+            return 'asdfsdfas';
         }
     },
     methods: {
