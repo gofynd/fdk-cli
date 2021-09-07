@@ -1,28 +1,57 @@
 <template>
-  <div class="container">
+  <div class="empty-container">
     <div class="empty-state">
-      <img src="./../../assets/images/no-result.svg" />
+      <img src="./../../assets/images/empty-state.png" />
       <div class="no-items">
-        <p class="title">{{ title }}</p>
+        <p class="title">{{ getTitle }}</p>
         <p class="subtitle" v-if="subtitle">{{ subtitle }}</p>
       </div>
-      <fdk-link link="/">
-        <namaste-button class="back-btn">
-          <span style="margin-right:10px"> &#8592; </span>
-          <span>Go to home</span>
-        </namaste-button>
+      <fdk-link :link="getButtonLink">
+        <button class="back-btn" :type="'secondary'">
+          <span>{{ getButtonText }}</span>
+        </button>
       </fdk-link>
     </div>
   </div>
 </template>
 
 <script>
-import button from "../../global/components/common/button";
+import button from "./../../templates/components/button";
 export default {
   components: {
-    "namaste-button": button,
+    button: button,
   },
-  props: ["title", "subtitle"],
+  props: ["title", "subtitle", "button", "context"],
+  computed: {
+    getTitle() {
+      if (this.context) {
+        const { title } = this.context;
+        if (title) {
+          return title;
+        }
+      }
+      return this.title || "";
+    },
+
+    getButtonLink() {
+      if (this.context) {
+        const { button } = this.context;
+        if (button && button.link) {
+          return button.link;
+        }
+      }
+      return "/";
+    },
+    getButtonText() {
+      if (this.context) {
+        const { button } = this.context;
+        if (button && button.text) {
+          return button.text;
+        }
+      }
+      return "Go to Home";
+    },
+  },
   data: function data() {
     return {
       text: "Empty",
@@ -32,31 +61,38 @@ export default {
 </script>
 
 <style lang="less" scoped>
-.container {
+a {
+  display: flex;
+  justify-content: center;
+}
+.empty-container {
   margin: 0 auto;
   height: 500px;
-  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   @media @mobile {
     width: 100%;
   }
   .empty-state {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     text-align: center;
-    display: flex;
-    flex-direction: column;
+    img {
+      width: 60%;
+    }
     .title {
       font-size: 20px;
-      margin: 10px;
-      color: #41434c;
+      margin: 15px 10px;
+      color: #000;
       font-weight: 700;
-      font-family: roboto condensed;
     }
     .back-btn {
       margin-top: 10px;
-      width: 100%;
+      height: 40px;
+      width: 250px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
     }
   }
 }

@@ -1,15 +1,16 @@
 <template>
   <div>
-    <review-modal
+    <!-- <review-modal
       v-if="viewFullMedia"
       :reviewitem="reviewitem"
       :isOpen="viewFullMedia"
       @closereviewdialog="viewFullMedia = false"
       :enableOutsideClick="false"
-    />
+    /> -->
     <modal :isOpen="isOpen" @closedialog="closeDialog" title="User Images">
       <div class="review-modal-body">
-        <review-media-list
+        <review-more-media-list
+          :activeImageIndex="activeImageIndex"
           :media="media"
           :max_limit="media.length"
           @click="showReviewModal"
@@ -21,13 +22,13 @@
 
 <script>
 import modal from '../modal';
-import reviewmedialist from './review-media-list';
+import reviewmoremedialist from './review-more-media-list.vue';
 import reviewmodal from './review-modal';
 
 export default {
   name: 'review-image-modal',
   components: {
-    'review-media-list': reviewmedialist,
+    'review-more-media-list': reviewmoremedialist,
     'review-modal': reviewmodal,
     modal,
   },
@@ -40,6 +41,10 @@ export default {
       type: Object,
       default: {},
     },
+    activeImageIndex:{
+      type: Number,
+      default: 0
+    }
   },
   data() {
     return {
@@ -53,8 +58,8 @@ export default {
     closeDialog() {
       this.$emit('closedialog');
     },
-    showReviewModal(item) {
-      this.reviewitem = item._review;
+    showReviewModal(index) {
+      this.reviewitem = this.media[index]._review;
       this.viewFullMedia = true;
     },
   },
@@ -64,6 +69,7 @@ export default {
 <style lang="less" scoped>
 .review-modal-body {
   min-height: 500px;
+  max-width: 500px;
 }
 /deep/.review__media {
   div {

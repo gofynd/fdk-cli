@@ -39,7 +39,7 @@ module.exports = {
     border-radius: 4px;
     padding: 15px;
     position: fixed;
-    z-index: 5;
+    z-index: 10;
     left: 50%;
     transform: translateX(-50%);
     top: 15%;

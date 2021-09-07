@@ -1,32 +1,76 @@
-@layer: 1;
-@BorderRadius: 3px;
-@Iron: #e4e5e6;
-@Mako: #41434c;
-@Required: #ee485d;
-@DustyGray2: #9b9b9b;
-@FormBorder: #d7d7d7;
-@White: #ffffff;
-@DoveGray: #6b6b6b;
-@Black: #000000;
-@dialog: 16;
-@Alabaster2: #f8f8f8;
-@Pelorous: #33b2c1;
-@LightGray: #eeeeee;
-@Required: #ee485d;
-@White: #ffffff;
+@import "./media.less";
+@import "./theme.less";
 
-@Black:#000000;
-
-@ds-white:var(--secondaryColor);
-@ds-black:var(--primaryColor);;
-@ds-light-border-color: hsla(0, 0%, 100%, 0.1);
-
-@sm-min: 480px;
-@md-min: 768px;
-
-
-@mobile: ~"only screen and (max-width: @{sm-min})";
-@tablet: ~"only screen and (max-width: @{md-min})";
-@large-tablet: ~"only screen and (max-width: 1024px)";
+//COLORS
+@color-black: #000;
+@color-white: #fff;
+@color-gray: #999;
+@color-gray-1: rgb(238, 238, 238);
+@color-gray-2: #8a8f93;
+@primary-color: #e8a76c;
+@color-gold: #9b6501;
+@color-porsche: #e8a76c;
+@rd-red: #b32707;
 //BORDER
 @border-color: #e1e1e1;
+@bokara-grey: #2B2A28;
+@BorderColor: #cecece;
+//media
+@xs-min: 360px;
+@xxs-min: 320px;
+@sm-min: 480px;
+@mobile: ~'only screen and (max-width: @{sm-min})';
+@md-min: 768px;
+@tablet: ~'only screen and (max-width: @{md-min})';
+@large-1280: ~'only screen and (max-width: 1280px)';
+@sm-mobile: ~"only screen and (max-width: @{xs-min})";
+@xsm-mobile: ~"only screen and (max-width: @{xxs-min})";
+
+//z-index
+
+@screensaver: 1024;
+@announcement: 768;
+@step-modal: 256;
+@loader: 100;
+@menu: 32;
+@dialog: 16;
+@header: 4;
+@actionBar: 3;
+@goTop: 2;
+@layer: 1;
+
+
+@border-radius: 3px;
+
+@page-width: 1214px;
+@header-padding-desktop: 9.375rem;
+@header-padding-mobile: 1.875rem;
+
+@section-padding-top-desktop: 60px;
+@section-padding-top-tablet: 48px;
+@section-padding-top-mobile: 24px;
+
+@title-margin-desktop: 60px;
+@title-margin-tablet: 48px;
+@title-margin-mobile: 24px; 
+
+@card-type-a-max-height: 98%;
+@card-type-a-max-height-tablet: 98%;
+@card-type-a-max-height-mobile: 98%;
+
+.user-select-none {
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
+
+.flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.margin-0-auto {
+    margin: 0 auto;
+}
