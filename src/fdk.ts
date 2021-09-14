@@ -54,7 +54,7 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
             }
             if (
                 parent.args.includes('theme') &&
-                !parent.args.includes('new') &&
+                !parent.args.includes('create') &&
                 !parent.args.includes('init')
             ) {
                 if (!isAThemeDirectory()) {
