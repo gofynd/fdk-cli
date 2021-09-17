@@ -22,7 +22,7 @@ import glob from 'glob';
 import _ from 'lodash';
 import requireFromString from 'require-from-string';
 import { createDirectory, writeFile, readFile } from '../helper/file.utils';
-import { sortString } from '../helper/utils';
+import shortid from 'shortid';
 
 import ThemeService from './api/services/theme.service';
 import UploadService from './api/services/upload.service';
@@ -265,6 +265,7 @@ export default class Theme {
 
             let imageCdnUrl = '';
             let assetCdnUrl = '';
+            let urlHash = shortid.generate()
             // get image cdn base url
             {
                 let startData = {
@@ -292,7 +293,7 @@ export default class Theme {
             }
             Logger.warn('Building Assets...');
             // build js css
-            await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl });
+            await build({ buildFolder: Theme.BUILD_FOLDER, urlHash, imageCdnUrl, assetCdnUrl });
             // check if build folder exists, as during build, vue fails with non-error code even when it errors out
             if (!fs.existsSync(Theme.BUILD_FOLDER)) {
                 throw new Error('Build Failed');
@@ -398,9 +399,8 @@ export default class Theme {
             }
             // upload fonts
             {
-                console.log(path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts'), fs.existsSync(path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts')))
                 if(fs.existsSync(path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts'))) {
-                    const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts');
+                    const cwd = path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts');
                     const fonts = glob.sync('**/**.**', { cwd });
                     Logger.warn('Uploading fonts...');
                     await asyncForEach(fonts, async font => {
@@ -434,9 +434,9 @@ export default class Theme {
 
             {
                 const assets = [
-                    'themeBundle.css',
-                    'themeBundle.common.js',
-                    'themeBundle.umd.min.js',
+                    `${urlHash}-themeBundle.css`,
+                    `${urlHash}-themeBundle.common.js`,
+                    `${urlHash}-themeBundle.umd.min.js`,
                 ];
 
                 Logger.warn('Uploading assets...');

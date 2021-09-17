@@ -1,9 +1,8 @@
 import { exec } from 'child_process'
-import path from 'path'
 
-export function build({ buildFolder, imageCdnUrl, assetCdnUrl }) {
+export function build({ buildFolder, urlHash, imageCdnUrl, assetCdnUrl }) {
     return new Promise((resolve, reject) => {
-        let b = exec(`node ./node_modules/@vue/cli/bin/vue.js build --target lib --dest ${buildFolder} --name themeBundle theme/index.js`,
+        let b = exec(`node ./node_modules/@vue/cli/bin/vue.js build --target lib --dest ${buildFolder} --name ${urlHash}-themeBundle theme/index.js`,
             {
                 cwd: process.cwd(),
                 env: {
