@@ -211,9 +211,9 @@ export default class Theme {
             throw new CommandError(error.message, error.code);
         }
     };
-    public static syncThemeWrapper = async() => {
-        await Theme.syncTheme()
-    }
+    public static syncThemeWrapper = async () => {
+        await Theme.syncTheme();
+    };
     private static syncTheme = async (isNew = false) => {
         try {
             const currentContext = getActiveContext();
@@ -265,7 +265,6 @@ export default class Theme {
 
             let imageCdnUrl = '';
             let assetCdnUrl = '';
-            let urlHash = shortid.generate()
             // get image cdn base url
             {
                 let startData = {
@@ -293,7 +292,7 @@ export default class Theme {
             }
             Logger.warn('Building Assets...');
             // build js css
-            await build({ buildFolder: Theme.BUILD_FOLDER, urlHash, imageCdnUrl, assetCdnUrl });
+            await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl });
             // check if build folder exists, as during build, vue fails with non-error code even when it errors out
             if (!fs.existsSync(Theme.BUILD_FOLDER)) {
                 throw new Error('Build Failed');
@@ -399,7 +398,7 @@ export default class Theme {
             }
             // upload fonts
             {
-                if(fs.existsSync(path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts'))) {
+                if (fs.existsSync(path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts'))) {
                     const cwd = path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts');
                     const fonts = glob.sync('**/**.**', { cwd });
                     Logger.warn('Uploading fonts...');
@@ -433,15 +432,20 @@ export default class Theme {
             }
 
             {
+                const urlHash = shortid.generate();
                 const assets = [
-                    `${urlHash}-themeBundle.css`,
-                    `${urlHash}-themeBundle.common.js`,
-                    `${urlHash}-themeBundle.umd.min.js`,
+                    'themeBundle.css',
+                    'themeBundle.common.js',
+                    'themeBundle.umd.min.js',
                 ];
 
                 Logger.warn('Uploading assets...');
                 let pArr = assets.map(async asset => {
-                    const assetPath = path.join(Theme.BUILD_FOLDER, asset);
+                    fs.renameSync(
+                        path.join(Theme.BUILD_FOLDER, asset),
+                        `${Theme.BUILD_FOLDER}/${urlHash}-${asset}`
+                    );
+                    const assetPath = path.join(Theme.BUILD_FOLDER, `${urlHash}-${asset}`);
                     let res = await UploadService.uploadFile(assetPath, 'application-theme-assets');
                     return res.start.cdn.url;
                 });
