@@ -103,11 +103,11 @@ This command show a list of all available envorinments for the user to choose fr
 
 #### **Example**
 ```sh
-fdk env -n [your-env]
+fdk env -n fynd
 ```
 #### **Syntax**
 ```sh
-fdk env
+fdk env -n [your-env]
 ```
 
 <div id="current-env"></div>
