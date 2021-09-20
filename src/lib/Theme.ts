@@ -22,7 +22,7 @@ import glob from 'glob';
 import _ from 'lodash';
 import requireFromString from 'require-from-string';
 import { createDirectory, writeFile, readFile } from '../helper/file.utils';
-import { sortString } from '../helper/utils';
+import shortid from 'shortid';
 
 import ThemeService from './api/services/theme.service';
 import UploadService from './api/services/upload.service';
@@ -211,9 +211,9 @@ export default class Theme {
             throw new CommandError(error.message, error.code);
         }
     };
-    public static syncThemeWrapper = async() => {
-        await Theme.syncTheme()
-    }
+    public static syncThemeWrapper = async () => {
+        await Theme.syncTheme();
+    };
     private static syncTheme = async (isNew = false) => {
         try {
             const currentContext = getActiveContext();
@@ -264,10 +264,10 @@ export default class Theme {
             Theme.createSectionsIndexFile(available_sections);
 
             let imageCdnUrl = '';
-
+            let assetCdnUrl = '';
             // get image cdn base url
             {
-                const startData = {
+                let startData = {
                     file_name: 'test.jpg',
                     content_type: 'image/jpeg',
                     size: '1',
@@ -277,10 +277,22 @@ export default class Theme {
                 ).data;
                 imageCdnUrl = path.dirname(startAssetData.cdn.url);
             }
+            // get asset cdn base url
+            {
+                let startData = {
+                    file_name: 'test.ttf',
+                    content_type: 'font/ttf',
+                    size: '10',
+                };
+                let startAssetData = (
+                    await UploadService.startUpload(startData, 'application-theme-assets')
+                ).data;
 
+                assetCdnUrl = path.dirname(startAssetData.cdn.url);
+            }
             Logger.warn('Building Assets...');
             // build js css
-            await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl });
+            await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl });
             // check if build folder exists, as during build, vue fails with non-error code even when it errors out
             if (!fs.existsSync(Theme.BUILD_FOLDER)) {
                 throw new Error('Build Failed');
@@ -384,6 +396,18 @@ export default class Theme {
                     await UploadService.uploadFile(assetPath, 'application-theme-images');
                 });
             }
+            // upload fonts
+            {
+                if (fs.existsSync(path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts'))) {
+                    const cwd = path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts');
+                    const fonts = glob.sync('**/**.**', { cwd });
+                    Logger.warn('Uploading fonts...');
+                    await asyncForEach(fonts, async font => {
+                        const assetPath = path.join(Theme.BUILD_FOLDER, 'assets/fonts', font);
+                        await UploadService.uploadFile(assetPath, 'application-theme-assets');
+                    });
+                }
+            }
             //copy files to .fdk
             Logger.warn('Archiving src...');
             await fs.copy('./theme', Theme.SRC_FOLDER);
@@ -408,6 +432,7 @@ export default class Theme {
             }
 
             {
+                const urlHash = shortid.generate();
                 const assets = [
                     'themeBundle.css',
                     'themeBundle.common.js',
@@ -416,7 +441,11 @@ export default class Theme {
 
                 Logger.warn('Uploading assets...');
                 let pArr = assets.map(async asset => {
-                    const assetPath = path.join(Theme.BUILD_FOLDER, asset);
+                    fs.renameSync(
+                        path.join(Theme.BUILD_FOLDER, asset),
+                        `${Theme.BUILD_FOLDER}/${urlHash}-${asset}`
+                    );
+                    const assetPath = path.join(Theme.BUILD_FOLDER, `${urlHash}-${asset}`);
                     let res = await UploadService.uploadFile(assetPath, 'application-theme-assets');
                     return res.start.cdn.url;
                 });

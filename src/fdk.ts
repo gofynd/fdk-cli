@@ -12,7 +12,8 @@ import configStore, { CONFIG_KEYS } from './lib/Config';
 import fs from 'fs-extra';
 import { initializeLogger } from './lib/Logger';
 import { isAThemeDirectory } from './helper/utils';
-
+import inquirer from 'inquirer';
+import path from 'path';
 const packageJSON = require('../package.json');
 
 const notRequireAuthCommands = ['login', 'env', 'logout', 'auth'];
@@ -58,10 +59,13 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
                 !parent.args.includes('init')
             ) {
                 if (!isAThemeDirectory()) {
-                    throw new CommandError(
-                        ErrorCodes.INVALID_THEME_DIRECTORY.message,
-                        ErrorCodes.INVALID_THEME_DIRECTORY.code
-                    );
+                    const answer = await promptForFDKFolder();
+                    if (!answer) {
+                        throw new CommandError(
+                            ErrorCodes.INVALID_THEME_DIRECTORY.message,
+                            ErrorCodes.INVALID_THEME_DIRECTORY.code
+                        );
+                    }
                 }
             }
             await asyncFn(...args);
@@ -139,4 +143,21 @@ export async function init(programName: string) {
 
 async function checkCliVersionAsync() {
     return await latestVersion(packageJSON.name);
+}
+
+async function promptForFDKFolder() {
+    const questions = [
+        {
+            type: 'confirm',
+            name: 'showCreateFolder',
+            message: '.fdk folder is missing. Do you wish to create it?',
+        },
+    ];
+    const answers = await inquirer.prompt(questions);
+    if (answers.showCreateFolder) {
+        await fs.mkdir(path.join(process.cwd(), '.fdk'));
+        return true;
+    } else {
+        return false;
+    }
 }

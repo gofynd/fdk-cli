@@ -155,7 +155,6 @@ export async function startServer({ domain, host, isSSR }) {
 					await createTunnel()
 				}
 				res.redirect(req.originalUrl)
-
 			} else if (e.response && e.response.status == 500) {
 				try {
 					let errorString = e.response.data.split('\n').find(line => line.trim().length > 0);
@@ -163,7 +162,7 @@ export async function startServer({ domain, host, isSSR }) {
 					const mapContent = JSON.parse(fs.readFileSync(`${BUILD_FOLDER}/themeBundle.common.js.map`, { encoding: 'utf8', flag: 'r' }));
 					const smc = await new SourceMapConsumer(mapContent);
 					const stack = stackTraceParser?.parse(e.response.data);
-					stack.forEach(({ methodName, lineNumber, column }) => {
+					stack?.forEach(({ methodName, lineNumber, column }) => {
 						try {
 							if (lineNumber == null || lineNumber < 1) {
 								errorString += `<p>      at  <strong>${methodName || ''}</strong></p>`;
