@@ -278,7 +278,7 @@ export default class Theme {
                 imageCdnUrl = path.dirname(startAssetData.cdn.url);
             }
             // get asset cdn base url
-            {
+            if (fs.existsSync(path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts'))) {
                 let startData = {
                     file_name: 'test.ttf',
                     content_type: 'font/ttf',
