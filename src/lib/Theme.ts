@@ -265,6 +265,7 @@ export default class Theme {
 
             let imageCdnUrl = '';
             let assetCdnUrl = '';
+            const assetHash = shortid.generate();
             // get image cdn base url
             {
                 let startData = {
@@ -278,7 +279,7 @@ export default class Theme {
                 imageCdnUrl = path.dirname(startAssetData.cdn.url);
             }
             // get asset cdn base url
-            if (fs.existsSync(path.join(process.cwd(), 'theme/assets/fonts'))) {
+            // if (fs.existsSync(path.join(process.cwd(), 'theme/assets/fonts'))) {
                 let startData = {
                     file_name: 'test.ttf',
                     content_type: 'font/ttf',
@@ -289,10 +290,10 @@ export default class Theme {
                 ).data;
 
                 assetCdnUrl = path.dirname(startAssetData.cdn.url);
-            }
+            // }
             Logger.warn('Building Assets...');
             // build js css
-            await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl });
+            await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl, assetHash });
             // check if build folder exists, as during build, vue fails with non-error code even when it errors out
             if (!fs.existsSync(Theme.BUILD_FOLDER)) {
                 throw new Error('Build Failed');
@@ -432,25 +433,37 @@ export default class Theme {
             }
 
             {
-                const urlHash = shortid.generate();
-                const assets = [
-                    'themeBundle.css',
-                    'themeBundle.common.js',
-                    'themeBundle.umd.min.js',
-                ];
-
-                Logger.warn('Uploading assets...');
-                let pArr = assets.map(async asset => {
-                    fs.renameSync(
-                        path.join(Theme.BUILD_FOLDER, asset),
-                        `${Theme.BUILD_FOLDER}/${urlHash}-${asset}`
-                    );
-                    const assetPath = path.join(Theme.BUILD_FOLDER, `${urlHash}-${asset}`);
+                const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER);
+                const commonJSAssets = glob.sync('**/themeBundle.common.**.js', { cwd }).filter(f => !f.includes('vendors'))
+                commonJSAssets.push(`${assetHash}_themeBundle.common.js`)
+                const umdMinAssets = glob.sync(`**/${assetHash}_themeBundle.umd.min.**.js`, { cwd }).filter(f => !f.includes('vendors'))
+                umdMinAssets.push(`${assetHash}_themeBundle.umd.min.js`)
+                Logger.warn('Uploading commonjs...');
+                const commonJSPromisesArr = commonJSAssets.map(async asset => {
+                    const assetPath = path.join(Theme.BUILD_FOLDER, asset);
                     let res = await UploadService.uploadFile(assetPath, 'application-theme-assets');
                     return res.start.cdn.url;
                 });
 
-                let [cssUrl, commonJsUrl, umdJsUrl] = await Promise.all(pArr);
+                const commonJsUrls = await Promise.all(commonJSPromisesArr);
+                Logger.warn('Uploading umdjs...');
+
+                let umdJSPromisesArr = umdMinAssets.map(async asset => {
+                    const assetPath = path.join(Theme.BUILD_FOLDER, asset);
+                    let res = await UploadService.uploadFile(assetPath, 'application-theme-assets');
+                    return res.start.cdn.url;
+                });
+
+                const umdJsUrls = await Promise.all(umdJSPromisesArr);
+                Logger.warn('Uploading css...');
+                let cssAssests = glob.sync(`${Theme.BUILD_FOLDER}/**.css`);
+                console.log(cssAssests)
+                let cssPromisesArr = cssAssests.map(async asset => {
+                    let res = await UploadService.uploadFile(asset, 'application-theme-assets');
+                    return res.start.cdn.url;
+                });
+
+                const cssUrls = await Promise.all(cssPromisesArr);
                 let packageJSON = JSON.parse(readFile(`${process.cwd()}/package.json`));
                 if (!packageJSON.name) {
                     throw new Error('package.json name can not be empty');
@@ -460,14 +473,15 @@ export default class Theme {
 
                 theme.assets = theme.assets || {};
                 theme.assets.umdJs = theme.assets.umdJs || {};
-                theme.assets.umdJs.link = umdJsUrl;
+                theme.assets.umdJs.links = umdJsUrls;
 
                 theme.assets.commonJs = theme.assets.commonJs || {};
-                theme.assets.commonJs.link = commonJsUrl;
+                theme.assets.commonJs.links = commonJsUrls;
 
                 theme.assets.css = theme.assets.css || {};
-                theme.assets.css.link = cssUrl;
-                // TODO Issue here
+                theme.assets.css.links = cssUrls;
+                theme.assets.asset_hash = assetHash;
+            //     // TODO Issue here
                 theme = {
                     ...theme,
                     ...themeContent.theme,
