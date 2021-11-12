@@ -28,7 +28,8 @@ import ProfileAddress from "./templates/pages/profile-address.vue";
 import ShipmentDetails from "./templates/pages/shipment-details.vue";
 import FAQ from "./templates/pages/faq.vue";
 import Home from "./templates/pages/home.vue";
-
+import Login from './templates/pages/login.vue'
+import Register from './templates/pages/register.vue'
 import CustomTemplates from "./custom-templates";
 import styles from "./global/head.less";
 import sections from "./sections";
@@ -66,6 +67,8 @@ export default {
     getEmptyState: () => null,
     getProductReviews: () => ProductReviews,
     getAddProductReview: () => AddProductReview,
+    getLogin: () => Login,
+    getRegister: () => Register,
     getCustomTemplates: () => {
         return CustomTemplates;
     },

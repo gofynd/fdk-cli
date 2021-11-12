@@ -12,6 +12,10 @@
               "link_color": "#4499FF",
               "button_secondary_color": "#000000",
               "bg_color": "#F8F8F8"
+            },
+            "auth": {
+              "show_header_auth":false,
+              "show_footer_auth":false
             }
           }
         },
