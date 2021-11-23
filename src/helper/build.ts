@@ -1,4 +1,5 @@
 import { exec } from 'child_process'
+import { createDirectory } from './file.utils';
 
 export function build({ buildFolder, imageCdnUrl, assetCdnUrl }) {
     return new Promise((resolve, reject) => {
@@ -31,6 +32,7 @@ interface DevBuild {
 }
 export function devBuild({ buildFolder, imageCdnUrl, isProd } : DevBuild) {
     return new Promise((resolve, reject) => {
+        createDirectory(buildFolder);
         let b = exec(`node ./node_modules/@vue/cli/bin/vue.js build --target lib --dest ${buildFolder} --name themeBundle theme/index.js`,
             {
                 cwd: process.cwd(),
