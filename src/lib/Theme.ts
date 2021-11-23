@@ -591,6 +591,8 @@ export default class Theme {
             watcher.on('change', async () => {
                 try {
                     console.log(chalk.bold.green(`building............`));
+                    console.log('Dist Path:', path.resolve(process.cwd(), Theme.BUILD_FOLDER));
+                    console.log('Dist Path exists: ', fs.existsSync(path.resolve(process.cwd(), Theme.BUILD_FOLDER)))
                     await devBuild({
                         buildFolder: path.resolve(process.cwd(), Theme.BUILD_FOLDER),
                         imageCdnUrl: urlJoin(getFullLocalUrl(host), 'assets/images'),
