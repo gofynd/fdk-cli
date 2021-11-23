@@ -598,6 +598,7 @@ export default class Theme {
                     });
                     reload();
                 } catch (error) {
+                    console.log(error)
                     throw new CommandError(error.message, error.code)
                 }
                 
