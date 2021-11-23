@@ -589,13 +589,18 @@ export default class Theme {
                 persistent: true,
             });
             watcher.on('change', async () => {
-                console.log(chalk.bold.green(`building............`));
-                await devBuild({
-                    buildFolder: path.resolve(process.cwd(), Theme.BUILD_FOLDER),
-                    imageCdnUrl: urlJoin(getFullLocalUrl(host), 'assets/images'),
-                    isProd: isSSR,
-                });
-                reload();
+                try {
+                    console.log(chalk.bold.green(`building............`));
+                    await devBuild({
+                        buildFolder: path.resolve(process.cwd(), Theme.BUILD_FOLDER),
+                        imageCdnUrl: urlJoin(getFullLocalUrl(host), 'assets/images'),
+                        isProd: isSSR,
+                    });
+                    reload();
+                } catch (error) {
+                    throw new CommandError(error.message, error.code)
+                }
+                
             });
         } catch (error) {
             throw new CommandError(error.message, error.code);

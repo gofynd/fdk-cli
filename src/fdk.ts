@@ -161,9 +161,3 @@ async function promptForFDKFolder() {
         return false;
     }
 }
-
-process.on('unhandledRejection', (error: Error, p) => {
-    console.log('=== UNHANDLED REJECTION ===');
-    console.dir(error.stack);
-    console.log('Unhandled Rejection at: Promise', p, 'reason:', error.message);
-});
