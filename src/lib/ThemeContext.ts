@@ -14,7 +14,7 @@ export default class ThemeContext {
     try {
       Logger.warn('Validating token');
       const configObj = JSON.parse(decodeBase64(options.token) || '{}');
-      if (!configObj) throw new CommandError('Invalid token', ErrorCodes.INVALID_INPUT.code);
+      if (!configObj || !configObj.theme_id) throw new CommandError('Invalid token', ErrorCodes.INVALID_INPUT.code);
       const { data: appConfig } = await ConfigurationService.getApplicationDetails(configObj);
 			const { data: themeConfig} = await ThemeService.getThemeById({
 				application_id: appConfig._id,
