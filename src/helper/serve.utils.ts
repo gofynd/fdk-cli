@@ -7,7 +7,7 @@ import cheerio from 'cheerio';
 import express from 'express';
 import { SourceMapConsumer } from 'source-map'
 import urlJoin from 'url-join';
-import stackTraceParser  from 'stacktrace-parser';
+import { parse as stackTraceParser}  from 'stacktrace-parser';
 import proxy from 'express-http-proxy';
 
 const BUILD_FOLDER = './.fdk/dist';
@@ -157,11 +157,12 @@ export async function startServer({ domain, host, isSSR }) {
 				res.redirect(req.originalUrl)
 			} else if (e.response && e.response.status == 500) {
 				try {
+					Logger.error(e.response.data)
 					let errorString = e.response.data.split('\n').find(line => line.trim().length > 0);
 					errorString = `<h3><b>${errorString}</b></h3>`;
 					const mapContent = JSON.parse(fs.readFileSync(`${BUILD_FOLDER}/themeBundle.common.js.map`, { encoding: 'utf8', flag: 'r' }));
 					const smc = await new SourceMapConsumer(mapContent);
-					const stack = stackTraceParser?.parse(e.response.data);
+					const stack = stackTraceParser(e.response.data);
 					stack?.forEach(({ methodName, lineNumber, column }) => {
 						try {
 							if (lineNumber == null || lineNumber < 1) {
