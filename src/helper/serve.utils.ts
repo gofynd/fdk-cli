@@ -110,10 +110,10 @@ export async function startServer({ domain, host, isSSR }) {
 				await createTunnel()
 			}
 			const { protocol, host: tnnelHost } = new URL(tunnel.url);
-			jetfireUrl.searchParams.append('__cli_protocol', protocol);
-			jetfireUrl.searchParams.append('__cli_url', tnnelHost);
+			jetfireUrl.searchParams.set('__cli_protocol', protocol);
+			jetfireUrl.searchParams.set('__cli_url', tnnelHost);
 		} else {
-			jetfireUrl.searchParams.append('__csr', 'true');
+			jetfireUrl.searchParams.set('__csr', 'true');
 		}
 		try {
 			let { data: html } = await axios.get(jetfireUrl.toString());
