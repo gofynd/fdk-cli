@@ -35,7 +35,7 @@ function validateEmpty(input) {
 }
 
 // TODO: add public repo name from github
-const INIT_PROJECT_URL = "git@gitlab.com:fynd/regrowth/fynd-platform/extensions/groot.git";//"https://gitlab.com/fynd/regrowth/fynd-platform/extensions/groot.git";
+const INIT_PROJECT_URL = "git@github.com:gofynd/example-extension-javascript.git#new-extension-flow";//"https://gitlab.com/fynd/regrowth/fynd-platform/extensions/groot.git";
 
 const questions = [
     {
