@@ -90,7 +90,7 @@ async function copyTemplateFiles(targetDirectory) {
         await execa('git', ['init'], { cwd: targetDirectory });
         await execa('git', ['remote', 'add', 'origin', INIT_PROJECT_URL], { cwd: targetDirectory });
         // await execa('git', ['pull', 'origin', 'main:main'], { cwd: targetDirectory });
-        await execa('git', ['pull', 'origin', 'new-extension-flow:new-extension-flow'], { cwd: targetDirectory });
+        await execa('git', ['pull', 'origin', 'master:master'], { cwd: targetDirectory });
         // writeFile(targetDirectory + '/.gitignore', `\n.fdk\\node_modules`, 'a+' );
         await rimraf.sync(`${targetDirectory}/.git`) // unmark as git repo
         return true;
