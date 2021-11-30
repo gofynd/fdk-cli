@@ -434,9 +434,9 @@ export default class Theme {
 
             {
                 const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER);
-                const commonJSAssets = glob.sync('**/themeBundle.common.**.js', { cwd }).filter(f => !f.includes('vendors'))
+                const commonJSAssets = glob.sync('**/themeBundle.common.**.js', { cwd });
                 commonJSAssets.push(`${assetHash}_themeBundle.common.js`)
-                const umdMinAssets = glob.sync(`**/${assetHash}_themeBundle.umd.min.**.js`, { cwd }).filter(f => !f.includes('vendors'))
+                const umdMinAssets = glob.sync(`**/${assetHash}_themeBundle.umd.min.**.js`, { cwd });
                 umdMinAssets.push(`${assetHash}_themeBundle.umd.min.js`)
                 Logger.warn('Uploading commonjs...');
                 const commonJSPromisesArr = commonJSAssets.map(async asset => {
