@@ -9,6 +9,8 @@ import { SourceMapConsumer } from 'source-map'
 import urlJoin from 'url-join';
 import { parse as stackTraceParser}  from 'stacktrace-parser';
 import proxy from 'express-http-proxy';
+import Theme from '../lib/Theme';
+import glob from 'glob';
 
 const BUILD_FOLDER = './.fdk/dist';
 const port = 5000;
@@ -105,13 +107,14 @@ export async function startServer({ domain, host, isSSR }) {
 		}
 		console.log(req.hostname, req.url)
 		const jetfireUrl = new URL(urlJoin(domain, req.originalUrl));
+		jetfireUrl.searchParams.set('__cli', "true");
 		if (isSSR) {
 			if (!isTunnelRunning()) {
 				await createTunnel()
 			}
-			const { protocol, host: tnnelHost } = new URL(tunnel.url);
+			const { protocol, host: tunnelHost } = new URL(tunnel.url);
 			jetfireUrl.searchParams.set('__cli_protocol', protocol);
-			jetfireUrl.searchParams.set('__cli_url', tnnelHost);
+			jetfireUrl.searchParams.set('__cli_url', tunnelHost);
 		} else {
 			jetfireUrl.searchParams.set('__csr', 'true');
 		}
@@ -136,18 +139,19 @@ export async function startServer({ domain, host, isSSR }) {
 						}
 					</script>
 				`);
-			$('#theme-umd-js').attr(
-				'src',
-				urlJoin(getFullLocalUrl(host), 'themeBundle.umd.js')
-			);
-			$('#theme-umd-js-link').attr(
-				'href',
-				urlJoin(getFullLocalUrl(host), 'themeBundle.umd.js')
-			);
-			$('#theme-css').attr(
-				'href',
-				urlJoin(getFullLocalUrl(host), 'themeBundle.css')
-			);
+
+			const umdJsInitial = $('link[data-umdjs-cli-source="initial"]');
+			umdJsInitial
+				.after(`<script type="text/javascript" src="${urlJoin(getFullLocalUrl(host), 'themeBundle.umd.js')}"></script>`);
+			umdJsInitial
+				.after(`<script type="text/javascript" src="${urlJoin(getFullLocalUrl(host), 'themeBundle.umd.vendor.js')}"></script>`);
+
+			const cssAssests = glob.sync(`${Theme.BUILD_FOLDER}/**.css`);
+			const cssInitial = $('link[data-css-cli-source="initial"]');
+			cssAssests.forEach((cssLink) => {
+				cssInitial
+					.after(`<link rel="stylesheet" href="${urlJoin(getFullLocalUrl(host), cssLink.replace("./.fdk/dist/", ""))}">`);
+			})
 			res.send($.html({ decodeEntities: false }));
 		} catch (e) {
 			if (e.response && e.response.status == 504) {
