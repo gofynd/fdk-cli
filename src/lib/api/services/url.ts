@@ -6,8 +6,7 @@ const currentEnv = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE) || 'x0';
 const apiVersion = configStore.get(CONFIG_KEYS.API_VERSION) || '1.0';
 export const BASE_URL = `https://${AVAILABLE_ENVS[currentEnv]}`;
 
-// const THEME_URL = BASE_URL + '/service/platform/theme/v' + apiVersion;
-const THEME_URL = 'http://localhost:7071/v1.0/';
+const THEME_URL = BASE_URL + '/service/platform/theme/v' + apiVersion;
 const AUTH_URL = BASE_URL + '/service/panel/authentication/v' + apiVersion;
 const CONFIGURATION_URL = BASE_URL + '/service/platform/configuration/v' + apiVersion;
 const ASSET_URL = BASE_URL + '/service/platform/assets/v' + apiVersion;
