@@ -474,12 +474,15 @@ export default class Theme {
                 theme.assets = theme.assets || {};
                 theme.assets.umdJs = theme.assets.umdJs || {};
                 theme.assets.umdJs.links = umdJsUrls;
+                theme.assets.umdJs.link = "";
 
                 theme.assets.commonJs = theme.assets.commonJs || {};
                 theme.assets.commonJs.links = commonJsUrls;
+                theme.assets.commonJs.link = "";
 
                 theme.assets.css = theme.assets.css || {};
                 theme.assets.css.links = cssUrls;
+                theme.assets.css.link = "";
                 theme.assets.asset_hash = assetHash;
             //     // TODO Issue here
                 theme = {
