@@ -27,16 +27,17 @@ export default class CompanySetup {
             throw new CommandError(error.message, error.code);
         }
     }
-    private static async setupComponent(company_id, request_id, prompt_message){
+    private static async setupComponent(company_id, request_id, prompt_message, init = false){
         let spinner
-        spinner = ora(prompt_message).start();
-        // Logger.info(prompt_message);
+        if(!init){
+            spinner = ora(prompt_message).start();
+        }
         const { data, headers } = await CompanySetupService.setupCompany(company_id, request_id);
-        // Logger.success(data.message);
         spinner.succeed(data.message);
         if(data.next_step){
+            spinner = ora(prompt_message).start();
             setTimeout(async() => {
-                return await CompanySetup.setupComponent(company_id, data.request_id, data.prompt_message)
+                return await CompanySetup.setupComponent(company_id, data.request_id, data.prompt_message, true)
             }, data.cli_wait_time || 100);
         }
         return data
