@@ -27,9 +27,9 @@ export default class CompanySetup {
             throw new CommandError(error.message, error.code);
         }
     }
-    private static async setupComponent(company_id, request_id, prompt_message, init = false){
+    private static async setupComponent(company_id, request_id, prompt_message, init = true){
         let spinner
-        if(!init){
+        if(init){
             spinner = ora(prompt_message).start();
         }
         const { data, headers } = await CompanySetupService.setupCompany(company_id, request_id);
@@ -37,7 +37,7 @@ export default class CompanySetup {
         if(data.next_step){
             spinner = ora(prompt_message).start();
             setTimeout(async() => {
-                return await CompanySetup.setupComponent(company_id, data.request_id, data.prompt_message, true)
+                return await CompanySetup.setupComponent(company_id, data.request_id, data.prompt_message, false)
             }, data.cli_wait_time || 100);
         }
         return data
