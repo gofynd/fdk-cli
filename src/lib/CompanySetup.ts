@@ -3,6 +3,7 @@ import Logger from './Logger';
 import CompanySetupService from './api/services/company_setup.service';
 import inquirer from 'inquirer';
 import ConfigStore, { CONFIG_KEYS } from './Config';
+import ora from 'ora';
 
 export default class CompanySetup {
     constructor() {}
@@ -27,9 +28,12 @@ export default class CompanySetup {
         }
     }
     private static async setupComponent(company_id, request_id, prompt_message){
-        Logger.info(prompt_message);
+        let spinner
+        spinner = ora(prompt_message).start();
+        // Logger.info(prompt_message);
         const { data, headers } = await CompanySetupService.setupCompany(company_id, request_id);
-        Logger.success(data.message);
+        // Logger.success(data.message);
+        spinner.succeed(data.message);
         if(data.next_step){
             setTimeout(async() => {
                 return await CompanySetup.setupComponent(company_id, data.request_id, data.prompt_message)
