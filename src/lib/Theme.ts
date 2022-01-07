@@ -51,6 +51,7 @@ export default class Theme {
     static TEMPLATE_DIRECTORY = path.join(__dirname, '../../template');
     static BUILD_FOLDER = './.fdk/dist';
     static SRC_FOLDER = './.fdk/temp-theme';
+    static VUE_CLI_CONFIG_PATH = path.join(process.cwd(), './.fdk/vue.config.js');
     static SRC_ARCHIVE_FOLDER = './.fdk/archive';
     static ZIP_FILE_NAME = `archive.zip`;
     public static async createTheme(options) {
@@ -293,6 +294,7 @@ export default class Theme {
             // }
             Logger.warn('Building Assets...');
             // build js css
+            Theme.createVueConfig();
             await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl, assetHash });
             // check if build folder exists, as during build, vue fails with non-error code even when it errors out
             if (!fs.existsSync(Theme.BUILD_FOLDER)) {
@@ -457,7 +459,6 @@ export default class Theme {
                 const umdJsUrls = await Promise.all(umdJSPromisesArr);
                 Logger.warn('Uploading css...');
                 let cssAssests = glob.sync(`${Theme.BUILD_FOLDER}/**.css`);
-                console.log(cssAssests)
                 let cssPromisesArr = cssAssests.map(async asset => {
                     let res = await UploadService.uploadFile(asset, 'application-theme-assets');
                     return res.start.cdn.url;
@@ -474,17 +475,17 @@ export default class Theme {
                 theme.assets = theme.assets || {};
                 theme.assets.umdJs = theme.assets.umdJs || {};
                 theme.assets.umdJs.links = umdJsUrls;
-                theme.assets.umdJs.link = "";
+                theme.assets.umdJs.link = '';
 
                 theme.assets.commonJs = theme.assets.commonJs || {};
                 theme.assets.commonJs.links = commonJsUrls;
-                theme.assets.commonJs.link = "";
+                theme.assets.commonJs.link = '';
 
                 theme.assets.css = theme.assets.css || {};
                 theme.assets.css.links = cssUrls;
-                theme.assets.css.link = "";
+                theme.assets.css.link = '';
                 theme.assets.asset_hash = assetHash;
-            //     // TODO Issue here
+
                 theme = {
                     ...theme,
                     ...themeContent.theme,
@@ -589,6 +590,7 @@ export default class Theme {
             let host = BASE_URL;
             // initial build
             Logger.success(`Locally building............`);
+            Theme.createVueConfig();
             await devBuild({
                 buildFolder: Theme.BUILD_FOLDER,
                 imageCdnUrl: urlJoin(getFullLocalUrl(host), 'assets/images'),
@@ -890,4 +892,120 @@ export default class Theme {
         rimraf.sync(Theme.BUILD_FOLDER);
         rimraf.sync(Theme.SRC_ARCHIVE_FOLDER);
     };
+
+    private static createVueConfig() {
+        const template =`
+const webpack = require("webpack");
+const fs = require("fs");
+const path = require("path");
+const { chalk, error, loadModule } = require('@vue/cli-shared-utils')
+
+const FDK_CONFIG_PATH = "./fdk.config.js";
+let fdkConfig = {};
+let fileConfigPath = null;
+const context = process.cwd();
+
+function isObject(item) {
+  return (item && typeof item === 'object' && !Array.isArray(item));
+}
+function mergeDeep(target, ...sources) {
+  if (!sources.length) return target;
+  const source = sources.shift();
+
+  if (isObject(target) && isObject(source)) {
+    for (const key in source) {
+      if (isObject(source[key])) {
+        if (!target[key]) Object.assign(target, { [key]: {} });
+        mergeDeep(target[key], source[key]);
+      } else {
+        Object.assign(target, { [key]: source[key] });
+      }
+    }
+  }
+
+  return mergeDeep(target, ...sources);
+}
+
+try {
+  fileConfigPath = path.resolve(context, FDK_CONFIG_PATH);
+  if (fileConfigPath && fs.existsSync(fileConfigPath)) {
+    fdkConfig = loadModule(fileConfigPath, context);
+    if (typeof fdkConfig === 'function') {
+      fdkConfig = fileConfig()
+    }
+  }
+} catch (err) {
+  console.error(err)
+  error(\`Error loading \${chalk.bold(fileConfigPath)}:\`)
+  throw err;
+}
+
+fdkConfig = mergeDeep(fdkConfig, {
+  publicPath: process.env.ASSET_CDN_URL,
+  css: {
+    extract: {
+      chunkFilename: process.env.ASSET_HASH && \`\${process.env.ASSET_HASH}_[name].[contenthash].css\` ||
+    \`[name].[contenthash].css\`,
+    },
+  }
+});
+const fdkChainWebpack = fdkConfig.chainWebpack;
+const fdkConfigureWebpack = fdkConfig.configureWebpack;
+
+const configureWebpack = (config) => {
+  const isCommonJs = config.output.libraryTarget === "commonjs2";
+  let customConfig = {
+    plugins: isCommonJs
+      ? [
+        new webpack.optimize.LimitChunkCountPlugin({
+          maxChunks: 1,
+        })
+      ]
+      : [],
+  };
+  if (typeof fdkConfigureWebpack == "function") {
+    customConfig = mergeDeep(fdkConfigureWebpack(config), customConfig);
+  }
+  if (typeof fdkConfigureWebpack == "object") {
+    customConfig = mergeDeep(fdkConfigureWebpack, customConfig);
+  }
+  return customConfig
+}
+
+const chainWebpack = (config) => {
+  if (typeof fdkChainWebpack == "function") {
+    fdkChainWebpack(config)
+  }
+  config
+    .optimization.splitChunks({
+      cacheGroups: {
+        vendors: {
+          name: "vendor",
+          test: /[\\/]node_modules[\\/]/,
+          priority: -10,
+          chunks: 'initial'
+        }
+      }
+    })
+}
+
+fdkConfig.chainWebpack = chainWebpack;
+fdkConfig.configureWebpack = configureWebpack;
+
+module.exports = fdkConfig;
+`;
+
+        const oldVueConfigPath = path.join(process.cwd(), 'vue.config.js');
+        const fdkConfigPath = path.join(process.cwd(), 'fdk.config.js');
+        if (fs.existsSync(oldVueConfigPath)) {
+            if (fs.existsSync(fdkConfigPath)) {
+                throw "vue.config.js is not supported, move its file content to fdk.config,js"
+            } else {
+                fs.renameSync(oldVueConfigPath, fdkConfigPath)
+            }
+        }
+        rimraf.sync(Theme.VUE_CLI_CONFIG_PATH);
+        fs.writeFileSync(Theme.VUE_CLI_CONFIG_PATH, template);
+        Logger.success('Config file generated');
+    }
 }
