@@ -45,19 +45,24 @@ function interceptorFn(options) {
                 const cookie = ConfigStore.get(CONFIG_KEYS.COOKIE);
                 config.headers['Cookie'] = cookie || '';
                 if (pathname.startsWith('/service/platform')) {
-                    const company_id = getCompanyId(pathname);
-                    let data;
-                    try {
-                        data = (await AuthenticationService.getOauthToken(company_id)).data || {};
-                    } catch (error) {
-                        Logger.error("Failed to fetch OAuth token")
-                        ConfigStore.delete(CONFIG_KEYS.USER);
-                        ConfigStore.delete(CONFIG_KEYS.COOKIE);
-                        throw new Error(error);
+                    let oauthToken = ConfigStore.get(CONFIG_KEYS.OAUTH_TOKEN) || '{}';
+                    oauthToken = JSON.parse(oauthToken);
+                    if(!oauthToken.access_token || Date.now() > oauthToken?.expires_in) {
+                        const company_id = getCompanyId(pathname);
+                        try {
+                            Logger.warn("Fetching oauth token")
+                            oauthToken = (await AuthenticationService.getOauthToken(company_id)).data || {};
+                            oauthToken.expires_in = Date.now() + 30 * 60000 ;
+                            ConfigStore.set(CONFIG_KEYS.OAUTH_TOKEN, JSON.stringify(oauthToken))
+                        } catch (error) {
+                            Logger.error("Failed to fetch OAuth token")
+                            ConfigStore.delete(CONFIG_KEYS.USER);
+                            ConfigStore.delete(CONFIG_KEYS.COOKIE);
+                            throw new Error(error);
+                        }
                     }
-
-                    if (data.access_token) {
-                        config.headers['Authorization'] = 'Bearer ' + data.access_token;
+                    if (oauthToken.access_token) {
+                        config.headers['Authorization'] = 'Bearer ' + oauthToken.access_token;
                     }
                 }
                 let queryParam = '';
