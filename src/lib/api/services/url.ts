@@ -10,7 +10,7 @@ const THEME_URL = BASE_URL + '/service/platform/theme/v' + apiVersion;
 const AUTH_URL = BASE_URL + '/service/panel/authentication/v' + apiVersion;
 const CONFIGURATION_URL = BASE_URL + '/service/platform/configuration/v' + apiVersion;
 const ASSET_URL = BASE_URL + '/service/platform/assets/v' + apiVersion;
-const MIXMASETER_PLTM_URL = BASE_URL + '/service/platform/partners/v' + apiVersion;
+const MIXMASTER_PLTM_URL = BASE_URL + '/service/platform/partners/v' + apiVersion;
 
 export const URLS = {
   // AUTHENTICATION
@@ -87,7 +87,7 @@ export const URLS = {
 
   SETUP_COMPANY: (company_id: number) => {
     return urlJoin(
-      MIXMASETER_PLTM_URL,
+      MIXMASTER_PLTM_URL,
       `/company/${company_id}/setup`
     );
   },
