@@ -395,12 +395,15 @@ export default class Theme {
                 const chunked_images = chunkArray(images, Math.floor(images.length/3));
                 Logger.warn('Uploading images...');
                 let i = 1;
+                const delay = ms => new Promise(res => setTimeout(res, ms));
                 await asyncForEach(chunked_images, async chunk => {
                     console.log(`Uploading chunk ${i}`)
                     await asyncForEach(chunk, async img => {
                         const assetPath = path.join(Theme.BUILD_FOLDER, 'assets/images', img);
                         await UploadService.uploadFile(assetPath, 'application-theme-images');
                     });
+                    await delay(5000);
+                    console.log('waiting for 5 sec')
                     i++;
                 })
                 
