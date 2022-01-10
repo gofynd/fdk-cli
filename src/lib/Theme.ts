@@ -23,7 +23,7 @@ import _ from 'lodash';
 import requireFromString from 'require-from-string';
 import { createDirectory, writeFile, readFile } from '../helper/file.utils';
 import shortid from 'shortid';
-
+import asyncjs from 'async';
 import ThemeService from './api/services/theme.service';
 import UploadService from './api/services/upload.service';
 import { build, devBuild } from '../helper/build';
@@ -128,7 +128,8 @@ export default class Theme {
             Logger.warn('Validating token');
             const configObj = JSON.parse(decodeBase64(options.token) || '{}');
             Debug(`Token Data: ${JSON.stringify(configObj)}`);
-            if (!configObj || !configObj.theme_id) throw new CommandError('Invalid token', ErrorCodes.INVALID_INPUT.code);
+            if (!configObj || !configObj.theme_id)
+                throw new CommandError('Invalid token', ErrorCodes.INVALID_INPUT.code);
             if (new Date(Date.now()) > new Date(configObj.expires_in))
                 throw new CommandError(
                     'Token expired. Generate a new token',
@@ -390,11 +391,15 @@ export default class Theme {
             {
                 const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'assets/images');
                 const images = glob.sync('**/**.**', { cwd });
+
                 Logger.warn('Uploading images...');
-                await asyncForEach(images, async img => {
+                await asyncjs.concatLimit(images, 1, async img => {
                     const assetPath = path.join(Theme.BUILD_FOLDER, 'assets/images', img);
                     await UploadService.uploadFile(assetPath, 'application-theme-images');
                 });
+                // await asyncForEach(images, async img => {
+
+                // });
             }
             // upload fonts
             {
