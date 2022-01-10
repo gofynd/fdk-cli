@@ -25,7 +25,6 @@ function getTransformer(config) {
 function getCompanyId(path: string): number {
     const pathArr = path.split('/');
     const companyId = pathArr[pathArr.findIndex(p => p === 'company') + 1];
-    
     return Number(companyId);
 }
 function interceptorFn(options) {
@@ -97,8 +96,6 @@ function interceptorFn(options) {
                     headers: headersToSign,
                 };
                 sign(signingOptions);
-                // console.log(signingOptions);
-                // config.headers = signingOptions.headers;
                 config.headers['x-fp-date'] = signingOptions.headers['x-fp-date'];
                 config.headers['x-fp-signature'] = signingOptions.headers['x-fp-signature'];
             }
