@@ -1,5 +1,6 @@
 import {
     asyncForEach,
+    chunkArray,
     createContext,
     decodeBase64,
     getActiveContext,
@@ -391,15 +392,18 @@ export default class Theme {
             {
                 const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'assets/images');
                 const images = glob.sync('**/**.**', { cwd });
-
+                const chunked_images = chunkArray(images, Math.floor(images.length/3));
                 Logger.warn('Uploading images...');
-                await asyncjs.concatLimit(images, 1, async img => {
-                    const assetPath = path.join(Theme.BUILD_FOLDER, 'assets/images', img);
-                    await UploadService.uploadFile(assetPath, 'application-theme-images');
-                });
-                // await asyncForEach(images, async img => {
-
-                // });
+                let i = 1;
+                await asyncForEach(chunked_images, async chunk => {
+                    console.log(`Uploading chunk ${i}`)
+                    await asyncForEach(chunk, async img => {
+                        const assetPath = path.join(Theme.BUILD_FOLDER, 'assets/images', img);
+                        await UploadService.uploadFile(assetPath, 'application-theme-images');
+                    });
+                    i++;
+                })
+                
             }
             // upload fonts
             {
