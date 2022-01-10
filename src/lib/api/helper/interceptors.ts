@@ -102,7 +102,6 @@ function interceptorFn(options) {
                 config.headers['x-fp-date'] = signingOptions.headers['x-fp-date'];
                 config.headers['x-fp-signature'] = signingOptions.headers['x-fp-signature'];
             }
-
             return config;
         } catch (error) {
           throw new Error(error);

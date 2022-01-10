@@ -6,7 +6,10 @@ const { addSignatureFn } = require('./helper/interceptors');
 import Curl from '../../helper/curl';
 axios.defaults.withCredentials = true;
 axios.interceptors.request.use(addSignatureFn({}));
-
+axios.interceptors.request.use((config) => {
+  console.log('Making request: ', config.method ,config.url)
+  return config
+})
 let axiosMisc = axios.create({
   withCredentials: false,
 });
