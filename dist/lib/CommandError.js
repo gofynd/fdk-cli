@@ -59,6 +59,7 @@ var CommandError = /** @class */ (function (_super) {
         Object.setPrototypeOf(_this, CommandError.prototype);
         _this.code = code || 'FDK-0004';
         _this.message = message || 'Something went wrong';
+        process.exitCode = 1;
         return _this;
     }
     return CommandError;
