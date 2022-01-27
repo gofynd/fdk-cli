@@ -1,7 +1,7 @@
 'use strict'
 
 const url = require('url');
-const querystring = require('querystring');
+const querystring = require('query-string');
 const sha256 = require('crypto-js/sha256');
 const hmacSHA256 =  require('crypto-js/hmac-sha256');
 
@@ -125,7 +125,7 @@ class RequestSigner {
     let kCredentials = "1234567";
     let strTosign = this.stringToSign();
     // console.log(strTosign);
-    return `v1:${hmac(kCredentials, strTosign, 'hex')}`;
+    return `v1.1:${hmac(kCredentials, strTosign, 'hex')}`;
   }
 
   stringToSign() {
@@ -254,11 +254,6 @@ class RequestSigner {
 
   parsePath() {
     let path = this.request.path || '/';
-    
-    // So if there are non-reserved chars (and it's not already all % encoded), just encode them all
-    if (/[^0-9A-Za-z;,/?:@&=+$\-_.!~*'()#%]/.test(path)) {
-      path = encodeURI(decodeURI(path))
-    }
 
     let queryIx = path.indexOf('?');
     let query = null;
@@ -268,6 +263,10 @@ class RequestSigner {
       path = path.slice(0, queryIx);
     }
 
+    path = path.split("/").map((t) => {
+      return encodeURIComponent(decodeURIComponent(t));
+    }).join("/");
+    
     this.parsedPath = {
       path: path,
       query: query,
