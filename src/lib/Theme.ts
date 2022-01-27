@@ -436,27 +436,22 @@ export default class Theme {
 
             {
                 const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER);
-                const commonJSAssets = glob.sync('**/themeBundle.common.**.js', { cwd });
-                commonJSAssets.push(`${assetHash}_themeBundle.common.js`)
+
+                Logger.warn('Uploading commonjs...');
+                const commonJS = `${assetHash}_themeBundle.common.js`;
+                const commonJsUrlRes = await UploadService.uploadFile(path.join(Theme.BUILD_FOLDER, commonJS), 'application-theme-assets');
+                const commonJsUrl = commonJsUrlRes.start.cdn.url
+
+                Logger.warn('Uploading umdjs...');
                 const umdMinAssets = glob.sync(`**/${assetHash}_themeBundle.umd.min.**.js`, { cwd });
                 umdMinAssets.push(`${assetHash}_themeBundle.umd.min.js`)
-                Logger.warn('Uploading commonjs...');
-                const commonJSPromisesArr = commonJSAssets.map(async asset => {
+                const umdJSPromisesArr = umdMinAssets.map(async asset => {
                     const assetPath = path.join(Theme.BUILD_FOLDER, asset);
                     let res = await UploadService.uploadFile(assetPath, 'application-theme-assets');
                     return res.start.cdn.url;
                 });
-
-                const commonJsUrls = await Promise.all(commonJSPromisesArr);
-                Logger.warn('Uploading umdjs...');
-
-                let umdJSPromisesArr = umdMinAssets.map(async asset => {
-                    const assetPath = path.join(Theme.BUILD_FOLDER, asset);
-                    let res = await UploadService.uploadFile(assetPath, 'application-theme-assets');
-                    return res.start.cdn.url;
-                });
-
                 const umdJsUrls = await Promise.all(umdJSPromisesArr);
+
                 Logger.warn('Uploading css...');
                 let cssAssests = glob.sync(`${Theme.BUILD_FOLDER}/**.css`);
                 let cssPromisesArr = cssAssests.map(async asset => {
@@ -478,8 +473,7 @@ export default class Theme {
                 theme.assets.umdJs.link = '';
 
                 theme.assets.commonJs = theme.assets.commonJs || {};
-                theme.assets.commonJs.links = commonJsUrls;
-                theme.assets.commonJs.link = '';
+                theme.assets.commonJs.link = commonJsUrl;
 
                 theme.assets.css = theme.assets.css || {};
                 theme.assets.css.links = cssUrls;
