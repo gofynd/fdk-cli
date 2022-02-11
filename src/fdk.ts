@@ -24,80 +24,88 @@ export type Action = (...args: any[]) => void;
 // Common Handler for all commands are executed from here
 Command.prototype.asyncAction = async function (asyncFn: Action) {
     return this.action(async (...args: any[]) => {
-        let parent = args[1].parent;
-        while (true) {
-            if (parent.parent) parent = parent.parent;
-            else break;
-        }
+            initializeLogger();
+            const latest = await checkCliVersionAsync();
+            Debug(`Latest version: ${latest} | ${semver.lt(packageJSON.version, latest)}`);
+            
+            const versionChange = semver.diff(packageJSON.version, latest);
+            const color = versionChange === 'major' ? 'red' : 'green';
+            
+            const logMessage = `There is a new version of ${packageJSON.name} available (${latest}).
+You are currently using ${packageJSON.name} ${packageJSON.version}.
+Install fdk-cli globally using the package manager of your choice.
 
-        if (parent._optionValues.verbose) {
-            process.env.DEBUG = 'fdk';
-            const log_file_path = process.cwd() + '/debug.log';
-            if (fs.existsSync(log_file_path)) fs.removeSync(log_file_path);
-        } else {
-            process.env.DEBUG = 'false';
-        }
-        initializeLogger();
-        try {
-            // check if user is logged in and context is set
-            const command = args[1].name();
-            if (
-                !(notRequireEnvCommands.findIndex(c => command.includes(c)) !== -1) &&
-                !configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)
-            ) {
-                throw new CommandError(COMMON_LOG_MESSAGES.EnvNotSet);
-            }
-            if (
-                !(notRequireAuthCommands.findIndex(c => command.includes(c)) !== -1) &&
-                !configStore.get(CONFIG_KEYS.COOKIE)
-            ) {
-                throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
-            }
-            if (
-                parent.args.includes('theme') &&
-                !parent.args.includes('new') &&
-                !parent.args.includes('init')
-            ) {
-                if (!isAThemeDirectory()) {
-                    const answer = await promptForFDKFolder();
-                    if (!answer) {
-                        throw new CommandError(
-                            ErrorCodes.INVALID_THEME_DIRECTORY.message,
-                            ErrorCodes.INVALID_THEME_DIRECTORY.code
-                        );
-                    }
+Note: You need to update \`${packageJSON.name}\` first inorder to use it.
+Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
+            
+            if (latest && semver.lt(packageJSON.version, latest)) {
+                console.log(
+                    boxen(
+                        versionChange === 'major' ? chalk.red(logMessage) : chalk.green(logMessage),
+                        { borderColor: color, padding: 1 }
+                    )
+                );
+
+                if(semver.diff(packageJSON.version, latest) === 'major') {
+                    process.exit(1);
                 }
             }
-            await asyncFn(...args);
-            checkCliVersionAsync()
-                .then(latest => {
-                    Debug(`Latest version: ${latest} | ${semver.lt(packageJSON.version, latest)}`);
-                    if (latest && semver.lt(packageJSON.version, latest)) {
-                        console.log(
-                            boxen(
-                                chalk.green(`There is a new version of ${packageJSON.name} available (${latest}).
-You are currently using ${packageJSON.name} ${packageJSON.version}.
-Install fdk-cli globally using the package manager of your choice;
-for example: \`npm install -g ${packageJSON.name}\` to get the latest version`),
-                                { borderColor: 'green', padding: 1 }
-                            )
-                        );
-                    }
-                })
-                .catch(error => {
-                    Logger.error(error.message);
-                });
-        } catch (err) {
-            // TODO: Find better ways to consolidate error messages
-            if (err instanceof CommandError) {
-                const message = `${err.code} - ${err.message} `;
-                Logger.error(message);
-            } else {
-                Logger.error(err);
+            let parent = args[1].parent;
+            while (true) {
+                if (parent.parent) parent = parent.parent;
+                else break;
             }
-            Debug(err.stack);
-            process.exit(1);
-        }
+
+            if (parent._optionValues.verbose) {
+                process.env.DEBUG = 'fdk';
+                const log_file_path = process.cwd() + '/debug.log';
+                if (fs.existsSync(log_file_path)) fs.removeSync(log_file_path);
+            } else {
+                process.env.DEBUG = 'false';
+            }
+
+            try {
+                // check if user is logged in and context is set
+                const command = args[1].name();
+                if (
+                    !(notRequireEnvCommands.findIndex(c => command.includes(c)) !== -1) &&
+                    !configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)
+                ) {
+                    throw new CommandError(COMMON_LOG_MESSAGES.EnvNotSet);
+                }
+                if (
+                    !(notRequireAuthCommands.findIndex(c => command.includes(c)) !== -1) &&
+                    !configStore.get(CONFIG_KEYS.COOKIE)
+                ) {
+                    throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
+                }
+                if (
+                    parent.args.includes('theme') &&
+                    !parent.args.includes('new') &&
+                    !parent.args.includes('init')
+                ) {
+                    if (!isAThemeDirectory()) {
+                        const answer = await promptForFDKFolder();
+                        if (!answer) {
+                            throw new CommandError(
+                                ErrorCodes.INVALID_THEME_DIRECTORY.message,
+                                ErrorCodes.INVALID_THEME_DIRECTORY.code
+                            );
+                        }
+                    }
+                }            
+                await asyncFn(...args);
+            } catch (err) {
+                // TODO: Find better ways to consolidate error messages
+                if (err instanceof CommandError) {
+                    const message = `${err.code} - ${err.message} `;
+                    Logger.error(message);
+                } else {
+                    Logger.error(err);
+                }
+                Debug(err.stack);
+                process.exit(1);
+            }
     });
 };
 
