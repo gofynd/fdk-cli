@@ -143,15 +143,18 @@ export async function startServer({ domain, host, isSSR }) {
 			const umdJsInitial = $('link[data-umdjs-cli-source="initial"]');
 			umdJsInitial
 				.after(`<script type="text/javascript" src="${urlJoin(getFullLocalUrl(host), 'themeBundle.umd.js')}"></script>`);
-			umdJsInitial
-				.after(`<script type="text/javascript" src="${urlJoin(getFullLocalUrl(host), 'themeBundle.umd.vendor.js')}"></script>`);
+			const umdJsAssests = glob.sync(`${Theme.BUILD_FOLDER}/themeBundle.umd.**.js`).filter(x => !x.includes(".min."));
+			umdJsAssests.forEach((umdJsLink) => {
+				umdJsInitial
+					.after(`<script type="text/javascript" src="${urlJoin(getFullLocalUrl(host), umdJsLink.replace("./.fdk/dist/", ""))}"></script>`);
+			});
 
 			const cssAssests = glob.sync(`${Theme.BUILD_FOLDER}/**.css`);
 			const cssInitial = $('link[data-css-cli-source="initial"]');
 			cssAssests.forEach((cssLink) => {
 				cssInitial
-					.after(`<link rel="stylesheet" href="${urlJoin(getFullLocalUrl(host), cssLink.replace("./.fdk/dist/", ""))}">`);
-			})
+					.after(`<link rel="stylesheet" href="${urlJoin(getFullLocalUrl(host), cssLink.replace("./.fdk/dist/", ""))}"></link>`);
+			});
 			res.send($.html({ decodeEntities: false }));
 		} catch (e) {
 			if (e.response && e.response.status == 504) {

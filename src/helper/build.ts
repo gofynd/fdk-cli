@@ -34,7 +34,7 @@ interface DevBuild {
 }
 export function devBuild({ buildFolder, imageCdnUrl, isProd } : DevBuild) {
     return new Promise((resolve, reject) => {
-        let b = exec(`node ./node_modules/@vue/cli/bin/vue.js build --target lib --dest ${buildFolder} --name themeBundle theme/index.js`,
+        let b = exec(`node ./node_modules/@vue/cli-service/bin/vue-cli-service.js build --target lib --dest ${buildFolder} --name themeBundle theme/index.js`,
             {
                 cwd: process.cwd(),
                 env: {
