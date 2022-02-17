@@ -1,5 +1,6 @@
 const combineURLs = require("axios/lib/helpers/combineURLs");
 const isAbsoluteURL = require("axios/lib/helpers/isAbsoluteURL");
+import CommandError, { ErrorCodes } from '../../../lib/CommandError';
 
 const {
     sign
@@ -37,7 +38,7 @@ function getTransformer(config) {
         }
     }
 
-    throw new Error(
+    throw new CommandError(
         "Could not get default transformRequest function from Axios defaults"
     );
 }
@@ -46,77 +47,82 @@ function getTransformer(config) {
  function interceptorFn(options) {
     return async (config) => {
 
-        if (!config.url) {
-            throw new Error("No URL present in request config, unable to sign request");
-        }
+        try {
 
-        let url = config.url;
-        if (config.baseURL && !isAbsoluteURL(config.url)) {
-            url = combineURLs(config.baseURL, config.url);
-        }
-        const {
-            host,
-            pathname,
-            search
-        } = new URL(url);
-        if (pathname.startsWith('/service')) {
-            const {
-                data,
-                headers,
-                method,
-                params
-            } = config;
-            if (pathname.startsWith('/service/platform')) {
-                const { getOauthToken } = require('../user')
-                const host = headers['host'];
-                const cookie = headers['Cookie'];
-                const company_id = headers['x-company-id']
-                let { access_token } =  await getOauthToken(host, cookie, company_id) || {};
-                delete headers['host']
-                delete headers['x-company-id']
-                if(access_token){
-                    config.headers['Authorization'] = 'Bearer ' + access_token;
-                }
+            if (!config.url) {
+                throw new CommandError("No URL present in request config, unable to sign request");
             }
-            let queryParam = '';
-            if (params && Object.keys(params).length) {
-                if (search && search.trim() !== '') {
-                    queryParam = `&${transformRequestOptions(params)}`
-                } else {
-                    queryParam = `?${transformRequestOptions(params)}`
-                }
+
+            let url = config.url;
+            if (config.baseURL && !isAbsoluteURL(config.url)) {
+                url = combineURLs(config.baseURL, config.url);
             }
-            const transformRequest = getTransformer(config);
-
-            const transformedData = transformRequest(data, headers);
-
-            // Remove all the default Axios headers
             const {
-                common,
-                delete: _delete, // 'delete' is a reserved word
-                get,
-                head,
-                post,
-                put,
-                patch,
-                ...headersToSign
-            } = headers;
+                host,
+                pathname,
+                search
+            } = new URL(url);
+            if (pathname.startsWith('/service')) {
+                const {
+                    data,
+                    headers,
+                    method,
+                    params
+                } = config;
+                if (pathname.startsWith('/service/platform')) {
+                    const { getOauthToken } = require('../user')
+                    const host = headers['host'];
+                    const cookie = headers['Cookie'];
+                    const company_id = headers['x-company-id']
+                    let { access_token } =  await getOauthToken(host, cookie, company_id) || {};
+                    delete headers['host']
+                    delete headers['x-company-id']
+                    if(access_token){
+                        config.headers['Authorization'] = 'Bearer ' + access_token;
+                    }
+                }
+                let queryParam = '';
+                if (params && Object.keys(params).length) {
+                    if (search && search.trim() !== '') {
+                        queryParam = `&${transformRequestOptions(params)}`
+                    } else {
+                        queryParam = `?${transformRequestOptions(params)}`
+                    }
+                }
+                const transformRequest = getTransformer(config);
 
-            const signingOptions = {
-                method: method && method.toUpperCase(),
-                host: host,
-                path: pathname + search + queryParam,
-                body: transformedData,
-                headers: headersToSign
-            };
-            sign(signingOptions);
-            // console.log(signingOptions);
-            // config.headers = signingOptions.headers;
-            config.headers['x-fp-date'] = signingOptions.headers['x-fp-date'];
-            config.headers['x-fp-signature'] = signingOptions.headers['x-fp-signature'];
+                const transformedData = transformRequest(data, headers);
+
+                // Remove all the default Axios headers
+                const {
+                    common,
+                    delete: _delete, // 'delete' is a reserved word
+                    get,
+                    head,
+                    post,
+                    put,
+                    patch,
+                    ...headersToSign
+                } = headers;
+
+                const signingOptions = {
+                    method: method && method.toUpperCase(),
+                    host: host,
+                    path: pathname + search + queryParam,
+                    body: transformedData,
+                    headers: headersToSign
+                };
+                sign(signingOptions);
+                // console.log(signingOptions);
+                // config.headers = signingOptions.headers;
+                config.headers['x-fp-date'] = signingOptions.headers['x-fp-date'];
+                config.headers['x-fp-signature'] = signingOptions.headers['x-fp-signature'];
+            }
+        
+            return config
+        } catch(error) {
+            throw new CommandError(error.message, error.code);
         }
-      
-        return config
     };
 }
 

@@ -4,6 +4,7 @@ const {
   parseLess
 } = require('./../component-compiler/');
 const { readFile } = require('./../utils/file-utlis');
+import CommandError, { ErrorCodes } from '../../lib/CommandError';
 
 const getScriptTag = scriptText => {
   try {
@@ -12,7 +13,7 @@ const getScriptTag = scriptText => {
     ${validatedScript}
     </script>`;
   } catch (error) {
-    throw new Error(error.message);
+    throw new CommandError('Error occured while creating <script></script> tag');
   }
 };
 
@@ -35,7 +36,7 @@ const getLinkTag = linkText => {
   try {
     return `<link href='${linkText}' rel="stylesheet"/>`;
   } catch (error) {
-    throw new Error(error.message);
+    throw new CommandError('Error occured while creating <link/> tag');
   }
 };
 
@@ -43,7 +44,7 @@ const getCustomScriptTag = scriptLink => {
   try {
     return `<script src='${scriptLink}'></script>`;
   } catch (error) {
-    throw new Error(error.message);
+    throw new CommandError('Error occured while creating custom <script></script> tag');
   }
 };
 

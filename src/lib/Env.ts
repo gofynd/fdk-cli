@@ -57,7 +57,7 @@ export default class Env {
       //   Logger.success(`Env set to: ${answers.ctx}`)
       // });
     } catch (error) {
-        throw new CommandError(error.message)
+        throw new CommandError(error.message, error.code)
     }
   }
 }

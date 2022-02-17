@@ -71,7 +71,7 @@ export default class Auth {
                 }
             });
         } catch (error) {
-            throw new CommandError(error.message);
+            throw new CommandError(error.message, error.code);
         }
     }
     public static getUserInfo() {
@@ -82,7 +82,7 @@ export default class Auth {
             Logger.success(`Name: ${user.first_name} ${user.last_name}`);
             Logger.success(`Email: ${activeEmail}`);
         } catch (error) {
-            throw new CommandError(error.message);
+            throw new CommandError(error.message, error.code);
         }
     }
 }

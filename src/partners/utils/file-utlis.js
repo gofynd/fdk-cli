@@ -1,6 +1,8 @@
 const fs = require('fs-extra');
 const path = require('path');
 const chalk = require('chalk');
+import CommandError from '../../lib/CommandError';
+
 const readFile = relativePath => {
   const fileContents = fs.readFileSync(
     relativePath,
@@ -9,7 +11,7 @@ const readFile = relativePath => {
     },
     function (error) {
       if (error) {
-        throw new Error(
+        throw new CommandError(
           "%s Can't read component files",
           chalk.red.bold('ERROR')
         );
@@ -30,7 +32,8 @@ const writeFile = (relativePath, fileContents, mode='w') => {
     },
     function (error) {
       if (error) {
-        return console.log(
+        // Need to confirm this change
+        throw new CommandError(
           "%s Can't create component files",
           chalk.red.bold('ERROR')
         );

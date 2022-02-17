@@ -295,7 +295,7 @@ export default class Theme {
             await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl });
             // check if build folder exists, as during build, vue fails with non-error code even when it errors out
             if (!fs.existsSync(Theme.BUILD_FOLDER)) {
-                throw new Error('Build Failed');
+                throw new CommandError(`Build Failed. ${Theme.BUILD_FOLDER} does not exists.`);
             }
 
             let androidImages = [];
@@ -453,7 +453,7 @@ export default class Theme {
                 let [cssUrl, commonJsUrl, umdJsUrl] = await Promise.all(pArr);
                 let packageJSON = JSON.parse(readFile(`${process.cwd()}/package.json`));
                 if (!packageJSON.name) {
-                    throw new Error('package.json name can not be empty');
+                    throw new CommandError('package.json name can not be empty');
                 }
                 theme.src = theme.src || {};
                 theme.src.link = srcCdnUrl;
@@ -782,10 +782,10 @@ export default class Theme {
         let sectionNamesObject = {};
         available_sections.forEach((section, index) => {
             if (!fileNameRegex.test(section.name)) {
-                throw new Error(`Invalid section name, ${section.name}`);
+                throw new CommandError(`Invalid section name, ${section.name}`);
             }
             if (sectionNamesObject[`${section.name}`]) {
-                throw new Error(`Duplication section name found. ${section.name}`);
+                throw new CommandError(`Duplication section name found. ${section.name}`);
             }
             sectionNamesObject[`${section.name}`] = true;
         });

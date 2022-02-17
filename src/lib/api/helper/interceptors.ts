@@ -8,6 +8,8 @@ import Curl from '../../../helper/curl';
 import Logger from '../../Logger';
 import Debug from '../../Debug';
 import Auth from '../../Auth';
+import CommandError, { ErrorCodes } from '../../CommandError';
+
 function getTransformer(config) {
     const { transformRequest } = config;
 
@@ -19,7 +21,7 @@ function getTransformer(config) {
         }
     }
 
-    throw new Error('Could not get default transformRequest function from Axios defaults');
+    throw new CommandError('Could not get default transformRequest function from Axios defaults');
 }
 
 function getCompanyId(path: string): number {
@@ -32,7 +34,7 @@ function interceptorFn(options) {
     return async config => {
         try {
             if (!config.url) {
-                throw new Error('No URL present in request config, unable to sign request');
+                throw new CommandError('No URL present in request config, unable to sign request');
             }
             let url = config.url;
             if (config.baseURL && !isAbsoluteURL(config.url)) {
@@ -53,7 +55,7 @@ function interceptorFn(options) {
                         Logger.error("Failed to fetch OAuth token")
                         ConfigStore.delete(CONFIG_KEYS.USER);
                         ConfigStore.delete(CONFIG_KEYS.COOKIE);
-                        throw new Error(error);
+                        throw new CommandError(ErrorCodes.API_ERROR.message, ErrorCodes.API_ERROR.code);
                     }
 
                     if (data.access_token) {
@@ -100,7 +102,7 @@ function interceptorFn(options) {
 
             return config;
         } catch (error) {
-          throw new Error(error);
+          throw new CommandError('Error occured while signing request.'); // Need to confirm this change.
         }
     };
 }

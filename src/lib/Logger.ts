@@ -90,10 +90,10 @@ export default class Logger {
 
 export const COMMON_LOG_MESSAGES = {
   EnvNotSet: `Please set environment to use this command.\n${chalk.yellow(
-    'Use fdk envs to set environment'
+    'Use fdk envs to set environment. i.e. fdk env -n [your-env]'
   )}`,
   ContextNotSet: `Please set context to use this command.\n${chalk.yellow(
-    'Use fdk context-list to set context'
+    'Use fdk context-list to set context. i.e. fdk theme context-list'
   )}`,
   RequireAuth: `Please login to use this command.\n${chalk.yellow(
     'Use fdk login --help to know more'

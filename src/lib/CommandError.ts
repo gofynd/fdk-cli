@@ -6,7 +6,7 @@ export const ErrorCodes = {
     code: 'FDK-0001',
   },
   INVALID_CONTEXT: {
-    message: 'Context not set',
+    message: 'Context not set. Use `fdk theme context -t <theme-token> -n <context-name>` to set context.',
     code: 'FDK-0002',
   },
   API_ERROR: {
