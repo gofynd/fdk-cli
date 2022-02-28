@@ -539,6 +539,50 @@ export default class Theme {
                     delete available_page.sections;
                     availablePages.push(available_page);
                 });
+                let customTemplateFiles = fs
+                .readdirSync(`${process.cwd()}/theme/custom-templates`)
+                .filter(o => o != 'index.js');
+                theme.config = theme.config || {};
+              
+                await asyncForEach(customTemplateFiles, async fileName => {
+                    let pageName = fileName.replace('.vue', '');
+                    // Custom Pages
+                    let availablecustom_page;
+                    try {
+                        availablecustom_page = (await ThemeService.getAvailablePage(pageName)).data;
+                        console.log(availablecustom_page)
+                    } catch (error) {
+                        Logger.log('Creating Page: ', pageName);
+                    }
+
+                    if (!availablecustom_page) {
+                        const pageData = {
+                            value: pageName,
+                            props: [],
+                            sections: [],
+                            sections_meta: [],
+                            type: 'custom',
+                            text: pageNameModifier(pageName),
+                            path: `c/${pageName}`
+                        };
+                        console.log(pageData)
+
+                        availablecustom_page = (await ThemeService.createAvailabePage(pageData)).data;
+                    }
+                    availablecustom_page.props =
+                        (
+                            Theme.extractSettingsFromFile(
+                                `${process.cwd()}/theme/custom-templates/${fileName}`
+                            ) || {}
+                        ).props || [];
+                    availablecustom_page.sections_meta = Theme.extractSectionsFromFile(
+                        `${process.cwd()}/theme/custom-templates/${fileName}`
+                    );
+                    availablecustom_page.type = 'custom';
+                    delete availablecustom_page.sections;
+                    availablePages.push(availablecustom_page);
+                });
+                
                 Logger.warn('Updating theme...');
                 await Promise.all([ThemeService.updateTheme(theme)]);
                 Logger.warn('Updating pages...');
