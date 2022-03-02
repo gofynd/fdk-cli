@@ -11,7 +11,7 @@ import { parse as stackTraceParser}  from 'stacktrace-parser';
 import proxy from 'express-http-proxy';
 
 const BUILD_FOLDER = './.fdk/dist';
-const port = 5000;
+const port = parseInt(process.env.PORT) || 5000;
 let sockets = [];
 let publicCache = {};
 let tunnel
