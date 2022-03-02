@@ -257,11 +257,12 @@ ___
 This command is used to run a theme on your local system.
 #### **Syntax**
 ```sh
-fdk theme serve [options]
+[PORT] fdk theme serve [options]
 ```
 #### **Command Options**
 | Option        | Description           | 
-| ------------- |-------------| 
+| ------------- |-------------|
+| PORT     | Pass custom port number to serve theme. `Default: 5000`
 | --ssr    | Enable/disable Server-side rendering |
 | --help    | Show help |
 
@@ -270,6 +271,10 @@ By default Server-side rendering is enable. To disable it use `--ssr false` with
 #### **Example**
 ```sh
 fdk theme serve
+```
+
+```sh
+PORT=5001 fdk theme serve
 ```
 ___
 <div id="theme-sync"></div>
