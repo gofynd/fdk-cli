@@ -1,6 +1,6 @@
 'use strict';
 var url = require('url');
-var querystring = require('querystring');
+var querystring = require('query-string');
 var sha256 = require('crypto-js/sha256');
 var hmacSHA256 = require('crypto-js/hmac-sha256');
 function hmac(key, string, encoding) {
@@ -106,7 +106,7 @@ var RequestSigner = /** @class */ (function () {
         var kCredentials = '1234567';
         var strTosign = this.stringToSign();
         // console.log(strTosign);
-        return "v1:" + hmac(kCredentials, strTosign, 'hex');
+        return "v1.1:" + hmac(kCredentials, strTosign, 'hex');
     };
     RequestSigner.prototype.stringToSign = function () {
         return [this.getDateTime(), hash(this.canonicalString(), 'hex')].join('\n');
@@ -240,16 +240,15 @@ var RequestSigner = /** @class */ (function () {
     };
     RequestSigner.prototype.parsePath = function () {
         var path = this.request.path || '/';
-        // So if there are non-reserved chars (and it's not already all % encoded), just encode them all
-        if (/[^0-9A-Za-z;,/?:@&=+$\-_.!~*'()#%]/.test(path)) {
-            path = encodeURI(decodeURI(path));
-        }
         var queryIx = path.indexOf('?');
         var query = null;
         if (queryIx >= 0) {
             query = querystring.parse(path.slice(queryIx + 1));
             path = path.slice(0, queryIx);
         }
+        path = path.split("/").map(function (t) {
+            return encodeURIComponent(decodeURIComponent(t));
+        }).join("/");
         this.parsedPath = {
             path: path,
             query: query,
