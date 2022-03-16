@@ -37,8 +37,9 @@ import { downloadFile } from '../helper/download';
 import Env from './Env';
 import Debug from './Debug';
 import ora from 'ora';
-const {  loadModule } = require('@vue/cli-shared-utils')
-
+const { loadModule } = require('@vue/cli-shared-utils')
+//import {page} from `${process.cwd()}/theme/custom-templates/index.js`
+//const {page} =require(`${process.cwd()}/theme/custom-templates/index.js`)
 
 export default class Theme { /*
         new theme from default template -> create
@@ -51,6 +52,7 @@ export default class Theme { /*
         pull-config
     */
     static TEMPLATE_DIRECTORY = path.join(__dirname, '../../template');
+    static CUSTOM_DIRECTORY=path.join(__dirname, '../../template')
     static BUILD_FOLDER = './.fdk/dist';
     static SRC_FOLDER = './.fdk/temp-theme';
     static SRC_ARCHIVE_FOLDER = './.fdk/archive';
@@ -466,16 +468,10 @@ export default class Theme { /*
                     availablePages.push(available_page);
                 });
 
-
-
-
-               let customTemplateFiles = await readJson(`${process.cwd()
-                   }/theme/custom-templates/pages.json`);
-                    // let customTemplateFiles = require(`${process.cwd()}/theme/custom-templates/index.mjs`);
-                    // console.log(customTemplateFiles);
-                    //console.log(customTemplate);
-                    
-                    // return
+             
+                   
+                let customTemplateFiles = await loadModule(path.join(process.cwd() ,'theme/custom-templates/index.js'),'/');
+                 
                 theme.config = theme.config || {};
                 let a = JSON.stringify(customTemplateFiles)
                 let b = JSON.parse(a)
