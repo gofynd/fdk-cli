@@ -35,7 +35,7 @@ function validateEmpty(input) {
 }
 
 // TODO: add public repo name from github
-const INIT_PROJECT_URL = "git@github.com:gofynd/example-extension-javascript.git";//"https://gitlab.com/fynd/regrowth/fynd-platform/extensions/groot.git";
+const INIT_PROJECT_URL = "https://github.com/gofynd/example-extension-javascript.git";//"https://gitlab.com/fynd/regrowth/fynd-platform/extensions/groot.git";
 
 const questions = [
     {
@@ -54,7 +54,7 @@ const questions = [
     },
     {
         type: 'list',
-        choices: ['Node', 'Node + Vue.js'],
+        choices: ['Node + Vue.js'],
         default: 'Node + Vue.js',
         name: 'project_type',
         message: 'Development Language :',
@@ -89,9 +89,8 @@ async function copyTemplateFiles(targetDirectory) {
         }
         await execa('git', ['init'], { cwd: targetDirectory });
         await execa('git', ['remote', 'add', 'origin', INIT_PROJECT_URL], { cwd: targetDirectory });
-        // await execa('git', ['pull', 'origin', 'main:main'], { cwd: targetDirectory });
-        await execa('git', ['pull', 'origin', 'master:master'], { cwd: targetDirectory });
-        // writeFile(targetDirectory + '/.gitignore', `\n.fdk\\node_modules`, 'a+' );
+        await execa('git', ['pull', 'origin', 'main:main'], { cwd: targetDirectory });
+        writeFile(targetDirectory + '/.gitignore', `\n.fdk\\node_modules`, 'a+' );
         await rimraf.sync(`${targetDirectory}/.git`) // unmark as git repo
         return true;
     } catch (error) {
