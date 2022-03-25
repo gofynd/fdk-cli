@@ -249,7 +249,7 @@ export default class Theme {
                     }
                 });
             }
-            Theme.clearPreviousBuild();
+            // Theme.clearPreviousBuild();
             Logger.warn('Reading Files...');
             let themeContent: any = readFile(`${process.cwd()}/config.json`);
             try {

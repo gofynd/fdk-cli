@@ -69,10 +69,12 @@ export default class ThemeContext {
             spaces: 2
           })
         } catch (error) {
+          Logger.info('File is empty');
           throw new CommandError(error.message, error.code);
         }
       });
     } catch (error) {
+      Logger.info('File is empty');
       throw new CommandError(error.message, error.code);
     }
   }

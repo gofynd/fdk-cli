@@ -9,6 +9,7 @@ import { SourceMapConsumer } from 'source-map'
 import urlJoin from 'url-join';
 import { parse as stackTraceParser}  from 'stacktrace-parser';
 import proxy from 'express-http-proxy';
+import FormData from 'form-data';
 
 const BUILD_FOLDER = './.fdk/dist';
 const port = 5000;
@@ -42,15 +43,15 @@ function isTunnelRunning() {
 
 export async function checkTunnel() {
 	try {
-		if (isTunnelRunning()) {
-			const res = await axios.get(tunnel.url + '/_healthz')
-			if (res.data.ok === 'ok') {
-				return
-			}
-		}
-		await createTunnel()
+		// if (isTunnelRunning()) {
+		// 	const res = await axios.get(tunnel.url + '/_healthz')
+		// 	if (res.data.ok === 'ok') {
+		// 		return
+		// 	}
+		// }
+		// await createTunnel()
 	} catch (e) {
-		await createTunnel()
+		// await createTunnel()
 	}
 }
 
@@ -76,10 +77,10 @@ export async function startServer({ domain, host, isSSR }) {
 			res.set(publicCache[url].headers);
 			return res.send(publicCache[url].body);
 		}
-		let networkRes = await axios.get(urlJoin(domain, 'public', req.url));
+		// let networkRes = await axios.get(urlJoin(domain, 'public', req.url));
 		publicCache[url] = publicCache[url] || {};
-		publicCache[url].body = networkRes.data;
-		publicCache[url].headers = networkRes.headers;
+		// publicCache[url].body = networkRes.data;
+		// publicCache[url].headers = networkRes.headers;
 		res.set(publicCache[url].headers);
 		return res.send(publicCache[url].body);
 	});
@@ -105,18 +106,45 @@ export async function startServer({ domain, host, isSSR }) {
 		}
 		console.log(req.hostname, req.url)
 		const jetfireUrl = new URL(urlJoin(domain, req.originalUrl));
+		console.log('original URL', req.originalUrl);
 		if (isSSR) {
-			if (!isTunnelRunning()) {
-				await createTunnel()
-			}
-			const { protocol, host: tnnelHost } = new URL(tunnel.url);
-			jetfireUrl.searchParams.set('__cli_protocol', protocol);
-			jetfireUrl.searchParams.set('__cli_url', tnnelHost);
+			// const { protocol, host: tnnelHost } = new URL(tunnel.url);
+			// jetfireUrl.searchParams.set('__cli_protocol', protocol);
+			// jetfireUrl.searchParams.set('__cli_url', tnnelHost);
 		} else {
 			jetfireUrl.searchParams.set('__csr', 'true');
 		}
 		try {
-			let { data: html } = await axios.get(jetfireUrl.toString());
+			var form = new FormData();			
+			let themeBundleCommonJs = await fs.createReadStream('./.fdk/dist/themeBundle.common.js');
+			form.append('data', themeBundleCommonJs);
+			const localUrlPost = new URL(urlJoin("http://localdev.fyndx0.de:8087"));
+			console.log('LOCAL URL: ', localUrlPost.toString());
+			// const localUrlGet = new URL(urlJoin("http://localdev.fyndx0.de:8087"));
+			// localUrlGet.searchParams.set('__csr', 'true');
+			// localUrlPost.searchParams.set('__csr', 'true');
+			// let { data: html } = await axios.get(localUrlGet.toString());
+			// let { data: html } = await axios.get(jetfireUrl.toString());
+			try {
+				var { data: html } = await axios({
+					method: 'POST',
+					url: localUrlPost.toString(),
+					headers: form.getHeaders(),
+					data: form
+				});
+			} catch(e) {
+				console.log('POST API ERROR', e);
+			}
+
+			await fs.writeFile("context.txt", html, (err) => {
+				if (err) {
+					console.log(err);
+					console.log("########################### File NOT written successfully ######################## \n");
+				}
+				else {
+					console.log("########################### File written successfully ####################### \n");
+				}
+			});
 			let $ = cheerio.load(html);
 			$('head').prepend(`
 					<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
@@ -183,6 +211,7 @@ export async function startServer({ domain, host, isSSR }) {
 					console.log(e)
 				}
 			} else {
+				console.log('BREAKING HERE !!!');
 				console.log(e.request && e.request.path, e.message)
 			}
 		}
@@ -202,7 +231,7 @@ export async function startServer({ domain, host, isSSR }) {
 			}
 			Logger.success(`Starting starter at port -- ${port}`);
 			if (isSSR) {
-				interval = setInterval(checkTunnel, 1000 * 30);
+				// interval = setInterval(checkTunnel, 1000 * 30);
 			}
 			resolve(true);
 		});
