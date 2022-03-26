@@ -24,7 +24,6 @@ export type Action = (...args: any[]) => void;
 // Common Handler for all commands are executed from here
 Command.prototype.asyncAction = async function (asyncFn: Action) {
     return this.action(async (...args: any[]) => {
-        console.log('Local cli');
         let parent = args[1].parent;
         while (true) {
             if (parent.parent) parent = parent.parent;

@@ -168,7 +168,6 @@ export async function startServer({ domain, host, isSSR }) {
 					console.log(e)
 				}
 			} else {
-				console.log('BREAKING HERE !!!');
 				console.log(e.request && e.request.path, e.message)
 			}
 		}
