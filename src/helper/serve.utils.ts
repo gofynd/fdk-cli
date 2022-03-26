@@ -1,6 +1,5 @@
 import path from 'path';
 import fs from 'fs'
-import localtunnel from 'localtunnel'
 import Logger from '../lib/Logger';
 import axios from 'axios';
 import cheerio from 'cheerio';
@@ -12,10 +11,9 @@ import proxy from 'express-http-proxy';
 import FormData from 'form-data';
 
 const BUILD_FOLDER = './.fdk/dist';
-const port = 5000;
+const port = 5001;
 let sockets = [];
 let publicCache = {};
-let tunnel
 
 export function reload() {
 	sockets.forEach((s) => {
@@ -31,38 +29,11 @@ export function getFullLocalUrl(host) {
 	return `${getLocalBaseUrl(host)}:${port}`;
 }
 
-export async function createTunnel() {
-	tunnel = await localtunnel({ port, local_https: true, allow_invalid_cert: true });
-	Logger.success(`Tunnelled at -- ${tunnel.url}`);
-	reload()
-}
-
-function isTunnelRunning() {
-	return tunnel && !tunnel.closed
-}
-
-export async function checkTunnel() {
-	try {
-		// if (isTunnelRunning()) {
-		// 	const res = await axios.get(tunnel.url + '/_healthz')
-		// 	if (res.data.ok === 'ok') {
-		// 		return
-		// 	}
-		// }
-		// await createTunnel()
-	} catch (e) {
-		// await createTunnel()
-	}
-}
-
 export async function startServer({ domain, host, isSSR }) {
 	const app = require('https-localhost')(getLocalBaseUrl(host));
 	const certs = await app.getCerts();
 	const server = require('https').createServer(certs, app);
 	const io = require('socket.io')(server);
-	if (isSSR && !isTunnelRunning()) {
-		await createTunnel()
-	}
 
 	io.on('connection', function (socket) {
 		sockets.push(socket);
@@ -108,9 +79,7 @@ export async function startServer({ domain, host, isSSR }) {
 		const jetfireUrl = new URL(urlJoin(domain, req.originalUrl));
 		console.log('original URL', req.originalUrl);
 		if (isSSR) {
-			// const { protocol, host: tnnelHost } = new URL(tunnel.url);
-			// jetfireUrl.searchParams.set('__cli_protocol', protocol);
-			// jetfireUrl.searchParams.set('__cli_url', tnnelHost);
+			jetfireUrl.searchParams.set('__cli', 'true');
 		} else {
 			jetfireUrl.searchParams.set('__csr', 'true');
 		}
@@ -119,6 +88,7 @@ export async function startServer({ domain, host, isSSR }) {
 			let themeBundleCommonJs = await fs.createReadStream('./.fdk/dist/themeBundle.common.js');
 			form.append('data', themeBundleCommonJs);
 			const localUrlPost = new URL(urlJoin("http://localdev.fyndx0.de:8087"));
+			localUrlPost.searchParams.set('__cli', 'true');
 			console.log('LOCAL URL: ', localUrlPost.toString());
 			// const localUrlGet = new URL(urlJoin("http://localdev.fyndx0.de:8087"));
 			// localUrlGet.searchParams.set('__csr', 'true');
@@ -135,16 +105,6 @@ export async function startServer({ domain, host, isSSR }) {
 			} catch(e) {
 				console.log('POST API ERROR', e);
 			}
-
-			await fs.writeFile("context.txt", html, (err) => {
-				if (err) {
-					console.log(err);
-					console.log("########################### File NOT written successfully ######################## \n");
-				}
-				else {
-					console.log("########################### File written successfully ####################### \n");
-				}
-			});
 			let $ = cheerio.load(html);
 			$('head').prepend(`
 					<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
@@ -179,9 +139,6 @@ export async function startServer({ domain, host, isSSR }) {
 			res.send($.html({ decodeEntities: false }));
 		} catch (e) {
 			if (e.response && e.response.status == 504) {
-				if (!isTunnelRunning()) {
-					await createTunnel()
-				}
 				res.redirect(req.originalUrl)
 			} else if (e.response && e.response.status == 500) {
 				try {
@@ -218,21 +175,11 @@ export async function startServer({ domain, host, isSSR }) {
 	});
 
 	await new Promise((resolve, reject) => {
-		let interval;
 		server.listen(port, (err) => {
 			if (err) {
-				if (isSSR) {
-					if (interval) {
-						clearInterval(interval);
-					}
-					tunnel.close()
-				}
 				return reject(err);
 			}
-			Logger.success(`Starting starter at port -- ${port}`);
-			if (isSSR) {
-				// interval = setInterval(checkTunnel, 1000 * 30);
-			}
+			Logger.success(`Starting starter at port -- ${port} in ${isSSR? 'SSR': 'Non-SSR'} mode`);
 			resolve(true);
 		});
 	});
