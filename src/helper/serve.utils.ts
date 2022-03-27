@@ -60,41 +60,47 @@ export async function startServer({ domain, host, isSSR }) {
 		res.json({ ok: 'ok' });
 	});
 
-	// app.use('/platform', proxy(`https://${host}`, {
-	//   proxyReqPathResolver: function (req) {
-	//     return `/platform${req.url}`;
-	//   }
-	// }));
+	app.use('/platform', proxy(`https://${host}`, {
+	  proxyReqPathResolver: function (req) {
+	    return `/platform${req.url}`;
+	  }
+	}));
 	app.use(`/api`, proxy(`${host}`));
 	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
 
 	app.get('/*', async (req, res) => {
-		if (req.originalUrl == '/themeBundle.common.js') {
-			return res.sendFile(path.resolve(process.cwd(), `${BUILD_FOLDER}/themeBundle.common.js`))
-		}
+
 		if (req.originalUrl == '/favicon.ico' || req.originalUrl == '/.webp') {
 			return res.status(404).send('Not found');
 		}
-		console.log(req.hostname, req.url)
+
 		const jetfireUrl = new URL(urlJoin(domain, req.originalUrl));
+		jetfireUrl.searchParams.set('__cli', 'true');
+		
+		// Added only for debugging purpose.
+		const localUrlPost = new URL(urlJoin("http://localdev.fyndx0.de:8087"));
+		localUrlPost.searchParams.set('__cli', 'true');
+
+		console.log(req.hostname, req.url);
 		console.log('original URL', req.originalUrl);
+
 		if (isSSR) {
-			jetfireUrl.searchParams.set('__cli', 'true');
+			jetfireUrl.searchParams.set('__csr', 'false');
+			localUrlPost.searchParams.set('__csr', 'false');
 		} else {
 			jetfireUrl.searchParams.set('__csr', 'true');
+			localUrlPost.searchParams.set('__csr', 'true');
 		}
 		try {
-			var form = new FormData();			
-			let themeBundleCommonJs = await fs.createReadStream('./.fdk/dist/themeBundle.common.js');
+			const BUNDLE_PATH = path.join(process.cwd(), '/.fdk/dist/themeBundle.common.js');
+			let themeBundleCommonJs = await fs.createReadStream(BUNDLE_PATH);
+			
+			var form = new FormData();
 			form.append('data', themeBundleCommonJs);
-			const localUrlPost = new URL(urlJoin("http://localdev.fyndx0.de:8087"));
-			localUrlPost.searchParams.set('__cli', 'true');
-			console.log('LOCAL URL: ', localUrlPost.toString());
-			// const localUrlGet = new URL(urlJoin("http://localdev.fyndx0.de:8087"));
-			// localUrlGet.searchParams.set('__csr', 'true');
-			// localUrlPost.searchParams.set('__csr', 'true');
-			// let { data: html } = await axios.get(localUrlGet.toString());
-			// let { data: html } = await axios.get(jetfireUrl.toString());
+			
+			console.log('Jetfire URL: ', jetfireUrl.toString());
+			
+			// Bundle Buffer directly passed on with POST request body.
 			try {
 				var { data: html } = await axios({
 					method: 'POST',
@@ -105,6 +111,7 @@ export async function startServer({ domain, host, isSSR }) {
 			} catch(e) {
 				console.log('POST API ERROR', e);
 			}
+
 			let $ = cheerio.load(html);
 			$('head').prepend(`
 					<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
