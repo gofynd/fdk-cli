@@ -564,6 +564,10 @@ export default class Theme {
                     : options['ssr'] == 'true'
                     ? true
                     : false;
+
+            const DEFAULT_PORT = 5001;
+            const port = typeof options['port'] === 'string' ? parseInt(options['port']) : typeof options['port'] === 'number' ? options['port'] : DEFAULT_PORT;
+
             !isSSR ? Logger.warn('Disabling SSR') : null;
             let { data: appInfo } = await ConfigurationService.getApplicationDetails();
             let domain = Array.isArray(appInfo.domains)
@@ -574,16 +578,16 @@ export default class Theme {
             Logger.success(`Locally building............`);
             await devBuild({
                 buildFolder: Theme.BUILD_FOLDER,
-                imageCdnUrl: urlJoin(getFullLocalUrl(host), 'assets/images'),
+                imageCdnUrl: urlJoin(getFullLocalUrl(host, port), 'assets/images'),
                 isProd: isSSR,
             });
 
             // start dev server
             console.log(chalk.bold.green(`Starting server`));
-            await startServer({ domain, host, isSSR });
+            await startServer({ domain, host, isSSR, port });
 
             // open browser
-            await open(getFullLocalUrl(host));
+            await open(getFullLocalUrl(host, port));
             console.log(chalk.bold.green(`Watching files for changes`));
             let watcher = chokidar.watch(path.resolve(process.cwd(), 'theme'), {
                 persistent: true,
@@ -592,7 +596,7 @@ export default class Theme {
                 console.log(chalk.bold.green(`building............`));
                 await devBuild({
                     buildFolder: path.resolve(process.cwd(), Theme.BUILD_FOLDER),
-                    imageCdnUrl: urlJoin(getFullLocalUrl(host), 'assets/images'),
+                    imageCdnUrl: urlJoin(getFullLocalUrl(host, port), 'assets/images'),
                     isProd: isSSR,
                 });
                 reload();

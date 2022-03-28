@@ -11,7 +11,6 @@ import { parse as stackTraceParser}  from 'stacktrace-parser';
 import proxy from 'express-http-proxy';
 
 const BUILD_FOLDER = './.fdk/dist';
-const port = parseInt(process.env.PORT) || 5000;
 let sockets = [];
 let publicCache = {};
 let tunnel
@@ -26,11 +25,11 @@ export function getLocalBaseUrl(host) {
 	return host.replace('api', 'localdev');
 }
 
-export function getFullLocalUrl(host) {
+export function getFullLocalUrl(host, port) {
 	return `${getLocalBaseUrl(host)}:${port}`;
 }
 
-export async function createTunnel() {
+export async function createTunnel(port) {
 	tunnel = await localtunnel({ port, local_https: true, allow_invalid_cert: true });
 	Logger.success(`Tunnelled at -- ${tunnel.url}`);
 	reload()
@@ -40,7 +39,7 @@ function isTunnelRunning() {
 	return tunnel && !tunnel.closed
 }
 
-export async function checkTunnel() {
+export async function checkTunnel(port) {
 	try {
 		if (isTunnelRunning()) {
 			const res = await axios.get(tunnel.url + '/_healthz')
@@ -48,19 +47,20 @@ export async function checkTunnel() {
 				return
 			}
 		}
-		await createTunnel()
+		await createTunnel(port)
 	} catch (e) {
-		await createTunnel()
+		await createTunnel(port)
 	}
 }
 
-export async function startServer({ domain, host, isSSR }) {
+export async function startServer({ domain, host, isSSR, port }) {
+
 	const app = require('https-localhost')(getLocalBaseUrl(host));
 	const certs = await app.getCerts();
 	const server = require('https').createServer(certs, app);
 	const io = require('socket.io')(server);
 	if (isSSR && !isTunnelRunning()) {
-		await createTunnel()
+		await createTunnel(port)
 	}
 
 	io.on('connection', function (socket) {
@@ -107,7 +107,7 @@ export async function startServer({ domain, host, isSSR }) {
 		const jetfireUrl = new URL(urlJoin(domain, req.originalUrl));
 		if (isSSR) {
 			if (!isTunnelRunning()) {
-				await createTunnel()
+				await createTunnel(port)
 			}
 			const { protocol, host: tnnelHost } = new URL(tunnel.url);
 			jetfireUrl.searchParams.set('__cli_protocol', protocol);
@@ -138,21 +138,21 @@ export async function startServer({ domain, host, isSSR }) {
 				`);
 			$('#theme-umd-js').attr(
 				'src',
-				urlJoin(getFullLocalUrl(host), 'themeBundle.umd.js')
+				urlJoin(getFullLocalUrl(host, port), 'themeBundle.umd.js')
 			);
 			$('#theme-umd-js-link').attr(
 				'href',
-				urlJoin(getFullLocalUrl(host), 'themeBundle.umd.js')
+				urlJoin(getFullLocalUrl(host, port), 'themeBundle.umd.js')
 			);
 			$('#theme-css').attr(
 				'href',
-				urlJoin(getFullLocalUrl(host), 'themeBundle.css')
+				urlJoin(getFullLocalUrl(host, port), 'themeBundle.css')
 			);
 			res.send($.html({ decodeEntities: false }));
 		} catch (e) {
 			if (e.response && e.response.status == 504) {
 				if (!isTunnelRunning()) {
-					await createTunnel()
+					await createTunnel(port)
 				}
 				res.redirect(req.originalUrl)
 			} else if (e.response && e.response.status == 500) {
@@ -202,7 +202,9 @@ export async function startServer({ domain, host, isSSR }) {
 			}
 			Logger.success(`Starting starter at port -- ${port}`);
 			if (isSSR) {
-				interval = setInterval(checkTunnel, 1000 * 30);
+				interval = setInterval(function() {
+					checkTunnel(port);
+				}, 1000 * 30);
 			}
 			resolve(true);
 		});
