@@ -14,6 +14,7 @@ const BUILD_FOLDER = './.fdk/dist';
 let sockets = [];
 let publicCache = {};
 let tunnel
+let port = null;
 
 export function reload() {
 	sockets.forEach((s) => {
@@ -25,11 +26,11 @@ export function getLocalBaseUrl(host) {
 	return host.replace('api', 'localdev');
 }
 
-export function getFullLocalUrl(host, port) {
+export function getFullLocalUrl(host) {
 	return `${getLocalBaseUrl(host)}:${port}`;
 }
 
-export async function createTunnel(port) {
+export async function createTunnel() {
 	tunnel = await localtunnel({ port, local_https: true, allow_invalid_cert: true });
 	Logger.success(`Tunnelled at -- ${tunnel.url}`);
 	reload()
@@ -39,7 +40,7 @@ function isTunnelRunning() {
 	return tunnel && !tunnel.closed
 }
 
-export async function checkTunnel(port) {
+export async function checkTunnel() {
 	try {
 		if (isTunnelRunning()) {
 			const res = await axios.get(tunnel.url + '/_healthz')
@@ -47,20 +48,21 @@ export async function checkTunnel(port) {
 				return
 			}
 		}
-		await createTunnel(port)
+		await createTunnel()
 	} catch (e) {
-		await createTunnel(port)
+		await createTunnel()
 	}
 }
 
-export async function startServer({ domain, host, isSSR, port }) {
+export async function startServer({ domain, host, isSSR, PORT }) {
 
+	port = PORT;
 	const app = require('https-localhost')(getLocalBaseUrl(host));
 	const certs = await app.getCerts();
 	const server = require('https').createServer(certs, app);
 	const io = require('socket.io')(server);
 	if (isSSR && !isTunnelRunning()) {
-		await createTunnel(port)
+		await createTunnel()
 	}
 
 	io.on('connection', function (socket) {
@@ -107,7 +109,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 		const jetfireUrl = new URL(urlJoin(domain, req.originalUrl));
 		if (isSSR) {
 			if (!isTunnelRunning()) {
-				await createTunnel(port)
+				await createTunnel()
 			}
 			const { protocol, host: tnnelHost } = new URL(tunnel.url);
 			jetfireUrl.searchParams.set('__cli_protocol', protocol);
@@ -138,21 +140,21 @@ export async function startServer({ domain, host, isSSR, port }) {
 				`);
 			$('#theme-umd-js').attr(
 				'src',
-				urlJoin(getFullLocalUrl(host, port), 'themeBundle.umd.js')
+				urlJoin(getFullLocalUrl(host), 'themeBundle.umd.js')
 			);
 			$('#theme-umd-js-link').attr(
 				'href',
-				urlJoin(getFullLocalUrl(host, port), 'themeBundle.umd.js')
+				urlJoin(getFullLocalUrl(host), 'themeBundle.umd.js')
 			);
 			$('#theme-css').attr(
 				'href',
-				urlJoin(getFullLocalUrl(host, port), 'themeBundle.css')
+				urlJoin(getFullLocalUrl(host), 'themeBundle.css')
 			);
 			res.send($.html({ decodeEntities: false }));
 		} catch (e) {
 			if (e.response && e.response.status == 504) {
 				if (!isTunnelRunning()) {
-					await createTunnel(port)
+					await createTunnel()
 				}
 				res.redirect(req.originalUrl)
 			} else if (e.response && e.response.status == 500) {
@@ -202,9 +204,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 			}
 			Logger.success(`Starting starter at port -- ${port}`);
 			if (isSSR) {
-				interval = setInterval(function() {
-					checkTunnel(port);
-				}, 1000 * 30);
+				interval = setInterval(checkTunnel, 1000 * 30);
 			}
 			resolve(true);
 		});
