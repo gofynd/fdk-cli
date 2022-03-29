@@ -13,10 +13,10 @@ import detect from 'detect-port';
 import chalk from 'chalk';
 
 const BUILD_FOLDER = './.fdk/dist';
+let port = 5001;
 let sockets = [];
 let publicCache = {};
 let tunnel
-let port = 5001;
 
 export function reload() {
 	sockets.forEach((s) => {
