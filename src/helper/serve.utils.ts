@@ -16,7 +16,7 @@ const BUILD_FOLDER = './.fdk/dist';
 let sockets = [];
 let publicCache = {};
 let tunnel
-let port = null;
+let port = 5001;
 
 export function reload() {
 	sockets.forEach((s) => {
@@ -56,8 +56,8 @@ export async function checkTunnel() {
 	}
 }
 
-async function getPort(port) {
-	return await detect(port);
+function getPort(port) {
+	return detect(port);
 }
 
 export async function startServer({ domain, host, isSSR, serverPort }) {

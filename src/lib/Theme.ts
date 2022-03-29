@@ -583,7 +583,7 @@ export default class Theme {
             });
 
             // start dev server
-            console.log(chalk.bold.blueBright(`Starting server...`));
+            Logger.info(chalk.bold.blueBright(`Starting server...`));
             await startServer({ domain, host, isSSR, serverPort });
 
             // open browser
