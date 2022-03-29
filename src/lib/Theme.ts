@@ -566,7 +566,7 @@ export default class Theme {
                     : false;
 
             const DEFAULT_PORT = 5001;
-            const PORT = typeof options['port'] === 'string' ? parseInt(options['port']) : typeof options['port'] === 'number' ? options['port'] : DEFAULT_PORT;
+            const serverPort = typeof options['port'] === 'string' ? parseInt(options['port']) : typeof options['port'] === 'number' ? options['port'] : DEFAULT_PORT;
 
             !isSSR ? Logger.warn('Disabling SSR') : null;
             let { data: appInfo } = await ConfigurationService.getApplicationDetails();
@@ -584,7 +584,7 @@ export default class Theme {
 
             // start dev server
             console.log(chalk.bold.green(`Starting server`));
-            await startServer({ domain, host, isSSR, PORT });
+            await startServer({ domain, host, isSSR, serverPort });
 
             // open browser
             await open(getFullLocalUrl(host));

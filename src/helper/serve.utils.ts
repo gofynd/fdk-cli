@@ -9,6 +9,7 @@ import { SourceMapConsumer } from 'source-map'
 import urlJoin from 'url-join';
 import { parse as stackTraceParser}  from 'stacktrace-parser';
 import proxy from 'express-http-proxy';
+import detect from 'detect-port';
 
 const BUILD_FOLDER = './.fdk/dist';
 let sockets = [];
@@ -54,9 +55,24 @@ export async function checkTunnel() {
 	}
 }
 
-export async function startServer({ domain, host, isSSR, PORT }) {
+async function getPort(port) {
+	return detect(port)
+		.then(_port => {
+			const PORT = _port;
+			
+			if (port !== _port) {
+				console.log(`port: ${port} is busy, Using port: ${_port}`);
+			}
 
-	port = PORT;
+			return PORT;
+		})
+		.catch(err => console.log('Error occurred while detecting port.\n', err));
+}
+
+export async function startServer({ domain, host, isSSR, serverPort }) {
+
+	port = await getPort(serverPort);
+
 	const app = require('https-localhost')(getLocalBaseUrl(host));
 	const certs = await app.getCerts();
 	const server = require('https').createServer(certs, app);
