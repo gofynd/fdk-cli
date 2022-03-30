@@ -2,6 +2,7 @@ import configStore, { CONFIG_KEYS } from './Config';
 import inquirer from 'inquirer';
 import CommandError from './CommandError';
 import Logger, { COMMON_LOG_MESSAGES } from './Logger';
+import chalk from 'chalk';
 
 export const AVAILABLE_ENVS = {
   fyndx1: 'api.fyndx1.de',
@@ -35,15 +36,25 @@ export default class Env {
     if(!ctx) {
       throw new CommandError(COMMON_LOG_MESSAGES.EnvNotSet)
     }
-    Logger.success(`Active Envoirnment: ${ctx}`)
+    Logger.success(`${chalk.bold('Active Envoirnment')}: ${ctx}`)
   }
-  public static async listEnvs(options) {
+  public static async listEnvs() {
     try {
-      if(options.name) {
-        Env.setEnv(options.name);
-        Logger.success(`Env set to: ${options.name}`)
-        return;
-      }
+      const ACTIVE_ENVIRONMENT = Env.getEnvValue();
+      
+      Logger.info(chalk.bold.blueBright(`List of supported Environments:`));
+      Object.keys(AVAILABLE_ENVS).forEach(key => {
+        if(key.toString() === ACTIVE_ENVIRONMENT.toString()) {
+          Logger.info(`${chalk.bold.greenBright(key)}*`);
+        } else {
+          Logger.info(chalk.bold.gray(key));
+        }
+      });
+      // if(options.name) {
+      //   Env.setEnv(options.name);
+      //   Logger.success(`Env set to: ${options.name}`)
+      //   return;
+      // }
       // const env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE) || 'Not set'
       // Logger.success(`Active Envoirnment: ${env}`)
       // const questions = [
@@ -60,6 +71,22 @@ export default class Env {
       // });
     } catch (error) {
         throw new CommandError(error.message)
+    }
+  }
+
+  public static async setNewEnvs(options) {
+    try {
+      if(options.name) {
+        if(Object.keys(AVAILABLE_ENVS).includes(options.name)) {
+          Env.setEnv(options.name);
+          Logger.success(`Env set to: ${options.name}`);
+        } else {
+          Logger.error(`*${chalk.bold(options.name)}* environment is not supported.\n`);
+          Env.listEnvs();
+        }
+      }
+    } catch(e) {
+      throw new CommandError(e.message);
     }
   }
 }

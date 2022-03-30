@@ -2,15 +2,21 @@ import { CommanderStatic } from 'commander';
 import Env from '../lib/Env';
 
 export default function env(program: CommanderStatic) {
-  // List available config
+  
+  // List available environments
   program
-    .command('env')
-    .alias('env ls')
-    .requiredOption('-n, --name [env-name]', 'Environment name')
+    .command('env-ls')
     .description('Shows a list of all available envs')
     .asyncAction(Env.listEnvs);
 
-  // Show active env
+  // set new enviroment
+  program
+  .command('env')
+  .requiredOption('-n, --name [env-name]', 'Environment name')
+  .description('Set new environment')
+  .asyncAction(Env.setNewEnvs);
+
+    // Show active env
   program
     .command('current-env')
     .alias('ctx')
