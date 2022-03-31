@@ -34,9 +34,9 @@ export default class Env {
   public static getEnv() {
     const ctx = Env.getEnvValue();
     if(!ctx) {
-      throw new CommandError(COMMON_LOG_MESSAGES.EnvNotSet)
+      throw new CommandError(COMMON_LOG_MESSAGES.EnvNotSet);
     }
-    Logger.success(`${chalk.bold('Active Envoirnment')}: ${ctx}`)
+    Logger.success(`${'Active Environment'}: ${chalk.bold(ctx)}`);
   }
   public static async listEnvs() {
     try {
@@ -69,7 +69,7 @@ export default class Env {
       //   Logger.success(`Env set to: ${answers.ctx}`)
       // });
     } catch (error) {
-        throw new CommandError(error.message)
+        throw new CommandError(error.message);
     }
   }
 
@@ -78,7 +78,7 @@ export default class Env {
       if(options.name) {
         if(Object.keys(AVAILABLE_ENVS).includes(options.name)) {
           Env.setEnv(options.name);
-          Logger.success(`Env set to: ${options.name}`);
+          Logger.success(`Env set to: ${chalk.bold(options.name)}`);
         } else {
           Logger.error(`*${chalk.bold(options.name)}* environment is not supported.\n`);
           Env.listEnvs();
