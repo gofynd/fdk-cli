@@ -37,6 +37,8 @@ import { downloadFile } from '../helper/download';
 import Env from './Env';
 import Debug from './Debug';
 import ora from 'ora';
+import NativeModule from 'module';
+import vm from 'vm';
 const { loadModule } = require('@vue/cli-shared-utils')
 //import {page} from `${process.cwd()}/theme/custom-templates/index.js`
 //const {page} =require(`${process.cwd()}/theme/custom-templates/index.js`)
@@ -52,7 +54,6 @@ export default class Theme { /*
         pull-config
     */
     static TEMPLATE_DIRECTORY = path.join(__dirname, '../../template');
-    static CUSTOM_DIRECTORY=path.join(__dirname, '../../template')
     static BUILD_FOLDER = './.fdk/dist';
     static SRC_FOLDER = './.fdk/temp-theme';
     static SRC_ARCHIVE_FOLDER = './.fdk/archive';
@@ -370,7 +371,7 @@ export default class Theme { /*
                 Logger.warn('Uploading src...');
                 let res = await UploadService.uploadFile(zipFilePath, 'application-theme-src');
                 srcCdnUrl = res.start.cdn.url;
-            } 
+            }
             {
                 const urlHash = shortid.generate();
                 const assets = ['themeBundle.css', 'themeBundle.common.js', 'themeBundle.umd.min.js',];
@@ -468,10 +469,71 @@ export default class Theme { /*
                     availablePages.push(available_page);
                 });
 
-             
-                   
-                let customTemplateFiles = await loadModule(path.join(process.cwd() ,'theme/custom-templates/index.js'),'/');
-                 
+
+                console.log(Theme.BUILD_FOLDER);
+                let cuFiles = fs.readdirSync(Theme.BUILD_FOLDER)
+                //console.log(cuFiles)
+                let z
+
+                for (let i in cuFiles) {
+                    let h = new RegExp(/themeBundle.common.js$/).test(cuFiles[i]);
+                    if (h == true) {
+                        z = cuFiles[i]
+
+                    }
+                }
+                /**
+                * require new file
+                * @param {*} path
+                */
+                const requireFile = path => {
+                    return require(path);
+                };
+
+                const evaluateModule = code => {
+                    const mo = NativeModule.wrap(code)
+                    //console.log(mo)
+                    var script = new vm.Script(mo,{
+                        displayErrors:true
+                    });
+                    console.log('script', script)
+                    var compiledWrapper = script.runInNewContext();
+                    console.log('cw', compiledWrapper);
+                    var m = { exports: {} };
+
+                    compiledWrapper.call(m.exports, m.exports, requireFile, m);
+
+                    var res = Object.prototype.hasOwnProperty.call(m.exports, 'default')
+                        ? m.exports
+                        : m.exports;
+                    return res;
+                };
+                let bun = await fs.readFile(path.join(Theme.BUILD_FOLDER, z), 'utf-8')
+                evaluateModule(bun)
+                // const getCompiledScript = code => {
+                //     const wrapper = NativeModule.wrap(code);
+                //     const script = new vm.Script(wrapper, {
+                //         displayErrors: true
+                //     });
+                //     console.log('script',script)
+                //     return script;
+                // };
+
+                // let file = await import(path.join(Theme.BUILD_FOLDER, z)).then(data => console.log(data))
+                // console.log(file);
+
+                let customTemplateFiles
+                //= await loadModule(path.join(Theme.BUILD_FOLDER, z),'/');
+                //console.log(customTemplateFiles)
+                // let y= await fs.readFile(path.join(Theme.BUILD_FOLDER, z),'utf-8')
+                // console.log(typeof y);
+                // console.log(y);
+                // let d=JSON.parse(y)
+                // console.log('y',d)
+
+
+
+                return
                 theme.config = theme.config || {};
                 let a = JSON.stringify(customTemplateFiles)
                 let b = JSON.parse(a)
@@ -487,14 +549,14 @@ export default class Theme { /*
                                 l.push(key)
                             }
                             childrenPage(obj[key], l)
-                            
+
                         }
                     }
                 }
                 for (let key in b) {
                     let k = [];
                     k.push(key)
-                  
+
                     childrenPage(b[key], k)
 
                     let path = 'c'
@@ -503,16 +565,16 @@ export default class Theme { /*
                         paths.push(path)
                         customPages.push(k[i])
                     }
-                   
-                }  
+
+                }
                 var output = paths.map(function (obj, index) {
                     var myobj = {};
                     myobj[customPages[index]] = obj;
                     return myobj;
                 });
-            
-              for(let i in output){
-                  let availablecustom_page
+
+                for (let i in output) {
+                    let availablecustom_page
                     try {
                         availablecustom_page = (await ThemeService.getAvailablePage(Object.keys(output[i])[0])).data;
                         console.log(availablecustom_page)
@@ -547,7 +609,7 @@ export default class Theme { /*
                     availablecustom_page.type = 'custom';
                     delete availablecustom_page.sections;
                     availablePages.push(availablecustom_page);
-              }
+                }
                 Logger.warn('Updating theme...');
                 await Promise.all(
                     [ThemeService.updateTheme(theme)]
