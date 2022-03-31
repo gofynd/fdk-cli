@@ -14,10 +14,15 @@ import { initializeLogger } from './lib/Logger';
 import { isAThemeDirectory } from './helper/utils';
 import inquirer from 'inquirer';
 import path from 'path';
+import Env from './lib/Env';
+import { getActiveContext } from './helper/utils.js';
+
 const packageJSON = require('../package.json');
 
 const notRequireAuthCommands = ['login', 'env', 'logout', 'auth'];
-const notRequireEnvCommands = ['env'];
+const notRequireEnvCommands = ['env', 'env-ls'];
+const notRequiredThemeCommands = ['serve', 'sync'];
+
 // asyncAction is a wrapper for all commands/actions to be executed after commander is done
 // parsing the command input
 export type Action = (...args: any[]) => void;
@@ -81,6 +86,12 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
                     !configStore.get(CONFIG_KEYS.COOKIE)
                 ) {
                     throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
+                }
+                if(notRequiredThemeCommands.findIndex(c => command.includes(c)) !== -1) {
+                    const activeContextEnv = getActiveContext().env;
+                    if(activeContextEnv !== Env.getEnvValue()) {
+                        throw new CommandError(COMMON_LOG_MESSAGES.contextMismatch);
+                    }
                 }
                 if (
                     parent.args.includes('theme') &&

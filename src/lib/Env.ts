@@ -41,10 +41,9 @@ export default class Env {
   public static async listEnvs() {
     try {
       const ACTIVE_ENVIRONMENT = Env.getEnvValue();
-      
       Logger.info(chalk.bold.blueBright(`List of supported Environments:`));
       Object.keys(AVAILABLE_ENVS).forEach(key => {
-        if(key.toString() === ACTIVE_ENVIRONMENT.toString()) {
+        if(ACTIVE_ENVIRONMENT && key.toString() === ACTIVE_ENVIRONMENT.toString()) {
           Logger.info(`${chalk.bold.greenBright(key)}*`);
         } else {
           Logger.info(chalk.bold.gray(key));
