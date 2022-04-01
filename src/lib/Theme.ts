@@ -3,13 +3,13 @@ import {
     createContext,
     decodeBase64,
     getActiveContext,
-    pageNameModifier
+    pageNameModifier,
 } from '../helper/utils';
 import CommandError, { ErrorCodes } from './CommandError';
 import Logger, { COMMON_LOG_MESSAGES } from './Logger';
 import ConfigStore, { CONFIG_KEYS } from './Config';
 import ConfigurationService from './api/services/configuration.service';
-import fs, { futimesSync, readJson } from 'fs-extra';
+import fs from 'fs-extra';
 import path from 'path';
 import execa from 'execa';
 import rimraf from 'rimraf';
@@ -61,35 +61,29 @@ export default class Theme { /*
         try {
             if (fs.existsSync(targetDirectory)) {
                 shouldDelete = false;
-                throw new CommandError(`Folder ${options.name
-                    } already exists`);
+                throw new CommandError(`Folder ${options.name} already exists`);
             }
             Logger.warn('Validating token');
             const configObj = JSON.parse(decodeBase64(options.token) || '{}');
-            Debug(`Token Data: ${JSON.stringify(configObj)
-                }`);
+            Debug(`Token Data: ${JSON.stringify(configObj)}`);
             if (!configObj)
                 throw new CommandError('Invalid token', ErrorCodes.INVALID_INPUT.code);
 
             if (new Date(Date.now()) > new Date(configObj.expires_in)) {
                 throw new CommandError('Token expired. Generate a new token', ErrorCodes.INVALID_INPUT.code);
             }
-            Debug(`Token expires in: ${configObj.expires_in
-                }`);
+            Debug(`Token expires in: ${configObj.expires_in}`);
             const { data: appConfig } = await ConfigurationService.getApplicationDetails(configObj);
             Logger.warn('Creating Theme');
             let available_sections = await Theme.getAvailableSections();
             const themeData = {
                 information: {
-                    name: options.name
+                    name: options.name,
                 },
-                available_sections
+                available_sections,
             };
 
-            const { data: theme } = await ThemeService.createTheme({
-                ...configObj,
-                ...themeData
-            });
+            const { data: theme } = await ThemeService.createTheme({ ...configObj, ...themeData });
             Logger.warn('Copying template files');
             shouldDelete = true;
             await Theme.copyTemplateFiles(Theme.TEMPLATE_DIRECTORY, targetDirectory);
@@ -98,29 +92,30 @@ export default class Theme { /*
                 application_id: appConfig._id,
                 domain: appConfig.domain.name,
                 company_id: appConfig.company_id,
-                theme_id: theme._id
+                theme_id: theme._id,
             };
-            process.chdir(`./${options.name
-                }`);
+            process.chdir(`./${options.name}`);
             Logger.warn('Saving context');
             await createContext(context);
             Logger.warn('Installing dependencies');
             await Theme.installNpmPackages();
-            let packageJSON = await fs.readJSON(`${process.cwd()
-                }/package.json`);
+            let packageJSON = await fs.readJSON(`${process.cwd()}/package.json`);
             packageJSON.name = Theme.sanitizeThemeName(options.name);
-            await fs.writeJSON(`${process.cwd()
-                }/package.json`, packageJSON, { spaces: 2 });
+            await fs.writeJSON(`${process.cwd()}/package.json`, packageJSON, { spaces: 2 });
             Logger.warn('Syncing theme');
             await Theme.syncTheme(true);
-            var b5 = Box(chalk.green.bold('DONE ') + chalk.green.bold('Project ready\n') + chalk.yellowBright.bold('NOTE ') + chalk.green.bold('cd ' + targetDirectory + ' to continue ...'), {
+            var b5 = Box(
+                chalk.green.bold('DONE ') + 
+                chalk.green.bold('Project ready\n') +
+                chalk.yellowBright.bold('NOTE ') +
+                chalk.green.bold('cd ' + targetDirectory + ' to continue ...'),
+                {
                 padding: 1,
                 margin: 1
             });
             console.log(b5.toString());
         } catch (error) {
-            if (shouldDelete)
-                await Theme.cleanUp(targetDirectory);
+            if (shouldDelete) await Theme.cleanUp(targetDirectory);
 
             throw new CommandError(error.message, error.code);
         }
@@ -131,8 +126,7 @@ export default class Theme { /*
         try {
             Logger.warn('Validating token');
             const configObj = JSON.parse(decodeBase64(options.token) || '{}');
-            Debug(`Token Data: ${JSON.stringify(configObj)
-                }`);
+            Debug(`Token Data: ${JSON.stringify(configObj)}`);
             if (!configObj || !configObj.theme_id)
                 throw new CommandError('Invalid token', ErrorCodes.INVALID_INPUT.code);
 
@@ -658,7 +652,9 @@ export default class Theme { /*
             }, { spaces: 2 });
             await fs.writeJSON(path.join(process.cwd(), '/theme/config/settings_schema.json'), _.get(theme, 'config.global_schema', { props: [] }), { spaces: 2 });
             const packageJSON = await fs.readJSON(process.cwd() + '/theme/package.json');
-            await fs.writeJSON(process.cwd() + '/package.json', packageJSON, { spaces: 2 });
+            await fs.writeJSON(process.cwd() + '/package.json', packageJSON, { 
+                spaces: 2
+            });
             rimraf.sync(process.cwd() + '/theme/package.json');
             spinner.succeed();
         } catch (error) {
@@ -707,7 +703,13 @@ export default class Theme { /*
                     features: information.features
                 };
             }
-            await fs.writeJSON(path.join(process.cwd(), '/theme/config/settings_data.json'), newConfig, { spaces: 2 });
+            await fs.writeJSON(
+                path.join(process.cwd(), '/theme/config/settings_data.json'), 
+                newConfig,
+                { 
+                    spaces: 2 
+                }
+            );
             Logger.success('Config updated successfully');
         } catch (error) {
             throw new CommandError(error.message, error.code);
@@ -741,14 +743,21 @@ export default class Theme { /*
     private static async getAvailableSections() {
         let sectionsFiles = [];
         try {
-            sectionsFiles = fs.readdirSync(path.join(Theme.TEMPLATE_DIRECTORY, '/sections')).filter(o => o != 'index.js');
+            sectionsFiles = fs
+            .readdirSync(path.join(Theme.TEMPLATE_DIRECTORY, '/sections'))
+            .filter(o => o != 'index.js');
         } catch (err) { }
         let pArr = sectionsFiles.map(async f => {
-            let image_section = compiler.parseComponent(readFile(path.join(Theme.TEMPLATE_DIRECTORY, 'sections', f)));
+            let image_section = compiler.parseComponent(
+                readFile(path.join(Theme.TEMPLATE_DIRECTORY, 'sections', f))
+            );
             let sectionSettings = await new Promise((resolve, reject) => {
-                require('@babel/core').transform(image_section.script.content, {
-                    plugins: ['@babel/plugin-transform-modules-commonjs']
-                }, (err, result) => {
+                require('@babel/core').transform(
+                    image_section.script.content, 
+                    {
+                        plugins: ['@babel/plugin-transform-modules-commonjs'],
+                }, 
+                (err, result) => {
                     if (err) {
                         return reject(err);
                     }
@@ -765,11 +774,9 @@ export default class Theme { /*
         return Promise.all(pArr);
     }
     private static async getAvailableSectionsForSync() {
-        let sectionsFiles = fs.readdirSync(`${process.cwd()
-            }/theme/sections`).filter(o => o != 'index.js');
+        let sectionsFiles = fs.readdirSync(`${process.cwd()}/theme/sections`).filter(o => o != 'index.js');
         let settings = sectionsFiles.map(f => {
-            return Theme.extractSettingsFromFile(`${process.cwd()
-                }/theme/sections/${f}`);
+            return Theme.extractSettingsFromFile(`${process.cwd()}/theme/sections/${f}`);
         });
         return settings;
     }
@@ -783,32 +790,32 @@ export default class Theme { /*
         let sectionNamesObject = {};
         available_sections.forEach((section, index) => {
             if (!fileNameRegex.test(section.name)) {
-                throw new Error(`Invalid section name, ${section.name
-                    }`);
+                throw new Error(`Invalid section name, ${section.name}`);
             }
-            if (sectionNamesObject[`${section.name
-                }`]) {
-                throw new Error(`Duplication section name found. ${section.name
-                    }`);
+            if (sectionNamesObject[`${section.name}`]) {
+                throw new Error(`Duplication section name found. ${section.name}`);
             }
-            sectionNamesObject[`${section.name
-                }`] = true;
+            sectionNamesObject[`${section.name}`] = true;
         });
         return available_sections;
     }
     private static async createSectionsIndexFile(available_sections) {
         available_sections = available_sections || [];
-        let fileNames = fs.readdirSync(`${process.cwd()
-            }/theme/sections`).filter(o => o != 'index.js');
+        let fileNames = fs.readdirSync(`${process.cwd()}/theme/sections`).filter(o => o != 'index.js');
         let template = `
-            ${fileNames.map((f, i) => `import * as component${i} from './${f}';`).join('\n')
-            }
+            ${fileNames.map((f, i) => `import * as component${i} from './${f}';`).join('\n')}
 
             function exportComponents(components) {
             return [
-                ${available_sections.map((s, i) => {
-                return JSON.stringify({ name: s.name, label: s.label, component: '' }).replace('"component":""', `"component": components[${i}].default`);
-            }).join(',\n')
+                ${available_sections
+                    .map((s, i) => {
+                        return JSON.stringify({ 
+                            name: s.name, 
+                            label: s.label, 
+                            component: '',
+                        }).replace('"component":""', `"component": components[${i}].default`);
+            })
+            .join(',\n')
             }
             ];
             }
@@ -816,10 +823,8 @@ export default class Theme { /*
             export default exportComponents([${fileNames.map((f, i) => `component${i}`).join(',')
             }]);
             `;
-        rimraf.sync(`${process.cwd()
-            }/theme/sections/index.js`);
-        fs.writeFileSync(`${process.cwd()
-            }/theme/sections/index.js`, template);
+        rimraf.sync(`${process.cwd()}/theme/sections/index.js`);
+        fs.writeFileSync(`${process.cwd()}/theme/sections/index.js`, template);
     }
     private static extractSectionsFromFile(path) {
         let $ = cheerio.load(readFile(path));
@@ -864,7 +869,7 @@ export default class Theme { /*
             newConfig.current = theme.config.current;
             newConfig.preset = theme.config.preset;
             newConfig.information = {
-                features: theme.information.features
+                features: theme.information.features,
             };
         }
         return newConfig;
