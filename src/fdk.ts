@@ -20,8 +20,8 @@ import { getActiveContext } from './helper/utils.js';
 const packageJSON = require('../package.json');
 
 const notRequireAuthCommands = ['login', 'env', 'logout', 'auth'];
-const notRequireEnvCommands = ['env', 'env-ls'];
-const notRequiredThemeCommands = ['serve', 'sync'];
+const notRequireEnvCommands = ['env'];
+const requiredThemeCommands = ['serve', 'sync', 'new', 'init'];
 
 // asyncAction is a wrapper for all commands/actions to be executed after commander is done
 // parsing the command input
@@ -87,7 +87,7 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
                 ) {
                     throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
                 }
-                if(notRequiredThemeCommands.findIndex(c => command.includes(c)) !== -1) {
+                if(requiredThemeCommands.findIndex(c => command.includes(c)) !== -1) {
                     const activeContextEnv = getActiveContext().env;
                     if(activeContextEnv !== Env.getEnvValue()) {
                         throw new CommandError(COMMON_LOG_MESSAGES.contextMismatch);
