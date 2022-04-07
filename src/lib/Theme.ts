@@ -564,6 +564,10 @@ export default class Theme {
                     : options['ssr'] == 'true'
                     ? true
                     : false;
+
+            const DEFAULT_PORT = 5001;
+            const serverPort = typeof options['port'] === 'string' ? parseInt(options['port']) : typeof options['port'] === 'number' ? options['port'] : DEFAULT_PORT;
+
             !isSSR ? Logger.warn('Disabling SSR') : null;
             let { data: appInfo } = await ConfigurationService.getApplicationDetails();
             let domain = Array.isArray(appInfo.domains)
@@ -579,8 +583,8 @@ export default class Theme {
             });
 
             // start dev server
-            console.log(chalk.bold.green(`Starting server`));
-            await startServer({ domain, host, isSSR });
+            Logger.info(chalk.bold.blueBright(`Starting server...`));
+            await startServer({ domain, host, isSSR, serverPort });
 
             // open browser
             await open(getFullLocalUrl(host));
