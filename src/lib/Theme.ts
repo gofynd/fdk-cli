@@ -637,7 +637,7 @@ export default class Theme {
 
     private static imageUploader = async () => {
         try {
-            const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'assets');
+            const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'assets/images');
             const images = glob.sync('**/**.**', { cwd });
             Logger.warn('Uploading images...');
             await asyncForEach(images, async img => {
