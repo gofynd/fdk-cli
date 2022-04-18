@@ -53,8 +53,14 @@ export default class Theme {
     static SRC_FOLDER = './.fdk/temp-theme';
     static SRC_ARCHIVE_FOLDER = './.fdk/archive';
     static ZIP_FILE_NAME = `archive.zip`;
-    static SETTINGS_DATA_PATH = path.join(process.cwd(), '/theme/config/settings_data.json');
-    static SETTINGS_SCHEMA_PATH = path.join(process.cwd(), '/theme/config/settings_schema.json');
+
+    public static getSettingsDataPath() {
+        return path.join(process.cwd(), '/theme/config/settings_data.json');
+    }
+
+    public static getSettingsSchemaPath() {
+        return path.join(process.cwd(), '/theme/config/settings_schema.json');
+    }
 
     public static async writeSettingJson(path, jsonObject) {
         try {
@@ -195,8 +201,8 @@ export default class Theme {
             let preset = _.get(themeData, 'config.preset', {});
             let information = { features: _.get(themeData, 'information.features', []) };
 
-            await Theme.writeSettingJson(Theme.SETTINGS_DATA_PATH, { list, current, preset, information });
-            await Theme.writeSettingJson(Theme.SETTINGS_SCHEMA_PATH, _.get(themeData, 'config.global_schema', { props: [] }));
+            await Theme.writeSettingJson(Theme.getSettingsDataPath(), { list, current, preset, information });
+            await Theme.writeSettingJson(Theme.getSettingsSchemaPath(), _.get(themeData, 'config.global_schema', { props: [] }));
 
             fs.writeJson(
                 path.join(targetDirectory, '/config.json'),
@@ -250,7 +256,7 @@ export default class Theme {
                 : Logger.warn('Please add domain to context');
             let { data: theme } = await ThemeService.getThemeById(currentContext);
             const newConfig = Theme.getSettingsData(theme);
-            const oldConfig = await Theme.readSettingsJson(Theme.SETTINGS_DATA_PATH);
+            const oldConfig = await Theme.readSettingsJson(Theme.getSettingsDataPath());
             const questions = [
                 {
                     type: 'confirm',
@@ -261,7 +267,7 @@ export default class Theme {
             if (!isNew && !_.isEqual(newConfig, oldConfig)) {
                 await inquirer.prompt(questions).then(async answers => {
                     if (answers.pullConfig) {
-                        await Theme.writeSettingJson(Theme.SETTINGS_DATA_PATH, newConfig);
+                        await Theme.writeSettingJson(Theme.getSettingsDataPath(), newConfig);
                         Logger.success('Config updated successfully');
                     } else {
                         Logger.warn('Using local config to sync');
@@ -498,8 +504,8 @@ export default class Theme {
                 _.set(theme, 'information.images.android', androidImages);
                 _.set(theme, 'information.images.thumbnail', thumbnailImages);
                 _.set(theme, 'information.name', Theme.unSanitizeThemeName(packageJSON.name));
-                let globalConfigSchema = await Theme.readSettingsJson(Theme.SETTINGS_SCHEMA_PATH);
-                let globalConfigData = await Theme.readSettingsJson(Theme.SETTINGS_DATA_PATH);
+                let globalConfigSchema = await Theme.readSettingsJson(Theme.getSettingsSchemaPath());
+                let globalConfigData = await Theme.readSettingsJson(Theme.getSettingsDataPath());
                 theme.config = theme.config || {};
                 theme.config.global_schema = globalConfigSchema;
                 theme.config.current = globalConfigData.current || 'default';
@@ -646,8 +652,8 @@ export default class Theme {
             let preset = _.get(theme, 'config.preset', {});
             let information = { features: _.get(theme, 'information.features', []) };
 
-            await Theme.writeSettingJson(Theme.SETTINGS_DATA_PATH, { list, current, preset, information });
-            await Theme.writeSettingJson(Theme.SETTINGS_SCHEMA_PATH, _.get(theme, 'config.global_schema', { props: [] }))
+            await Theme.writeSettingJson(Theme.getSettingsDataPath(), { list, current, preset, information });
+            await Theme.writeSettingJson(Theme.getSettingsSchemaPath(), _.get(theme, 'config.global_schema', { props: [] }))
 
             const packageJSON = await fs.readJSON(process.cwd() + '/theme/package.json');
             await fs.writeJSON(process.cwd() + '/package.json', packageJSON, {
@@ -702,7 +708,7 @@ export default class Theme {
                 };
             }
 
-            await Theme.writeSettingJson(Theme.SETTINGS_DATA_PATH, newConfig);
+            await Theme.writeSettingJson(Theme.getSettingsDataPath(), newConfig);
             Logger.success('Config updated successfully');
         } catch (error) {
             throw new CommandError(error.message, error.code);
