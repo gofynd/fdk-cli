@@ -69,6 +69,7 @@ ___
 | [init](#theme-init)     | Initialize an existing theme |
 | [context](#theme-context)     | Add context of a theme |
 | [context-list](#theme-context-list)     | List all available contexts |
+| [serve](#theme-serve)     | Start theme serving on localhost |
 | [sync](#theme-sync)     | Sync theme to application |
 | [pull](#theme-pull)     | Pull latest theme code |
 | [pull-config](#theme-pull-config)     | Pull latest theme config |
@@ -276,13 +277,17 @@ fdk theme serve [options]
 | Option        | Description           | 
 | ------------- |-------------| 
 | --ssr    | Enable/disable Server-side rendering |
-| --help    | Show help |
+| --port   | Pass custom port number to serve theme. `Default: 5001` |
+| --help   | Show help |
 
 By default Server-side rendering is enable. To disable it use `--ssr false` with the serve command
-
 #### **Example**
 ```sh
 fdk theme serve
+```
+
+```sh
+fdk theme serve --port 5002
 ```
 ___
 <div id="theme-sync"></div>
