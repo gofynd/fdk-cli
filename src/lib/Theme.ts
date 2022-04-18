@@ -56,11 +56,11 @@ export default class Theme {
     static SETTINGS_DATA_PATH = path.join(process.cwd(), '/theme/config/settings_data.json');
     static SETTINGS_SCHEMA_PATH = path.join(process.cwd(), '/theme/config/settings_schema.json');
 
-    public static async writeSettingJson(path, options) {
+    public static async writeSettingJson(path, jsonObject) {
         try {
             await fs.writeJSON(
                 path,
-                options,
+                jsonObject,
                 {
                     spaces: 2,
                 }
