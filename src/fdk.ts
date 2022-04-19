@@ -14,10 +14,11 @@ import { initializeLogger } from './lib/Logger';
 import { isAThemeDirectory } from './helper/utils';
 import inquirer from 'inquirer';
 import path from 'path';
+import Env from './lib/Env';
+import { getActiveContext } from './helper/utils.js';
+import { THEME_COMMANDS, AUTHENTICATION_COMMANDS, ENVIRONMENT_COMMANDS } from './helper/constants';
 const packageJSON = require('../package.json');
 
-const notRequireAuthCommands = ['login', 'env', 'logout', 'auth'];
-const notRequireEnvCommands = ['env'];
 // asyncAction is a wrapper for all commands/actions to be executed after commander is done
 // parsing the command input
 export type Action = (...args: any[]) => void;
@@ -71,16 +72,23 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
                 // check if user is logged in and context is set
                 const command = args[1].name();
                 if (
-                    !(notRequireEnvCommands.findIndex(c => command.includes(c)) !== -1) &&
+                    !(ENVIRONMENT_COMMANDS.findIndex(c => command.includes(c)) !== -1) &&
                     !configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)
                 ) {
                     throw new CommandError(COMMON_LOG_MESSAGES.EnvNotSet);
                 }
                 if (
-                    !(notRequireAuthCommands.findIndex(c => command.includes(c)) !== -1) &&
+                    !(AUTHENTICATION_COMMANDS.findIndex(c => command.includes(c)) !== -1) &&
+                    !(ENVIRONMENT_COMMANDS.findIndex(c => command.includes(c)) !== -1) &&
                     !configStore.get(CONFIG_KEYS.COOKIE)
                 ) {
                     throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
+                }
+                if(THEME_COMMANDS.findIndex(c => command.includes(c)) !== -1) {
+                    const activeContextEnv = getActiveContext().env;
+                    if(activeContextEnv !== Env.getEnvValue()) {
+                        throw new CommandError(COMMON_LOG_MESSAGES.contextMismatch);
+                    }
                 }
                 if (
                     parent.args.includes('theme') &&
