@@ -215,6 +215,9 @@ export default class Theme {
         await Theme.syncTheme();
     };
     private static syncTheme = async (isNew = false) => {
+        const urlHash = shortid.generate();
+        const assets = ['themeBundle.css', 'themeBundle.common.js', 'themeBundle.umd.min.js'];
+        const zipFilePath = path.join(Theme.SRC_ARCHIVE_FOLDER, Theme.ZIP_FILE_NAME);
         try {
             const currentContext = getActiveContext();
             const env = Env.getEnvValue();
@@ -257,39 +260,16 @@ export default class Theme {
             } catch (e) {
                 throw new CommandError(`Invalid config.json`);
             }
-
+            //vaidating files
             let available_sections = await Theme.getAvailableSectionsForSync();
-            Logger.warn('Validating Files...');
-            available_sections = await Theme.validateSections(available_sections);
-            Theme.createSectionsIndexFile(available_sections);
+            await Theme.validatingFiles(available_sections);
 
             let imageCdnUrl = '';
             let assetCdnUrl = '';
             // get image cdn base url
-            {
-                let startData = {
-                    file_name: 'test.jpg',
-                    content_type: 'image/jpeg',
-                    size: '1',
-                };
-                let startAssetData = (
-                    await UploadService.startUpload(startData, 'application-theme-images')
-                ).data;
-                imageCdnUrl = path.dirname(startAssetData.cdn.url);
-            }
+            await Theme.imageCdnBaseUrl(imageCdnUrl);
             // get asset cdn base url
-            if (fs.existsSync(path.join(process.cwd(), 'theme/assets/fonts'))) {
-                let startData = {
-                    file_name: 'test.ttf',
-                    content_type: 'font/ttf',
-                    size: '10',
-                };
-                let startAssetData = (
-                    await UploadService.startUpload(startData, 'application-theme-assets')
-                ).data;
-
-                assetCdnUrl = path.dirname(startAssetData.cdn.url);
-            }
+            await Theme.assetCdnBaseUrl(assetCdnUrl);
             Logger.warn('Building Assets...');
             // build js css
             await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl });
@@ -297,261 +277,38 @@ export default class Theme {
             if (!fs.existsSync(Theme.BUILD_FOLDER)) {
                 throw new Error('Build Failed');
             }
-
             let androidImages = [];
             let iosImages = [];
             let desktopImages = [];
             let thumbnailImages = [];
             // upload theme preview images
-            {
-                const androidImageFolder = path.resolve(
-                    process.cwd(),
-                    'theme/config/images/android'
-                );
-                androidImages = glob.sync('**/**.**', { cwd: androidImageFolder });
-                Logger.warn('Uploading android images...');
-                let pArr = androidImages
-                    .map(async img => {
-                        const assetPath = path.join(
-                            process.cwd(),
-                            'theme/config/images/android',
-                            img
-                        );
-                        let res = await UploadService.uploadFile(
-                            assetPath,
-                            'application-theme-images'
-                        );
-                        return res.start.cdn.url;
-                    })
-                    .filter(o => o);
-                androidImages = await Promise.all(pArr);
-
-                const iosImageFolder = path.resolve(process.cwd(), 'theme/config/images/ios');
-                iosImages = glob.sync('**/**.**', { cwd: iosImageFolder });
-                Logger.warn('Uploading ios images...');
-                pArr = iosImages
-                    .map(async img => {
-                        const assetPath = path.join(process.cwd(), 'theme/config/images/ios', img);
-                        let res = await UploadService.uploadFile(
-                            assetPath,
-                            'application-theme-images'
-                        );
-                        return res.start.cdn.url;
-                    })
-                    .filter(o => o);
-                iosImages = await Promise.all(pArr);
-
-                const desktopImageFolder = path.resolve(
-                    process.cwd(),
-                    'theme/config/images/desktop'
-                );
-                desktopImages = glob.sync('**/**.**', { cwd: desktopImageFolder });
-                Logger.warn('Uploading desktop images...');
-                pArr = desktopImages
-                    .map(async img => {
-                        const assetPath = path.join(
-                            process.cwd(),
-                            'theme/config/images/desktop',
-                            img
-                        );
-                        let res = await UploadService.uploadFile(
-                            assetPath,
-                            'application-theme-images'
-                        );
-                        return res.start.cdn.url;
-                    })
-                    .filter(o => o);
-                desktopImages = await Promise.all(pArr);
-
-                const thumbnailImageFolder = path.resolve(
-                    process.cwd(),
-                    'theme/config/images/thumbnail'
-                );
-                thumbnailImages = glob.sync('**/**.**', { cwd: thumbnailImageFolder });
-                Logger.warn('Uploading thumbnail images...');
-                pArr = thumbnailImages
-                    .map(async img => {
-                        const assetPath = path.join(
-                            process.cwd(),
-                            'theme/config/images/thumbnail',
-                            img
-                        );
-                        let res = await UploadService.uploadFile(
-                            assetPath,
-                            'application-theme-images'
-                        );
-                        return res.start.cdn.url;
-                    })
-                    .filter(o => o);
-                thumbnailImages = await Promise.all(pArr);
-            }
-
+            await Theme.allThemeImages(androidImages, iosImages, desktopImages, thumbnailImages);
             // upload images
-            {
-                const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'assets/images');
-                const images = glob.sync('**/**.**', { cwd });
-                Logger.warn('Uploading images...');
-                await asyncForEach(images, async img => {
-                    const assetPath = path.join(Theme.BUILD_FOLDER, 'assets/images', img);
-                    await UploadService.uploadFile(assetPath, 'application-theme-images');
-                });
-            }
+            await Theme.imageUploader();
             // upload fonts
-            {
-                if (fs.existsSync(path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts'))) {
-                    const cwd = path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts');
-                    const fonts = glob.sync('**/**.**', { cwd });
-                    Logger.warn('Uploading fonts...');
-                    await asyncForEach(fonts, async font => {
-                        const assetPath = path.join(Theme.BUILD_FOLDER, 'assets/fonts', font);
-                        await UploadService.uploadFile(assetPath, 'application-theme-assets');
-                    });
-                }
-            }
+            await Theme.fontsUploader();
             //copy files to .fdk
-            Logger.warn('Archiving src...');
-            await fs.copy('./theme', Theme.SRC_FOLDER);
-            fs.copyFileSync('./package.json', Theme.SRC_FOLDER + '/package.json');
-
-            await archiveFolder({
-                srcFolder: Theme.SRC_FOLDER,
-                destFolder: Theme.SRC_ARCHIVE_FOLDER,
-                zipFileName: Theme.ZIP_FILE_NAME,
-            });
-
+            await Theme.copyFilesToFdkFolder();
             //remove temp files
             rimraf.sync(Theme.SRC_FOLDER);
-            const zipFilePath = path.join(Theme.SRC_ARCHIVE_FOLDER, Theme.ZIP_FILE_NAME);
-
             let srcCdnUrl;
             // src file upload
-            {
-                Logger.warn('Uploading src...');
-                let res = await UploadService.uploadFile(zipFilePath, 'application-theme-src');
-                srcCdnUrl = res.start.cdn.url;
-            }
-
-            {
-                const urlHash = shortid.generate();
-                const assets = [
-                    'themeBundle.css',
-                    'themeBundle.common.js',
-                    'themeBundle.umd.min.js',
-                ];
-
-                Logger.warn('Uploading assets...');
-                let pArr = assets.map(async asset => {
-                    fs.renameSync(
-                        path.join(Theme.BUILD_FOLDER, asset),
-                        `${Theme.BUILD_FOLDER}/${urlHash}-${asset}`
-                    );
-                    const assetPath = path.join(Theme.BUILD_FOLDER, `${urlHash}-${asset}`);
-                    let res = await UploadService.uploadFile(assetPath, 'application-theme-assets');
-                    return res.start.cdn.url;
-                });
-
-                let [cssUrl, commonJsUrl, umdJsUrl] = await Promise.all(pArr);
-                let packageJSON = JSON.parse(readFile(`${process.cwd()}/package.json`));
-                if (!packageJSON.name) {
-                    throw new Error('package.json name can not be empty');
-                }
-                theme.src = theme.src || {};
-                theme.src.link = srcCdnUrl;
-
-                theme.assets = theme.assets || {};
-                theme.assets.umdJs = theme.assets.umdJs || {};
-                theme.assets.umdJs.link = umdJsUrl;
-
-                theme.assets.commonJs = theme.assets.commonJs || {};
-                theme.assets.commonJs.link = commonJsUrl;
-
-                theme.assets.css = theme.assets.css || {};
-                theme.assets.css.link = cssUrl;
-                // TODO Issue here
-                theme = {
-                    ...theme,
-                    ...themeContent.theme,
-                    available_sections,
-                };
-
-                _.set(theme, 'information.images.desktop', desktopImages);
-                _.set(theme, 'information.images.ios', iosImages);
-                _.set(theme, 'information.images.android', androidImages);
-                _.set(theme, 'information.images.thumbnail', thumbnailImages);
-                _.set(theme, 'information.name', Theme.unSanitizeThemeName(packageJSON.name));
-                let globalConfigSchema = await fs.readJSON(
-                    `${process.cwd()}/theme/config/settings_schema.json`
-                );
-                let globalConfigData = await fs.readJSON(
-                    `${process.cwd()}/theme/config/settings_data.json`
-                );
-                theme.config = theme.config || {};
-                theme.config.global_schema = globalConfigSchema;
-                theme.config.current = globalConfigData.current || 'default';
-                theme.config.list = globalConfigData.list || [{ name: 'default' }];
-                theme.config.preset = globalConfigData.preset || [];
-                theme.version = packageJSON.version;
-                theme.customized = true;
-                _.set(
-                    theme,
-                    'information.features',
-                    _.get(globalConfigData, 'information.features', [])
-                );
-
-                // extract page level settings schema
-                let pageTemplateFiles = fs
-                    .readdirSync(`${process.cwd()}/theme/templates/pages`)
-                    .filter(o => o != 'index.js');
-                theme.config = theme.config || {};
-                let availablePages = [];
-                await asyncForEach(pageTemplateFiles, async fileName => {
-                    let pageName = fileName.replace('.vue', '');
-                    // SYSTEM Pages
-                    let available_page;
-                    try {
-                        available_page = (await ThemeService.getAvailablePage(pageName)).data;
-                    } catch (error) {
-                        Logger.log('Creating Page: ', pageName);
-                    }
-
-                    if (!available_page) {
-                        const pageData = {
-                            value: pageName,
-                            props: [],
-                            sections: [],
-                            sections_meta: [],
-                            type: 'system',
-                            text: pageNameModifier(pageName),
-                        };
-
-                        available_page = (await ThemeService.createAvailabePage(pageData)).data;
-                    }
-                    available_page.props =
-                        (
-                            Theme.extractSettingsFromFile(
-                                `${process.cwd()}/theme/templates/pages/${fileName}`
-                            ) || {}
-                        ).props || [];
-                    available_page.sections_meta = Theme.extractSectionsFromFile(
-                        `${process.cwd()}/theme/templates/pages/${fileName}`
-                    );
-                    available_page.type = 'system';
-                    delete available_page.sections;
-                    availablePages.push(available_page);
-                });
-                Logger.warn('Updating theme...');
-                await Promise.all([ThemeService.updateTheme(theme)]);
-                Logger.warn('Updating pages...');
-                await asyncForEach(availablePages, async page => {
-                    try {
-                        Logger.warn('Updating page: ', page.value);
-                        await ThemeService.updateAvailablePage(page);
-                    } catch (error) {
-                        throw new CommandError(error.message);
-                    }
-                });
-                Logger.success('DONE...');
-            }
+            await Theme.srcUploader(zipFilePath, srcCdnUrl);
+            //uploading assets
+            await Theme.assetsUploader(
+                theme,
+                urlHash,
+                assets,
+                srcCdnUrl,
+                desktopImages,
+                iosImages,
+                androidImages,
+                thumbnailImages,
+                available_sections
+            );
+            // extract page level settings schema
+            await Theme.systemPages(theme);
+            Logger.success('DONE...');
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
@@ -876,5 +633,302 @@ export default class Theme {
     private static clearPreviousBuild = () => {
         rimraf.sync(Theme.BUILD_FOLDER);
         rimraf.sync(Theme.SRC_ARCHIVE_FOLDER);
+    };
+
+    private static imageUploader = async () => {
+        try {
+            const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'assets');
+            const images = glob.sync('**/**.**', { cwd });
+            Logger.warn('Uploading images...');
+            await asyncForEach(images, async img => {
+                const assetPath = path.join(Theme.BUILD_FOLDER, 'assets/images', img);
+                await UploadService.uploadFile(assetPath, 'application-theme-images');
+            });
+        } catch (err) {
+            throw new CommandError(`Failed to upload images in assets/images`);
+        }
+    };
+
+    private static allThemeImages = async (
+        androidImages,
+        iosImages,
+        desktopImages,
+        thumbnailImages
+    ) => {
+        try {
+            const androidImageFolder = path.resolve(process.cwd(), 'theme/config/images/android');
+            androidImages = glob.sync('**/**.**', { cwd: androidImageFolder });
+            Logger.warn('Uploading android images...');
+            let pArr = androidImages
+                .map(async img => {
+                    const assetPath = path.join(process.cwd(), 'theme/config/images/android', img);
+                    let res = await UploadService.uploadFile(assetPath, 'application-theme-images');
+                    return res.start.cdn.url;
+                })
+                .filter(o => o);
+            androidImages = await Promise.all(pArr);
+
+            const iosImageFolder = path.resolve(process.cwd(), 'theme/config/images/ios');
+            iosImages = glob.sync('**/**.**', { cwd: iosImageFolder });
+            Logger.warn('Uploading ios images...');
+            pArr = iosImages
+                .map(async img => {
+                    const assetPath = path.join(process.cwd(), 'theme/config/images/ios', img);
+                    let res = await UploadService.uploadFile(assetPath, 'application-theme-images');
+                    return res.start.cdn.url;
+                })
+                .filter(o => o);
+            iosImages = await Promise.all(pArr);
+
+            const desktopImageFolder = path.resolve(process.cwd(), 'theme/config/images/desktop');
+            desktopImages = glob.sync('**/**.**', { cwd: desktopImageFolder });
+            Logger.warn('Uploading desktop images...');
+            pArr = desktopImages
+                .map(async img => {
+                    const assetPath = path.join(process.cwd(), 'theme/config/images/desktop', img);
+                    let res = await UploadService.uploadFile(assetPath, 'application-theme-images');
+                    return res.start.cdn.url;
+                })
+                .filter(o => o);
+            desktopImages = await Promise.all(pArr);
+
+            const thumbnailImageFolder = path.resolve(
+                process.cwd(),
+                'theme/config/images/thumbnail'
+            );
+            thumbnailImages = glob.sync('**/**.**', { cwd: thumbnailImageFolder });
+            Logger.warn('Uploading thumbnail images...');
+            pArr = thumbnailImages
+                .map(async img => {
+                    const assetPath = path.join(
+                        process.cwd(),
+                        'theme/config/images/thumbnail',
+                        img
+                    );
+                    let res = await UploadService.uploadFile(assetPath, 'application-theme-images');
+                    return res.start.cdn.url;
+                })
+                .filter(o => o);
+            thumbnailImages = await Promise.all(pArr);
+        } catch (err) {
+            throw new CommandError(`Failed to store all theme images in an array`);
+        }
+    };
+
+    private static imageCdnBaseUrl = async imageCdnUrl => {
+        try {
+            let startData = {
+                file_name: 'test.jpg',
+                content_type: 'image/jpeg',
+                size: '1',
+            };
+            let startAssetData = (
+                await UploadService.startUpload(startData, 'application-theme-images')
+            ).data;
+            imageCdnUrl = path.dirname(startAssetData.cdn.url);
+        } catch (err) {
+            throw new CommandError(`Failed to converting image tp image cdn base url`);
+        }
+    };
+
+    private static assetCdnBaseUrl = async assetCdnUrl => {
+        try {
+            if (fs.existsSync(path.join(process.cwd(), 'theme/assets/fonts'))) {
+                let startData = {
+                    file_name: 'test.ttf',
+                    content_type: 'font/ttf',
+                    size: '10',
+                };
+                let startAssetData = (
+                    await UploadService.startUpload(startData, 'application-theme-assets')
+                ).data;
+
+                assetCdnUrl = path.dirname(startAssetData.cdn.url);
+            }
+        } catch (err) {
+            throw new CommandError(`Failed to converting fonts file  tp asset cdn base url`);
+        }
+    };
+
+    private static fontsUploader = async () => {
+        try {
+            if (fs.existsSync(path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts'))) {
+                const cwd = path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts');
+                const fonts = glob.sync('**/**.**', { cwd });
+                Logger.warn('Uploading fonts...');
+                await asyncForEach(fonts, async font => {
+                    const assetPath = path.join(Theme.BUILD_FOLDER, 'assets/fonts', font);
+                    await UploadService.uploadFile(assetPath, 'application-theme-assets');
+                });
+            }
+        } catch (err) {
+            throw new CommandError(`Failed to upload fonts in assets/fonts`);
+        }
+    };
+
+    private static copyFilesToFdkFolder = async () => {
+        try {
+            Logger.warn('Archiving src...');
+            await fs.copy('./theme', Theme.SRC_FOLDER);
+            fs.copyFileSync('./package.json', Theme.SRC_FOLDER + '/package.json');
+
+            await archiveFolder({
+                srcFolder: Theme.SRC_FOLDER,
+                destFolder: Theme.SRC_ARCHIVE_FOLDER,
+                zipFileName: Theme.ZIP_FILE_NAME,
+            });
+        } catch (err) {
+            throw new CommandError(`Failed to copying theme files to .fdk folder`);
+        }
+    };
+    private static validatingFiles = async available_sections => {
+        try {
+            Logger.warn('Validating Files...');
+            available_sections = await Theme.validateSections(available_sections);
+            Theme.createSectionsIndexFile(available_sections);
+        } catch (err) {
+            throw new CommandError(`Invalid files name `);
+        }
+    };
+    private static assetsUploader = async (
+        theme,
+        urlHash,
+        assets,
+        srcCdnUrl,
+        desktopImages,
+        iosImages,
+        androidImages,
+        thumbnailImages,
+        available_sections
+    ) => {
+        try {
+            let themeContent: any = readFile(`${process.cwd()}/config.json`);
+            Logger.warn('Uploading assets...');
+            let pArr = assets.map(async asset => {
+                fs.renameSync(
+                    path.join(Theme.BUILD_FOLDER, asset),
+                    `${Theme.BUILD_FOLDER}/${urlHash}-${asset}`
+                );
+                const assetPath = path.join(Theme.BUILD_FOLDER, `${urlHash}-${asset}`);
+                let res = await UploadService.uploadFile(assetPath, 'application-theme-assets');
+                return res.start.cdn.url;
+            });
+
+            let [cssUrl, commonJsUrl, umdJsUrl] = await Promise.all(pArr);
+            let packageJSON = JSON.parse(readFile(`${process.cwd()}/package.json`));
+            if (!packageJSON.name) {
+                throw new Error('package.json name can not be empty');
+            }
+            theme.src = theme.src || {};
+            theme.src.link = srcCdnUrl;
+
+            theme.assets = theme.assets || {};
+            theme.assets.umdJs = theme.assets.umdJs || {};
+            theme.assets.umdJs.link = umdJsUrl;
+
+            theme.assets.commonJs = theme.assets.commonJs || {};
+            theme.assets.commonJs.link = commonJsUrl;
+
+            theme.assets.css = theme.assets.css || {};
+            theme.assets.css.link = cssUrl;
+            // TODO Issue here
+            theme = {
+                ...theme,
+                ...themeContent.theme,
+                available_sections,
+            };
+
+            _.set(theme, 'information.images.desktop', desktopImages);
+            _.set(theme, 'information.images.ios', iosImages);
+            _.set(theme, 'information.images.android', androidImages);
+            _.set(theme, 'information.images.thumbnail', thumbnailImages);
+            _.set(theme, 'information.name', Theme.unSanitizeThemeName(packageJSON.name));
+            let globalConfigSchema = await fs.readJSON(
+                `${process.cwd()}/theme/config/settings_schema.json`
+            );
+            let globalConfigData = await fs.readJSON(
+                `${process.cwd()}/theme/config/settings_data.json`
+            );
+            theme.config = theme.config || {};
+            theme.config.global_schema = globalConfigSchema;
+            theme.config.current = globalConfigData.current || 'default';
+            theme.config.list = globalConfigData.list || [{ name: 'default' }];
+            theme.config.preset = globalConfigData.preset || [];
+            theme.version = packageJSON.version;
+            theme.customized = true;
+            _.set(
+                theme,
+                'information.features',
+                _.get(globalConfigData, 'information.features', [])
+            );
+        } catch (err) {
+            throw new CommandError(`Failed to upload assets `);
+        }
+    };
+    private static systemPages = async theme => {
+        try {
+            let pageTemplateFiles = fs
+                .readdirSync(`${process.cwd()}/theme/templates/pages`)
+                .filter(o => o != 'index.js');
+            theme.config = theme.config || {};
+            let availablePages = [];
+            await asyncForEach(pageTemplateFiles, async fileName => {
+                let pageName = fileName.replace('.vue', '');
+                // SYSTEM Pages
+                let available_page;
+                try {
+                    available_page = (await ThemeService.getAvailablePage(pageName)).data;
+                } catch (error) {
+                    Logger.log('Creating Page: ', pageName);
+                }
+
+                if (!available_page) {
+                    const pageData = {
+                        value: pageName,
+                        props: [],
+                        sections: [],
+                        sections_meta: [],
+                        type: 'system',
+                        text: pageNameModifier(pageName),
+                    };
+
+                    available_page = (await ThemeService.createAvailabePage(pageData)).data;
+                }
+                available_page.props =
+                    (
+                        Theme.extractSettingsFromFile(
+                            `${process.cwd()}/theme/templates/pages/${fileName}`
+                        ) || {}
+                    ).props || [];
+                available_page.sections_meta = Theme.extractSectionsFromFile(
+                    `${process.cwd()}/theme/templates/pages/${fileName}`
+                );
+                available_page.type = 'system';
+                delete available_page.sections;
+                availablePages.push(available_page);
+            });
+            Logger.warn('Updating theme...');
+            await Promise.all([ThemeService.updateTheme(theme)]);
+            Logger.warn('Updating pages...');
+            await asyncForEach(availablePages, async page => {
+                try {
+                    Logger.warn('Updating page: ', page.value);
+                    await ThemeService.updateAvailablePage(page);
+                } catch (error) {
+                    throw new CommandError(error.message);
+                }
+            });
+        } catch (err) {
+            throw new CommandError(`Failed to uploading system pages`);
+        }
+    };
+    private static srcUploader = async (zipFilePath, srcCdnUrl) => {
+        try {
+            Logger.warn('Uploading src...');
+            let res = await UploadService.uploadFile(zipFilePath, 'application-theme-src');
+            srcCdnUrl = res.start.cdn.url;
+        } catch (err) {
+            throw new CommandError(`Failed to upload src file `);
+        }
     };
 }
