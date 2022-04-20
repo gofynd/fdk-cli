@@ -74,7 +74,6 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
                 const authCommand = args[1].name();
                 const themeCommand = args[1].name();
 
-                console.log('COMMAND', args);
                 if (
                     !(ENVIRONMENT_COMMANDS.findIndex(c => envCommand.includes(c)) !== -1) &&
                     !configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)
