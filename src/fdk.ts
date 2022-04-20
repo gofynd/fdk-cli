@@ -70,21 +70,25 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
                 }
 
                 // check if user is logged in and context is set
-                const command = args[1].name();
+                const envCommand = args[1].parent.name();
+                const authCommand = args[1].name();
+                const themeCommand = args[1].name();
+
+                console.log('COMMAND', args);
                 if (
-                    !(ENVIRONMENT_COMMANDS.findIndex(c => command.includes(c)) !== -1) &&
+                    !(ENVIRONMENT_COMMANDS.findIndex(c => envCommand.includes(c)) !== -1) &&
                     !configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)
                 ) {
                     throw new CommandError(COMMON_LOG_MESSAGES.EnvNotSet);
                 }
                 if (
-                    !(AUTHENTICATION_COMMANDS.findIndex(c => command.includes(c)) !== -1) &&
-                    !(ENVIRONMENT_COMMANDS.findIndex(c => command.includes(c)) !== -1) &&
+                    !(AUTHENTICATION_COMMANDS.findIndex(c => authCommand.includes(c)) !== -1) &&
+                    !(ENVIRONMENT_COMMANDS.findIndex(c => envCommand.includes(c)) !== -1) &&
                     !configStore.get(CONFIG_KEYS.COOKIE)
                 ) {
                     throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
                 }
-                if(THEME_COMMANDS.findIndex(c => command.includes(c)) !== -1) {
+                if(THEME_COMMANDS.findIndex(c => themeCommand.includes(c)) !== -1) {
                     const activeContextEnv = getActiveContext().env;
                     if(activeContextEnv !== Env.getEnvValue()) {
                         throw new CommandError(COMMON_LOG_MESSAGES.contextMismatch);
