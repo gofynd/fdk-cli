@@ -75,6 +75,7 @@ export default class Theme {
         } catch(err) {
             Logger.error(`Error writing ${path.split('/').slice(-1)[0]} file.!!!`);
             Logger.error(err);
+            process.exit(1);
         }
     }
 
@@ -87,6 +88,7 @@ export default class Theme {
         } catch(err) {
             Logger.error(`Error reading ${path.split('/').slice(-1)[0]} file.!!!`);
             Logger.error(err);
+            process.exit(1);
         }
     }
 
