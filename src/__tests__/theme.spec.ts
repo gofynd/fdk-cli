@@ -1,4 +1,4 @@
-import { exec } from 'child_process';
+// import { exec } from 'child_process';
 
 
 // describe("get context list", () => {
@@ -29,21 +29,21 @@ import { exec } from 'child_process';
 //         done()
 //       })
 //     })
-//   })
-  describe("Theme Pull Config", () => {
-    it("To pull latest theme config", (done) => {
+// //   })
+//   describe("Theme Pull Config", () => {
+//     it("To pull latest theme config", (done) => {
 
-      exec(`fdk theme pull-config`, (error, stdout,stderr)=>{
-        if(stderr){
-          console.log("stderror",stderr);
-          return;
-        }
-        expect(stdout.trim()).toMatch('Active Envoirnment: fyndx0');
-        // expect(stdout).toEqual("Active Envoirnment: fyndx0");
-        done()
-      })
-    })
-  })
+//       exec(`fdk theme pull-config`, (error, stdout,stderr)=>{
+//         if(stderr){
+//           console.log("stderror",stderr);
+//           return;
+//         }
+//         expect(stdout.trim()).toMatch('Active Envoirnment: fyndx0');
+//         // expect(stdout).toEqual("Active Envoirnment: fyndx0");
+//         done()
+//       })
+//     })
+//   })
 
 // describe("Theme Publish", () => {
 //     it("Should Publish Theme", (done) => {
@@ -53,8 +53,7 @@ import { exec } from 'child_process';
 //           console.log("stderror",stderr);
 //           return;
 //         }
-//         expect(stdout.trim()).toMatch('Active Envoirnment: fyndx0');
-//         // expect(stdout).toEqual("Active Envoirnment: fyndx0");
+//         expect(stdout.trim()).toMatch('Theme published');
 //         done()
 //       })
 //     })

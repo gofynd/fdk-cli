@@ -6,6 +6,7 @@ import Debug from '../lib/Debug';
 import validator from 'validator';
 
 const AuthenticationHandler = async (options, command) => {
+  console.log("indside auth function")
   try {
     const { email, mobile } = options;
     // Email Input
@@ -13,6 +14,7 @@ const AuthenticationHandler = async (options, command) => {
       if (!validator.isEmail(email)) {
         throw new CommandError('Enter a valid email');
       }
+      console.log("inside applocationhandler")
       const questions = [
         {
           type: 'password',
@@ -21,6 +23,7 @@ const AuthenticationHandler = async (options, command) => {
         },
       ];
       await inquirer.prompt(questions).then(async answers => {
+        console.log("after prompting",answers.password)
         await Auth.loginUserWithEmail(email, answers.password);
       });
     }
