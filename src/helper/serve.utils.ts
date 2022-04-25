@@ -9,6 +9,7 @@ import urlJoin from 'url-join';
 import { parse as stackTraceParser}  from 'stacktrace-parser';
 import proxy from 'express-http-proxy';
 import FormData from 'form-data';
+import UploadService from '../lib/api/services/upload.service';
 
 const BUILD_FOLDER = './.fdk/dist';
 const port = 5001;
@@ -43,17 +44,21 @@ export async function startServer({ domain, host, isSSR }) {
 	});
 
 	app.use('/public', async (req, res, done) => {
-		let { url } = req;
-		if (publicCache[url]) {
+		try {
+			const { url } = req;
+			if (publicCache[url]) {
+				res.set(publicCache[url].headers);
+				return res.send(publicCache[url].body);
+			}
+			const networkRes = await axios.get(urlJoin(domain, 'public', url));
+			publicCache[url] = publicCache[url] || {};
+			publicCache[url].body = networkRes.data;
+			publicCache[url].headers = networkRes.headers;
 			res.set(publicCache[url].headers);
 			return res.send(publicCache[url].body);
+		} catch(e) {
+			console.log("Error loading file ", url)
 		}
-		// let networkRes = await axios.get(urlJoin(domain, 'public', req.url));
-		publicCache[url] = publicCache[url] || {};
-		// publicCache[url].body = networkRes.data;
-		// publicCache[url].headers = networkRes.headers;
-		res.set(publicCache[url].headers);
-		return res.send(publicCache[url].body);
 	});
 
 	app.get('/_healthz', (req, res) => {
@@ -75,38 +80,37 @@ export async function startServer({ domain, host, isSSR }) {
 		}
 
 		const jetfireUrl = new URL(urlJoin(domain, req.originalUrl));
-		jetfireUrl.searchParams.set('__cli', 'true');
-		
-		// Added only for debugging purpose.
-		const localUrlPost = new URL(urlJoin("http://localdev.fyndx0.de:8087"));
-		localUrlPost.searchParams.set('__cli', 'true');
 
 		console.log(req.hostname, req.url);
 		console.log('original URL', req.originalUrl);
 
-		if (isSSR) {
-			jetfireUrl.searchParams.set('__csr', 'false');
-			localUrlPost.searchParams.set('__csr', 'false');
-		} else {
+		if (!isSSR) {
 			jetfireUrl.searchParams.set('__csr', 'true');
-			localUrlPost.searchParams.set('__csr', 'true');
 		}
 		try {
 			const BUNDLE_PATH = path.join(process.cwd(), '/.fdk/dist/themeBundle.common.js');
-			let themeBundleCommonJs = await fs.createReadStream(BUNDLE_PATH);
+			// let themeBundleCommonJs = await fs.createReadStream(BUNDLE_PATH);
+			// var form = new FormData();
+			// form.append('data', themeBundleCommonJs);
 			
-			var form = new FormData();
-			form.append('data', themeBundleCommonJs);
-			
+			const imageLoc = await UploadService.uploadFile(BUNDLE_PATH, 'application-theme-assets', "abcdefgh");
 			console.log('Jetfire URL: ', jetfireUrl.toString());
+			console.log('S3 URL: ', imageLoc.start.cdn.url);
 			
 			// Bundle Buffer directly passed on with POST request body.
 			try {
 				var { data: html } = await axios({
 					method: 'POST',
-					url: localUrlPost.toString(),
-					headers: form.getHeaders(),
-					data: form
+					url: jetfireUrl.toString(),
+					headers: {
+						'content-type': 'application/json',
+      					'Accept': 'application/json'
+					},
+					data: {
+						theme_url: imageLoc.start.cdn.url
+					}
+					// headers: form.getHeaders(),
+					// data: form
 				});
 			} catch(e) {
 				console.log('POST API ERROR', e);
