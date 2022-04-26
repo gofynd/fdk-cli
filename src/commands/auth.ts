@@ -44,8 +44,7 @@ const AuthenticationHandler = async (options, command) => {
 export default function context(program: Command) {
   // List available context
   program
-    .command('auth')
-    .alias('login')
+    .command('login')
     .option('-e, --email [email]', 'Email ID')
     .option('-m, --mobile [mobile]', 'Mobile number')
     .description('Login user with email or phone number')
