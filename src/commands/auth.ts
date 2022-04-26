@@ -23,7 +23,7 @@ const AuthenticationHandler = async (options, command) => {
         },
       ];
       await inquirer.prompt(questions).then(async answers => {
-        console.log("after prompting",answers.password)
+        console.log("after prompting",answers.password);
         await Auth.loginUserWithEmail(email, answers.password);
       });
     }

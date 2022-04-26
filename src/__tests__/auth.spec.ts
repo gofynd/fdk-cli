@@ -1,49 +1,15 @@
-// const {exec} = require('child_process');
-import {exec} from 'child_process';
-// import inquirer from 'inquirer';
-import  AuthenticationHandler  from '../commands/auth';
-import { command } from 'commander';
-import Auth from '../commands/auth';
-jest.mock('../../src/commands/auth');
-const mockInquirer = require('mock-inquirer')
-const inquirer = require('inquirer')
-
+import cli from './helper';
 
 describe("login user", () => {
-  jest.setTimeout(50000)
-  it("should successfully login user with email", async (done) => {
-    let reset = mockInquirer([{
-      password: '123456'  // will auto fill 'world'
-  }, {
-    // if anwsers is empty, mockInquirer will fill with default value
-  }, {
-      fail: false
-  }])
-    // const spyFetchUserData = jest
-    // .spyOn(inquirer ,'AuthenticationHandler')
-    // .mockImplementation(() =>
-    //     Promise.resolve({
-    //         password: "12345",
-    //         ui: {}      
-    //     })
-    // );
-    // const loginUserSpy = jest
-    //         .spyOn(Auth, `AuthenticationHandler()`).mockImplementation();
-    //         console.log("loginUserSpy",loginUserSpy);
 
-    // const result = AuthenticationHandler(`fdk login -e`);
-    exec(` npm link && npm run build && fdk login -e anuragpandey@gofynd.com`, (error, stdout,stderr)=>{
-        if(stderr){
-            console.log("stderror",stderr);
-            return;
-          }
-          console.log("stdout",stdout);
-          expect(stdout).toBe('test@test.com');
-        //   expect(spyFetchUserData).toHaveBeenCalled();
-      // expect(stdout).toMatch("");
-      done()
-    })
+  jest.setTimeout(30000);
+
+  it("should successfully login user with email", async (done) => {
+    const subprocess = await cli(`login -e vivekprajapati@gofynd.com`,123456);
+    console.log(subprocess);
+    // const result = await run([`${cliPath} login -e vivekprajapati@gofynd.com`]);
   })
+
 })
 // it("should successfully login user with mobile",(done) => {
 //     exec(`fdk login -m 7878880802`,(error,stdout,stderr)=>{
