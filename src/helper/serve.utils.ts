@@ -78,11 +78,6 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 		res.json({ ok: 'ok' });
 	});
 
-	app.use('/platform', proxy(`https://${host}`, {
-	  proxyReqPathResolver: function (req) {
-	    return `/platform${req.url}`;
-	  }
-	}));
 	app.use(`/api`, proxy(`${host}`));
 	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
 	app.get('/__webpack_hmr', async (req, res, next) => {
@@ -106,7 +101,7 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 			console.log('Jetfire URL: ', jetfireUrl.toString());
 			console.log('S3 URL: ', imageLoc.start.cdn.url);
 			
-			// Bundle Buffer directly passed on with POST request body.
+			// Bundle directly passed on with POST request body.
 			try {
 				var { data: html } = await axios({
 					method: 'POST',
