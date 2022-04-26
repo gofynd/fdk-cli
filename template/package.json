@@ -8,7 +8,7 @@
     },
     "dependencies": {
         "@glidejs/glide": "^3.4.1",
-        "@google/model-viewer": "^1.5.0",
+        "@google/model-viewer": "1.5.0",
         "@vue/cli": "4.2.2",
         "@vue/cli-service": "4.4.6",
         "@vue/cli-service-global": "4.2.2",

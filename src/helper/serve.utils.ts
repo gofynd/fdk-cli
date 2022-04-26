@@ -8,11 +8,12 @@ import { SourceMapConsumer } from 'source-map'
 import urlJoin from 'url-join';
 import { parse as stackTraceParser}  from 'stacktrace-parser';
 import proxy from 'express-http-proxy';
-import FormData from 'form-data';
 import UploadService from '../lib/api/services/upload.service';
+import detect from 'detect-port';
+import chalk from 'chalk';
 
 const BUILD_FOLDER = './.fdk/dist';
-const port = 5001;
+let port = 5001;
 let sockets = [];
 let publicCache = {};
 
@@ -30,7 +31,18 @@ export function getFullLocalUrl(host) {
 	return `${getLocalBaseUrl(host)}:${port}`;
 }
 
-export async function startServer({ domain, host, isSSR }) {
+function getPort(port) {
+	return detect(port);
+}
+
+export async function startServer({ domain, host, isSSR, serverPort }) {
+
+	try {
+		port = await getPort(serverPort);
+		if(port !== serverPort) Logger.warn(chalk.bold.yellowBright(`PORT: ${serverPort} is busy, Switching to PORT: ${port}`));
+	} catch(e) {
+		Logger.error('Error occurred while detecting port.\n', e);
+	}
 	const app = require('https-localhost')(getLocalBaseUrl(host));
 	const certs = await app.getCerts();
 	const server = require('https').createServer(certs, app);

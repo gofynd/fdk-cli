@@ -98,4 +98,7 @@ export const COMMON_LOG_MESSAGES = {
   RequireAuth: `Please login to use this command.\n${chalk.yellow(
     'Use fdk login --help to know more'
   )}`,
+  contextMismatch: `Active Environment and Active Context Environment doesn't match.\n${chalk.yellow(
+    'Use `fdk theme context-list` to switch context OR `fdk env set -n <env-name>` to change active environment.'
+  )}`
 };

@@ -9,6 +9,7 @@ axios.interceptors.request.use(addSignatureFn({}));
 
 let axiosMisc = axios.create({
   withCredentials: false,
+  timeout: 60000
 });
 
 interface ApiEngine {
