@@ -594,6 +594,7 @@ export default class Theme {
             let domain = Array.isArray(appInfo.domains)
                 ? `https://${appInfo.domains.filter(d => d.is_primary)[0].name}`
                 : `https://${appInfo.domain.name}`;
+            // let domain = `http://localdev.fyndx0.de:8087`;
             let host = BASE_URL;
             // initial build
             Logger.success(`Locally building............`);

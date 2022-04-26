@@ -25,7 +25,7 @@ export default {
       throw new CommandError(error.message, error.code);
     }
   },
-  uploadFile: async (filepath, namespace) => {
+  uploadFile: async (filepath, namespace, file_name = null) => {
     const activeContext = getActiveContext();
     let stats;
     // start
@@ -41,7 +41,7 @@ export default {
       contentType = 'image/jpeg';
     }
     const startData = {
-      file_name: path.basename(filepath),
+      file_name: file_name || path.basename(filepath),
       content_type: contentType,
       size: stats.size,
     };
