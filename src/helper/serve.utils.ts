@@ -8,9 +8,10 @@ import { SourceMapConsumer } from 'source-map'
 import urlJoin from 'url-join';
 import { parse as stackTraceParser}  from 'stacktrace-parser';
 import proxy from 'express-http-proxy';
-import UploadService from '../lib/api/services/upload.service';
 import detect from 'detect-port';
 import chalk from 'chalk';
+import UploadService from '../lib/api/services/upload.service';
+import Configstore, { CONFIG_KEYS } from '../lib/Config';
 
 const BUILD_FOLDER = './.fdk/dist';
 let port = 5001;
@@ -84,7 +85,9 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 	}));
 	app.use(`/api`, proxy(`${host}`));
 	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
-
+	app.get('/__webpack_hmr', async (req, res, next) => {
+		return res.end()
+	})
 	app.get('/*', async (req, res) => {
 
 		if (req.originalUrl == '/favicon.ico' || req.originalUrl == '/.webp') {
@@ -93,19 +96,13 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 
 		const jetfireUrl = new URL(urlJoin(domain, req.originalUrl));
 
-		console.log(req.hostname, req.url);
-		console.log('original URL', req.originalUrl);
-
 		if (!isSSR) {
 			jetfireUrl.searchParams.set('__csr', 'true');
 		}
 		try {
 			const BUNDLE_PATH = path.join(process.cwd(), '/.fdk/dist/themeBundle.common.js');
-			// let themeBundleCommonJs = await fs.createReadStream(BUNDLE_PATH);
-			// var form = new FormData();
-			// form.append('data', themeBundleCommonJs);
-			
-			const imageLoc = await UploadService.uploadFile(BUNDLE_PATH, 'application-theme-assets', "abcdefgh");
+			const User = Configstore.get(CONFIG_KEYS.USER);
+			const imageLoc = await UploadService.uploadFile(BUNDLE_PATH, 'application-theme-assets', User._id);
 			console.log('Jetfire URL: ', jetfireUrl.toString());
 			console.log('S3 URL: ', imageLoc.start.cdn.url);
 			
@@ -121,8 +118,6 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 					data: {
 						theme_url: imageLoc.start.cdn.url
 					}
-					// headers: form.getHeaders(),
-					// data: form
 				});
 			} catch(e) {
 				console.log('POST API ERROR', e);
