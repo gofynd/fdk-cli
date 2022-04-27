@@ -36,7 +36,6 @@ const handler = async args => {
         contextData = getActiveContext(true);
     }
     catch (err) { }
-    console.log(contextData, 'contextData')
     const ctx = {
         host: args.host || contextData.host,
         launch_url: args.url,

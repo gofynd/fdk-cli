@@ -34,7 +34,7 @@ const registerExtension = async (host, token, extension_name, extension_type, ve
     }
     let errorMsg = err.message || 'Failed to update data';
     if (err.response && err.response.status < 500) {
-      errorMsg = err.response.message || errorMsg;
+      errorMsg = err.response.data && err.response.data.message || errorMsg;
     }
     throw Error(errorMsg);
   }
@@ -68,7 +68,7 @@ const updateLaunchUrl = async (host, token, extension_id, launch_url, verbose = 
     }
     let errorMsg = err.message || 'Failed to update data';
     if (err.response && err.response.status < 500) {
-      errorMsg = err.response.message || errorMsg;
+      errorMsg = err.response.data && err.response.data.message || errorMsg;
     }
     throw Error(errorMsg);
   }
@@ -98,7 +98,7 @@ const getLaunchUrl = async (host, token, extension_id, verbose = false) => {
     }
     let errorMsg = err.message || 'Failed to update data';
     if (err.response && err.response.status < 500) {
-      errorMsg = err.response.data.message || errorMsg;
+      errorMsg = err.response.data && err.response.data.message || errorMsg;
     }
     throw Error(errorMsg);
   }
@@ -128,7 +128,7 @@ const getOrganizationInfo = async (host, token, verbose = false) => {
     }
     let errorMsg = err.message || 'Failed to fetch data';
     if (err.response && err.response.status < 500) {
-      errorMsg = err.response.message || errorMsg;
+      errorMsg = err.response.data && err.response.data.message || errorMsg;
     }
     throw Error(errorMsg);
   }
