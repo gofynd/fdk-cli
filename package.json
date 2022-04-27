@@ -17,7 +17,8 @@
     "build": "npm run clean && tsc",
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build",
-    "test": "jest -- ./src/__tests__/auth.spec.ts "
+    "test": "jest -- ./src/__tests__/auth.spec.ts",
+    "debug": "node ./bin/fdk login"
   },
   "devDependencies": {
     "@types/async": "^3.2.6",
