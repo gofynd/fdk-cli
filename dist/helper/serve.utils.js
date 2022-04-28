@@ -51,8 +51,10 @@ var source_map_1 = require("source-map");
 var url_join_1 = __importDefault(require("url-join"));
 var stacktrace_parser_1 = require("stacktrace-parser");
 var express_http_proxy_1 = __importDefault(require("express-http-proxy"));
+var detect_port_1 = __importDefault(require("detect-port"));
+var chalk_1 = __importDefault(require("chalk"));
 var BUILD_FOLDER = './.fdk/dist';
-var port = 5000;
+var port = 5001;
 var sockets = [];
 var publicCache = {};
 var tunnel;
@@ -119,26 +121,41 @@ function checkTunnel() {
     });
 }
 exports.checkTunnel = checkTunnel;
+function getPort(port) {
+    return detect_port_1.default(port);
+}
 function startServer(_a) {
-    var domain = _a.domain, host = _a.host, isSSR = _a.isSSR;
+    var domain = _a.domain, host = _a.host, isSSR = _a.isSSR, serverPort = _a.serverPort;
     return __awaiter(this, void 0, void 0, function () {
-        var app, certs, server, io;
+        var e_2, app, certs, server, io;
         var _this = this;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
+                    _b.trys.push([0, 2, , 3]);
+                    return [4 /*yield*/, getPort(serverPort)];
+                case 1:
+                    port = _b.sent();
+                    if (port !== serverPort)
+                        Logger_1.default.warn(chalk_1.default.bold.yellowBright("PORT: " + serverPort + " is busy, Switching to PORT: " + port));
+                    return [3 /*break*/, 3];
+                case 2:
+                    e_2 = _b.sent();
+                    Logger_1.default.error('Error occurred while detecting port.\n', e_2);
+                    return [3 /*break*/, 3];
+                case 3:
                     app = require('https-localhost')(getLocalBaseUrl(host));
                     return [4 /*yield*/, app.getCerts()];
-                case 1:
+                case 4:
                     certs = _b.sent();
                     server = require('https').createServer(certs, app);
                     io = require('socket.io')(server);
-                    if (!(isSSR && !isTunnelRunning())) return [3 /*break*/, 3];
+                    if (!(isSSR && !isTunnelRunning())) return [3 /*break*/, 6];
                     return [4 /*yield*/, createTunnel()];
-                case 2:
+                case 5:
                     _b.sent();
-                    _b.label = 3;
-                case 3:
+                    _b.label = 6;
+                case 6:
                     io.on('connection', function (socket) {
                         sockets.push(socket);
                         socket.on('disconnect', function () {
@@ -177,7 +194,7 @@ function startServer(_a) {
                     app.use("/api", express_http_proxy_1.default("" + host));
                     app.use(express_1.default.static(path_1.default.resolve(process.cwd(), BUILD_FOLDER)));
                     app.get('/*', function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-                        var jetfireUrl, _a, protocol, tnnelHost, html, $, e_2, errorString_1, mapContent, smc_1, stack, e_3;
+                        var jetfireUrl, _a, protocol, tnnelHost, html, $, e_3, errorString_1, mapContent, smc_1, stack, e_4;
                         return __generator(this, function (_b) {
                             switch (_b.label) {
                                 case 0:
@@ -217,8 +234,8 @@ function startServer(_a) {
                                     res.send($.html({ decodeEntities: false }));
                                     return [3 /*break*/, 16];
                                 case 6:
-                                    e_2 = _b.sent();
-                                    if (!(e_2.response && e_2.response.status == 504)) return [3 /*break*/, 9];
+                                    e_3 = _b.sent();
+                                    if (!(e_3.response && e_3.response.status == 504)) return [3 /*break*/, 9];
                                     if (!!isTunnelRunning()) return [3 /*break*/, 8];
                                     return [4 /*yield*/, createTunnel()];
                                 case 7:
@@ -228,18 +245,18 @@ function startServer(_a) {
                                     res.redirect(req.originalUrl);
                                     return [3 /*break*/, 15];
                                 case 9:
-                                    if (!(e_2.response && e_2.response.status == 500)) return [3 /*break*/, 14];
+                                    if (!(e_3.response && e_3.response.status == 500)) return [3 /*break*/, 14];
                                     _b.label = 10;
                                 case 10:
                                     _b.trys.push([10, 12, , 13]);
-                                    Logger_1.default.error(e_2.response.data);
-                                    errorString_1 = e_2.response.data.split('\n').find(function (line) { return line.trim().length > 0; });
+                                    Logger_1.default.error(e_3.response.data);
+                                    errorString_1 = e_3.response.data.split('\n').find(function (line) { return line.trim().length > 0; });
                                     errorString_1 = "<h3><b>" + errorString_1 + "</b></h3>";
                                     mapContent = JSON.parse(fs_1.default.readFileSync(BUILD_FOLDER + "/themeBundle.common.js.map", { encoding: 'utf8', flag: 'r' }));
                                     return [4 /*yield*/, new source_map_1.SourceMapConsumer(mapContent)];
                                 case 11:
                                     smc_1 = _b.sent();
-                                    stack = stacktrace_parser_1.parse(e_2.response.data);
+                                    stack = stacktrace_parser_1.parse(e_3.response.data);
                                     stack === null || stack === void 0 ? void 0 : stack.forEach(function (_a) {
                                         var methodName = _a.methodName, lineNumber = _a.lineNumber, column = _a.column;
                                         try {
@@ -260,12 +277,12 @@ function startServer(_a) {
                                     res.send("<div style=\"padding: 10px;background: #efe2e0;color: #af2626;\">" + errorString_1 + "</div>");
                                     return [3 /*break*/, 13];
                                 case 12:
-                                    e_3 = _b.sent();
-                                    console.log(e_3);
+                                    e_4 = _b.sent();
+                                    console.log(e_4);
                                     return [3 /*break*/, 13];
                                 case 13: return [3 /*break*/, 15];
                                 case 14:
-                                    console.log(e_2.request && e_2.request.path, e_2.message);
+                                    console.log(e_3.request && e_3.request.path, e_3.message);
                                     _b.label = 15;
                                 case 15: return [3 /*break*/, 16];
                                 case 16: return [2 /*return*/];
@@ -284,14 +301,14 @@ function startServer(_a) {
                                     }
                                     return reject(err);
                                 }
-                                Logger_1.default.success("Starting starter at port -- " + port);
+                                Logger_1.default.success("Starting server on port -- " + port);
                                 if (isSSR) {
                                     interval = setInterval(checkTunnel, 1000 * 30);
                                 }
                                 resolve(true);
                             });
                         })];
-                case 4:
+                case 7:
                     _b.sent();
                     return [2 /*return*/];
             }

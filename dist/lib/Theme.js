@@ -103,6 +103,54 @@ var ora_1 = __importDefault(require("ora"));
 var Theme = /** @class */ (function () {
     function Theme() {
     }
+    Theme.getSettingsDataPath = function () {
+        return path_1.default.join(process.cwd(), '/theme/config/settings_data.json');
+    };
+    Theme.getSettingsSchemaPath = function () {
+        return path_1.default.join(process.cwd(), '/theme/config/settings_schema.json');
+    };
+    Theme.writeSettingJson = function (path, jsonObject) {
+        return __awaiter(this, void 0, void 0, function () {
+            var err_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, fs_extra_1.default.writeJSON(path, jsonObject, {
+                                spaces: 2,
+                            })];
+                    case 1:
+                        _a.sent();
+                        Logger_1.default.success(path.split('/').slice(-1)[0] + " written succesfully.!!!");
+                        return [3 /*break*/, 3];
+                    case 2:
+                        err_1 = _a.sent();
+                        throw new CommandError_1.default("Error writing " + path.split('/').slice(-1)[0] + " file.!!!");
+                    case 3: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Theme.readSettingsJson = function (path) {
+        return __awaiter(this, void 0, void 0, function () {
+            var settingsJson, err_2;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, fs_extra_1.default.readJSON(path)];
+                    case 1:
+                        settingsJson = _a.sent();
+                        Logger_1.default.success(path.split('/').slice(-1)[0] + " read successfully.!!!");
+                        return [2 /*return*/, settingsJson];
+                    case 2:
+                        err_2 = _a.sent();
+                        throw new CommandError_1.default("Error reading " + path.split('/').slice(-1)[0] + " file.!!!");
+                    case 3: return [2 /*return*/];
+                }
+            });
+        });
+    };
     Theme.createTheme = function (options) {
         return __awaiter(this, void 0, void 0, function () {
             var shouldDelete, targetDirectory, configObj, appConfig, available_sections, themeData, theme, context, packageJSON, b5, error_1;
@@ -459,14 +507,10 @@ var Theme = /** @class */ (function () {
                     current = lodash_1.default.get(themeData, 'config.current', 'default');
                     preset = lodash_1.default.get(themeData, 'config.preset', {});
                     information = { features: lodash_1.default.get(themeData, 'information.features', []) };
-                    return [4 /*yield*/, fs_extra_1.default.writeJson(process.cwd() + '/theme/config/settings_data.json', { list: list, current: current, preset: preset, information: information }, {
-                            spaces: 2,
-                        })];
+                    return [4 /*yield*/, Theme.writeSettingJson(Theme.getSettingsDataPath(), { list: list, current: current, preset: preset, information: information })];
                 case 7:
                     _b.sent();
-                    return [4 /*yield*/, fs_extra_1.default.writeJson(process.cwd() + '/theme/config/settings_schema.json', lodash_1.default.get(themeData, 'config.global_schema', { props: [] }), {
-                            spaces: 2,
-                        })];
+                    return [4 /*yield*/, Theme.writeSettingJson(Theme.getSettingsSchemaPath(), lodash_1.default.get(themeData, 'config.global_schema', { props: [] }))];
                 case 8:
                     _b.sent();
                     fs_extra_1.default.writeJson(path_1.default.join(targetDirectory, '/config.json'), {
@@ -542,7 +586,7 @@ var Theme = /** @class */ (function () {
                     case 1:
                         theme = (_b.sent()).data;
                         newConfig_1 = Theme.getSettingsData(theme);
-                        return [4 /*yield*/, fs_extra_1.default.readJSON('./theme/config/settings_data.json')];
+                        return [4 /*yield*/, Theme.readSettingsJson(Theme.getSettingsDataPath())];
                     case 2:
                         oldConfig = _b.sent();
                         questions = [
@@ -558,9 +602,7 @@ var Theme = /** @class */ (function () {
                                     switch (_a.label) {
                                         case 0:
                                             if (!answers.pullConfig) return [3 /*break*/, 2];
-                                            return [4 /*yield*/, fs_extra_1.default.writeJSON('./theme/config/settings_data.json', newConfig_1, {
-                                                    spaces: 2,
-                                                })];
+                                            return [4 /*yield*/, Theme.writeSettingJson(Theme.getSettingsDataPath(), newConfig_1)];
                                         case 1:
                                             _a.sent();
                                             Logger_1.default.success('Config updated successfully');
@@ -819,10 +861,10 @@ var Theme = /** @class */ (function () {
                         lodash_1.default.set(theme, 'information.images.android', androidImages);
                         lodash_1.default.set(theme, 'information.images.thumbnail', thumbnailImages);
                         lodash_1.default.set(theme, 'information.name', Theme.unSanitizeThemeName(packageJSON.name));
-                        return [4 /*yield*/, fs_extra_1.default.readJSON(process.cwd() + "/theme/config/settings_schema.json")];
+                        return [4 /*yield*/, Theme.readSettingsJson(Theme.getSettingsSchemaPath())];
                     case 22:
                         globalConfigSchema = _b.sent();
-                        return [4 /*yield*/, fs_extra_1.default.readJSON(process.cwd() + "/theme/config/settings_data.json")];
+                        return [4 /*yield*/, Theme.readSettingsJson(Theme.getSettingsDataPath())];
                     case 23:
                         globalConfigData = _b.sent();
                         theme.config = theme.config || {};
@@ -918,7 +960,7 @@ var Theme = /** @class */ (function () {
         });
     };
     Theme.serveTheme = function (options) { return __awaiter(void 0, void 0, void 0, function () {
-        var isSSR_1, appInfo, domain, host_1, watcher, error_8;
+        var isSSR_1, DEFAULT_PORT, serverPort, appInfo, domain, host_1, watcher, error_8;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -928,6 +970,8 @@ var Theme = /** @class */ (function () {
                         : options['ssr'] == 'true'
                             ? true
                             : false;
+                    DEFAULT_PORT = 5001;
+                    serverPort = typeof options['port'] === 'string' ? parseInt(options['port']) : typeof options['port'] === 'number' ? options['port'] : DEFAULT_PORT;
                     !isSSR_1 ? Logger_1.default.warn('Disabling SSR') : null;
                     return [4 /*yield*/, configuration_service_1.default.getApplicationDetails()];
                 case 1:
@@ -946,8 +990,8 @@ var Theme = /** @class */ (function () {
                 case 2:
                     _a.sent();
                     // start dev server
-                    console.log(chalk_1.default.bold.green("Starting server"));
-                    return [4 /*yield*/, serve_utils_1.startServer({ domain: domain, host: host_1, isSSR: isSSR_1 })];
+                    Logger_1.default.info(chalk_1.default.bold.blueBright("Starting server..."));
+                    return [4 /*yield*/, serve_utils_1.startServer({ domain: domain, host: host_1, isSSR: isSSR_1, serverPort: serverPort })];
                 case 3:
                     _a.sent();
                     // open browser
@@ -1016,14 +1060,10 @@ var Theme = /** @class */ (function () {
                     current = lodash_1.default.get(theme, 'config.current', 'default');
                     preset = lodash_1.default.get(theme, 'config.preset', {});
                     information = { features: lodash_1.default.get(theme, 'information.features', []) };
-                    return [4 /*yield*/, fs_extra_1.default.writeJSON(path_1.default.join(process.cwd(), '/theme/config/settings_data.json'), { list: list, current: current, preset: preset, information: information }, {
-                            spaces: 2,
-                        })];
+                    return [4 /*yield*/, Theme.writeSettingJson(Theme.getSettingsDataPath(), { list: list, current: current, preset: preset, information: information })];
                 case 5:
                     _a.sent();
-                    return [4 /*yield*/, fs_extra_1.default.writeJSON(path_1.default.join(process.cwd(), '/theme/config/settings_schema.json'), lodash_1.default.get(theme, 'config.global_schema', { props: [] }), {
-                            spaces: 2,
-                        })];
+                    return [4 /*yield*/, Theme.writeSettingJson(Theme.getSettingsSchemaPath(), lodash_1.default.get(theme, 'config.global_schema', { props: [] }))];
                 case 6:
                     _a.sent();
                     return [4 /*yield*/, fs_extra_1.default.readJSON(process.cwd() + '/theme/package.json')];
@@ -1110,9 +1150,7 @@ var Theme = /** @class */ (function () {
                             features: information.features,
                         };
                     }
-                    return [4 /*yield*/, fs_extra_1.default.writeJSON(path_1.default.join(process.cwd(), '/theme/config/settings_data.json'), newConfig, {
-                            spaces: 2,
-                        })];
+                    return [4 /*yield*/, Theme.writeSettingJson(Theme.getSettingsDataPath(), newConfig)];
                 case 2:
                     _a.sent();
                     Logger_1.default.success('Config updated successfully');

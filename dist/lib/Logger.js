@@ -127,4 +127,5 @@ exports.COMMON_LOG_MESSAGES = {
     EnvNotSet: "Please set environment to use this command.\n" + chalk_1.default.yellow('Use fdk envs to set environment'),
     ContextNotSet: "Please set context to use this command.\n" + chalk_1.default.yellow('Use fdk context-list to set context'),
     RequireAuth: "Please login to use this command.\n" + chalk_1.default.yellow('Use fdk login --help to know more'),
+    contextMismatch: "Active Environment and Active Context Environment doesn't match.\n" + chalk_1.default.yellow('Use `fdk theme context-list` to switch context OR `fdk env set -n <env-name>` to change active environment.')
 };

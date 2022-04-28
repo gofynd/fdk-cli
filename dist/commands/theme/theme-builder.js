@@ -25,6 +25,7 @@ function themeCommandBuilder() {
         .command('serve')
         .description('Serve theme')
         .option('--ssr <boolean>', 'Server side rendering', true)
+        .option('--port <number>', 'Custom port')
         .asyncAction(Theme_1.default.serveTheme);
     theme.command('publish').description('Publish theme').asyncAction(Theme_1.default.publishTheme);
     theme.command('unpublish').description('Unpublish theme').asyncAction(Theme_1.default.unPublishTheme);

@@ -62,6 +62,7 @@ exports.AVAILABLE_ENVS = void 0;
 var Config_1 = __importStar(require("./Config"));
 var CommandError_1 = __importDefault(require("./CommandError"));
 var Logger_1 = __importStar(require("./Logger"));
+var chalk_1 = __importDefault(require("chalk"));
 exports.AVAILABLE_ENVS = {
     fyndx1: 'api.fyndx1.de',
     fyndx0: 'api.fyndx0.de',
@@ -71,8 +72,10 @@ exports.AVAILABLE_ENVS = {
     jiox0: 'api.jiox0.de',
     jioretailer: 'api.jioretailer.com',
     jioecomm: 'api.jioecomm.com',
+    jiomarketx0: 'api.jiomarketx0.de',
     jiox5: 'api.jiox5.de',
-    jiox3: 'api.jiox3.de'
+    jiox3: 'api.jiox3.de',
+    jiomartpartners: 'api.jiomartpartners.com'
 };
 var Env = /** @class */ (function () {
     function Env() {
@@ -89,34 +92,48 @@ var Env = /** @class */ (function () {
         if (!ctx) {
             throw new CommandError_1.default(Logger_1.COMMON_LOG_MESSAGES.EnvNotSet);
         }
-        Logger_1.default.success("Active Envoirnment: " + ctx);
+        Logger_1.default.success("Active Environment: " + chalk_1.default.bold(ctx));
     };
-    Env.listEnvs = function (options) {
+    Env.listEnvs = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var ACTIVE_ENVIRONMENT_1;
+            return __generator(this, function (_a) {
+                try {
+                    ACTIVE_ENVIRONMENT_1 = Env.getEnvValue();
+                    Logger_1.default.info(chalk_1.default.bold.blueBright("List of supported Environments:"));
+                    Object.keys(exports.AVAILABLE_ENVS).forEach(function (key) {
+                        if (ACTIVE_ENVIRONMENT_1 && key.toString() === ACTIVE_ENVIRONMENT_1.toString()) {
+                            Logger_1.default.info(chalk_1.default.bold.greenBright(key) + "*");
+                        }
+                        else {
+                            Logger_1.default.info(chalk_1.default.bold.gray(key));
+                        }
+                    });
+                }
+                catch (error) {
+                    throw new CommandError_1.default(error.message);
+                }
+                return [2 /*return*/];
+            });
+        });
+    };
+    Env.setNewEnvs = function (options) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 try {
                     if (options.name) {
-                        Env.setEnv(options.name);
-                        Logger_1.default.success("Env set to: " + options.name);
-                        return [2 /*return*/];
+                        if (Object.keys(exports.AVAILABLE_ENVS).includes(options.name)) {
+                            Env.setEnv(options.name);
+                            Logger_1.default.success("Env set to: " + chalk_1.default.bold(options.name));
+                        }
+                        else {
+                            Logger_1.default.error("*" + chalk_1.default.bold(options.name) + "* environment is not supported.\n");
+                            Env.listEnvs();
+                        }
                     }
-                    // const env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE) || 'Not set'
-                    // Logger.success(`Active Envoirnment: ${env}`)
-                    // const questions = [
-                    //   {
-                    //     type: 'list',
-                    //     name: 'ctx',
-                    //     message: 'Availabe Envs. Select on to set active context',
-                    //     choices: Object.keys(AVAILABLE_ENVS),
-                    //   },
-                    // ];
-                    // await inquirer.prompt(questions).then(answers => {
-                    //   Env.setEnv(answers.ctx);
-                    //   Logger.success(`Env set to: ${answers.ctx}`)
-                    // });
                 }
-                catch (error) {
-                    throw new CommandError_1.default(error.message);
+                catch (e) {
+                    throw new CommandError_1.default(e.message);
                 }
                 return [2 /*return*/];
             });

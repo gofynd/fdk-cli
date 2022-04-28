@@ -75,9 +75,10 @@ var Logger_2 = require("./lib/Logger");
 var utils_1 = require("./helper/utils");
 var inquirer_1 = __importDefault(require("inquirer"));
 var path_1 = __importDefault(require("path"));
+var Env_1 = __importDefault(require("./lib/Env"));
+var utils_js_1 = require("./helper/utils.js");
+var constants_1 = require("./helper/constants");
 var packageJSON = require('../package.json');
-var notRequireAuthCommands = ['login', 'env', 'logout', 'auth'];
-var notRequireEnvCommands = ['env'];
 // Common Handler for all commands are executed from here
 commander_1.Command.prototype.asyncAction = function (asyncFn) {
     return __awaiter(this, void 0, void 0, function () {
@@ -89,18 +90,19 @@ commander_1.Command.prototype.asyncAction = function (asyncFn) {
                         args[_i] = arguments[_i];
                     }
                     return __awaiter(_this, void 0, void 0, function () {
-                        var parent, log_file_path, command_1, answer, err_1, message;
+                        var parent_1, log_file_path, latest, versionChange, major, color, logMessage, envCommand_1, authCommand_1, themeCommand_1, activeContextEnv, answer, err_1, message;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
-                                    parent = args[1].parent;
+                                    _a.trys.push([0, 5, , 6]);
+                                    parent_1 = args[1].parent;
                                     while (true) {
-                                        if (parent.parent)
-                                            parent = parent.parent;
+                                        if (parent_1.parent)
+                                            parent_1 = parent_1.parent;
                                         else
                                             break;
                                     }
-                                    if (parent._optionValues.verbose) {
+                                    if (parent_1._optionValues.verbose) {
                                         process.env.DEBUG = 'fdk';
                                         log_file_path = process.cwd() + '/debug.log';
                                         if (fs_extra_1.default.existsSync(log_file_path))
@@ -110,21 +112,41 @@ commander_1.Command.prototype.asyncAction = function (asyncFn) {
                                         process.env.DEBUG = 'false';
                                     }
                                     Logger_2.initializeLogger();
-                                    _a.label = 1;
+                                    return [4 /*yield*/, checkCliVersionAsync()];
                                 case 1:
-                                    _a.trys.push([1, 5, , 6]);
-                                    command_1 = args[1].name();
-                                    if (!(notRequireEnvCommands.findIndex(function (c) { return command_1.includes(c); }) !== -1) &&
+                                    latest = _a.sent();
+                                    Debug_1.default("Latest version: " + latest + " | " + semver_1.default.lt(packageJSON.version, latest));
+                                    versionChange = semver_1.default.diff(packageJSON.version, latest);
+                                    major = versionChange === 'major';
+                                    color = major ? 'red' : 'green';
+                                    logMessage = "There is a new version of " + packageJSON.name + " available (" + latest + ").\nYou are currently using " + packageJSON.name + " " + packageJSON.version + ".\nInstall fdk-cli globally using the package manager of your choice.\n" + (major ? "\nNote: You need to update `" + packageJSON.name + "` first inorder to use it." : '') + "\nRun `npm install -g " + packageJSON.name + "` to get the latest version.";
+                                    if (latest && semver_1.default.lt(packageJSON.version, latest)) {
+                                        console.log(boxen_1.default(major ? chalk_1.default.red(logMessage) : chalk_1.default.green(logMessage), { borderColor: color, padding: 1 }));
+                                        if (semver_1.default.diff(packageJSON.version, latest) === 'major') {
+                                            process.exit(1);
+                                        }
+                                    }
+                                    envCommand_1 = args[1].parent.name();
+                                    authCommand_1 = args[1].name();
+                                    themeCommand_1 = args[1].name();
+                                    if (!(constants_1.ENVIRONMENT_COMMANDS.findIndex(function (c) { return envCommand_1.includes(c); }) !== -1) &&
                                         !Config_1.default.get(Config_1.CONFIG_KEYS.CURRENT_ENV_VALUE)) {
                                         throw new CommandError_1.default(Logger_1.COMMON_LOG_MESSAGES.EnvNotSet);
                                     }
-                                    if (!(notRequireAuthCommands.findIndex(function (c) { return command_1.includes(c); }) !== -1) &&
+                                    if (!(constants_1.AUTHENTICATION_COMMANDS.findIndex(function (c) { return authCommand_1.includes(c); }) !== -1) &&
+                                        !(constants_1.ENVIRONMENT_COMMANDS.findIndex(function (c) { return envCommand_1.includes(c); }) !== -1) &&
                                         !Config_1.default.get(Config_1.CONFIG_KEYS.COOKIE)) {
                                         throw new CommandError_1.default(Logger_1.COMMON_LOG_MESSAGES.RequireAuth);
                                     }
-                                    if (!(parent.args.includes('theme') &&
-                                        !parent.args.includes('new') &&
-                                        !parent.args.includes('init'))) return [3 /*break*/, 3];
+                                    if (constants_1.THEME_COMMANDS.findIndex(function (c) { return themeCommand_1.includes(c); }) !== -1) {
+                                        activeContextEnv = utils_js_1.getActiveContext().env;
+                                        if (activeContextEnv !== Env_1.default.getEnvValue()) {
+                                            throw new CommandError_1.default(Logger_1.COMMON_LOG_MESSAGES.contextMismatch);
+                                        }
+                                    }
+                                    if (!(parent_1.args.includes('theme') &&
+                                        !parent_1.args.includes('new') &&
+                                        !parent_1.args.includes('init'))) return [3 /*break*/, 3];
                                     if (!!utils_1.isAThemeDirectory()) return [3 /*break*/, 3];
                                     return [4 /*yield*/, promptForFDKFolder()];
                                 case 2:
@@ -136,16 +158,6 @@ commander_1.Command.prototype.asyncAction = function (asyncFn) {
                                 case 3: return [4 /*yield*/, asyncFn.apply(void 0, args)];
                                 case 4:
                                     _a.sent();
-                                    checkCliVersionAsync()
-                                        .then(function (latest) {
-                                        Debug_1.default("Latest version: " + latest + " | " + semver_1.default.lt(packageJSON.version, latest));
-                                        if (latest && semver_1.default.lt(packageJSON.version, latest)) {
-                                            console.log(boxen_1.default(chalk_1.default.green("There is a new version of " + packageJSON.name + " available (" + latest + ").\nYou are currently using " + packageJSON.name + " " + packageJSON.version + ".\nInstall fdk-cli globally using the package manager of your choice;\nfor example: `npm install -g " + packageJSON.name + "` to get the latest version"), { borderColor: 'green', padding: 1 }));
-                                        }
-                                    })
-                                        .catch(function (error) {
-                                        Logger_1.default.error(error.message);
-                                    });
                                     return [3 /*break*/, 6];
                                 case 5:
                                     err_1 = _a.sent();

@@ -24,6 +24,7 @@ axios_1.default.defaults.withCredentials = true;
 axios_1.default.interceptors.request.use(addSignatureFn({}));
 var axiosMisc = axios_1.default.create({
     withCredentials: false,
+    timeout: 60000
 });
 var engine = {
     head: function (url, opt) {
