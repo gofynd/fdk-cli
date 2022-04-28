@@ -7,7 +7,7 @@
 [![Build Status](https://travis-ci.org/gofynd/fdk-cli.svg?branch=master)](https://travis-ci.org/gofynd/fdk-cli)
 Fynd development Kit (FDK CLI) is a cli tool developed by Fynd to create and update themes, extensions and various other components of the [Fynd Platform](https://platform.fynd.com/).
 ### Quick Links
-[Fynd Platform](https://platform.fynd.com/) | [Fynd Partners](https://partners.fynd.com/) | [Documentation](https://documentation.fynd.com/) | [Other Projects](#OtherProjects) | 
+[Fynd Platform](https://platform.fynd.com/) | [Fynd Partners](https://partners.fynd.com/) | [Documentation](https://documentation.fynd.com/) | [Other Projects](#OtherProjects) | | [Contributing](#Contributing) | 
 |---|---|---|---|
 # Installation
 ___
@@ -50,8 +50,9 @@ ___
 ### Environment Commands
 | Command        | Description           | 
 | ------------- |-------------| 
-| [env](#env)     | List environments |
-| [current-env](#current-env)     | Shows current environment |
+| [env ls](#env-ls)     | List environments |
+| [env get](#env-get)     | Shows current environment |
+| [env set](#env-set)     | Set active environment to the value provided by the user|
 
 ### Authentication Commands
 | Command        | Description           | 
@@ -92,33 +93,45 @@ ___
 ___
 ### Environment Commands
 Before you setup a theme using FDK CLI you will have to set an environment in which you will be initializing your theme
-<div id="envs"></div>
+<div id="env-ls"></div>
 
-#### **env**
-This command show a list of all available envorinments for the user to choose from
-#### **Command Options**
-| Option        | Description           | 
-| ------------- |-------------| 
-| --name, -n   | Environment name |
-| --help    | Show help |
-
-#### **Example**
-```sh
-fdk env -n fynd
-```
+#### **env ls**
+This command displays a list of all supported environments.
 #### **Syntax**
 ```sh
-fdk env -n [your-env]
+fdk env ls
 ```
 
-<div id="current-env"></div>
+<div id="env-set"></div>
 
 ___
-#### **current-env**
-This command show the current environment set by the user.
+
+#### **env set**
+This command sets the active environment to the value provided by the user.
+
 #### **Syntax**
 ```sh
-fdk current-env
+fdk env set -n [env-name]
+```
+#### **Example**
+```sh
+fdk env set -n fynd
+```
+#### **Command Options**
+| Option        | Description | Required |
+| ------------- |-------------|----------|
+| --name, -n   | Environment name | Yes |
+| --help    | Show help | No |
+
+<div id="env-get"></div>
+
+___
+
+#### **env get**
+This command displays the active environment set by the user.
+#### **Syntax**
+```sh
+fdk env get
 ```
 ___
 ### Authentication Commands
@@ -418,6 +431,12 @@ ___
 [license-image]: https://img.shields.io/npm/l/@gofynd/fdk-cli?color=success
 [license-url]: https://github.com/gofynd/fdk-cli/blob/master/LICENSE
 
+___
 
+<div id="Contributing"></div>
+
+## Contributing
+
+Checkout [CONTRIBUTING.md](CONTRIBUTING.md) for more information on how to get started contributing to this repository.
 
 ****

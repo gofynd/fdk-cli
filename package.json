@@ -1,6 +1,6 @@
 {
   "name": "@gofynd/fdk-cli",
-  "version": "2.1.20",
+  "version": "2.2.1",
   "main": "index.js",
   "license": "MIT",
   "bin": {

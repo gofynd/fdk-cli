@@ -42,24 +42,30 @@ exports.handler = async args => {
     catch (err) { }
     let answers = {};
     let organizationInfo = null;
-    answers = await inquirer.prompt(questions);
-    context.partner_access_token = answers.partner_access_token;
-    const tasks = new Listr([
-        {
-            title: 'Verifying access token',
-            task: async ctx => {
-                organizationInfo = await getOrganizationInfo(context.host, answers.partner_access_token, args.verbose);           
-            }
-        }]);
+    try {
+        answers = await inquirer.prompt(questions);
+        context.partner_access_token = answers.partner_access_token;
+        const host = args.host || context.host;
+        const tasks = new Listr([
+            {
+                title: 'Verifying access token',
+                task: async ctx => {
+                    organizationInfo = await getOrganizationInfo(host, answers.partner_access_token, args.verbose);
+                }
+            }]);
 
-    await tasks.run();
-    if (!organizationInfo) {
-        console.log(chalk.red('Invalid or expired token. Please add valid token'));
-        process.exit(0);
+        await tasks.run();
+        if (!organizationInfo) {
+            console.log(chalk.red('Invalid or expired token. Please add valid token'));
+            process.exit(0);
+        }
+        if (!args.readOnly) {
+            writeContextData(context.name, context, `${args.targetDir}/.fdk/context.json`, true);
+            console.log(chalk.green('Updated partner token'));
+        }
     }
-    if (!args.readOnly) {
-        writeContextData(context.name, context, `${args.targetDir}/.fdk/context.json`, true);
-        console.log(chalk.green('Updated partner token'));
+    catch (error) {
+        console.log(chalk.red(error.message));
     }
     return context.partner_access_token;
 };
