@@ -11,9 +11,11 @@ import { parse as stackTraceParser}  from 'stacktrace-parser';
 import proxy from 'express-http-proxy';
 import Theme from '../lib/Theme';
 import glob from 'glob';
+import detect from 'detect-port';
+import chalk from 'chalk';
 
 const BUILD_FOLDER = './.fdk/dist';
-const port = 5000;
+let port = 5001;
 let sockets = [];
 let publicCache = {};
 let tunnel
@@ -56,7 +58,19 @@ export async function checkTunnel() {
 	}
 }
 
-export async function startServer({ domain, host, isSSR }) {
+function getPort(port) {
+	return detect(port);
+}
+
+export async function startServer({ domain, host, isSSR, serverPort }) {
+
+	try {
+		port = await getPort(serverPort);
+		if(port !== serverPort) Logger.warn(chalk.bold.yellowBright(`PORT: ${serverPort} is busy, Switching to PORT: ${port}`));
+	} catch(e) {
+		Logger.error('Error occurred while detecting port.\n', e);
+	}
+
 	const app = require('https-localhost')(getLocalBaseUrl(host));
 	const certs = await app.getCerts();
 	const server = require('https').createServer(certs, app);
@@ -207,7 +221,7 @@ export async function startServer({ domain, host, isSSR }) {
 				}
 				return reject(err);
 			}
-			Logger.success(`Starting starter at port -- ${port}`);
+			Logger.success(`Starting server on port -- ${port}`);
 			if (isSSR) {
 				interval = setInterval(checkTunnel, 1000 * 30);
 			}
