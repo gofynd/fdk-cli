@@ -221,7 +221,7 @@ exports.handler = async args => {
     }
     prompt_answers = await inquirer.prompt(questions);
     if (!contextData.partner_access_token) {
-        contextData.partner_access_token = await partner_token_cmd({readOnly: true});
+        contextData.partner_access_token = await partner_token_cmd({readOnly: true, ...args});
     }
     answers.launch_url = "http://localdev.fyndx0.de"
     answers.partner_access_token = contextData.partner_access_token;
