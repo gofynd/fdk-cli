@@ -7,13 +7,18 @@ import ConfigStore, { CONFIG_KEYS } from './Config';
 export default class Auth {
     constructor() {}
     public static async loginUserWithEmail(email: string, password: string) {
+        // console.log("hiiiiiii")
         try {
+            // console.log("hiiiiiii1111111")
             const requestData = {
                 username: email,
                 password,
                 'g-recaptcha-response': '_skip_',
             };
+            // console.log("after emailwithpass333333")
             const { data, headers } = await AuthService.loginUserWithEmailAndPassword(requestData);
+            // console.log("after emailwithpass")
+            console.log("loggedin successfully",data)
             delete data.user.roles;
             const cookie = headers['set-cookie'][0];
             ConfigStore.set(CONFIG_KEYS.COOKIE, cookie);

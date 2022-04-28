@@ -11,7 +11,9 @@ export default {
             },
             getCommonHeaderOptions()
         );
+        // console.log("in emailwithpass2222")
         return ApiClient.post(URLS.LOGIN_USER(), axiosOption);
+        
     },
     sendMobileOtp: (data) => {
         const axiosOption = Object.assign(
