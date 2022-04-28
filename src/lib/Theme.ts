@@ -502,7 +502,6 @@ export default class Theme {
                 theme.assets.css = theme.assets.css || {};
                 theme.assets.css.links = cssUrls;
                 theme.assets.css.link = '';
-                theme.assets.asset_hash = assetHash;
 
                 theme = {
                     ...theme,

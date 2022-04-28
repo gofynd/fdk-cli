@@ -5,7 +5,7 @@ const path = require("path");
 const { chalk, error, loadModule } = require('@vue/cli-shared-utils')
 
 const FDK_CONFIG_PATH = "./fdk.config.js";
-let fdkConfig = {};
+let vueConfig = {};
 let fileConfigPath = null;
 const context = process.cwd();
 
@@ -33,9 +33,9 @@ function mergeDeep(target, ...sources) {
 try {
   fileConfigPath = path.resolve(context, FDK_CONFIG_PATH);
   if (fileConfigPath && fs.existsSync(fileConfigPath)) {
-    fdkConfig = loadModule(fileConfigPath, context);
-    if (typeof fdkConfig === 'function') {
-      fdkConfig = fdkConfig()
+    vueConfig = loadModule(fileConfigPath, context);
+    if (typeof vueConfig === 'function') {
+      vueConfig = vueConfig()
     }
   }
 } catch (err) {
@@ -44,7 +44,7 @@ try {
   throw err;
 }
 
-fdkConfig = mergeDeep(fdkConfig, {
+vueConfig = mergeDeep(vueConfig, {
   publicPath: process.env.ASSET_CDN_URL,
   css: {
     extract: {
@@ -53,8 +53,8 @@ fdkConfig = mergeDeep(fdkConfig, {
     },
   }
 });
-const fdkChainWebpack = fdkConfig.chainWebpack;
-const fdkConfigureWebpack = fdkConfig.configureWebpack;
+const vueChainWebpack = vueConfig.chainWebpack;
+const vueConfigureWebpack = vueConfig.configureWebpack;
 
 const configureWebpack = (config) => {
   const isCommonJs = config.output.libraryTarget === "commonjs2";
@@ -67,35 +67,30 @@ const configureWebpack = (config) => {
       ]
       : [],
   };
-  if (typeof fdkConfigureWebpack == "function") {
-    customConfig = mergeDeep(fdkConfigureWebpack(config), customConfig);
+  if (typeof vueConfigureWebpack == "function") {
+    customConfig = mergeDeep(vueConfigureWebpack(config), customConfig);
   }
-  if (typeof fdkConfigureWebpack == "object") {
-    customConfig = mergeDeep(fdkConfigureWebpack, customConfig);
+  if (typeof vueConfigureWebpack == "object") {
+    customConfig = mergeDeep(vueConfigureWebpack, customConfig);
   }
   return customConfig
 }
 
 const chainWebpack = (config) => {
-  if (typeof fdkChainWebpack == "function") {
-    fdkChainWebpack(config)
+  if (typeof vueChainWebpack == "function") {
+    vueChainWebpack(config)
   }
   config
     .optimization.splitChunks({
-      cacheGroups: {
-        vendors: {
-          test: /[\/]node_modules[\/]/,
-          name(module, chunks, cacheGroupKey) {
-            const allChunksNames = chunks.map((item) => item.name).join('_');
-            return \`\${cacheGroupKey}-\${allChunksNames}\`;
-          },
-          chunks: 'all'
-        }
-      }
+      name(module, chunks, cacheGroupKey) {
+        const allChunksNames = chunks.map((item) => item.name).join('_');
+        return cacheGroupKey + "_" + allChunksNames;
+      },
+      chunks: 'all',
     })
 }
 
-fdkConfig.chainWebpack = chainWebpack;
-fdkConfig.configureWebpack = configureWebpack;
+vueConfig.chainWebpack = chainWebpack;
+vueConfig.configureWebpack = configureWebpack;
 
-module.exports = fdkConfig;`
+module.exports = vueConfig;`
