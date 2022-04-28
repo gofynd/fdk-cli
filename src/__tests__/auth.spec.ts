@@ -2,45 +2,37 @@ import cli from './helper';
 import axios from "axios";
 import mockAxios from "jest-mock-axios";
 import MockAdapter from "axios-mock-adapter";
-const {exec} = require('child_process');
+import inquirer from 'inquirer';
+import { bootstrap } from "../../bin/fdk";
 import Auth from '../lib/api/services/auth.service'
-import {URLS} from '../lib/api/services/url'
+import {URLS} from '../lib/api/services/url';
 
-// jest.mock("axios");
-// const a = axios.create()
+export function mockFunction<T extends (...args: any[]) => any>(fn: T): jest.MockedFunction<T> {
+  return fn as jest.MockedFunction<T>;
+}
 
-// global.axios = a;
-  // let mock;
+jest.mock('inquirer');
 
-  // beforeAll(() => {
-  //   mock = mockAdapter
-    
-  // });
-  beforeEach(()=>{
-    jest.clearAllMocks()
-  })
-// beforeEach(() =>{
-//   // mock.onPost(`${URLS.LOGIN_USER()}/users`).reply(200, users);
-// })
-  afterEach(() => {
-    mockAxios.reset();
-  });
   describe("login user", () => {
-  jest.setTimeout(30000);
 
   it("should successfully login user with email", async (done) => {
+    const inquirerMock = mockFunction(inquirer.prompt);
+    inquirerMock.mockResolvedValue({password: '1234567'});
     const users = 
       { 
         Name: "Anurag Pandey",
-        Email: "anuragpandey@gofynd.com"
+        Email: "anuragpandey123@gofynd.com"
        }
-       const mock = new MockAdapter(axios);
-       mock.onPost(`${URLS.LOGIN_USER()}`).reply(200, users);
-      const response = await axios.post(`${URLS.LOGIN_USER()}`)
-      console.log("response",response);
+    const mock = new MockAdapter(axios);
+    mock.onPost(`${URLS.LOGIN_USER()}`).reply(200, users);
+    const program = await bootstrap();
+    program.parse(["node", "./bin/fdk.js", "login", "-e", "vivek@fynd.com"]);
+
+      // const response = await axios.post(`${URLS.LOGIN_USER()}`)
+      // console.log("response",response);
       //  mockAxios.post.mockResolvedValueOnce(users);
-    const subprocess = await cli(`login -e anuragpandey@gofynd.com`,'Pandey@fynd1');
-    console.log("subprocess",subprocess);
+    // const subprocess = await cli(`login -e anuragpandey@gofynd.com`,'Pandey@fynd1');
+    // console.log("subprocess",subprocess);
     // const result = await run([`${cliPath} login -e vivekprajapati@gofynd.com`]);
     // expect(mock.history.get[0].url).toMatch(`${URLS.LOGIN_USER()}`);
    
