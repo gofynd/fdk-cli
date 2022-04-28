@@ -1,11 +1,3 @@
-import execa from 'execa';
-
-export default (argv = '', input) =>
-    new Promise((resolve, reject) => {
-        const subprocess = execa.command(`node ./bin/fdk.js ${argv}`);
-        subprocess.stdout.pipe(process.stdout);
-        subprocess.stderr.pipe(process.stderr);
-        subprocess.stdin.write(input.toString());
-        subprocess.stdin.end();
-        return Promise.resolve(subprocess).then(resolve);
-    });
+export  default function mockFunction<T extends (...args: any[]) => any>(fn: T): jest.MockedFunction<T> {
+    return fn as jest.MockedFunction<T>;
+}
