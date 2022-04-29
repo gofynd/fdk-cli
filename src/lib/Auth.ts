@@ -7,17 +7,13 @@ import ConfigStore, { CONFIG_KEYS } from './Config';
 export default class Auth {
     constructor() {}
     public static async loginUserWithEmail(email: string, password: string) {
-        // console.log("hiiiiiii")
         try {
-            // console.log("hiiiiiii1111111")
             const requestData = {
                 username: email,
                 password,
                 'g-recaptcha-response': '_skip_',
             };
-            // console.log("after emailwithpass333333")
             const { data, headers } = await AuthService.loginUserWithEmailAndPassword(requestData);
-            // console.log("after emailwithpass")
             console.log("loggedin successfully",data)
             delete data.user.roles;
             const cookie = headers['set-cookie'][0];
@@ -50,7 +46,8 @@ export default class Auth {
                 requestData.request_id = otpResponse.request_id;
                 const { data, headers } = await AuthService.verifyMobileOtp(requestData);
                 delete data.user.roles;
-                const cookie = headers['set-cookie'][0];
+                 const cookie = headers['set-cookie'][0];
+                 console.log("cookie",cookie)
                 ConfigStore.set(CONFIG_KEYS.COOKIE, cookie);
                 ConfigStore.set(CONFIG_KEYS.USER, data.user);
                 Logger.success('User logged in successfully');
