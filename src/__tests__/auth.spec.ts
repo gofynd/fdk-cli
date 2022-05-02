@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 import inquirer from 'inquirer';
 import MockAdapter from 'axios-mock-adapter';
@@ -12,33 +11,38 @@ export function mockFunction<T extends (...args: any[]) => any>(fn: T): jest.Moc
     return fn as jest.MockedFunction<T>;
 }
 afterAll(() => {
-  configStore.clear();
+    configStore.clear();
 });
 jest.mock('inquirer');
 
 describe('login user with email', () => {
     it('should successfully login user with email', async () => {
-        console.log("inside test for login user11111")
+        console.log('inside test for login user11111');
         const inquirerMock = mockFunction(inquirer.prompt);
         inquirerMock.mockResolvedValue({ password: '1234567' });
         const mock = new MockAdapter(axios);
         mock.onPost(`${URLS.LOGIN_USER()}`).reply(200, data, {
             'set-cookie': [{ Name: 'Anurag Pandey' }],
         });
-        console.log("inside test for login user22222")
+        console.log('inside test for login user22222');
         const program = await bootstrap();
-        await program.parseAsync(['node','./bin/fdk.js', 'login','-e','anuragpandey@gofynd.com']);
-        console.log("inside test for login user3333")
+        await program.parseAsync([
+            'node',
+            './bin/fdk.js',
+            'login',
+            '-e',
+            'anuragpandey@gofynd.com',
+        ]);
+        console.log('inside test for login user3333');
         const cookies = configStore.get(CONFIG_KEYS.COOKIE);
         console.log('cookies', cookies);
-        expect(cookies.Name).toMatch("Anurag Pandey");
+        expect(cookies.Name).toMatch('Anurag Pandey');
         console.log('after expect');
     });
 });
 
-
 // describe("login user with mobile", () => {
-  
+
 //   console.log("in mobile login testing")
 //   it("should successfully login user with mobile",async () => {
 //     const inquirerMock = mockFunction(inquirer.prompt);
