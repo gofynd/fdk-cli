@@ -91,6 +91,7 @@
     "semver": "^6.3.0",
     "shortid": "^2.2.16",
     "socket.io": "^2.3.0",
+    "source-map": "^0.7.3",
     "stacktrace-parser": "^0.1.10",
     "url-join": "^4.0.1",
     "validator": "^13.6.0",
