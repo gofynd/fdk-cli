@@ -59,18 +59,19 @@ jest.mock('inquirer');
 //   })
 // });
 
-// describe("logout user", () => {
+describe("logout user", () => {
 
-//     it("should successfully logout user", async () => {
-//     const inquirerMock = mockFunction(inquirer.prompt);
-//     inquirerMock.mockResolvedValue({confirmLogout: 'Yes'});
-//     const program = await bootstrap();
-//    const result = await program.parseAsync(["node", "./bin/fdk.js", "logout"]);
-//     const cookies = configStore.clear();
-//     console.log('cookies', );
-//     expect(result).toMatch(program);
-//     })
-//   })
+    it("should successfully logout user", async () => {
+    const inquirerMock = mockFunction(inquirer.prompt);
+    inquirerMock.mockResolvedValue({confirmLogout: 'Yes'});
+    const program = await bootstrap();
+   const result = await program.parseAsync(["node", "./bin/fdk.js", "logout"]);
+    const cookies = configStore.clear()
+    console.log('cookies', cookies);
+    // expect(cookies).toMatch("Anurag Pandey");
+    expect(cookies).toBeUndefined();
+    })
+  })
 
 // describe("active user", () => {
 
