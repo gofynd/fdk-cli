@@ -31,8 +31,7 @@ oldCommands.forEach(c => {
 })
 
 if (!isOld) {
-  const { init } = require('../dist/fdk');
-  init('fdk');
+  bootstrap()
 }
 else {
   const yargs = require('yargs')
