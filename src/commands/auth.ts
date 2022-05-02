@@ -13,7 +13,6 @@ const AuthenticationHandler = async (options, command) => {
       if (!validator.isEmail(email)) {
         throw new CommandError('Enter a valid email');
       }
-      console.log("inside applocationhandler")
       const questions = [
         {
           type: 'password',

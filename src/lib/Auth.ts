@@ -68,7 +68,7 @@ export default class Auth {
             ];
             await inquirer.prompt(questions).then(answers => {
                 if (answers.confirmLogout === 'Yes') {
-                    ConfigStore.clear();
+                   const cookies = ConfigStore.clear();
                     Logger.success(`User logged out successfully`);
                 }
             });
@@ -78,6 +78,7 @@ export default class Auth {
     }
     public static getUserInfo() {
         try {
+            console.log("inside get user info")
             const user = ConfigStore.get(CONFIG_KEYS.USER);
             const activeEmail =
                 user.emails.find(e => e.active && e.primary)?.email || 'Not primary email set';
