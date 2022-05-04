@@ -1,27 +1,27 @@
 // import { exec } from 'child_process';
-import axios from 'axios';
-import mockAxios from 'jest-mock-axios';
-import MockAdapter from 'axios-mock-adapter';
-import inquirer from 'inquirer';
+// import axios from 'axios';
+// import mockAxios from 'jest-mock-axios';
+// import MockAdapter from 'axios-mock-adapter';
+// import inquirer from 'inquirer';
 // import { bootstrap } from '../../bin/fdk';
-const {bootstrap} = require('../../bin/fdk');
-import { URLS } from '../lib/api/services/url';
+// const {bootstrap} = require('../../bin/fdk');
+// import { URLS } from '../lib/api/services/url';
 // const data = require('./fixtures/user-login.json');
 // const mobileData = require('./fixtures/mobile-login.json');
-import configStore, { CONFIG_KEYS } from '../lib/Config';
+// import configStore, { CONFIG_KEYS } from '../lib/Config';
 
 
-export function mockFunction<T extends (...args: any[]) => any>(fn: T): jest.MockedFunction<T> {
-    return fn as jest.MockedFunction<T>;
-}
-beforeAll(() => {
-    jest.setTimeout(50000)
-});
-afterAll(() => {
-    configStore.clear();
-  });
+// export function mockFunction<T extends (...args: any[]) => any>(fn: T): jest.MockedFunction<T> {
+//     return fn as jest.MockedFunction<T>;
+// }
+// beforeAll(() => {
+//     jest.setTimeout(50000)
+// });
+// afterAll(() => {
+//     configStore.clear();
+//   });
 
-  jest.mock('inquirer');
+//   jest.mock('inquirer');
 
 // describe("get context list", () => {
 //   it("should console all context list", (done) => {
@@ -67,20 +67,20 @@ afterAll(() => {
 //     })
 //   })
 
-describe("Theme Publish", () => {
-    it("Should Publish Theme", async(done) => {
+// describe("Theme Publish", () => {
+//     it("Should Publish Theme", async(done) => {
 
-    const mock = new MockAdapter(axios);
-    mock.onPut(`${URLS.THEME_BY_ID}`).reply(200, ); 
-    const program = await bootstrap();
-            await program.parseAsync(['cd','/Users/anuragpandey/Desktop/fynd/white-splash',
-                'node',
-                '~/bin/fdk.js',
-                'theme',
-                'publish',
-            ]);
-    })
-  })
+//     const mock = new MockAdapter(axios);
+//     mock.onPut(`${URLS.THEME_BY_ID}`).reply(200, ); 
+//     const program = await bootstrap();
+//             await program.parseAsync(['cd','/Users/anuragpandey/Desktop/fynd/white-splash',
+//                 'node',
+//                 '~/bin/fdk.js',
+//                 'theme',
+//                 'publish',
+//             ]);
+//     })
+//   })
 
 //   describe("Theme Unpublish", () => {
 //     it("Should Unpublish Theme", (done) => {
