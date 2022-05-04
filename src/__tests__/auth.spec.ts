@@ -3,13 +3,13 @@ import inquirer from 'inquirer';
 import MockAdapter from 'axios-mock-adapter';
 import { bootstrap } from '../../bin/fdk';
 import { URLS } from '../lib/api/services/url';
+import configStore, { CONFIG_KEYS } from '../lib/Config';
+import mockFunction from './helper'
 const data = require('./fixtures/email-login.json');
 const mobileData = require('./fixtures/mobile-login.json');
-import configStore, { CONFIG_KEYS } from '../lib/Config';
 
-export function mockFunction<T extends (...args: any[]) => any>(fn: T): jest.MockedFunction<T> {
-    return fn as jest.MockedFunction<T>;
-}
+jest.mock('inquirer');
+
 beforeEach(async () => {
     const program = await bootstrap();
     await program.parseAsync(['node', './bin/fdk.js', 'env', 'set', '-n', 'fyndx0']);
@@ -28,7 +28,7 @@ beforeAll(() =>{
 afterEach(() => {
     configStore.clear();
 });
-jest.mock('inquirer');
+
 
 describe('login user with email', () => {
     it('should successfully login user with email', async () => {
@@ -72,8 +72,8 @@ describe('logout user', () => {
         const inquirerMock = mockFunction(inquirer.prompt);
         inquirerMock.mockResolvedValue({ confirmLogout: 'Yes' });
         await program.parseAsync(['node', './bin/fdk.js', 'logout']);
-        const cookies = configStore.clear();
-        expect(cookies).toBeUndefined();
+        const storeSize = configStore.size
+        expect(storeSize).toBe(0);
     });
 });
 
@@ -89,7 +89,7 @@ describe('active user', () => {
             'anuragpandey@gofynd.com',
         ]);
         await program.parseAsync(['node', './bin/fdk.js', 'user']);
-        const cookies = configStore.get(CONFIG_KEYS.COOKIE);
-        expect(cookies.Name).toMatch('Anurag Pandey');
+        const currentUser = configStore.get(CONFIG_KEYS.USER);
+        expect(currentUser.emails[0][0]).toMatch(data.user.emails[0][0]);
     });
 });
