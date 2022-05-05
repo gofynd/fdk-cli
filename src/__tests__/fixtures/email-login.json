@@ -1,0 +1,17 @@
+{"user":{
+    "debug": { "source": "grimlock", "platform": "000000000000000000000001" },
+    "_id": "65b4eee67c34fcdd55ce0b76",
+    "gender": null,
+    "roles": [],
+    "active": true,
+    "emails": [ ["anuragpandey@gofynd.com"], ["Object"], ["Object"] ],
+    "username": "917678880802_13922",
+    "uid": "278",
+    "__v": "4",
+    "account_type": "user",
+    "first_name": "Anurag",
+    "last_name": "Pandey",
+    "phone_numbers": [ ["Object"] ],
+    "created_at": "2021-12-27T07:40:58.100Z",
+    "updated_at": "2022-03-30T05:26:12.441Z"
+}}
