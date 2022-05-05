@@ -2,40 +2,18 @@ import axios, { AxiosResponse } from 'axios';
 import Debug from '../Debug';
 import { ErrorCodes } from '../CommandError';
 import { transformRequestOptions } from './../../helper/utils';
-const { addSignatureFn } = require('./helper/interceptors');
+const { addSignatureFn, responseInterceptor, responseInterceptorError } = require('./helper/interceptors');
 import Curl from '../../helper/curl';
-import CommandError from '../../lib/CommandError';
 axios.defaults.withCredentials = true;
 axios.defaults.timeout = 60000; // 1 minute
 axios.interceptors.request.use(addSignatureFn({}));
 axios.interceptors.response.use(
-  
   function (response) {
-    if(response.config.method == 'head'){
-      return response.headers;
-    }
-
-    return response; // IF 2XX then return response.data only
+    return responseInterceptor(response);
   },
   function (error) {
-    if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
-      console.log('Response Error');
-      throw new CommandError(error.code, error.response.data);
-    } else if (error.request) {      
-      // The request was made but no response was received
-      // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-      // http.ClientRequest in node.js
-      console.log('Request Error');
-      throw new CommandError(error.code, error.message);
-    } else {
-      // Something happened in setting up the request that triggered an Error
-      console.log('Setting up Request Error');
-      throw new CommandError(error.code, error.message);
-    }
-  }
-);
+    return responseInterceptorError(error);
+  });
 
 let axiosMisc = axios.create({
   withCredentials: false,
