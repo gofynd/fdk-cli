@@ -79,7 +79,6 @@ describe('logout user', () => {
 
 describe('active user', () => {
     it('should console active user', async () => {
-        console.log("inside active use ")
         const program = await bootstrap();
         await program.parseAsync([
             'node',
