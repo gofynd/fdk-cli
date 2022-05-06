@@ -3,10 +3,40 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['<rootDir>/src/__tests__'],
+
+  verbose: true,
+  collectCoverage: true,
+  coverageReporters: [
+    "json",
+    "lcov",
+    "text"
+  ],
+  // coverageThreshold: {
+  //   "global": {
+  //     "branches": 100,
+  //     "functions": 100,
+  //     "lines": 100,
+  //     "statements": 100
+  //   }
+  // },
+  testPathIgnorePatterns: [
+    "<rootDir>/path/to/ignore/"
+  ],
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
   },
+ 
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-
+  // testMatch: ['**/__tests__/*.spec.ts'],
+  // collectCoverageFrom: [
+  //   './src/*.ts',
+  //   '!**/node_modules/**',
+  // ],
+    "collectCoverageFrom": [
+      "**/*.{ts,jsx}",
+      "!**/node_modules/**",
+      "!**/vendor/**",
+      "!**/__tests__/**"
+    ]
 };
