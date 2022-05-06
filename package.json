@@ -16,8 +16,7 @@
     "clean": "rimraf ./dist",
     "build": "npm run clean && tsc",
     "watch": "tsc --watch",
-    "prepublishOnly": "npm run build",
-    "postinstall": "node ./bin/fdk.js env set -n fynd"
+    "prepublishOnly": "npm run build"
   },
   "devDependencies": {
     "@types/async": "^3.2.6",
