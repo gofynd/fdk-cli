@@ -163,6 +163,7 @@ export async function init(programName: string) {
     if (program.args.length === 0) {
         program.help();
     }
+    return program;
 }
 
 async function checkCliVersionAsync() {
