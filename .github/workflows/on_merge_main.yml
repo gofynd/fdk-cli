@@ -2,7 +2,7 @@ name: Merge CI
 
 on:
   push:
-    branches: [ github-actions ]
+    branches: [ master ]
 
 jobs:
   build:
