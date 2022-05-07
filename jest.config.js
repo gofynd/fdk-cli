@@ -11,14 +11,14 @@ module.exports = {
     "lcov",
     "text"
   ],
-  // coverageThreshold: {
-  //   "global": {
-  //     "branches": 100,
-  //     "functions": 100,
-  //     "lines": 100,
-  //     "statements": 100
-  //   }
-  // },
+  coverageThreshold: {
+    "global": {
+      // "branches": 100,
+      // "functions": 100,
+      "lines": 40,
+      // "statements": 100
+    }
+  },
   testPathIgnorePatterns: [
     "<rootDir>/path/to/ignore/"
   ],
@@ -26,7 +26,7 @@ module.exports = {
     '^.+\\.tsx?$': 'ts-jest',
   },
  
-  testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
+  // testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   // testMatch: ['**/__tests__/*.spec.ts'],
   // collectCoverageFrom: [
