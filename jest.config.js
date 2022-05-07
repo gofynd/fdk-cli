@@ -29,14 +29,10 @@ module.exports = {
   // testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   // testMatch: ['**/__tests__/*.spec.ts'],
-  // collectCoverageFrom: [
-  //   './src/*.ts',
-  //   '!**/node_modules/**',
-  // ],
-    "collectCoverageFrom": [
-      "**/*.{ts,jsx}",
-      "!**/node_modules/**",
-      "!**/vendor/**",
-      "!**/__tests__/**"
-    ]
+  collectCoverageFrom: [
+    "**/*.{ts,jsx}",
+    "!**/node_modules/**",
+    "!**/vendor/**",
+    "!**/__tests__/**"
+  ]
 };
