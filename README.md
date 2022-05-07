@@ -5,6 +5,7 @@
 [![NPM Downloads][downloads-image]][downloads-url]
 [![NPM License][license-image]][license-url]
 [![Build Status](https://travis-ci.org/gofynd/fdk-cli.svg?branch=master)](https://travis-ci.org/gofynd/fdk-cli)
+[![Coverage Status](https://coveralls.io/repos/github/anuragpandey1115/fdk-cli/badge.svg?branch=github-actions)](https://coveralls.io/github/anuragpandey1115/fdk-cli?branch=github-actions)
 Fynd development Kit (FDK CLI) is a cli tool developed by Fynd to create and update themes, extensions and various other components of the [Fynd Platform](https://platform.fynd.com/).
 ### Quick Links
 [Fynd Platform](https://platform.fynd.com/) | [Fynd Partners](https://partners.fynd.com/) | [Documentation](https://documentation.fynd.com/) | [Other Projects](#OtherProjects) | | [Contributing](#Contributing) | 
