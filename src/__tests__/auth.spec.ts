@@ -57,7 +57,7 @@ describe('Auth Commands', () => {
 
     it('should successfully logout user', async () => {
         await program.parseAsync([
-            'node',
+            'ts-node',
             './src/fdk.ts',
             'login',
             '-e',
@@ -72,7 +72,7 @@ describe('Auth Commands', () => {
 
     it('should console active user', async () => {
         await program.parseAsync([
-            'node',
+            'ts-node',
             './src/fdk.ts',
             'login',
             '-e',
