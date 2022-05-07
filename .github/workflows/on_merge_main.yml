@@ -2,15 +2,16 @@ name: Merge CI
 
 on:
   push:
-    branches: [ github-actions ]
+    branches: [ master ]
 
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
+        os: [ubuntu-latest, windows-latest]
         node-version: [12.x, 14.x, 15.x]
 
     steps:
