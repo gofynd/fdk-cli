@@ -30,3 +30,8 @@ jobs:
         API_SECRET: ${{ secrets.API_SECRET }}
         APP_USERNAME: ${{ secrets.APP_USERNAME }}
         PASSWORD: ${{ secrets.PASSWORD }}
+        
+    - name: Coveralls (Uploading test report)
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
