@@ -1,0 +1,72 @@
+{
+  "theme": {
+    "contexts": {
+      "fyndab": {
+        "name": "fyndab",
+        "application_id": "622894659baaca3be88c9d65",
+        "domain": "anuragbazaar.hostx0.de",
+        "company_id": "1",
+        "theme_id": "622894659baaca3be88c9d65",
+        "env": "fyndx0"
+      },
+      "fyndabc": {
+        "name": "fyndabc",
+        "application_id": "622894659baaca3be88c9d65",
+        "domain": "anuragbazaar.hostx0.de",
+        "company_id": "1",
+        "theme_id": "622894659baaca3be88c9d65",
+        "env": "fyndx0"
+      },
+      "fyndabcd": {
+        "name": "fyndabcd",
+        "application_id": "622894659baaca3be88c9d65",
+        "domain": "anuragbazaar.hostx0.de",
+        "company_id": "1",
+        "theme_id": "622894659baaca3be88c9d65",
+        "env": "fyndx0"
+      },
+      "fyndabcde": {
+        "name": "fyndabcde",
+        "application_id": "622894659baaca3be88c9d65",
+        "domain": "anuragbazaar.hostx0.de",
+        "company_id": "1",
+        "theme_id": "622894659baaca3be88c9d65",
+        "env": "fyndx0"
+      },
+      "fyndabcdef": {
+        "name": "fyndabcdef",
+        "application_id": "622894659baaca3be88c9d65",
+        "domain": "anuragbazaar.hostx0.de",
+        "company_id": "1",
+        "theme_id": "622894659baaca3be88c9d65",
+        "env": "fyndx0"
+      },
+      "fyndabcdefj": {
+        "name": "fyndabcdefj",
+        "application_id": "622894659baaca3be88c9d65",
+        "domain": "anuragbazaar.hostx0.de",
+        "company_id": "1",
+        "theme_id": "622894659baaca3be88c9d65",
+        "env": "fyndx0"
+      },
+      "fyndabcdefjk": {
+        "name": "fyndabcdefjk",
+        "application_id": "622894659baaca3be88c9d65",
+        "domain": "anuragbazaar.hostx0.de",
+        "company_id": "1",
+        "theme_id": "622894659baaca3be88c9d65",
+        "env": "fyndx0"
+      },
+      "fyndabcdefjki": {
+        "name": "fyndabcdefjki",
+        "application_id": "622894659baaca3be88c9d65",
+        "domain": "anuragbazaar.hostx0.de",
+        "company_id": "1",
+        "theme_id": "622894659baaca3be88c9d65",
+        "env": "fyndx0"
+      }
+    },
+    "active_context": "fyndabcdefjk"
+  },
+  "partners": {}
+}

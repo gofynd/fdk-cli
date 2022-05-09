@@ -17,7 +17,7 @@
     "build": "npm run clean && tsc",
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build",
-    "test": "jest  -- ./src/__tests__/*.spec.ts",
+    "test": "jest  -- ./src/__tests__/themeContext.spec.ts",
     "debug": "node ./bin/fdk login"
   },
   "devDependencies": {
