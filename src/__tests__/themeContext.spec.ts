@@ -11,29 +11,10 @@ import configStore, { CONFIG_KEYS } from '../lib/Config';
 import { decodeBase64 } from '../helper/utils';
 import fs from 'fs-extra';
 import path from 'path';
+import { init } from '../fdk';
 
 jest.mock('inquirer');
-
-beforeEach(async () => {
-    const program = await bootstrap();
-    await program.parseAsync(['node', './bin/fdk.js', 'env', 'set', '-n', 'fyndx0']);
-});
-
-beforeAll(async () => {
-    const mock = new MockAdapter(axios);
-    mock.onPost(`${URLS.LOGIN_USER()}`).reply(200, data, {
-        'set-cookie': [{ Name: 'Anurag Pandey' }],
-    });
-    mock.onGet(`${URLS.OAUTH_TOKEN(context.company_id)}`).reply(200, oauthData);
-    console.log(context.company_id);
-    mock.onGet(`${URLS.GET_APPLICATION_DETAILS(context.application_id, context.company_id)}`).reply(
-        200,
-        context
-    );
-    mock.onGet(
-        `${URLS.THEME_BY_ID(context.application_id, context.company_id, context.theme_id)}`
-    ).reply(200, context);
-});
+let program;
 
 afterEach(() => {
     configStore.clear();
@@ -43,19 +24,41 @@ async function login() {
     const inquirerMock = mockFunction(inquirer.prompt);
     inquirerMock.mockResolvedValue({ password: '1234567' });
     const program = await bootstrap();
-    await program.parseAsync(['node', './bin/fdk.js', 'login', '-e', 'anuragpandey@gofynd.com']);
+    await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '-e', 'anuragpandey@gofynd.com']);
 }
 
-describe('Add Theme Context', () => {
+describe('Theme Context Commands', () => {
+    beforeEach(async () => {
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'env', 'set', '-n', 'fyndx0']);
+        program.commands.forEach(command => {
+            command._optionValues = {};
+        });
+    });
+
+    beforeAll(async () => {
+        program = await init('fdk');
+        const mock = new MockAdapter(axios);
+        mock.onPost(`${URLS.LOGIN_USER()}`).reply(200, data, {
+            'set-cookie': [{ Name: 'Anurag Pandey' }],
+        });
+        mock.onGet(`${URLS.OAUTH_TOKEN(context.company_id)}`).reply(200, oauthData);
+        console.log(context.company_id);
+        mock.onGet(
+            `${URLS.GET_APPLICATION_DETAILS(context.application_id, context.company_id)}`
+        ).reply(200, context);
+        mock.onGet(
+            `${URLS.THEME_BY_ID(context.application_id, context.company_id, context.theme_id)}`
+        ).reply(200, context);
+    });
+
     it('should successfully add theme context ', async () => {
         console.log('inside adding context');
         await login();
         const inquirerMock = mockFunction(inquirer.prompt);
         inquirerMock.mockResolvedValue({ showCreateFolder: 'Yes' });
-        const program = await bootstrap();
         await program.parseAsync([
-            'node',
-            './bin/fdk.js',
+            'ts-node',
+            './src/fdk.ts',
             'theme',
             'context',
             '-t',
@@ -77,15 +80,12 @@ describe('Add Theme Context', () => {
         );
         expect(configObj).toMatchObject(x);
     });
-});
 
-describe('show Theme Context list', () => {
     it('should successfully show theme context list', async () => {
         await login();
         const inquirerMock = mockFunction(inquirer.prompt);
         inquirerMock.mockResolvedValue({ listContext: 'fyndabcdefjk' });
-        const program = await bootstrap();
-        await program.parseAsync(['node', './bin/fdk.js', 'theme', 'context-list']);
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'context-list']);
         const contextPath = path.join(process.cwd(), '.fdk/context.json');
         let contextJSON = await fs.readJSON(contextPath);
         let contextObj = contextJSON.theme.active_context;
