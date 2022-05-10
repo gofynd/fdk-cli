@@ -128,7 +128,7 @@ fdk env set -n fynd
 ___
 
 #### **env get**
-This command displays the active environment set by the user.
+This command displays the active environment set by the user. Default environment: `fynd`
 #### **Syntax**
 ```sh
 fdk env get
