@@ -34,12 +34,15 @@ export const URLS = {
 
   //ASSETS
   START_UPLOAD_FILE: (application_id: string, company_id: number, namespaces: string) => {
+    console.log('namespaces',namespaces)
     return urlJoin(
       ASSET_URL,
       `/company/${company_id}/application/${application_id}/namespaces/${namespaces}/upload/start`
     );
   },
   COMPLETE_UPLOAD_FILE: (application_id: string, company_id: number, namespaces: string) => {
+    console.log("namespace",`${namespaces}`)
+    console.log("namespace",urlJoin(ASSET_URL,`/company/${company_id}/application/${application_id}/namespaces/${namespaces}/upload/complete`))
     return urlJoin(
       ASSET_URL,
       `/company/${company_id}/application/${application_id}/namespaces/${namespaces}/upload/complete`
@@ -48,6 +51,7 @@ export const URLS = {
 
   //THEME
   CREATE_THEME: (application_id: string, company_id: number) => {
+    console.log("CREATE_THEME",urlJoin(THEME_URL, `/company/${company_id}/application/${application_id}`))
     return urlJoin(THEME_URL, `/company/${company_id}/application/${application_id}`);
   },
   THEME_BY_ID: (application_id: string, company_id: number, theme_id: string) => {

@@ -110,6 +110,7 @@ export default class Theme {
             const { data: appConfig } = await ConfigurationService.getApplicationDetails(configObj);
             Logger.warn('Creating Theme');
             let available_sections = await Theme.getAvailableSections();
+            console.log("available_sectionscfcfcfcf",available_sections);
             const themeData = {
                 information: {
                     name: options.name,
@@ -118,9 +119,11 @@ export default class Theme {
             };
 
             const { data: theme } = await ThemeService.createTheme({ ...configObj, ...themeData });
+            console.log("theme",theme);
             Logger.warn('Copying template files');
             shouldDelete = true;
             await Theme.copyTemplateFiles(Theme.TEMPLATE_DIRECTORY, targetDirectory);
+            // console.log("theme",theme);
             let context: any = {
                 name: options.name,
                 application_id: appConfig._id,
@@ -241,6 +244,7 @@ export default class Theme {
     };
     private static syncTheme = async (isNew = false) => {
         try {
+            console.log("inside syncing theme ")
             const currentContext = getActiveContext();
             const env = Env.getEnvValue();
             if (env !== currentContext.env) {
@@ -344,6 +348,7 @@ export default class Theme {
                             assetPath,
                             'application-theme-images'
                         );
+                        console.log('res',res)
                         return res.start.cdn.url;
                     })
                     .filter(o => o);
@@ -631,6 +636,7 @@ export default class Theme {
             rimraf.sync(path.resolve(process.cwd(), './theme'));
             createDirectory('theme');
             const { data: themeData } = await ThemeService.getThemeById(null);
+            console.log("themeData",themeData)
             const theme = _.cloneDeep({ ...themeData });
             rimraf.sync(path.resolve(process.cwd(), './.fdk/archive'));
             await downloadFile(theme.src.link, './.fdk/pull-archive.zip');
@@ -726,6 +732,7 @@ export default class Theme {
     }
     private static async installNpmPackages() {
         return new Promise((resolve, reject) => {
+            console.log("inside installing")
             let exec = execa('npm', ['i'], { cwd: process.cwd() });
             exec.stdout.pipe(process.stdout);
             exec.stderr.pipe(process.stderr);
@@ -740,14 +747,16 @@ export default class Theme {
     private static async getAvailableSections() {
         let sectionsFiles = [];
         try {
+            console.log("indise getAvailableSections")
             sectionsFiles = fs
                 .readdirSync(path.join(Theme.TEMPLATE_DIRECTORY, '/sections'))
                 .filter(o => o != 'index.js');
-        } catch (err) {}
+        } catch (err) {console.log('err',err)}
         let pArr = sectionsFiles.map(async f => {
             let image_section = compiler.parseComponent(
                 readFile(path.join(Theme.TEMPLATE_DIRECTORY, 'sections', f))
             );
+            console.log("indise getAvailableSections inside ") 
             let sectionSettings = await new Promise((resolve, reject) => {
                 require('@babel/core').transform(
                     image_section.script.content,
@@ -759,9 +768,11 @@ export default class Theme {
                             return reject(err);
                         }
                         try {
+                            console.log("indise getAvailableSections inside try") 
                             let modules = requireFromString(result.code);
                             return resolve(modules.settings);
                         } catch (e) {
+                            console.log("error",e)
                             return reject(e);
                         }
                     }

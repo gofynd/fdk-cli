@@ -144,6 +144,7 @@ export default {
         {},
         getCommonHeaderOptions()
       );
+      console.log("activeContext",activeContext)
       return ApiClient.put(
         URLS.THEME_BY_ID(
           activeContext.application_id,
