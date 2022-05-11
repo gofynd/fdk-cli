@@ -8,7 +8,7 @@ import Curl from '../../../helper/curl';
 import Logger from '../../Logger';
 import Debug from '../../Debug';
 import Auth from '../../Auth';
-import CommandError, { ErrorCodes } from '../../CommandError';
+
 function getTransformer(config) {
     const { transformRequest } = config;
 
