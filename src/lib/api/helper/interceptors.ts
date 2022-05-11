@@ -8,7 +8,6 @@ import Curl from '../../../helper/curl';
 import Logger from '../../Logger';
 import Debug from '../../Debug';
 import Auth from '../../Auth';
-
 function getTransformer(config) {
     const { transformRequest } = config;
 
@@ -107,5 +106,5 @@ function interceptorFn(options) {
 }
 
 module.exports = {
-    addSignatureFn: interceptorFn
+    addSignatureFn: interceptorFn,
 };
