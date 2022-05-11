@@ -8,7 +8,7 @@ import Curl from '../../../helper/curl';
 import Logger from '../../Logger';
 import Debug from '../../Debug';
 import Auth from '../../Auth';
-import CommandError from '../../CommandError';
+import CommandError, { ErrorCodes } from '../../CommandError';
 function getTransformer(config) {
     const { transformRequest } = config;
 
@@ -106,31 +106,6 @@ function interceptorFn(options) {
     };
 }
 
-function responseInterceptorFn(response) {
-    return response; // IF 2XX then return response only
-}
-
-function responseInterceptorErrorFn(error) {
-    if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        Logger.log('Response Error');
-        throw new CommandError(error.code, error.response.data);
-      } else if (error.request) {      
-        // The request was made but no response was received
-        // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-        // http.ClientRequest in node.js
-        Logger.log('Request Error');
-        throw new CommandError(error.code, error.message);
-      } else {
-        // Something happened in setting up the request that triggered an Error
-        Logger.log('Setting up Request Error');
-        throw new CommandError(error.code, error.message);
-      }
-}
-
 module.exports = {
-    addSignatureFn: interceptorFn,
-    responseInterceptor: responseInterceptorFn,
-    responseInterceptorError: responseInterceptorErrorFn
+    addSignatureFn: interceptorFn
 };

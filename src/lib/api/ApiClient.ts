@@ -2,18 +2,45 @@ import axios, { AxiosResponse } from 'axios';
 import Debug from '../Debug';
 import { ErrorCodes } from '../CommandError';
 import { transformRequestOptions } from './../../helper/utils';
-const { addSignatureFn, responseInterceptor, responseInterceptorError } = require('./helper/interceptors');
+const { addSignatureFn } = require('./helper/interceptors');
 import Curl from '../../helper/curl';
 axios.defaults.withCredentials = true;
 axios.defaults.timeout = 60000; // 1 minute
+
+// Axios Interceptors
 axios.interceptors.request.use(addSignatureFn({}));
 axios.interceptors.response.use(
   function (response) {
-    return responseInterceptor(response);
+    Debug('************** CURL **************');
+    Debug(
+      `METHOD: ${response?.config?.method} | PATH: ${response?.request?.path} | CODE: ${response?.status}`
+    );
+    //log curl request incase of debug
+    const curl = new Curl(response.config);
+    Debug(curl.generateCommand());
+    Debug('************** END OF CURL **************');
+    Debug('\n')
+    return response;
   },
   function (error) {
-    return responseInterceptorError(error);
-  });
+    Debug('************** CURL **************');
+    Debug(
+        `METHOD: ${error?.config?.method} | PATH: ${error?.request?.path} | CODE: ${error?.response?.status}`
+    );
+    //log curl request incase of debug
+    const curl = new Curl(error.config);
+    Debug(curl.generateCommand());
+    Debug('************** END OF CURL **************');
+    Debug('\n')
+    if (error.response?.data?.error) {
+      error.message = error.response.data.error;
+    } else if (error.response?.data?.message) {
+      error.message = error.response?.data?.message;
+    }
+    error.code = ErrorCodes.API_ERROR.code;
+    return Promise.reject(error);
+  }
+);
 
 let axiosMisc = axios.create({
   withCredentials: false,
@@ -87,41 +114,6 @@ let engine: ApiEngine = {
     return axiosMisc.post(url, opt.data, { headers: opt.headers });
   },
 };
-
-axios.interceptors.response.use(
-  function (response) {
-    Debug('************** CURL **************');
-    Debug(
-      `METHOD: ${response?.config?.method} | PATH: ${response?.request?.path} | CODE: ${response?.status}`
-    );
-    //log curl request incase of debug
-    const curl = new Curl(response.config);
-    Debug(curl.generateCommand());
-    Debug('************** END OF CURL **************');
-    Debug('\n')
-    return response;
-  },
-  function (error) {
-    Debug('************** CURL **************');
-    Debug(
-        `METHOD: ${error?.config?.method} | PATH: ${error?.request?.path} | CODE: ${error?.response?.status}`
-    );
-    //log curl request incase of debug
-    const curl = new Curl(error.config);
-    Debug(curl.generateCommand());
-    Debug('************** END OF CURL **************');
-    Debug('\n')
-    if (error.response?.data?.error) {
-      error.message = error.response.data.error;
-    } else if (error.response?.data?.message) {
-      error.message = error.response?.data?.message;
-    }
-    error.code = ErrorCodes.API_ERROR.code;
-    return Promise.reject(error);
-  }
-);
-// axios.interceptors.request.use(addSignatureFn({}));
-// axios.interceptors.request.use(addOAuthToken({}));
 
 export default engine;
 
