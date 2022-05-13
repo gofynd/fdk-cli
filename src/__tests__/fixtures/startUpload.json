@@ -1,0 +1,19 @@
+{
+    "file_name": "check-box-selected.680f72c0bb5b7de8969e043da6951b45.svg",
+    "operation": "putObject",
+    "size": 1230,
+    "namespace": "application-theme-images",
+    "content_type": "image/svg+xml",
+    "file_path": "/company/1/applications/622894659baaca3be88c9d65/theme/pictures/free/original/check-box-selected.680f72c0bb5b7de8969e043da6951b45.svg",
+    "method": "PUT",
+    "tags": [],
+    "upload": {
+      "url": "https://fynd-staging-assets.s3-accelerate.amazonaws.com/x0/company/1/applications/622894659baaca3be88c9d65/theme/pictures/free/original/check-box-selected.680f72c0bb5b7de8969e043da6951b45.svg?AWSAccessKeyId=AKIAJUADR2WMPQT6ZJ2Q&Content-Type=image%2Fsvg%2Bxml&Expires=1652421676&Signature=1ra9Lx9rybD7KX1lywTlqGwJQY8%3D&x-amz-acl=public-read",
+      "expiry": 1800
+    },
+    "cdn": {
+      "url": "https://hdn-1.addsale.com/x0/company/1/applications/622894659baaca3be88c9d65/theme/pictures/free/original/check-box-selected.680f72c0bb5b7de8969e043da6951b45.svg"
+    }
+  }
+
+  

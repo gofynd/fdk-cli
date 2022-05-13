@@ -1,0 +1,44 @@
+{
+    "start": {
+      "file_name": "archive.zip",
+      "operation": "putObject",
+      "size": 2075649,
+      "namespace": "application-theme-src",
+      "content_type": "application/zip",
+      "file_path": "/company/1/applications/622894659baaca3be88c9d65/theme/sources/t9xmJ3_We-archive.zip",
+      "method": "PUT",
+      "tags": [],
+      "upload": {
+        "url": "https://fynd-staging-assets.s3-accelerate.amazonaws.com/x0/company/1/applications/622894659baaca3be88c9d65/theme/sources/t9xmJ3_We-archive.zip?AWSAccessKeyId=AKIAJUADR2WMPQT6ZJ2Q&Content-Type=application%2Fzip&Expires=1652339688&Signature=3f6cV29JEni6pkcDTI4Nf29vlVc%3D&x-amz-acl=public-read",
+        "expiry": 1800
+      },
+      "cdn": {
+        "url": "https://hdn-1.addsale.com/x0/company/1/applications/622894659baaca3be88c9d65/theme/sources/t9xmJ3_We-archive.zip"
+      }
+    },
+    "upload": "",
+    "complete": {
+      "success": true,
+      "tags": [],
+      "_id": "627cace3ee6acb32f0d1ae95",
+      "file_name": "archive.zip",
+      "operation": "putObject",
+      "size": 2075649,
+      "namespace": "application-theme-src",
+      "content_type": "application/zip",
+      "file_path": "/company/1/applications/622894659baaca3be88c9d65/theme/sources/t9xmJ3_We-archive.zip",
+      "upload": {
+        "url": "https://fynd-staging-assets.s3-accelerate.amazonaws.com/x0/company/1/applications/622894659baaca3be88c9d65/theme/sources/t9xmJ3_We-archive.zip?AWSAccessKeyId=AKIAJUADR2WMPQT6ZJ2Q&Content-Type=application%2Fzip&Expires=1652339688&Signature=3f6cV29JEni6pkcDTI4Nf29vlVc%3D&x-amz-acl=public-read",
+        "expiry": 1800
+      },
+      "cdn": {
+        "url": "https://hdn-1.addsale.com/x0/company/1/applications/622894659baaca3be88c9d65/theme/sources/t9xmJ3_We-archive.zip"
+      },
+      "created_by": {
+        "username": "917678880802_13922"
+      },
+      "company_id": 1,
+      "created_on": "2022-05-12T06:44:51.240Z",
+      "modified_on": "2022-05-12T06:44:51.240Z"
+    }
+  }

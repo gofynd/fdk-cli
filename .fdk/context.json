@@ -1,72 +1,16 @@
 {
   "theme": {
+    "active_context": "whitesplashx0",
     "contexts": {
-      "fyndab": {
-        "name": "fyndab",
+      "whitesplashx0": {
+        "name": "whitesplashx0",
         "application_id": "622894659baaca3be88c9d65",
         "domain": "anuragbazaar.hostx0.de",
-        "company_id": "1",
-        "theme_id": "622894659baaca3be88c9d65",
-        "env": "fyndx0"
-      },
-      "fyndabc": {
-        "name": "fyndabc",
-        "application_id": "622894659baaca3be88c9d65",
-        "domain": "anuragbazaar.hostx0.de",
-        "company_id": "1",
-        "theme_id": "622894659baaca3be88c9d65",
-        "env": "fyndx0"
-      },
-      "fyndabcd": {
-        "name": "fyndabcd",
-        "application_id": "622894659baaca3be88c9d65",
-        "domain": "anuragbazaar.hostx0.de",
-        "company_id": "1",
-        "theme_id": "622894659baaca3be88c9d65",
-        "env": "fyndx0"
-      },
-      "fyndabcde": {
-        "name": "fyndabcde",
-        "application_id": "622894659baaca3be88c9d65",
-        "domain": "anuragbazaar.hostx0.de",
-        "company_id": "1",
-        "theme_id": "622894659baaca3be88c9d65",
-        "env": "fyndx0"
-      },
-      "fyndabcdef": {
-        "name": "fyndabcdef",
-        "application_id": "622894659baaca3be88c9d65",
-        "domain": "anuragbazaar.hostx0.de",
-        "company_id": "1",
-        "theme_id": "622894659baaca3be88c9d65",
-        "env": "fyndx0"
-      },
-      "fyndabcdefj": {
-        "name": "fyndabcdefj",
-        "application_id": "622894659baaca3be88c9d65",
-        "domain": "anuragbazaar.hostx0.de",
-        "company_id": "1",
-        "theme_id": "622894659baaca3be88c9d65",
-        "env": "fyndx0"
-      },
-      "fyndabcdefjk": {
-        "name": "fyndabcdefjk",
-        "application_id": "622894659baaca3be88c9d65",
-        "domain": "anuragbazaar.hostx0.de",
-        "company_id": "1",
-        "theme_id": "622894659baaca3be88c9d65",
-        "env": "fyndx0"
-      },
-      "fyndabcdefjki": {
-        "name": "fyndabcdefjki",
-        "application_id": "622894659baaca3be88c9d65",
-        "domain": "anuragbazaar.hostx0.de",
-        "company_id": "1",
-        "theme_id": "622894659baaca3be88c9d65",
+        "company_id": 1,
+        "theme_id": "623b09faeb0b6e0f4ff9758f",
         "env": "fyndx0"
       }
-    },
-    "active_context": "fyndabcdefjk"
+    }
   },
   "partners": {}
 }

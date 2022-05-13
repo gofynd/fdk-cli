@@ -1,0 +1,194 @@
+{
+  "_id": "627dfa3176cee8385447a2c4",
+  "information": {
+    "images": {
+      "desktop": [],
+      "android": [],
+      "ios": [],
+      "thumbnail": []
+    },
+    "features": [],
+    "name": "newtheeeme"
+  },
+  "src": {
+    "link": ""
+  },
+  "assets": {
+    "css": {
+      "link": "",
+      "links": []
+    },
+    "umd_js": {
+      "link": "",
+      "links": []
+    },
+    "common_js": {
+      "link": ""
+    }
+  },
+  "config": {
+    "global_schema": {
+      "props": []
+    },
+    "current": "default",
+    "preset": {
+      "pages": []
+    },
+    "list": []
+  },
+  "colors": {
+    "primary_color": "#7043f7",
+    "secondary_color": "#02d1cb",
+    "accent_color": "#FFFFFF",
+    "link_color": "#7043f7",
+    "button_secondary_color": "#000000",
+    "bg_color": "#F8F8F8"
+  },
+  "font": {
+    "variants": {
+      "light": [
+        null
+      ],
+      "regular": [
+        null
+      ],
+      "medium": [
+        null
+      ],
+      "semi_bold": [
+        null
+      ],
+      "bold": [
+        null
+      ]
+    },
+    "family": "Poppins"
+  },
+  "applied": false,
+  "published": false,
+  "archived": false,
+  "customized": false,
+  "version": "1.0.0",
+  "tags": [],
+  "available_sections": [
+    {
+      "props": [
+        null
+      ],
+      "blocks": [],
+      "name": "application_banner",
+      "label": "Application Banner"
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [
+        null
+      ],
+      "name": "brands_listing",
+      "label": "Brands Listing"
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [
+        null
+      ],
+      "name": "collections_listing",
+      "label": "Collections Listing"
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [],
+      "name": "custom_html",
+      "label": "Custom HTML"
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [],
+      "name": "section_extension",
+      "label": "Extensions"
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [],
+      "name": "featured_collection",
+      "label": "Featured Collection"
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [],
+      "name": "hero_image",
+      "label": "Hero Image"
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [],
+      "name": "hero_video",
+      "label": "Hero Video"
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [
+        null
+      ],
+      "name": "image_gallery",
+      "label": "Image Gallery",
+      "preset": [
+        null
+      ]
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [
+        null
+      ],
+      "name": "image_slideshow",
+      "label": "Image Slideshow",
+      "preset": [
+        null
+      ]
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [],
+      "name": "media_with_text",
+      "label": "Media with text"
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [
+        null
+      ],
+      "name": "testimonials",
+      "label": "Testimonial",
+      "preset": [
+        null
+      ]
+    }
+  ],
+  "application": "622894659baaca3be88c9d65",
+  "styles": {},
+  "created_at": "2022-05-13T06:26:57.130Z",
+  "updated_at": "2022-05-13T06:26:57.130Z"
+}

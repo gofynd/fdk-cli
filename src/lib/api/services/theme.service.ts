@@ -7,6 +7,7 @@ import { getCommonHeaderOptions } from './utils';
 export default {
   createTheme: async data => {
     try {
+      // console.log("indside createtheme",data)
       const axiosOption = Object.assign(
         {},
         {
@@ -22,6 +23,7 @@ export default {
   },
   getThemeById: data => {
     try {
+      // console.log("inside getthemeby id",data)
       const activeContext = data ? data : getActiveContext();
       const axiosOption = Object.assign({}, getCommonHeaderOptions());
       return ApiClient.get(
@@ -94,6 +96,7 @@ export default {
   },
   createAvailabePage: data => {
     try {
+      // console.log("inside create available page")
       const activeContext = getActiveContext();
       const axiosOption = Object.assign(
         {},
@@ -116,6 +119,7 @@ export default {
   },
   updateAvailablePage: data => {
     try {
+      // console.log("inside updateAvailable pages")
       const activeContext = getActiveContext();
       const axiosOption = Object.assign(
         {},
@@ -144,7 +148,6 @@ export default {
         {},
         getCommonHeaderOptions()
       );
-      console.log("activeContext",activeContext)
       return ApiClient.put(
         URLS.THEME_BY_ID(
           activeContext.application_id,

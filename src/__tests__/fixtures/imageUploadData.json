@@ -1,0 +1,44 @@
+{
+    "start": {
+      "file_name": "fb.5672f0e6216ba239e329656e4d4c7a1c.svg",
+      "operation": "putObject",
+      "size": 1500,
+      "namespace": "application-theme-images",
+      "content_type": "image/svg+xml",
+      "file_path": "/company/1/applications/622894659baaca3be88c9d65/theme/pictures/free/original/fb.5672f0e6216ba239e329656e4d4c7a1c.svg",
+      "method": "PUT",
+      "tags": [],
+      "upload": {
+        "url": "https://fynd-staging-assets.s3-accelerate.amazonaws.com/x0/company/1/applications/622894659baaca3be88c9d65/theme/pictures/free/original/fb.5672f0e6216ba239e329656e4d4c7a1c.svg?AWSAccessKeyId=AKIAJUADR2WMPQT6ZJ2Q&Content-Type=image%2Fsvg%2Bxml&Expires=1652338835&Signature=M62uuWjaWozexhdfeZG48KHRGwg%3D&x-amz-acl=public-read",
+        "expiry": 1800
+      },
+      "cdn": {
+        "url": "https://hdn-1.addsale.com/x0/company/1/applications/622894659baaca3be88c9d65/theme/pictures/free/original/fb.5672f0e6216ba239e329656e4d4c7a1c.svg"
+      }
+    },
+    "upload": "",
+    "complete": {
+      "success": true,
+      "tags": [],
+      "_id": "627ca98cee6acb5231d1ae33",
+      "file_name": "fb.5672f0e6216ba239e329656e4d4c7a1c.svg",
+      "operation": "putObject",
+      "size": 1500,
+      "namespace": "application-theme-images",
+      "content_type": "image/svg+xml",
+      "file_path": "/company/1/applications/622894659baaca3be88c9d65/theme/pictures/free/original/fb.5672f0e6216ba239e329656e4d4c7a1c.svg",
+      "upload": {
+        "url": "https://fynd-staging-assets.s3-accelerate.amazonaws.com/x0/company/1/applications/622894659baaca3be88c9d65/theme/pictures/free/original/fb.5672f0e6216ba239e329656e4d4c7a1c.svg?AWSAccessKeyId=AKIAJUADR2WMPQT6ZJ2Q&Content-Type=image%2Fsvg%2Bxml&Expires=1652338835&Signature=M62uuWjaWozexhdfeZG48KHRGwg%3D&x-amz-acl=public-read",
+        "expiry": 1800
+      },
+      "cdn": {
+        "url": "https://hdn-1.addsale.com/x0/company/1/applications/622894659baaca3be88c9d65/theme/pictures/free/original/fb.5672f0e6216ba239e329656e4d4c7a1c.svg"
+      },
+      "created_by": {
+        "username": "917678880802_13922"
+      },
+      "company_id": 1,
+      "created_on": "2022-05-12T06:30:36.375Z",
+      "modified_on": "2022-05-12T06:30:36.375Z"
+    }
+  }

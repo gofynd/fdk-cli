@@ -119,7 +119,6 @@ export default class Theme {
             };
 
             const { data: theme } = await ThemeService.createTheme({ ...configObj, ...themeData });
-            console.log("theme",theme);
             Logger.warn('Copying template files');
             shouldDelete = true;
             await Theme.copyTemplateFiles(Theme.TEMPLATE_DIRECTORY, targetDirectory);
@@ -154,7 +153,9 @@ export default class Theme {
                 }
             );
             console.log(b5.toString());
+            console.log("sync theeme done")
         } catch (error) {
+            console.log("error in syncing",error)
             if (shouldDelete) await Theme.cleanUp(targetDirectory);
             throw new CommandError(error.message, error.code);
         }
@@ -244,9 +245,13 @@ export default class Theme {
     };
     private static syncTheme = async (isNew = false) => {
         try {
+            console.log("env in syncTheme",Env.getEnvValue())
             console.log("inside syncing theme ")
-            const currentContext = getActiveContext();
+            const currentContext =  getActiveContext();
+            console.log("currentcontext",currentContext)
             const env = Env.getEnvValue();
+            // const env = currentContext.env
+            // console.log("env",env)
             if (env !== currentContext.env) {
                 throw new CommandError(
                     'Active context environment and cli environment are different. Use fdk current-env to know the active envoirnement',
@@ -257,6 +262,7 @@ export default class Theme {
                 ? Logger.success('Syncing Theme to: ' + currentContext.domain)
                 : Logger.warn('Please add domain to context');
             let { data: theme } = await ThemeService.getThemeById(currentContext);
+            console.log("getthemeby id in synctheme",theme)
             const newConfig = Theme.getSettingsData(theme);
             const oldConfig = await Theme.readSettingsJson(Theme.getSettingsDataPath());
             const questions = [
@@ -314,7 +320,6 @@ export default class Theme {
                 let startAssetData = (
                     await UploadService.startUpload(startData, 'application-theme-assets')
                 ).data;
-
                 assetCdnUrl = path.dirname(startAssetData.cdn.url);
             }
             Logger.warn('Building Assets...');
@@ -348,7 +353,6 @@ export default class Theme {
                             assetPath,
                             'application-theme-images'
                         );
-                        console.log('res',res)
                         return res.start.cdn.url;
                     })
                     .filter(o => o);
@@ -421,7 +425,7 @@ export default class Theme {
                 Logger.warn('Uploading images...');
                 await asyncForEach(images, async img => {
                     const assetPath = path.join(Theme.BUILD_FOLDER, 'assets/images', img);
-                    await UploadService.uploadFile(assetPath, 'application-theme-images');
+                 await UploadService.uploadFile(assetPath, 'application-theme-images');
                 });
             }
             // upload fonts
@@ -456,6 +460,7 @@ export default class Theme {
             {
                 Logger.warn('Uploading src...');
                 let res = await UploadService.uploadFile(zipFilePath, 'application-theme-src');
+                // console.log("srcupload log",res)
                 srcCdnUrl = res.start.cdn.url;
             }
 
@@ -475,6 +480,7 @@ export default class Theme {
                     );
                     const assetPath = path.join(Theme.BUILD_FOLDER, `${urlHash}-${asset}`);
                     let res = await UploadService.uploadFile(assetPath, 'application-theme-assets');
+                    // console.log("assets upload while", res)
                     return res.start.cdn.url;
                 });
 
@@ -549,6 +555,7 @@ export default class Theme {
                         };
 
                         available_page = (await ThemeService.createAvailabePage(pageData)).data;
+                        console.log("available_page in create available page",available_page)
                     }
                     available_page.props =
                         (
@@ -564,12 +571,14 @@ export default class Theme {
                     availablePages.push(available_page);
                 });
                 Logger.warn('Updating theme...');
-                await Promise.all([ThemeService.updateTheme(theme)]);
+              const updateTheme  = await Promise.all([ThemeService.updateTheme(theme)]);
+              console.log("updateTheme",updateTheme)
                 Logger.warn('Updating pages...');
                 await asyncForEach(availablePages, async page => {
                     try {
                         Logger.warn('Updating page: ', page.value);
-                        await ThemeService.updateAvailablePage(page);
+                       const updateAvailablePages = await ThemeService.updateAvailablePage(page);
+                       console.log("updateAvailablePages",updateAvailablePages)
                     } catch (error) {
                         throw new CommandError(error.message);
                     }
