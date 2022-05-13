@@ -572,7 +572,7 @@ export default class Theme {
                     keyarray.push(Object.keys(customp[map]))
                 }
                 for(let k in keyarray){
-                    keyArrayItem.push(keyarray[k][0])
+                    keyArrayItem.push(keyarray[k][0].split('.')[0])
                 }
                for(let j in array){
                    for(let k in array[j]){
@@ -586,7 +586,6 @@ export default class Theme {
                     myobject[keyArrayItem[index]] = obj;
                     return myobject;
                 });
-                console.log('sssssss',arrayFile)
                 let Files = await fs.readFile(path.join(Theme.BUILD_FOLDER, themeCommonJsFile), 'utf-8')
                 /**
                 * require new file
@@ -614,18 +613,15 @@ export default class Theme {
                 let customTemplateFiles = bundle.getCustomTemplates()
                 let outputkeys = []
                 let pathkeys = []
+               
                 let customPageMapping=[]
-
                 const customRoutes = (ctTemplates, parentKey) => {
-                    //console.log('hhhhhhhh',ctTemplates)
                     if (ctTemplates && Object.keys(ctTemplates).length) {
                         for (let key in ctTemplates) {
-                           //console.log(ctTemplates[key].component.name)
-                           customPageMapping.push(ctTemplates[key].component.name)
+                          
                             outputkeys.push(key)
-                            const pathKey = (parentKey && `${parentKey}/${key}`) || ('c/' + key);
+                            const pathKey = (parentKey && `${parentKey}/${ctTemplates[key].component.name}`) || ('c/' + ctTemplates[key].component.name);
                             pathkeys.push(pathKey)
-
                             if (
                                 ctTemplates[key].children &&
                                 Object.keys(ctTemplates[key].children).length
@@ -634,39 +630,66 @@ export default class Theme {
                                     ctTemplates[key].children,
                                     pathKey
                                 );
-
                             }
+                           
+                            customPageMapping.push(ctTemplates[key].component.name)
+                            
                         }    
-                        
+                      
                     }
-                    return customPageMapping
-                    
                 };
-                 console.log('custompage mapping',customPageMapping)
-                customRoutes(customTemplateFiles, undefined)
-                let customFile = pathkeys.map(function (obj, index) {
-                    var myobj = {};
-                    myobj[outputkeys[index]] = obj;
-                    return myobj;
-                });
-                for (let i in customFile) {
+             customRoutes(customTemplateFiles, undefined)
+            let arr3=[]
+             for (let i in pathkeys){
+                 let t=pathkeys[i].split('/')
+                 let p=t[t.length-1]
+                 arr3.push(p)
+             }
+              
+              let final1 = []
+              
+              for(let a in arrayFile){
+              let myObj ={} ;
+              let c= Object.values(arrayFile[a])[0];
+              if(customPageMapping.includes(c)){
+              for(let i=0 ;i<arr3.length;i++){
+              if(c == arr3[i]){
+              let y = Object.keys(arrayFile[i])[0];
+              myObj[y] = pathkeys[i];
+              final1.push(myObj);
+              }
+              }
+              }
+              }
+              
+                // let customFile = pathkeys.map(function (obj, index) {
+                //     var myobj = {};
+                //     myobj[outputkeys[index]] = obj;
+                //     return myobj;
+                // });
+                for (let i of final1) {
+                    console.log('values',Object.values(i)[0])
+                    console.log('Object.keys(i)[0]',Object.keys(i)[0])
                     let availablecustom_page
                     try {
-                        availablecustom_page = (await ThemeService.getAvailablePage(Object.keys(customFile[i])[0])).data;
+                        availablecustom_page = (await ThemeService.getAvailablePage(Object.keys(i)[0])).data;
                         console.log(availablecustom_page)
                     } catch (error) {
-                        Logger.log('Creating Page: ', Object.keys(customFile[i])[0]);
+                        Logger.log('Creating Page: ', Object.keys(i)[0]);
                     }
-
+                    //console.log('hhhh',.replace(new RegExp('/', 'g'),'-'))
+                    let h=String(Object.values(i)[0]).substring(2)
+                    let a=h.replace(new RegExp('/', 'g'),'-')
+                    console.log('value',a)
                     if (!availablecustom_page) {
                         const pageData = {
-                            value: Object.keys(customFile[i])[0],
+                            value: a,
                             props: [],
                             sections: [],
                             sections_meta: [],
                             type: 'custom',
-                            text: pageNameModifier(Object.keys(customFile[i])[0]),
-                            path: Object.values(customFile[i])[0]
+                            text: pageNameModifier(Object.keys(i)[0]),
+                            path: Object.values(i)[0]
 
                         };
                         console.log(pageData)
@@ -676,11 +699,11 @@ export default class Theme {
                     availablecustom_page.props =
                         (
                             Theme.extractSettingsFromFile(
-                                `${process.cwd()}/theme/custom-templates/${Object.keys(customFile[i])[0]}.vue`
+                                `${process.cwd()}/theme/custom-templates/${Object.keys(i)[0]}.vue`
                             ) || {}
                         ).props || [];
                     availablecustom_page.sections_meta = Theme.extractSectionsFromFile(
-                        `${process.cwd()}/theme/custom-templates/${Object.keys(customFile[i])[0]}.vue`
+                        `${process.cwd()}/theme/custom-templates/${Object.keys(i)[0]}.vue`
                     );
                     availablecustom_page.type = 'custom';
                     delete availablecustom_page.sections;
