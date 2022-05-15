@@ -84,6 +84,9 @@ exports.builder = function (yargs) {
 
 async function copyTemplateFiles(targetDirectory) {
     try {
+        if (fs.existsSync(path.join(targetDirectory, '/.git'))) {
+            return Promise.reject(new Error(`Cannot initialize extension at '${targetDirectory}', as it already contains Git repository.`));
+        }
         if (!fs.existsSync(targetDirectory)) {
             createDirectory(targetDirectory);
         }
@@ -206,7 +209,7 @@ exports.handler = async args => {
 
     let answers = {
         template: args.template || 'javascript',
-        host: args.host || contextData.host,
+        host: args.host.replace(/(^\w+:|^)\/\//, '') || contextData.host,
         verbose: args.verbose,
         targetDir: args['target-dir'] || '.'
     };
