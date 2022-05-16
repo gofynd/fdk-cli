@@ -5,7 +5,7 @@ const urlJoin = require('url-join');
 let url = '';
 
 const getAPIUrl = host => {
-  return `https://${host}`
+  return `https://${host.replace(/(^\w+:|^)\/\//, '')}`
 };
 
 const getSlingshotUrl = host => {

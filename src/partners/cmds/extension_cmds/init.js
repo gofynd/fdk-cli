@@ -79,7 +79,16 @@ exports.builder = function (yargs) {
         })
         .options('verbose', {
             describe: 'Enable verbose logging'
-        });
+        })
+        .check((argv, options) => {
+            let hostRegex = /^([a-zA-Z0-9]([-a-zA-Z0-9]{1,61}[a-zA-Z0-9])?\.)+([a-zA-Z0-9]{1,2}([-a-zA-Z0-9]{0,252}[a-zA-Z0-9])?)\.([a-zA-Z]{2,63})$/g
+            const host = argv.host
+            if (!hostRegex.test(host)) {
+                console.log(chalk.red('Invalid host'));
+                process.exit(1);
+            }
+            return true
+          });
 };
 
 async function copyTemplateFiles(targetDirectory) {
@@ -209,7 +218,7 @@ exports.handler = async args => {
 
     let answers = {
         template: args.template || 'javascript',
-        host: args.host.replace(/(^\w+:|^)\/\//, '') || contextData.host,
+        host: args.host || contextData.host,
         verbose: args.verbose,
         targetDir: args['target-dir'] || '.'
     };
