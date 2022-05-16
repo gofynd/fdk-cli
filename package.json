@@ -18,8 +18,8 @@
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build",
     "test": "run-script-os",
-    "test:linux": "jest  -- ./src/__tests__/*.spec.ts",
     "test:win32": "jest  -- .\\src\\__tests__\\*.spec.ts",
+    "test:default": "jest  -- ./src/__tests__/*.spec.ts",
     "debug": "node ./bin/fdk login"
   },
   "devDependencies": {
