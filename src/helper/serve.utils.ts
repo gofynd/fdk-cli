@@ -8,9 +8,11 @@ import express from 'express';
 import { SourceMapConsumer } from 'source-map'
 import urlJoin from 'url-join';
 import { parse as stackTraceParser}  from 'stacktrace-parser';
-import proxy from 'express-http-proxy';
+import { createProxyMiddleware, fixRequestBody } from 'http-proxy-middleware';
+import { addSignatureFn }  from '../lib/api/helper/interceptors';
 import detect from 'detect-port';
 import chalk from 'chalk';
+const { transformRequest } = axios.defaults;
 
 const BUILD_FOLDER = './.fdk/dist';
 let port = 5001;
@@ -24,12 +26,12 @@ export function reload() {
 	});
 }
 
-export function getLocalBaseUrl(host) {
-	return host.replace('api', 'localdev');
+export function getLocalBaseUrl() {
+	return "https://localhost";
 }
 
-export function getFullLocalUrl(host) {
-	return `${getLocalBaseUrl(host)}:${port}`;
+export function getFullLocalUrl() {
+	return `${getLocalBaseUrl()}:${port}`;
 }
 
 export async function createTunnel() {
@@ -69,7 +71,7 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 		Logger.error('Error occurred while detecting port.\n', e);
 	}
 
-	const app = require('https-localhost')(getLocalBaseUrl(host));
+	const app = require('https-localhost')(getLocalBaseUrl());
 	const certs = await app.getCerts();
 	const server = require('https').createServer(certs, app);
 	const io = require('socket.io')(server);
@@ -102,12 +104,41 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 		res.json({ ok: 'ok' });
 	});
 
+	// parse application/x-www-form-urlencoded
+	app.use(express.json());
+
 	// app.use('/platform', proxy(`https://${host}`, {
 	//   proxyReqPathResolver: function (req) {
 	//     return `/platform${req.url}`;
 	//   }
 	// }));
-	app.use(`/api`, proxy(`${host}`));
+	  
+	const options = {
+		target: host, // target host
+		changeOrigin: true, // needed for virtual hosted sites
+		cookieDomainRewrite: 'localhost', // rewrite cookies to localhost
+		onProxyReq: fixRequestBody, //to fix body parser issue  
+	  };
+
+	  // proxy to solve CORS issue
+	  const corsProxy = createProxyMiddleware(options);
+	  app.use('/service', async (req,res,next) => {
+		// formating express request object as per axios so signature logic will work  
+		req.transformRequest = transformRequest;
+		req.url = req.originalUrl;
+		req.data = req.body;
+		req.baseURL = host;
+		delete req.headers['x-fp-signature'];
+		delete req.headers['x-fp-date'];
+		const url = new URL(host);
+		req.headers.host = url.host;
+		// regenerating signature as per proxy server
+		const config = await addSignatureFn(options)(req);
+		req.headers['x-fp-signature'] = config.headers['x-fp-signature'];
+		req.headers['x-fp-date'] = config.headers['x-fp-date'];
+		next();
+	  }, corsProxy);
+
 	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
 
 	app.get('/*', async (req, res) => {
@@ -129,6 +160,7 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 		} else {
 			jetfireUrl.searchParams.set('__csr', 'true');
 		}
+		jetfireUrl.searchParams.set('__cli_port', port.toString());
 		try {
 			let { data: html } = await axios.get(jetfireUrl.toString());
 			let $ = cheerio.load(html);
@@ -152,15 +184,15 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 				`);
 			$('#theme-umd-js').attr(
 				'src',
-				urlJoin(getFullLocalUrl(host), 'themeBundle.umd.js')
+				urlJoin(getFullLocalUrl(), 'themeBundle.umd.js')
 			);
 			$('#theme-umd-js-link').attr(
 				'href',
-				urlJoin(getFullLocalUrl(host), 'themeBundle.umd.js')
+				urlJoin(getFullLocalUrl(), 'themeBundle.umd.js')
 			);
 			$('#theme-css').attr(
 				'href',
-				urlJoin(getFullLocalUrl(host), 'themeBundle.css')
+				urlJoin(getFullLocalUrl(), 'themeBundle.css')
 			);
 			res.send($.html({ decodeEntities: false }));
 		} catch (e) {

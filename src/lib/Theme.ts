@@ -597,7 +597,7 @@ export default class Theme {
             Logger.success(`Locally building............`);
             await devBuild({
                 buildFolder: Theme.BUILD_FOLDER,
-                imageCdnUrl: urlJoin(getFullLocalUrl(host), 'assets/images'),
+                imageCdnUrl: urlJoin(getFullLocalUrl(), 'assets/images'),
                 isProd: isSSR,
             });
 
@@ -606,7 +606,7 @@ export default class Theme {
             await startServer({ domain, host, isSSR, serverPort });
 
             // open browser
-            await open(getFullLocalUrl(host));
+            await open(getFullLocalUrl());
             console.log(chalk.bold.green(`Watching files for changes`));
             let watcher = chokidar.watch(path.resolve(process.cwd(), 'theme'), {
                 persistent: true,
@@ -615,7 +615,7 @@ export default class Theme {
                 console.log(chalk.bold.green(`building............`));
                 await devBuild({
                     buildFolder: path.resolve(process.cwd(), Theme.BUILD_FOLDER),
-                    imageCdnUrl: urlJoin(getFullLocalUrl(host), 'assets/images'),
+                    imageCdnUrl: urlJoin(getFullLocalUrl(), 'assets/images'),
                     isProd: isSSR,
                 });
                 reload();
