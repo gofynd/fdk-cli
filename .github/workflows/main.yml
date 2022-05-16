@@ -2,13 +2,13 @@ name: NodeJS
 
 on:
   push:
-    branches: [ github-actions-fixes ]
+    branches: [ master ]
 
 jobs:
   build:
     strategy:
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        os: [ ubuntu-latest, macos-latest, windows-latest]
         node-version: [12.x, 14.x, 15.x]
 
     runs-on: ${{ matrix.os }}
