@@ -82,11 +82,7 @@ const chainWebpack = (config) => {
   }
   config
     .optimization.splitChunks({
-      name(module, chunks, cacheGroupKey) {
-        const allChunksNames = chunks.map((item) => item.name).join('_');
-        return cacheGroupKey + "_" + allChunksNames;
-      },
-      chunks: 'all',
+      automaticNameDelimiter: "_"
     })
 }
 
