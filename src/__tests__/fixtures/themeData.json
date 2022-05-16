@@ -1,5 +1,5 @@
 {
-  "_id": "627dfa3176cee8385447a2c4",
+  "_id": "623b09faeb0b6e0f4ff9758f",
   "information": {
     "images": {
       "desktop": [],
@@ -7,40 +7,50 @@
       "ios": [],
       "thumbnail": []
     },
-    "features": [],
-    "name": "newtheeeme"
+    "features": [
+      "Responsive"
+    ],
+    "name": "White-Splash"
   },
   "src": {
     "link": ""
   },
   "assets": {
     "css": {
-      "link": "",
+      "link": "https://hdn-1.addsale.com/x0/company/1/applications/622894659baaca3be88c9d65/theme/assets/23u53fFY4-themeBundle.css",
       "links": []
     },
     "umd_js": {
-      "link": "",
+      "link": "https://hdn-1.addsale.com/x0/company/1/applications/622894659baaca3be88c9d65/theme/assets/23u53fFY4-themeBundle.umd.min.js",
       "links": []
     },
     "common_js": {
-      "link": ""
+      "link": "https://hdn-1.addsale.com/x0/company/1/applications/622894659baaca3be88c9d65/theme/assets/23u53fFY4-themeBundle.common.js"
     }
   },
   "config": {
     "global_schema": {
-      "props": []
+      "props": [
+        null
+      ]
     },
     "current": "default",
     "preset": {
-      "pages": []
+      "pages": [
+        null
+      ]
     },
-    "list": []
+    "list": [
+      [
+        null
+      ]
+    ]
   },
   "colors": {
-    "primary_color": "#7043f7",
-    "secondary_color": "#02d1cb",
-    "accent_color": "#FFFFFF",
-    "link_color": "#7043f7",
+    "primary_color": "#35919b",
+    "secondary_color": "#FE8F46",
+    "accent_color": "#41434C",
+    "link_color": "#EE478D",
     "button_secondary_color": "#000000",
     "bg_color": "#F8F8F8"
   },
@@ -62,41 +72,41 @@
         null
       ]
     },
-    "family": "Poppins"
+    "family": "Montserrat"
   },
-  "applied": false,
+  "applied": true,
   "published": false,
   "archived": false,
-  "customized": false,
-  "version": "1.0.0",
+  "customized": true,
+  "version": "1.0.139",
   "tags": [],
   "available_sections": [
     {
       "props": [
         null
       ],
-      "blocks": [],
-      "name": "application_banner",
-      "label": "Application Banner"
-    },
-    {
-      "props": [
-        null
-      ],
       "blocks": [
         null
       ],
-      "name": "brands_listing",
+      "name": "brands-listing",
       "label": "Brands Listing"
     },
     {
       "props": [
         null
       ],
+      "blocks": [],
+      "name": "categoryListPage",
+      "label": "Category List "
+    },
+    {
+      "props": [
+        null
+      ],
       "blocks": [
         null
       ],
-      "name": "collections_listing",
+      "name": "collections-listing",
       "label": "Collections Listing"
     },
     {
@@ -104,7 +114,7 @@
         null
       ],
       "blocks": [],
-      "name": "custom_html",
+      "name": "customHtml",
       "label": "Custom HTML"
     },
     {
@@ -119,16 +129,42 @@
       "props": [
         null
       ],
-      "blocks": [],
-      "name": "featured_collection",
-      "label": "Featured Collection"
+      "blocks": [
+        null
+      ],
+      "name": "featuredProducts",
+      "label": "Featured Products",
+      "preset": [
+        null
+      ]
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [
+        null
+      ],
+      "name": "gallery",
+      "label": "Gallery",
+      "preset": [
+        null
+      ]
     },
     {
       "props": [
         null
       ],
       "blocks": [],
-      "name": "hero_image",
+      "name": "heroBanner",
+      "label": "Hero Banner"
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [],
+      "name": "heroImage",
       "label": "Hero Image"
     },
     {
@@ -136,42 +172,57 @@
         null
       ],
       "blocks": [],
-      "name": "hero_video",
+      "name": "heroVideoBanner",
       "label": "Hero Video"
     },
     {
       "props": [
         null
       ],
-      "blocks": [
-        null
-      ],
-      "name": "image_gallery",
-      "label": "Image Gallery",
-      "preset": [
-        null
-      ]
-    },
-    {
-      "props": [
-        null
-      ],
-      "blocks": [
-        null
-      ],
-      "name": "image_slideshow",
-      "label": "Image Slideshow",
-      "preset": [
-        null
-      ]
+      "blocks": [],
+      "name": "imageBanner",
+      "label": "Image Banner"
     },
     {
       "props": [
         null
       ],
       "blocks": [],
-      "name": "media_with_text",
-      "label": "Media with text"
+      "name": "infiniteProductListing",
+      "label": "Recomended Products"
+    },
+    {
+      "props": [],
+      "blocks": [],
+      "name": "points",
+      "label": "Points"
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [],
+      "name": "productList",
+      "label": "Collection Product List"
+    },
+    {
+      "props": [],
+      "blocks": [],
+      "name": "refer-and-earn",
+      "label": "Refer And Earn"
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [
+        null
+      ],
+      "name": "image-slideshow",
+      "label": "Image Slideshow",
+      "preset": [
+        null
+      ]
     },
     {
       "props": [
@@ -185,10 +236,70 @@
       "preset": [
         null
       ]
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [
+        null
+      ],
+      "name": "videoCarousel",
+      "label": "Video Carousel"
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [],
+      "name": "infiniteWishlistListing",
+      "label": "Wishlist page"
     }
   ],
   "application": "622894659baaca3be88c9d65",
-  "styles": {},
-  "created_at": "2022-05-13T06:26:57.130Z",
-  "updated_at": "2022-05-13T06:26:57.130Z"
+  "styles": {
+    "default": {
+      "sub_header": [
+        null
+      ],
+      "snackbar": [
+        null
+      ],
+      "status_bar": [
+        null
+      ],
+      "tab_bar": [
+        null
+      ],
+      "header": [
+        null
+      ],
+      "breadcrumb": [
+        null
+      ],
+      "error_state": [
+        null
+      ],
+      "button": [
+        null
+      ],
+      "side_bar": [
+        null
+      ],
+      "link": [
+        null
+      ]
+    },
+    "pdp": {
+      "button": [
+        null
+      ]
+    }
+  },
+  "constants": {},
+  "settings": {},
+  "parent_theme": "610d530ece184530dc635a66",
+  "parent_theme_version": "1.0.132",
+  "created_at": "2022-03-23T11:52:26.965Z",
+  "updated_at": "2022-04-27T05:34:54.915Z"
 }

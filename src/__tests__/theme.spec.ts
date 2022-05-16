@@ -17,6 +17,7 @@ const data = require('./fixtures/email-login.json');
 import { getActiveContext } from '../helper/utils';
 import { init } from '../fdk';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
+import Env from '../lib/Env';
 
 jest.mock('inquirer');
 let program;
@@ -69,7 +70,7 @@ describe('Theme Commands', () => {
             themeData
         );
         mock.onGet(
-            `${URLS.THEME_BY_ID(context.application_id, context.company_id, currentContext.theme_id)}`
+            `${URLS.THEME_BY_ID(context.application_id, context.company_id, context.theme_id)}`
         ).reply(200, themeData);
         mock.onPost(
             `${URLS.START_UPLOAD_FILE(context.application_id, context.company_id, namespace)}`
@@ -121,42 +122,44 @@ describe('Theme Commands', () => {
         //     `${URLS.AVAILABLE_PAGE(context.application_id, context.company_id, context.theme_id)}`
         // ).reply(200, context);
         mock.onPut(
-            `${URLS.THEME_BY_ID(context.application_id, context.company_id, currentContext.theme_id)}`
+            `${URLS.THEME_BY_ID(context.application_id, context.company_id, context.theme_id)}`
         ).reply(200, themeData);
         mock.onPut(
-            `${URLS.AVAILABLE_PAGE(context.application_id, context.company_id, currentContext.theme_id)}`
+            `${URLS.AVAILABLE_PAGE(context.application_id, context.company_id, context.theme_id)}`
         ).reply(200, context);
         mock.onDelete(
-            `${URLS.THEME_BY_ID(context.application_id, context.company_id, currentContext.theme_id)}`
+            `${URLS.THEME_BY_ID(context.application_id, context.company_id, context.theme_id)}`
         ).reply(200, themeData);
     });
     afterEach(() => {
         configStore.clear();
     });
 
-    it('should successfully create new theme', async () => {
-        await login();
-        jest.setTimeout(100000)
-        const inquirerMock = mockFunction(inquirer.prompt);
-        inquirerMock.mockResolvedValue({ pullConfig: 'Yes' });
-        await program.parseAsync([
-            'ts-node',
-            './src/fdk.ts',
-            'theme',
-            'new',
-            '-t',
-            'eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDUtMTNUMDg6NDA6MTEuMDk1WiJ9',
-            '-n',
-            'royal',
-        ]);
-        const x = {
-            application_id: '622894659baaca3be88c9d65',
-            token: '4Eoh-yDMW',
-            company_id: 1,
-            expires_in: '2022-05-09T11:05:57.197Z',
-        };
-        console.log('after expect');
-    });
+    // it('should successfully create new theme', async () => {
+    //     await login();
+    //     jest.setTimeout(100000)
+    //     const env1 = Env.getEnvValue();
+    //     console.log("env in spec folder",env1)
+    //     const inquirerMock = mockFunction(inquirer.prompt);
+    //     inquirerMock.mockResolvedValue({ pullConfig: 'Yes' });
+    //     await program.parseAsync([
+    //         'ts-node',
+    //         './src/fdk.ts',
+    //         'theme',
+    //         'new',
+    //         '-t',
+    //         'eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDUtMTNUMTI6MjQ6NTcuMDAyWiJ9',
+    //         '-n',
+    //         'royal',
+    //     ]);
+    //     const x = {
+    //         application_id: '622894659baaca3be88c9d65',
+    //         token: '4Eoh-yDMW',
+    //         company_id: 1,
+    //         expires_in: '2022-05-09T11:05:57.197Z',
+    //     };
+    //     console.log('after expect');
+    // });ß
 
     // it('should successfully init theme', async () => {
     //     await login();
@@ -168,17 +171,17 @@ describe('Theme Commands', () => {
     //         'theme',
     //         'init',
     //         '-t',
-    //         'eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDUtMTFUMDU6MTc6MjkuNDE1WiJ9'
+    //         'eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDUtMTNUMTQ6MTg6MjEuODAzWiIsInRoZW1lX2lkIjoiNjIzYjA5ZmFlYjBiNmUwZjRmZjk3NThmIn0='
     //     ]);
-        // const x = {
-        //     application_id: '622894659baaca3be88c9d65',
-        //     token: '4Eoh-yDMW',
-        //     company_id: 1,
-        //     expires_in: '2022-05-09T11:05:57.197Z',
-        // };
+    //     const x = {
+    //         application_id: '622894659baaca3be88c9d65',
+    //         token: '4Eoh-yDMW',
+    //         company_id: 1,
+    //         expires_in: '2022-05-09T11:05:57.197Z',
+    //     };
 
-        // expect(cookies.Name).toMatch("Anurag Pandey");
-        // expect(true).toBeTruthy();
+    //     // expect(cookies.Name).toMatch("Anurag Pandey");
+    //     // expect(true).toBeTruthy();
     //     console.log('after expect');
     // });
 
@@ -196,18 +199,18 @@ describe('Theme Commands', () => {
     //     console.log('after expect');
     // });
 
-    // it('should successfully pull  theme', async () => {
-    //     await login();
-    //     // jest.setTimeout(100000)
-    //     // const inquirerMock = mockFunction(inquirer.prompt);
-    //     // inquirerMock.mockResolvedValue({ pullConfig: 'Yes' });
-    //     await program.parseAsync([
-    //         'ts-node',
-    //         './src/fdk.ts',
-    //         'theme',
-    //         'publish'
-    //     ]);
-    //     console.log('after expect');
-    // });
+    it('should successfully publish  theme', async () => {
+        await login();
+        // jest.setTimeout(100000)
+        // const inquirerMock = mockFunction(inquirer.prompt);
+        // inquirerMock.mockResolvedValue({ pullConfig: 'Yes' });
+        await program.parseAsync([
+            'ts-node',
+            './src/fdk.ts',
+            'theme',
+            'publish'
+        ]);
+        console.log('after expect');
+    });
 
 });
