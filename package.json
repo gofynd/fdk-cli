@@ -16,7 +16,9 @@
     "clean": "rimraf ./dist",
     "build": "npm run clean && tsc",
     "watch": "tsc --watch",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "test": "jest  -- ./src/__tests__/*.spec.ts",
+    "debug": "node ./bin/fdk login"
   },
   "devDependencies": {
     "@types/async": "^3.2.6",
@@ -30,6 +32,7 @@
     "@types/express-http-proxy": "^1.6.2",
     "@types/fs-extra": "^9.0.11",
     "@types/inquirer": "^7.3.1",
+    "@types/jest": "^27.4.1",
     "@types/latest-version": "^4.0.1",
     "@types/leven": "^2.1.2",
     "@types/localtunnel": "^2.0.1",
@@ -40,10 +43,13 @@
     "@types/source-map": "^0.5.7",
     "@types/url-join": "^4.0.0",
     "@types/validator": "^13.1.3",
+    "axios-mock-adapter": "^1.20.0",
     "del-cli": "^3.0.1",
+    "jest": "^27.5.1",
     "source-map-support": "^0.5.19",
+    "ts-jest": "^27.1.4",
     "ts-node": "^9.1.1",
-    "typescript": "^4.2.4"
+    "typescript": "^4.6.4"
   },
   "dependencies": {
     "@babel/core": "^7.14.3",
