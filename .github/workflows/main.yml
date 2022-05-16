@@ -2,7 +2,7 @@ name: NodeJS
 
 on:
   push:
-    branches: [ github-actions-fixes ]
+    branches: [ master ]
 
 jobs:
   build:
@@ -27,8 +27,3 @@ jobs:
       run: npm run build
     - name: Run test cases
       run:  npm run test
-
-    - name: Coveralls (Uploading test report)
-      uses: coverallsapp/github-action@master
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
