@@ -6,6 +6,12 @@ const currentNodeVersion = process.versions.node;
 const semver = currentNodeVersion.split('.');
 const major = Number(semver[0]);
 
+const bootstrap = () => {
+  const { init } = require('../dist/fdk');
+  const program = init('fdk');
+  return program;
+}
+
 const oldCommands = ['extension', 'partner']
 if (major < 12) {
   console.error(
@@ -25,8 +31,7 @@ oldCommands.forEach(c => {
 })
 
 if (!isOld) {
-  const { init } = require('../dist/fdk');
-  init('fdk');
+  bootstrap()
 }
 else {
   const yargs = require('yargs')
@@ -42,4 +47,4 @@ else {
     require('yargs').showHelp();
   }
 }
-
+exports.bootstrap = bootstrap;

@@ -1,0 +1,9 @@
+{
+    "success": "true",
+    "request_id": "a911662f64775ec54bd18a5c9f8f106a",
+    "message": "OTP sent",
+    "mobile": "7678880802",
+    "country_code": "91",
+    "resend_timer": "30",
+    "resend_token": "1fd3dde0-c9cd-11ec-b676-9b11093bf114"
+  }

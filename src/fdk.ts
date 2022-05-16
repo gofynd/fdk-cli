@@ -15,7 +15,7 @@ import { isAThemeDirectory } from './helper/utils';
 import inquirer from 'inquirer';
 import path from 'path';
 import Env from './lib/Env';
-import { getActiveContext } from './helper/utils.js';
+import { getActiveContext } from './helper/utils';
 import { THEME_COMMANDS, AUTHENTICATION_COMMANDS, ENVIRONMENT_COMMANDS } from './helper/constants';
 const packageJSON = require('../package.json');
 
@@ -161,6 +161,7 @@ export async function init(programName: string) {
     if (program.args.length === 0) {
         program.help();
     }
+    return program;
 }
 
 async function checkCliVersionAsync() {
