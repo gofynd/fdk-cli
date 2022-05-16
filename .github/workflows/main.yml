@@ -2,7 +2,7 @@ name: NodeJS
 
 on:
   push:
-    branches: [ master ]
+    branches: [ github-actions-fixes ]
 
 jobs:
   build:
