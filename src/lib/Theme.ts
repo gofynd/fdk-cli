@@ -560,7 +560,6 @@ export default class Theme {
                             text: pageNameModifier(key),
                             path: routerPath,
                         };
-
                         if (
                             ctTemplates[key].children &&
                             Object.keys(ctTemplates[key].children).length
