@@ -18,7 +18,7 @@
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build",
     "test": "jest  -- ./src/__tests__/*.spec.ts",
-    "debug": "node ./bin/fdk login"
+    "debug": "node ./bin/fdk theme new -t eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDUtMTdUMTA6NDI6MTUuMTkyWiJ9 -n new"
   },
   "devDependencies": {
     "@types/async": "^3.2.6",

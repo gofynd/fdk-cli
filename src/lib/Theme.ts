@@ -16,7 +16,7 @@ import rimraf from 'rimraf';
 import Box from 'boxen';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import compiler from 'vue-template-compiler';
+import {parseComponent} from 'vue-template-compiler';
 import cheerio from 'cheerio';
 import glob from 'glob';
 import _ from 'lodash';
@@ -110,6 +110,7 @@ export default class Theme {
             const { data: appConfig } = await ConfigurationService.getApplicationDetails(configObj);
             Logger.warn('Creating Theme');
             let available_sections = await Theme.getAvailableSections();
+            console.log("available_sections",available_sections)
             const themeData = {
                 information: {
                     name: options.name,
@@ -152,6 +153,7 @@ export default class Theme {
             );
             console.log(b5.toString());
         } catch (error) {
+            console.log("error in create theme",error)
             if (shouldDelete) await Theme.cleanUp(targetDirectory);
             throw new CommandError(error.message, error.code);
         }
@@ -741,13 +743,15 @@ export default class Theme {
         let sectionsFiles = [];
         try {
             sectionsFiles = fs
-                .readdirSync(path.join(Theme.TEMPLATE_DIRECTORY, '/sections'))
+                .readdirSync(path.join(Theme.TEMPLATE_DIRECTORY, 'theme', '/sections'))
                 .filter(o => o != 'index.js');
-        } catch (err) {}
+                console.log("sectionsFiles",sectionsFiles)
+        } catch (err) {console.log("err",err)}
         let pArr = sectionsFiles.map(async f => {
-            let image_section = compiler.parseComponent(
-                readFile(path.join(Theme.TEMPLATE_DIRECTORY, 'sections', f))
+            let image_section = parseComponent(
+                readFile(path.join(Theme.TEMPLATE_DIRECTORY, 'theme','sections', f))
             );
+            // console.log("afterparsecomponent",image_section.script.content )
             let sectionSettings = await new Promise((resolve, reject) => {
                 require('@babel/core').transform(
                     image_section.script.content,
@@ -756,17 +760,22 @@ export default class Theme {
                     },
                     (err, result) => {
                         if (err) {
+                            console.log("err in callback",err)
                             return reject(err);
                         }
                         try {
-                            let modules = requireFromString(result.code);
+                            console.log("pathsss",path.join(Theme.TEMPLATE_DIRECTORY, 'theme'))
+                            let modules = requireFromString(result.code,"",{appendPaths:[path.join(Theme.TEMPLATE_DIRECTORY, 'theme')]});
+                            // console.log("modules",modules)
                             return resolve(modules.settings);
                         } catch (e) {
+                            console.log("err in catch", e)
                             return reject(e);
                         }
                     }
                 );
             });
+            console.log("sectionSettings",sectionSettings)
             return sectionSettings;
         });
         return Promise.all(pArr);
