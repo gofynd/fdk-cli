@@ -5,10 +5,10 @@
 [![NPM Downloads][downloads-image]][downloads-url]
 [![NPM License][license-image]][license-url]
 [![Build Status](https://travis-ci.org/gofynd/fdk-cli.svg?branch=master)](https://travis-ci.org/gofynd/fdk-cli)
+[![Coverage Status](https://coveralls.io/repos/github/gofynd/fdk-cli/badge.svg?branch=master)](https://coveralls.io/github/gofynd/fdk-cli?branch=master)
 Fynd development Kit (FDK CLI) is a cli tool developed by Fynd to create and update themes, extensions and various other components of the [Fynd Platform](https://platform.fynd.com/).
 ### Quick Links
 [Fynd Platform](https://platform.fynd.com/) | [Fynd Partners](https://partners.fynd.com/) | [Documentation](https://documentation.fynd.com/) | [Other Projects](#OtherProjects) | | [Contributing](#Contributing) | 
-|---|---|---|---|
 # Installation
 ___
 ```sh
@@ -52,7 +52,7 @@ ___
 | ------------- |-------------| 
 | [env ls](#env-ls)     | List environments |
 | [env get](#env-get)     | Shows current environment |
-| [env set](#env-set)     | Set active environment to the value provided by the user|
+| [env set](#env-set)     | Set active environment to the value provided by the user. Default environment: `fynd`|
 
 ### Authentication Commands
 | Command        | Description           | 
@@ -128,7 +128,7 @@ fdk env set -n fynd
 ___
 
 #### **env get**
-This command displays the active environment set by the user.
+This command displays the active environment set by the user. Default environment: `fynd`
 #### **Syntax**
 ```sh
 fdk env get
