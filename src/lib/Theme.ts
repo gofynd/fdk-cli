@@ -240,9 +240,6 @@ export default class Theme {
         await Theme.syncTheme();
     };
     private static syncTheme = async (isNew = false) => {
-        const urlHash = shortid.generate();
-        const assets = ['themeBundle.css', 'themeBundle.common.js', 'themeBundle.umd.min.js'];
-        const zipFilePath = path.join(Theme.SRC_ARCHIVE_FOLDER, Theme.ZIP_FILE_NAME);
         try {
             const currentContext = getActiveContext();
             const env = Env.getEnvValue();
@@ -305,23 +302,21 @@ export default class Theme {
             let desktopImages = [];
             let thumbnailImages = [];
             // upload theme preview images
-            await Theme.allThemeImages(androidImages, iosImages, desktopImages, thumbnailImages);
+            await Theme.uploadThemePreviewImages(androidImages, iosImages, desktopImages, thumbnailImages);
             // upload images
-            await Theme.imageUploader();
+            await Theme.assetsImageUploader();
             // upload fonts
-            await Theme.fontsUploader();
+            await Theme.assetsFontsUploader();
             //copy files to .fdk
             await Theme.copyFilesToFdkFolder();
             //remove temp files
             rimraf.sync(Theme.SRC_FOLDER);
             let srcCdnUrl;
             // src file upload
-            await Theme.srcUploader(zipFilePath, srcCdnUrl);
+            await Theme.srcUploader(srcCdnUrl);
             //uploading assets
             await Theme.assetsUploader(
                 theme,
-                urlHash,
-                assets,
                 srcCdnUrl,
                 desktopImages,
                 iosImages,
@@ -643,7 +638,7 @@ export default class Theme {
         rimraf.sync(Theme.SRC_ARCHIVE_FOLDER);
     };
 
-    private static imageUploader = async () => {
+    private static assetsImageUploader = async () => {
         try {
             const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'assets');
             const images = glob.sync('**/**.**', { cwd });
@@ -657,7 +652,7 @@ export default class Theme {
         }
     };
 
-    private static allThemeImages = async (
+    private static uploadThemePreviewImages = async (
         androidImages,
         iosImages,
         desktopImages,
@@ -758,7 +753,7 @@ export default class Theme {
         }
     };
 
-    private static fontsUploader = async () => {
+    private static assetsFontsUploader = async () => {
         try {
             if (fs.existsSync(path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts'))) {
                 const cwd = path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts');
@@ -800,8 +795,6 @@ export default class Theme {
     };
     private static assetsUploader = async (
         theme,
-        urlHash,
-        assets,
         srcCdnUrl,
         desktopImages,
         iosImages,
@@ -809,6 +802,8 @@ export default class Theme {
         thumbnailImages,
         available_sections
     ) => {
+        const assets = ['themeBundle.css', 'themeBundle.common.js', 'themeBundle.umd.min.js'];
+        const urlHash = shortid.generate();
         try {
             let themeContent: any = readFile(`${process.cwd()}/config.json`);
             Logger.warn('Uploading assets...');
@@ -930,7 +925,8 @@ export default class Theme {
             throw new CommandError(`Failed to uploading system pages`);
         }
     };
-    private static srcUploader = async (zipFilePath, srcCdnUrl) => {
+    private static srcUploader = async (srcCdnUrl) => {
+        const zipFilePath = path.join(Theme.SRC_ARCHIVE_FOLDER, Theme.ZIP_FILE_NAME);
         try {
             Logger.warn('Uploading src...');
             let res = await UploadService.uploadFile(zipFilePath, 'application-theme-src');
