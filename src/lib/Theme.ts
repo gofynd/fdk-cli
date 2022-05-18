@@ -7,7 +7,6 @@ import {
 } from '../helper/utils';
 import CommandError, { ErrorCodes } from './CommandError';
 import Logger, { COMMON_LOG_MESSAGES } from './Logger';
-import ConfigStore, { CONFIG_KEYS } from './Config';
 import ConfigurationService from './api/services/configuration.service';
 import fs from 'fs-extra';
 import path from 'path';
@@ -758,38 +757,15 @@ export default class Theme {
         try {
             console.log("indise getAvailableSections")
             sectionsFiles = fs
-                .readdirSync(path.join(Theme.TEMPLATE_DIRECTORY, '/sections'))
+                .readdirSync(path.join(Theme.TEMPLATE_DIRECTORY, 'theme', 'sections'))
                 .filter(o => o != 'index.js');
-        } catch (err) {console.log('err',err)}
-        let pArr = sectionsFiles.map(async f => {
-            let image_section = compiler.parseComponent(
-                readFile(path.join(Theme.TEMPLATE_DIRECTORY, 'sections', f))
-            );
-            console.log("indise getAvailableSections inside ") 
-            let sectionSettings = await new Promise((resolve, reject) => {
-                require('@babel/core').transform(
-                    image_section.script.content,
-                    {
-                        plugins: ['@babel/plugin-transform-modules-commonjs'],
-                    },
-                    (err, result) => {
-                        if (err) {
-                            return reject(err);
-                        }
-                        try {
-                            console.log("indise getAvailableSections inside try") 
-                            let modules = requireFromString(result.code);
-                            return resolve(modules.settings);
-                        } catch (e) {
-                            console.log("error",e)
-                            return reject(e);
-                        }
-                    }
-                );
-            });
-            return sectionSettings;
+        } catch (err) {
+            throw new CommandError(err.message, err.code);
+        }
+        let settings = sectionsFiles.map(f => {
+            return Theme.extractSettingsFromFile(`${Theme.TEMPLATE_DIRECTORY}/theme/sections/${f}`);
         });
-        return Promise.all(pArr);
+        return settings;
     }
     private static async getAvailableSectionsForSync() {
         let sectionsFiles = fs
