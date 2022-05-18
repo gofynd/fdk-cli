@@ -648,7 +648,7 @@ export default class Theme {
                 await UploadService.uploadFile(assetPath, 'application-theme-images');
             });
         } catch (err) {
-            throw new CommandError(`Failed to upload images in assets/images`);
+            throw new CommandError(`Failed to upload assets/images`);
         }
     };
 
@@ -714,11 +714,11 @@ export default class Theme {
                 .filter(o => o);
             thumbnailImages = await Promise.all(pArr);
         } catch (err) {
-            throw new CommandError(`Failed to store all theme images in an array`);
+            throw new CommandError(`Failed to upload theme/config/images`);
         }
     };
 
-    private static imageCdnBaseUrl = async imageCdnUrl => {
+    private static imageCdnBaseUrl = async (imageCdnUrl) => {
         try {
             let startData = {
                 file_name: 'test.jpg',
@@ -730,11 +730,11 @@ export default class Theme {
             ).data;
             imageCdnUrl = path.dirname(startAssetData.cdn.url);
         } catch (err) {
-            throw new CommandError(`Failed to converting image tp image cdn base url`);
+            throw new CommandError(`Failed in getting image cdn base url`);
         }
     };
 
-    private static assetCdnBaseUrl = async assetCdnUrl => {
+    private static assetCdnBaseUrl = async (assetCdnUrl) => {
         try {
             if (fs.existsSync(path.join(process.cwd(), 'theme/assets/fonts'))) {
                 let startData = {
@@ -749,7 +749,7 @@ export default class Theme {
                 assetCdnUrl = path.dirname(startAssetData.cdn.url);
             }
         } catch (err) {
-            throw new CommandError(`Failed to converting fonts file  tp asset cdn base url`);
+            throw new CommandError(`Failed in getting assets cdn base url`);
         }
     };
 
@@ -765,7 +765,7 @@ export default class Theme {
                 });
             }
         } catch (err) {
-            throw new CommandError(`Failed to upload fonts in assets/fonts`);
+            throw new CommandError(`Failed to upload assets/fonts`);
         }
     };
 
@@ -784,7 +784,7 @@ export default class Theme {
             throw new CommandError(`Failed to copying theme files to .fdk folder`);
         }
     };
-    private static validatingFiles = async available_sections => {
+    private static validatingFiles = async (available_sections) => {
         try {
             Logger.warn('Validating Files...');
             available_sections = await Theme.validateSections(available_sections);
@@ -922,7 +922,7 @@ export default class Theme {
                 }
             });
         } catch (err) {
-            throw new CommandError(`Failed to uploading system pages`);
+            throw new CommandError(`Failed to update system pages`);
         }
     };
     private static srcUploader = async (srcCdnUrl) => {
