@@ -141,7 +141,7 @@
                       v-show="
                         checkGlide(entry, settings.props.items_per_row.value)
                       "
-                      v-for="(entry, ) in glidePaginate(
+                      v-for="(entry) in glidePaginate(
                         brands.length,
                         settings.props.items_per_row.value
                       )"
