@@ -7,7 +7,6 @@ import {
 } from '../helper/utils';
 import CommandError, { ErrorCodes } from './CommandError';
 import Logger, { COMMON_LOG_MESSAGES } from './Logger';
-import ConfigStore, { CONFIG_KEYS } from './Config';
 import ConfigurationService from './api/services/configuration.service';
 import fs from 'fs-extra';
 import path from 'path';
@@ -16,7 +15,7 @@ import rimraf from 'rimraf';
 import Box from 'boxen';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import {parseComponent} from 'vue-template-compiler';
+import compiler from 'vue-template-compiler';
 import cheerio from 'cheerio';
 import glob from 'glob';
 import _ from 'lodash';
@@ -743,42 +742,16 @@ export default class Theme {
         let sectionsFiles = [];
         try {
             sectionsFiles = fs
-                .readdirSync(path.join(Theme.TEMPLATE_DIRECTORY, 'theme', '/sections'))
+                .readdirSync(path.join(Theme.TEMPLATE_DIRECTORY, 'theme', 'sections'))
                 .filter(o => o != 'index.js');
                 console.log("sectionsFiles",sectionsFiles)
         } catch (err) {console.log("err",err)}
-        let pArr = sectionsFiles.map(async f => {
-            let image_section = parseComponent(
-                readFile(path.join(Theme.TEMPLATE_DIRECTORY, 'theme','sections', f))
-            );
-            // console.log("afterparsecomponent",image_section.script.content )
-            let sectionSettings = await new Promise((resolve, reject) => {
-                require('@babel/core').transform(
-                    image_section.script.content,
-                    {
-                        plugins: ['@babel/plugin-transform-modules-commonjs'],
-                    },
-                    (err, result) => {
-                        if (err) {
-                            console.log("err in callback",err)
-                            return reject(err);
-                        }
-                        try {
-                            console.log("pathsss",path.join(Theme.TEMPLATE_DIRECTORY, 'theme'))
-                            let modules = requireFromString(result.code,"",{appendPaths:[path.join(Theme.TEMPLATE_DIRECTORY, 'theme')]});
-                            // console.log("modules",modules)
-                            return resolve(modules.settings);
-                        } catch (e) {
-                            console.log("err in catch", e)
-                            return reject(e);
-                        }
-                    }
-                );
-            });
-            console.log("sectionSettings",sectionSettings)
-            return sectionSettings;
+        let settings = sectionsFiles.map(f => {
+            return Theme.extractSettingsFromFile(`${Theme.TEMPLATE_DIRECTORY}/theme/sections/${f}`);
         });
-        return Promise.all(pArr);
+        return settings;
+
+
     }
     private static async getAvailableSectionsForSync() {
         let sectionsFiles = fs
