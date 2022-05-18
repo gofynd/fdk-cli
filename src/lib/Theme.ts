@@ -282,7 +282,7 @@ export default class Theme {
             }
             //vaidating files
             let available_sections = await Theme.getAvailableSectionsForSync();
-            await Theme.validatingFiles(available_sections);
+            await Theme.validateAvailableSections(available_sections);
 
             let imageCdnUrl = '';
             let assetCdnUrl = '';
@@ -784,7 +784,7 @@ export default class Theme {
             throw new CommandError(`Failed to copying theme files to .fdk folder`);
         }
     };
-    private static validatingFiles = async (available_sections) => {
+    private static validateAvailableSections = async (available_sections) => {
         try {
             Logger.warn('Validating Files...');
             available_sections = await Theme.validateSections(available_sections);
