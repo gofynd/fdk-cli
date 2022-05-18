@@ -109,7 +109,6 @@ export default class Theme {
             const { data: appConfig } = await ConfigurationService.getApplicationDetails(configObj);
             Logger.warn('Creating Theme');
             let available_sections = await Theme.getAvailableSections();
-            console.log("available_sections",available_sections)
             const themeData = {
                 information: {
                     name: options.name,
@@ -152,7 +151,6 @@ export default class Theme {
             );
             console.log(b5.toString());
         } catch (error) {
-            console.log("error in create theme",error)
             if (shouldDelete) await Theme.cleanUp(targetDirectory);
             throw new CommandError(error.message, error.code);
         }
@@ -744,14 +742,13 @@ export default class Theme {
             sectionsFiles = fs
                 .readdirSync(path.join(Theme.TEMPLATE_DIRECTORY, 'theme', 'sections'))
                 .filter(o => o != 'index.js');
-                console.log("sectionsFiles",sectionsFiles)
-        } catch (err) {console.log("err",err)}
+        } catch (err) {
+            throw new CommandError(err.message, err.code);
+        }
         let settings = sectionsFiles.map(f => {
             return Theme.extractSettingsFromFile(`${Theme.TEMPLATE_DIRECTORY}/theme/sections/${f}`);
         });
         return settings;
-
-
     }
     private static async getAvailableSectionsForSync() {
         let sectionsFiles = fs
