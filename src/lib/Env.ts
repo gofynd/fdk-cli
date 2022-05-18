@@ -30,7 +30,6 @@ export default class Env {
 
   }
   public static getEnvValue() {
-    console.log("env value in env",configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE))
     return configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
   }
   public static getEnv() {

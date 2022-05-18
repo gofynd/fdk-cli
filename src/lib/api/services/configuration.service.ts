@@ -8,7 +8,6 @@ export default {
   getApplicationDetails: async (data?) => {
     try {
       const activeContext = data ?  data : getActiveContext();
-      console.log("activeContext inside getApplication details",activeContext)
       const axiosOption = Object.assign({}, getCommonHeaderOptions());
       return ApiClient.get(
         URLS.GET_APPLICATION_DETAILS(activeContext.application_id, activeContext.company_id),

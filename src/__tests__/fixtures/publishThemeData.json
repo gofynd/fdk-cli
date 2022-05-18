@@ -1,0 +1,101 @@
+{
+    "information": {
+      "images": [
+        null
+      ],
+      "features": [
+        null
+      ],
+      "name": "royal"
+    },
+    "src": {
+      "link": "https://hdn-1.addsale.com/x0/company/1/applications/622894659baaca3be88c9d65/theme/sources/8_3KB1PLw-archive.zip"
+    },
+    "assets": {
+      "css": [
+        null
+      ],
+      "umd_js": [
+        null
+      ],
+      "common_js": [
+        null
+      ]
+    },
+    "config": {
+      "global_schema": [
+        null
+      ],
+      "current": "default",
+      "preset": [
+        null
+      ],
+      "list": [
+        null
+      ]
+    },
+    "colors": {
+      "primary_color": "#f8973d",
+      "secondary_color": "#f8973d",
+      "accent_color": "#FFFFFF",
+      "link_color": "#f63420",
+      "button_secondary_color": "#000000",
+      "bg_color": "#F8F8F8"
+    },
+    "font": {
+      "variants": [
+        null
+      ],
+      "family": "Montserrat"
+    },
+    "applied": true,
+    "published": true,
+    "archived": false,
+    "customized": true,
+    "version": "1.0.139",
+    "tags": [],
+    "_id": "623b09faeb0b6e0f4ff9758f",
+    "available_sections": [
+      [
+        null
+      ],
+      [
+        null
+      ],
+      [
+        null
+      ],
+      [
+        null
+      ],
+      [
+        null
+      ],
+      [
+        null
+      ],
+      [
+        null
+      ],
+      [
+        null
+      ],
+      [
+        null
+      ],
+      [
+        null
+      ],
+      [
+        null
+      ]
+    ],
+    "application": "622894659baaca3be88c9d65",
+    "styles": {},
+    "constants": {},
+    "settings": {},
+    "parent_theme": "610d530ece184530dc635a66",
+    "parent_theme_version": "1.0.132",
+    "created_at": "2022-03-23T11:52:26.965Z",
+    "updated_at": "2022-05-18T07:42:14.713Z"
+  }

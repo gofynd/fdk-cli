@@ -109,7 +109,6 @@ export default class Theme {
             const { data: appConfig } = await ConfigurationService.getApplicationDetails(configObj);
             Logger.warn('Creating Theme');
             let available_sections = await Theme.getAvailableSections();
-            console.log("available_sectionscfcfcfcf",available_sections);
             const themeData = {
                 information: {
                     name: options.name,
@@ -244,13 +243,9 @@ export default class Theme {
     };
     private static syncTheme = async (isNew = false) => {
         try {
-            console.log("env in syncTheme",Env.getEnvValue())
-            console.log("inside syncing theme ")
             const currentContext =  getActiveContext();
-            console.log("currentcontext",currentContext)
             const env = Env.getEnvValue();
-            // const env = currentContext.env
-            // console.log("env",env)
+            console.log("env",env)
             if (env !== currentContext.env) {
                 throw new CommandError(
                     'Active context environment and cli environment are different. Use fdk current-env to know the active envoirnement',
@@ -261,9 +256,10 @@ export default class Theme {
                 ? Logger.success('Syncing Theme to: ' + currentContext.domain)
                 : Logger.warn('Please add domain to context');
             let { data: theme } = await ThemeService.getThemeById(currentContext);
-            console.log("getthemeby id in synctheme",theme)
             const newConfig = Theme.getSettingsData(theme);
+            console.log("newconfig",newConfig)
             const oldConfig = await Theme.readSettingsJson(Theme.getSettingsDataPath());
+            console.log("oldConfig",oldConfig)
             const questions = [
                 {
                     type: 'confirm',
@@ -307,6 +303,7 @@ export default class Theme {
                 let startAssetData = (
                     await UploadService.startUpload(startData, 'application-theme-images')
                 ).data;
+                console.log("startAssetData",startAssetData)
                 imageCdnUrl = path.dirname(startAssetData.cdn.url);
             }
             // get asset cdn base url
@@ -577,7 +574,7 @@ export default class Theme {
                     try {
                         Logger.warn('Updating page: ', page.value);
                        const updateAvailablePages = await ThemeService.updateAvailablePage(page);
-                       console.log("updateAvailablePages",updateAvailablePages)
+                    //    console.log("updateAvailablePages",updateAvailablePages)
                     } catch (error) {
                         throw new CommandError(error.message);
                     }
@@ -684,7 +681,8 @@ export default class Theme {
         let spinner;
         try {
             spinner = ora('Publishing theme').start();
-            await ThemeService.publishTheme();
+            const publish = await ThemeService.publishTheme();
+            console.log("publish",publish)
             spinner.succeed();
         } catch (error) {
             if (spinner.isSpinning) {
@@ -740,7 +738,6 @@ export default class Theme {
     }
     private static async installNpmPackages() {
         return new Promise((resolve, reject) => {
-            console.log("inside installing")
             let exec = execa('npm', ['i'], { cwd: process.cwd() });
             exec.stdout.pipe(process.stdout);
             exec.stderr.pipe(process.stderr);
@@ -755,7 +752,6 @@ export default class Theme {
     private static async getAvailableSections() {
         let sectionsFiles = [];
         try {
-            console.log("indise getAvailableSections")
             sectionsFiles = fs
                 .readdirSync(path.join(Theme.TEMPLATE_DIRECTORY, 'theme', 'sections'))
                 .filter(o => o != 'index.js');

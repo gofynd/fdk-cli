@@ -3,6 +3,7 @@ import MockAdapter from 'axios-mock-adapter';
 import inquirer from 'inquirer';
 import { URLS } from '../lib/api/services/url';
 import mockFunction from './helper';
+import path from 'path';
 const context = require('./fixtures/context.json');
 const oauthData = require('./fixtures/oauthData.json');
 const themeData = require('./fixtures/themeData.json');
@@ -13,6 +14,11 @@ const getAvailablePageData = require('./fixtures/getAvailablePageData.json');
 const completeUpload = require('./fixtures/completeUpload.json');
 const srcCompleteUpload = require('./fixtures/srcCompleteUpload.json');
 const assetsCompleteUpload = require('./fixtures/assetsCompleteUpload.json');
+const updateThemeData = require('./fixtures/updateThemeData.json');
+const updateAvailablePageData = require('./fixtures/updateAvailablePageData.json');
+const syncThemeData = require('./fixtures/syncThemeData.json');
+const startUpload = require('./fixtures/startUpload.json');
+const publishThemeData = require('./fixtures/publishThemeData.json');
 const data = require('./fixtures/email-login.json');
 import { getActiveContext } from '../helper/utils';
 import { init } from '../fdk';
@@ -36,8 +42,6 @@ const activeContext = {
     theme_id: '627c939976cee8683a47a087',
     env: 'fyndx0'
   }
-  console.log("assetsCompleteUpload",assetsCompleteUpload.namespace)
-  console.log("srcCompleteUpload",srcCompleteUpload.namespace)
 async function login() {
     const inquirerMock = mockFunction(inquirer.prompt);
     inquirerMock.mockResolvedValue({ password: '1234567' });
@@ -64,14 +68,19 @@ describe('Theme Commands', () => {
         mock.onGet(
             `${URLS.GET_APPLICATION_DETAILS(context.application_id, context.company_id)}`
         ).reply(200, context);
-        
+        mock.onGet(
+            `${URLS.THEME_BY_ID(context.application_id, context.company_id, context.theme_id)}`
+        ).reply(200, context);
         mock.onPost(`${URLS.CREATE_THEME(context.application_id, context.company_id)}`).reply(
             200,
             themeData
         );
         mock.onGet(
             `${URLS.THEME_BY_ID(context.application_id, context.company_id, context.theme_id)}`
-        ).reply(200, themeData);
+        ).reply(200, syncThemeData);
+        mock.onPost(
+            `${URLS.START_UPLOAD_FILE(context.application_id, context.company_id, namespace)}`
+        ).reply(200, startUpload);
         mock.onPost(
             `${URLS.START_UPLOAD_FILE(context.application_id, context.company_id, namespace)}`
         ).reply(200).onPut( `${s3Url}`).reply(200).onPost(`${URLS.COMPLETE_UPLOAD_FILE(
@@ -123,34 +132,51 @@ describe('Theme Commands', () => {
         // ).reply(200, context);
         mock.onPut(
             `${URLS.THEME_BY_ID(context.application_id, context.company_id, context.theme_id)}`
-        ).reply(200, themeData);
+        ).reply(200, updateThemeData);
         mock.onPut(
             `${URLS.AVAILABLE_PAGE(context.application_id, context.company_id, context.theme_id)}`
-        ).reply(200, context);
-        mock.onDelete(
-            `${URLS.THEME_BY_ID(context.application_id, context.company_id, context.theme_id)}`
-        ).reply(200, themeData);
+        ).reply(200, updateAvailablePageData);
+        // mock.onDelete(
+        //     `${URLS.THEME_BY_ID(context.application_id, context.company_id, context.theme_id)}`
+        // ).reply(200, themeData);
     });
-    afterEach(() => {
-        configStore.clear();
+    // afterEach(() => {
+    //     configStore.clear();
+    // });
+
+    it('should successfully create new theme', async () => {
+        await login();
+        jest.setTimeout(1000000)
+        const assetCdnUrl = path.dirname(startUpload.cdn.url);
+        const inquirerMock = mockFunction(inquirer.prompt);
+        inquirerMock.mockResolvedValue({ pullConfig: 'Yes' });
+        await program.parseAsync([
+            'ts-node',
+            './src/fdk.ts',
+            'theme',
+            'new',
+            '-t',
+            'eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDUtMThUMDk6NDU6MDYuODczWiJ9',
+            '-n',
+            'royal',
+        ]);
+        // const x = {
+        //     application_id: '622894659baaca3be88c9d65',
+        //     token: '4Eoh-yDMW',
+        //     company_id: 1,
+        //     expires_in: '2022-05-09T11:05:57.197Z',
+        // };
+        console.log('after expect');
     });
 
-    // it('should successfully create new theme', async () => {
+    // it('should successfully sync theme', async () => {
     //     await login();
-    //     jest.setTimeout(100000)
-    //     const env1 = Env.getEnvValue();
-    //     console.log("env in spec folder",env1)
-    //     const inquirerMock = mockFunction(inquirer.prompt);
-    //     inquirerMock.mockResolvedValue({ pullConfig: 'Yes' });
+    //     // jest.setTimeout(100000)
     //     await program.parseAsync([
     //         'ts-node',
     //         './src/fdk.ts',
     //         'theme',
-    //         'new',
-    //         '-t',
-    //         'eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDUtMTNUMTI6MjQ6NTcuMDAyWiJ9',
-    //         '-n',
-    //         'royal',
+    //         'sync'
     //     ]);
     //     const x = {
     //         application_id: '622894659baaca3be88c9d65',
@@ -159,7 +185,9 @@ describe('Theme Commands', () => {
     //         expires_in: '2022-05-09T11:05:57.197Z',
     //     };
     //     console.log('after expect');
-    // });ß
+    // });
+
+    
 
     // it('should successfully init theme', async () => {
     //     await login();
@@ -199,18 +227,18 @@ describe('Theme Commands', () => {
     //     console.log('after expect');
     // });
 
-    it('should successfully publish  theme', async () => {
-        await login();
-        // jest.setTimeout(100000)
-        // const inquirerMock = mockFunction(inquirer.prompt);
-        // inquirerMock.mockResolvedValue({ pullConfig: 'Yes' });
-        await program.parseAsync([
-            'ts-node',
-            './src/fdk.ts',
-            'theme',
-            'publish'
-        ]);
-        console.log('after expect');
-    });
+    // it('should successfully publish  theme', async () => {
+    //     await login();
+    //     // jest.setTimeout(100000)
+    //     // const inquirerMock = mockFunction(inquirer.prompt);
+    //     // inquirerMock.mockResolvedValue({ pullConfig: 'Yes' });
+    //     await program.parseAsync([
+    //         'ts-node',
+    //         './src/fdk.ts',
+    //         'theme',
+    //         'publish'
+    //     ]);
+    //     console.log('after expect');
+    // });
 
 });
