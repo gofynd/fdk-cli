@@ -64,15 +64,11 @@ export default class Theme {
 
     public static async writeSettingJson(path, jsonObject) {
         try {
-            await fs.writeJSON(
-                path,
-                jsonObject,
-                {
-                    spaces: 2,
-                }
-            );
+            await fs.writeJSON(path, jsonObject, {
+                spaces: 2,
+            });
             Logger.success(`${path.split('/').slice(-1)[0]} written succesfully.!!!`);
-        } catch(err) {
+        } catch (err) {
             throw new CommandError(`Error writing ${path.split('/').slice(-1)[0]} file.!!!`);
         }
     }
@@ -80,10 +76,9 @@ export default class Theme {
     public static async readSettingsJson(path) {
         try {
             const settingsJson = await fs.readJSON(path);
-            
             Logger.success(`${path.split('/').slice(-1)[0]} read successfully.!!!`);
             return settingsJson;
-        } catch(err) {
+        } catch (err) {
             throw new CommandError(`Error reading ${path.split('/').slice(-1)[0]} file.!!!`);
         }
     }
@@ -163,7 +158,8 @@ export default class Theme {
             Logger.warn('Validating token');
             const configObj = JSON.parse(decodeBase64(options.token) || '{}');
             Debug(`Token Data: ${JSON.stringify(configObj)}`);
-            if (!configObj || !configObj.theme_id) throw new CommandError('Invalid token', ErrorCodes.INVALID_INPUT.code);
+            if (!configObj || !configObj.theme_id)
+                throw new CommandError('Invalid token', ErrorCodes.INVALID_INPUT.code);
             if (new Date(Date.now()) > new Date(configObj.expires_in))
                 throw new CommandError(
                     'Token expired. Generate a new token',
@@ -199,8 +195,16 @@ export default class Theme {
             let preset = _.get(themeData, 'config.preset', {});
             let information = { features: _.get(themeData, 'information.features', []) };
 
-            await Theme.writeSettingJson(Theme.getSettingsDataPath(), { list, current, preset, information });
-            await Theme.writeSettingJson(Theme.getSettingsSchemaPath(), _.get(themeData, 'config.global_schema', { props: [] }));
+            await Theme.writeSettingJson(Theme.getSettingsDataPath(), {
+                list,
+                current,
+                preset,
+                information,
+            });
+            await Theme.writeSettingJson(
+                Theme.getSettingsSchemaPath(),
+                _.get(themeData, 'config.global_schema', { props: [] })
+            );
 
             fs.writeJson(
                 path.join(targetDirectory, '/config.json'),
@@ -243,12 +247,6 @@ export default class Theme {
         try {
             const currentContext = getActiveContext();
             const env = Env.getEnvValue();
-            if (env !== currentContext.env) {
-                throw new CommandError(
-                    'Active context environment and cli environment are different. Use fdk current-env to know the active envoirnement',
-                    ErrorCodes.INVALID_CONTEXT.code
-                );
-            }
             currentContext.domain
                 ? Logger.success('Syncing Theme to: ' + currentContext.domain)
                 : Logger.warn('Please add domain to context');
@@ -284,12 +282,10 @@ export default class Theme {
             let available_sections = await Theme.getAvailableSectionsForSync();
             await Theme.validateAvailableSections(available_sections);
 
-            let imageCdnUrl = '';
-            let assetCdnUrl = '';
             // get image cdn base url
-            await Theme.imageCdnBaseUrl(imageCdnUrl);
+            const imageCdnUrl = await Theme.imageCdnBaseUrl();
             // get asset cdn base url
-            await Theme.assetCdnBaseUrl(assetCdnUrl);
+            const assetCdnUrl = await Theme.assetCdnBaseUrl();
             Logger.warn('Building Assets...');
             // build js css
             await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl });
@@ -297,12 +293,9 @@ export default class Theme {
             if (!fs.existsSync(Theme.BUILD_FOLDER)) {
                 throw new Error('Build Failed');
             }
-            let androidImages = [];
-            let iosImages = [];
-            let desktopImages = [];
-            let thumbnailImages = [];
+
             // upload theme preview images
-            await Theme.uploadThemePreviewImages(androidImages, iosImages, desktopImages, thumbnailImages);
+        let [androidImages, iosImages, desktopImages,thumbnailImages] = await Theme.uploadThemePreviewImages();
             // upload images
             await Theme.assetsImageUploader();
             // upload fonts
@@ -341,7 +334,12 @@ export default class Theme {
                     : false;
 
             const DEFAULT_PORT = 5001;
-            const serverPort = typeof options['port'] === 'string' ? parseInt(options['port']) : typeof options['port'] === 'number' ? options['port'] : DEFAULT_PORT;
+            const serverPort =
+                typeof options['port'] === 'string'
+                    ? parseInt(options['port'])
+                    : typeof options['port'] === 'number'
+                    ? options['port']
+                    : DEFAULT_PORT;
 
             !isSSR ? Logger.warn('Disabling SSR') : null;
             let { data: appInfo } = await ConfigurationService.getApplicationDetails();
@@ -406,8 +404,16 @@ export default class Theme {
             let preset = _.get(theme, 'config.preset', {});
             let information = { features: _.get(theme, 'information.features', []) };
 
-            await Theme.writeSettingJson(Theme.getSettingsDataPath(), { list, current, preset, information });
-            await Theme.writeSettingJson(Theme.getSettingsSchemaPath(), _.get(theme, 'config.global_schema', { props: [] }))
+            await Theme.writeSettingJson(Theme.getSettingsDataPath(), {
+                list,
+                current,
+                preset,
+                information,
+            });
+            await Theme.writeSettingJson(
+                Theme.getSettingsSchemaPath(),
+                _.get(theme, 'config.global_schema', { props: [] })
+            );
 
             const packageJSON = await fs.readJSON(process.cwd() + '/theme/package.json');
             await fs.writeJSON(process.cwd() + '/package.json', packageJSON, {
@@ -640,11 +646,11 @@ export default class Theme {
 
     private static assetsImageUploader = async () => {
         try {
-            const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'assets');
+            const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'assets/images');
             const images = glob.sync('**/**.**', { cwd });
             Logger.warn('Uploading images...');
             await asyncForEach(images, async img => {
-                const assetPath = path.join(Theme.BUILD_FOLDER, 'assets/images', img);
+                const assetPath = path.join(Theme.BUILD_FOLDER, '/assets/images', img);
                 await UploadService.uploadFile(assetPath, 'application-theme-images');
             });
         } catch (err) {
@@ -652,12 +658,11 @@ export default class Theme {
         }
     };
 
-    private static uploadThemePreviewImages = async (
-        androidImages,
-        iosImages,
-        desktopImages,
-        thumbnailImages
-    ) => {
+    private static uploadThemePreviewImages = async () => {
+        let androidImages = [];
+        let iosImages = [];
+        let desktopImages = [];
+        let thumbnailImages = [];
         try {
             const androidImageFolder = path.resolve(process.cwd(), 'theme/config/images/android');
             androidImages = glob.sync('**/**.**', { cwd: androidImageFolder });
@@ -713,12 +718,14 @@ export default class Theme {
                 })
                 .filter(o => o);
             thumbnailImages = await Promise.all(pArr);
+            return [androidImages, iosImages, desktopImages, thumbnailImages];
         } catch (err) {
             throw new CommandError(`Failed to upload theme/config/images`);
         }
     };
 
-    private static imageCdnBaseUrl = async (imageCdnUrl) => {
+    private static imageCdnBaseUrl = async () => {
+        let imageCdnUrl = '';
         try {
             let startData = {
                 file_name: 'test.jpg',
@@ -728,13 +735,15 @@ export default class Theme {
             let startAssetData = (
                 await UploadService.startUpload(startData, 'application-theme-images')
             ).data;
-            imageCdnUrl = path.dirname(startAssetData.cdn.url);
+            return (imageCdnUrl = path.dirname(startAssetData.cdn.url));
         } catch (err) {
             throw new CommandError(`Failed in getting image cdn base url`);
         }
     };
 
-    private static assetCdnBaseUrl = async (assetCdnUrl) => {
+    private static assetCdnBaseUrl = async () => {
+        let assetCdnUrl = '';
+        console.log('path', path.join(process.cwd(), 'theme/assets/fonts'));
         try {
             if (fs.existsSync(path.join(process.cwd(), 'theme/assets/fonts'))) {
                 let startData = {
@@ -746,8 +755,9 @@ export default class Theme {
                     await UploadService.startUpload(startData, 'application-theme-assets')
                 ).data;
 
-                assetCdnUrl = path.dirname(startAssetData.cdn.url);
+                return (assetCdnUrl = path.dirname(startAssetData.cdn.url));
             }
+            return assetCdnUrl;
         } catch (err) {
             throw new CommandError(`Failed in getting assets cdn base url`);
         }
@@ -784,13 +794,13 @@ export default class Theme {
             throw new CommandError(`Failed to copying theme files to .fdk folder`);
         }
     };
-    private static validateAvailableSections = async (available_sections) => {
+    private static validateAvailableSections = async available_sections => {
         try {
             Logger.warn('Validating Files...');
             available_sections = await Theme.validateSections(available_sections);
             Theme.createSectionsIndexFile(available_sections);
         } catch (err) {
-            throw new CommandError(`Invalid files name `);
+            throw new CommandError(err.message, err.code);
         }
     };
     private static assetsUploader = async (
@@ -925,12 +935,12 @@ export default class Theme {
             throw new CommandError(`Failed to update system pages`);
         }
     };
-    private static srcUploader = async (srcCdnUrl) => {
+    private static srcUploader = async srcCdnUrl => {
         const zipFilePath = path.join(Theme.SRC_ARCHIVE_FOLDER, Theme.ZIP_FILE_NAME);
         try {
             Logger.warn('Uploading src...');
             let res = await UploadService.uploadFile(zipFilePath, 'application-theme-src');
-            srcCdnUrl = res.start.cdn.url;
+            return (srcCdnUrl = res.start.cdn.url);
         } catch (err) {
             throw new CommandError(`Failed to upload src file `);
         }
