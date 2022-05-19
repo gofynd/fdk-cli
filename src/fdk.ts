@@ -157,15 +157,15 @@ export async function init(programName: string) {
         console.log(chalk.yellow(msg));
     });
     // skip this for test cases
-    if (process.env.NODE_ENV != 'test') {
-        program.parse(process.argv);
-        // Show help when no sub-command specified
-        if (program.args.length === 0) {
-            program.help();
-        }
-    }
-
     return program;
+}
+
+export function parseCommands(){
+    program.parse(process.argv);
+    // Show help when no sub-command specified
+    if (program.args.length === 0) {
+        program.help();
+    }
 }
 
 async function checkCliVersionAsync() {

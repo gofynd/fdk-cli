@@ -7,8 +7,9 @@ const semver = currentNodeVersion.split('.');
 const major = Number(semver[0]);
 
 const bootstrap = () => {
-  const { init } = require('../dist/fdk');
+  const { init, parseCommands } = require('../dist/fdk');
   const program = init('fdk');
+  parseCommands();
   return program;
 }
 
