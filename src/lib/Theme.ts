@@ -778,6 +778,7 @@ export default class Theme {
         return settingsText ? JSON.parse(settingsText) : {};
     }
     private static validateSections(available_sections) {
+        console.log("insidevalidateSections")
         let fileNameRegex = /^[0-9a-zA-Z-_ ... ]+$/;
         let sectionNamesObject = {};
         available_sections.forEach((section, index) => {
