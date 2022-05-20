@@ -246,30 +246,12 @@ export default class Theme {
     private static syncTheme = async (isNew = false) => {
         try {
             const currentContext = getActiveContext();
-            const env = Env.getEnvValue();
             currentContext.domain
                 ? Logger.success('Syncing Theme to: ' + currentContext.domain)
                 : Logger.warn('Please add domain to context');
             let { data: theme } = await ThemeService.getThemeById(currentContext);
-            const newConfig = Theme.getSettingsData(theme);
-            const oldConfig = await Theme.readSettingsJson(Theme.getSettingsDataPath());
-            const questions = [
-                {
-                    type: 'confirm',
-                    name: 'pullConfig',
-                    message: 'Do you wish to pull config from remote?',
-                },
-            ];
-            if (!isNew && !_.isEqual(newConfig, oldConfig)) {
-                await inquirer.prompt(questions).then(async answers => {
-                    if (answers.pullConfig) {
-                        await Theme.writeSettingJson(Theme.getSettingsDataPath(), newConfig);
-                        Logger.success('Config updated successfully');
-                    } else {
-                        Logger.warn('Using local config to sync');
-                    }
-                });
-            }
+            //if any changes from platform in sections|pages|settings it will pull latest configuration
+            await Theme.getLatestPlatformConfig(theme, (isNew = false));
             Theme.clearPreviousBuild();
             Logger.warn('Reading Files...');
             let themeContent: any = readFile(`${process.cwd()}/config.json`);
@@ -281,11 +263,12 @@ export default class Theme {
             //vaidating files
             let available_sections = await Theme.getAvailableSectionsForSync();
             await Theme.validateAvailableSections(available_sections);
-
+            // it will create index file for all sections inside /template/sections
+            await Theme.createSectionsIndexFile(available_sections);
             // get image cdn base url
-            const imageCdnUrl = await Theme.imageCdnBaseUrl();
+            const imageCdnUrl = await Theme.getImageCdnBaseUrl();
             // get asset cdn base url
-            const assetCdnUrl = await Theme.assetCdnBaseUrl();
+            const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
             Logger.warn('Building Assets...');
             // build js css
             await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl });
@@ -295,7 +278,8 @@ export default class Theme {
             }
 
             // upload theme preview images
-        let [androidImages, iosImages, desktopImages,thumbnailImages] = await Theme.uploadThemePreviewImages();
+            let [androidImages, iosImages, desktopImages, thumbnailImages] =
+                await Theme.uploadThemePreviewImages();
             // upload images
             await Theme.assetsImageUploader();
             // upload fonts
@@ -724,7 +708,7 @@ export default class Theme {
         }
     };
 
-    private static imageCdnBaseUrl = async () => {
+    private static getImageCdnBaseUrl = async () => {
         let imageCdnUrl = '';
         try {
             let startData = {
@@ -741,9 +725,8 @@ export default class Theme {
         }
     };
 
-    private static assetCdnBaseUrl = async () => {
+    private static getAssetCdnBaseUrl = async () => {
         let assetCdnUrl = '';
-        console.log('path', path.join(process.cwd(), 'theme/assets/fonts'));
         try {
             if (fs.existsSync(path.join(process.cwd(), 'theme/assets/fonts'))) {
                 let startData = {
@@ -798,7 +781,6 @@ export default class Theme {
         try {
             Logger.warn('Validating Files...');
             available_sections = await Theme.validateSections(available_sections);
-            Theme.createSectionsIndexFile(available_sections);
         } catch (err) {
             throw new CommandError(err.message, err.code);
         }
@@ -878,7 +860,7 @@ export default class Theme {
             throw new CommandError(`Failed to upload assets `);
         }
     };
-    private static systemPages = async theme => {
+    private static systemPages = async (theme) => {
         try {
             let pageTemplateFiles = fs
                 .readdirSync(`${process.cwd()}/theme/templates/pages`)
@@ -943,6 +925,32 @@ export default class Theme {
             return (srcCdnUrl = res.start.cdn.url);
         } catch (err) {
             throw new CommandError(`Failed to upload src file `);
+        }
+    };
+
+    private static getLatestPlatformConfig = async (theme, isNew) => {
+        try {
+            const newConfig = Theme.getSettingsData(theme);
+            const oldConfig = await Theme.readSettingsJson(Theme.getSettingsDataPath());
+            const questions = [
+                {
+                    type: 'confirm',
+                    name: 'pullConfig',
+                    message: 'Do you wish to pull config from remote?',
+                },
+            ];
+            if (!isNew && !_.isEqual(newConfig, oldConfig)) {
+                await inquirer.prompt(questions).then(async answers => {
+                    if (answers.pullConfig) {
+                        await Theme.writeSettingJson(Theme.getSettingsDataPath(), newConfig);
+                        Logger.success('Config updated successfully');
+                    } else {
+                        Logger.warn('Using local config to sync');
+                    }
+                });
+            }
+        } catch (err) {
+            throw new CommandError(err.message, err.code);
         }
     };
 }
