@@ -257,9 +257,7 @@ export default class Theme {
                 : Logger.warn('Please add domain to context');
             let { data: theme } = await ThemeService.getThemeById(currentContext);
             const newConfig = Theme.getSettingsData(theme);
-            console.log("newconfig",newConfig)
             const oldConfig = await Theme.readSettingsJson(Theme.getSettingsDataPath());
-            console.log("oldConfig",oldConfig)
             const questions = [
                 {
                     type: 'confirm',
@@ -303,7 +301,6 @@ export default class Theme {
                 let startAssetData = (
                     await UploadService.startUpload(startData, 'application-theme-images')
                 ).data;
-                console.log("startAssetData",startAssetData)
                 imageCdnUrl = path.dirname(startAssetData.cdn.url);
             }
             // get asset cdn base url
@@ -456,7 +453,6 @@ export default class Theme {
             {
                 Logger.warn('Uploading src...');
                 let res = await UploadService.uploadFile(zipFilePath, 'application-theme-src');
-                // console.log("srcupload log",res)
                 srcCdnUrl = res.start.cdn.url;
             }
 
@@ -476,7 +472,6 @@ export default class Theme {
                     );
                     const assetPath = path.join(Theme.BUILD_FOLDER, `${urlHash}-${asset}`);
                     let res = await UploadService.uploadFile(assetPath, 'application-theme-assets');
-                    // console.log("assets upload while", res)
                     return res.start.cdn.url;
                 });
 
@@ -549,9 +544,7 @@ export default class Theme {
                             type: 'system',
                             text: pageNameModifier(pageName),
                         };
-
                         available_page = (await ThemeService.createAvailabePage(pageData)).data;
-                        console.log("available_page in create available page",available_page)
                     }
                     available_page.props =
                         (
@@ -567,14 +560,12 @@ export default class Theme {
                     availablePages.push(available_page);
                 });
                 Logger.warn('Updating theme...');
-              const updateTheme  = await Promise.all([ThemeService.updateTheme(theme)]);
-              console.log("updateTheme",updateTheme)
+              await Promise.all([ThemeService.updateTheme(theme)]);
                 Logger.warn('Updating pages...');
                 await asyncForEach(availablePages, async page => {
                     try {
                         Logger.warn('Updating page: ', page.value);
-                       const updateAvailablePages = await ThemeService.updateAvailablePage(page);
-                    //    console.log("updateAvailablePages",updateAvailablePages)
+                     await ThemeService.updateAvailablePage(page);
                     } catch (error) {
                         throw new CommandError(error.message);
                     }
@@ -778,7 +769,6 @@ export default class Theme {
         return settingsText ? JSON.parse(settingsText) : {};
     }
     private static validateSections(available_sections) {
-        console.log("insidevalidateSections")
         let fileNameRegex = /^[0-9a-zA-Z-_ ... ]+$/;
         let sectionNamesObject = {};
         available_sections.forEach((section, index) => {

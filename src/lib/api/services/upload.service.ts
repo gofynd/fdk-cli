@@ -68,17 +68,13 @@ export default {
         const startResponse = res1 ? res1.data : res1;
 
         let s3Url = startResponse.upload.url;
-        // srcCdnUrl = startResponse.cdn.url;
 
         //upload file to s3
-        // console.log("inside s3url upload file")
-        // console.log("namesoaces",namespace)
         const res2 = await ApiClient.put(s3Url, {
             data: fs.readFileSync(filepath),
             headers: { 'Content-type': contentType },
         });
 
-        // console.log("inside s3url upload file",res2)
         let uploadResponse = res2 ? res2.data : res2;
 
         // complete

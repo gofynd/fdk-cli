@@ -9,6 +9,7 @@ const oauthData = require('./fixtures/oauthData.json');
 const themeData = require('./fixtures/themeData.json');
 const imageData = require('./fixtures/imageData.json');
 const imageUploadData = require('./fixtures/imageUploadData.json');
+const assetsUploadData = require('./fixtures/assetsUploadData.json');
 const srcUploadData = require('./fixtures/srcUploadData.json');
 const getAvailablePageData = require('./fixtures/getAvailablePageData.json');
 const completeUpload = require('./fixtures/completeUpload.json');
@@ -80,28 +81,28 @@ describe('Theme Commands', () => {
         ).reply(200, syncThemeData);
         mock.onPost(
             `${URLS.START_UPLOAD_FILE(context.application_id, context.company_id, namespace)}`
-        ).reply(200, startUpload);
+        ).replyOnce(200, startUpload);
         mock.onPost(
             `${URLS.START_UPLOAD_FILE(context.application_id, context.company_id, namespace)}`
-        ).reply(200).onPut( `${s3Url}`).reply(200).onPost(`${URLS.COMPLETE_UPLOAD_FILE(
+        ).reply(200,startUpload).onPut( `${s3Url}`).reply(200).onPost(`${URLS.COMPLETE_UPLOAD_FILE(
             context.application_id,
             context.company_id,
             namespace
         )}`).reply(200,completeUpload);
-        mock.onPost(
-            `${URLS.START_UPLOAD_FILE(context.application_id, context.company_id, srcCompleteUpload.namespace)}`
-        ).reply(200).onPut( `${s3Url}`).reply(200).onPost(`${URLS.COMPLETE_UPLOAD_FILE(
-            context.application_id,
-            context.company_id,
-            srcCompleteUpload.namespace
-        )}`).reply(200,srcCompleteUpload);
-        mock.onPost(
-            `${URLS.START_UPLOAD_FILE(context.application_id, context.company_id, assetsCompleteUpload.namespace)}`
-        ).reply(200).onPut( `${s3Url}`).reply(200).onPost(`${URLS.COMPLETE_UPLOAD_FILE(
-            context.application_id,
-            context.company_id,
-            assetsCompleteUpload.namespace
-        )}`).reply(200,assetsCompleteUpload);
+        // mock.onPost(
+        //     `${URLS.START_UPLOAD_FILE(context.application_id, context.company_id, srcCompleteUpload.namespace)}`
+        // ).reply(200,srcUploadData).onPut( `${s3Url}`).reply(200).onPost(`${URLS.COMPLETE_UPLOAD_FILE(
+        //     context.application_id,
+        //     context.company_id,
+        //     srcCompleteUpload.namespace
+        // )}`).reply(200,srcCompleteUpload);
+        // mock.onPost(
+        //     `${URLS.START_UPLOAD_FILE(context.application_id, context.company_id, assetsCompleteUpload.namespace)}`
+        // ).reply(200,assetsUploadData).onPut( `${s3Url}`).reply(200).onPost(`${URLS.COMPLETE_UPLOAD_FILE(
+        //     context.application_id,
+        //     context.company_id,
+        //     assetsCompleteUpload.namespace
+        // )}`).reply(200,assetsCompleteUpload);
         // mock.onPost(
         //     `${URLS.COMPLETE_UPLOAD_FILE(
         //         context.application_id,
@@ -143,7 +144,6 @@ describe('Theme Commands', () => {
     // afterEach(() => {
     //     configStore.clear();
     // });
-
     it('should successfully create new theme', async () => {
         await login();
         jest.setTimeout(1000000)
@@ -156,9 +156,9 @@ describe('Theme Commands', () => {
             'theme',
             'new',
             '-t',
-            'eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDUtMThUMDk6NDU6MDYuODczWiJ9',
+            'eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDUtMjNUMDg6MTA6MDEuMTU2WiJ9',
             '-n',
-            'royal',
+            'royalss',
         ]);
         // const x = {
         //     application_id: '622894659baaca3be88c9d65',
