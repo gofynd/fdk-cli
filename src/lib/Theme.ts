@@ -880,5 +880,6 @@ export default class Theme {
     private static clearPreviousBuild = () => {
         rimraf.sync(Theme.BUILD_FOLDER);
         rimraf.sync(Theme.SRC_ARCHIVE_FOLDER);
+
     };
 }
