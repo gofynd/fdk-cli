@@ -7,6 +7,7 @@ import {
 } from '../helper/utils';
 import CommandError, { ErrorCodes } from './CommandError';
 import Logger, { COMMON_LOG_MESSAGES } from './Logger';
+import ConfigStore, { CONFIG_KEYS } from './Config';
 import ConfigurationService from './api/services/configuration.service';
 import fs from 'fs-extra';
 import path from 'path';
@@ -740,15 +741,35 @@ export default class Theme {
         let sectionsFiles = [];
         try {
             sectionsFiles = fs
-                .readdirSync(path.join(Theme.TEMPLATE_DIRECTORY, 'theme', 'sections'))
+                .readdirSync(path.join(Theme.TEMPLATE_DIRECTORY, '/sections'))
                 .filter(o => o != 'index.js');
-        } catch (err) {
-            throw new CommandError(err.message, err.code);
-        }
-        let settings = sectionsFiles.map(f => {
-            return Theme.extractSettingsFromFile(`${Theme.TEMPLATE_DIRECTORY}/theme/sections/${f}`);
+        } catch (err) {}
+        let pArr = sectionsFiles.map(async f => {
+            let image_section = compiler.parseComponent(
+                readFile(path.join(Theme.TEMPLATE_DIRECTORY, 'sections', f))
+            );
+            let sectionSettings = await new Promise((resolve, reject) => {
+                require('@babel/core').transform(
+                    image_section.script.content,
+                    {
+                        plugins: ['@babel/plugin-transform-modules-commonjs'],
+                    },
+                    (err, result) => {
+                        if (err) {
+                            return reject(err);
+                        }
+                        try {
+                            let modules = requireFromString(result.code);
+                            return resolve(modules.settings);
+                        } catch (e) {
+                            return reject(e);
+                        }
+                    }
+                );
+            });
+            return sectionSettings;
         });
-        return settings;
+        return Promise.all(pArr);
     }
     private static async getAvailableSectionsForSync() {
         let sectionsFiles = fs
