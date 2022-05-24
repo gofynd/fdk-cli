@@ -216,12 +216,16 @@ exports.handler = async args => {
         process.exit(0);
     }
     if (answers.targetDir != '.' && fs.existsSync(answers.targetDir)) {
-        console.log(`Directory "${answers.targetDir}" already exists. Please choose another`);
+        console.log(chalk.red(`Directory "${answers.targetDir}" already exists. Please choose another`));
+        process.exit(0);
+    }
+    if (fs.existsSync(path.join(answers.targetDir, '/.git'))) {
+        console.log(chalk.red(`Cannot initialize extension at '${path.resolve(answers.targetDir)}', as it already contains Git repository.`));
         process.exit(0);
     }
     prompt_answers = await inquirer.prompt(questions);
     if (!contextData.partner_access_token) {
-        contextData.partner_access_token = await partner_token_cmd({readOnly: true});
+        contextData.partner_access_token = await partner_token_cmd({readOnly: true, ...args});
     }
     answers.launch_url = "http://localdev.fyndx0.de"
     answers.partner_access_token = contextData.partner_access_token;
