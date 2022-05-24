@@ -106,12 +106,6 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 
 	// parse application/x-www-form-urlencoded
 	app.use(express.json());
-
-	// app.use('/platform', proxy(`https://${host}`, {
-	//   proxyReqPathResolver: function (req) {
-	//     return `/platform${req.url}`;
-	//   }
-	// }));
 	  
 	const options = {
 		target: host, // target host
