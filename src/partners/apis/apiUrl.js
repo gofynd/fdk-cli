@@ -5,7 +5,8 @@ const urlJoin = require('url-join');
 let url = '';
 
 const getAPIUrl = host => {
-  const hostname = host.replace(/(^\w+:|^)\/\//, '');
+  const REGEX_PROTOCOL = /(^\w+:|^)\/\//;
+  const hostname = host.replace(REGEX_PROTOCOL, '');
   return `https://${hostname}`
 };
 
