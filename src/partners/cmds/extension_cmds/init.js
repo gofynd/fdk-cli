@@ -84,9 +84,6 @@ exports.builder = function (yargs) {
 
 async function copyTemplateFiles(targetDirectory) {
     try {
-        if (fs.existsSync(path.join(targetDirectory, '/.git'))) {
-            return Promise.reject(new Error(`Cannot initialize extension at '${targetDirectory}', as it already contains Git repository.`));
-        }
         if (!fs.existsSync(targetDirectory)) {
             createDirectory(targetDirectory);
         }
@@ -219,7 +216,11 @@ exports.handler = async args => {
         process.exit(0);
     }
     if (answers.targetDir != '.' && fs.existsSync(answers.targetDir)) {
-        console.log(`Directory "${answers.targetDir}" already exists. Please choose another`);
+        console.log(chalk.red(`Directory "${answers.targetDir}" already exists. Please choose another`));
+        process.exit(0);
+    }
+    if (fs.existsSync(path.join(answers.targetDir, '/.git'))) {
+        console.log(chalk.red(`Cannot initialize extension at '${path.resolve(answers.targetDir)}', as it already contains Git repository.`));
         process.exit(0);
     }
     prompt_answers = await inquirer.prompt(questions);
