@@ -66,6 +66,7 @@ exports.handler = async args => {
     }
     catch (error) {
         console.log(chalk.red(error.message));
+        process.exit(1);
     }
     return context.partner_access_token;
 };
