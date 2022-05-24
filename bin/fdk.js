@@ -46,7 +46,7 @@ else {
       // regex for validation cli-host (host with subdomain mandatory)
       let hostRegex = /^(http(s)?:\/\/)?([a-zA-Z0-9]([-a-zA-Z0-9]{1,61}[a-zA-Z0-9])?\.)+([a-zA-Z0-9]{1,2}([-a-zA-Z0-9]{0,252}[a-zA-Z0-9])?)\.([a-zA-Z]{2,63})$/g
       const host = argv.host
-      if (!hostRegex.test(host)) {
+      if (host && !hostRegex.test(host)) {
         console.log(chalk.red('Invalid host'));
         process.exit(1);
       }
