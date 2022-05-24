@@ -15,7 +15,7 @@ import { isAThemeDirectory } from './helper/utils';
 import inquirer from 'inquirer';
 import path from 'path';
 import Env from './lib/Env';
-import { getActiveContext } from './helper/utils.js';
+import { getActiveContext } from './helper/utils';
 import { THEME_COMMANDS, AUTHENTICATION_COMMANDS, ENVIRONMENT_COMMANDS } from './helper/constants';
 const packageJSON = require('../package.json');
 
@@ -141,6 +141,8 @@ export async function init(programName: string) {
     registerCommands(program);
     //set API versios
     configStore.set(CONFIG_KEYS.API_VERSION, '1.0');
+    // set default environment
+    if(!configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)) configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'fynd')
     program.on('command:*', (subCommand: any) => {
         let msg = `"${subCommand.join(
             ' '
@@ -161,6 +163,7 @@ export async function init(programName: string) {
     if (program.args.length === 0) {
         program.help();
     }
+    return program;
 }
 
 async function checkCliVersionAsync() {
