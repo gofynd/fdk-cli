@@ -84,6 +84,9 @@ exports.builder = function (yargs) {
 
 async function copyTemplateFiles(targetDirectory) {
     try {
+        if (fs.existsSync(path.join(targetDirectory, '/.git'))) {
+            return Promise.reject(new Error(`Cannot initialize extension at '${targetDirectory}', as it already contains Git repository.`));
+        }
         if (!fs.existsSync(targetDirectory)) {
             createDirectory(targetDirectory);
         }
