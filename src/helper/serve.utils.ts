@@ -111,16 +111,26 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 		target: host, // target host
 		changeOrigin: true, // needed for virtual hosted sites
 		cookieDomainRewrite: 'localhost', // rewrite cookies to localhost
-		onProxyReq: fixRequestBody, //to fix body parser issue  
+		onProxyReq: fixRequestBody, //to fix body parser issue 
+		router: function(req) {
+			//change host for /ext routes
+			if(req.baseUrl === '/ext'){
+				return `https://${req.headers['cli-forwarded-host']}`;
+			}
+			return host;
+		}
 	  };
 
 	  // proxy to solve CORS issue
 	  const corsProxy = createProxyMiddleware(options);
-	  app.use('/service', async (req,res,next) => {
+	  app.use(['/service', '/ext'], async (req,res,next) => {
 		// formating express request object as per axios so signature logic will work  
 		req.transformRequest = transformRequest;
 		req.url = req.originalUrl;
 		req.data = req.body;
+		if(req.baseUrl === '/ext'){
+			host = `https://${req.headers['cli-forwarded-host']}`;
+		}
 		req.baseURL = host;
 		delete req.headers['x-fp-signature'];
 		delete req.headers['x-fp-date'];

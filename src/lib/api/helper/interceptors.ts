@@ -31,9 +31,6 @@ function getCompanyId(path: string): number {
 function interceptorFn(options) {
     return async config => {
         try {
-            if (!config.url.includes('service')) {
-                return config;
-            }
             if (!config.url) {
                 throw new Error('No URL present in request config, unable to sign request');
             }
@@ -42,65 +39,66 @@ function interceptorFn(options) {
                 url = combineURLs(config.baseURL, config.url);
             }
             const { host, pathname, search } = new URL(url);
-            const { data, headers, method, params } = config;
-            // set cookie
-            const cookie = ConfigStore.get(CONFIG_KEYS.COOKIE);
-            config.headers['Cookie'] = cookie || '';
-            if (pathname.startsWith('/service/platform')) {
-                const company_id = getCompanyId(pathname);
-                let data;
-                try {
-                    data = (await AuthenticationService.getOauthToken(company_id)).data || {};
-                } catch (error) {
-                    Logger.error('Failed to fetch OAuth token');
-                    ConfigStore.delete(CONFIG_KEYS.USER);
-                    ConfigStore.delete(CONFIG_KEYS.COOKIE);
-                    throw new Error(error);
+            if (pathname.startsWith('/service') || pathname.startsWith('/ext')) {
+                const { data, headers, method, params } = config;
+                // set cookie
+                const cookie = ConfigStore.get(CONFIG_KEYS.COOKIE);
+                config.headers['Cookie'] = cookie || '';
+                if (pathname.startsWith('/service/platform')) {
+                    const company_id = getCompanyId(pathname);
+                    let data;
+                    try {
+                        data = (await AuthenticationService.getOauthToken(company_id)).data || {};
+                    } catch (error) {
+                        Logger.error('Failed to fetch OAuth token');
+                        ConfigStore.delete(CONFIG_KEYS.USER);
+                        ConfigStore.delete(CONFIG_KEYS.COOKIE);
+                        throw new Error(error);
+                    }
+
+                    if (data.access_token) {
+                        config.headers['Authorization'] = 'Bearer ' + data.access_token;
+                    }
+                }
+                let queryParam = '';
+                if (params && Object.keys(params).length) {
+                    if (search && search.trim() !== '') {
+                        queryParam = `&${transformRequestOptions(params)}`;
+                    } else {
+                        queryParam = `?${transformRequestOptions(params)}`;
+                    }
+                }
+                let transformedData;
+                if (method != 'get') {
+                    const transformRequest = getTransformer(config);
+                    transformedData = transformRequest(data, headers);
                 }
 
-                if (data.access_token) {
-                    config.headers['Authorization'] = 'Bearer ' + data.access_token;
-                }
-            }
-            let queryParam = '';
-            if (params && Object.keys(params).length) {
-                if (search && search.trim() !== '') {
-                    queryParam = `&${transformRequestOptions(params)}`;
-                } else {
-                    queryParam = `?${transformRequestOptions(params)}`;
-                }
-            }
-            let transformedData;
-            if (method != 'get') {
-                const transformRequest = getTransformer(config);
-                transformedData = transformRequest(data, headers);
-            }
+                // Remove all the default Axios headers
+                const {
+                    common,
+                    delete: _delete, // 'delete' is a reserved word
+                    get,
+                    head,
+                    post,
+                    put,
+                    patch,
+                    ...headersToSign
+                } = headers;
 
-            // Remove all the default Axios headers
-            const {
-                common,
-                delete: _delete, // 'delete' is a reserved word
-                get,
-                head,
-                post,
-                put,
-                patch,
-                ...headersToSign
-            } = headers;
-
-            const signingOptions = {
-                method: method && method.toUpperCase(),
-                host: host,
-                path: pathname + search + queryParam,
-                body: transformedData,
-                headers: headersToSign,
-            };
-            sign(signingOptions);
-            // console.log(signingOptions);
-            // config.headers = signingOptions.headers;
-            config.headers['x-fp-date'] = signingOptions.headers['x-fp-date'];
-            config.headers['x-fp-signature'] = signingOptions.headers['x-fp-signature'];
-
+                const signingOptions = {
+                    method: method && method.toUpperCase(),
+                    host: host,
+                    path: pathname + search + queryParam,
+                    body: transformedData,
+                    headers: headersToSign,
+                };
+                sign(signingOptions);
+                // console.log(signingOptions);
+                // config.headers = signingOptions.headers;
+                config.headers['x-fp-date'] = signingOptions.headers['x-fp-date'];
+                config.headers['x-fp-signature'] = signingOptions.headers['x-fp-signature'];
+            }
             return config;
         } catch (error) {
             throw new Error(error);
