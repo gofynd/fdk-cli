@@ -285,7 +285,9 @@ export default class Theme {
             // src file upload
             await Theme.srcUploader(srcCdnUrl);
             //uploading assets
-            await Theme.assetsUploader(
+      let pArr = await Theme.assetsUploader();
+        // setting theme data
+            await Theme.setThemeData(pArr,
                 theme,
                 srcCdnUrl,
                 desktopImages,
@@ -295,7 +297,18 @@ export default class Theme {
                 available_sections
             );
             // extract page level settings schema
-            await Theme.systemPages(theme);
+            const availablePages = await Theme.systemPages(theme);
+            Logger.warn('Updating theme...');
+            await Promise.all([ThemeService.updateTheme(theme)]);
+            Logger.warn('Updating pages...');
+            await asyncForEach(availablePages, async page => {
+                try {
+                    Logger.warn('Updating page: ', page.value);
+                    await ThemeService.updateAvailablePage(page);
+                } catch (error) {
+                    throw new CommandError(error.message);
+                }
+            });
             Logger.success('DONE...');
         } catch (error) {
             throw new CommandError(error.message, error.code);
@@ -758,7 +771,26 @@ export default class Theme {
             throw new CommandError(err.message, err.code);
         }
     };
-    private static assetsUploader = async (
+    private static assetsUploader = async () => {
+        const assets = ['themeBundle.css', 'themeBundle.common.js', 'themeBundle.umd.min.js'];
+            const urlHash = shortid.generate();
+        try {
+            Logger.warn('Uploading assets...');
+            let pArr =assets.map(async asset => {
+                 fs.renameSync(
+                    path.join(Theme.BUILD_FOLDER, asset),
+                    `${Theme.BUILD_FOLDER}/${urlHash}-${asset}`
+                );
+                const assetPath = path.join(Theme.BUILD_FOLDER, `${urlHash}-${asset}`);
+                let res = await UploadService.uploadFile(assetPath, 'application-theme-assets');
+                return res.start.cdn.url;
+            });
+            return pArr;
+        } catch (err) {
+            throw new CommandError(`Failed to upload assets `);
+        }
+    };
+    private static setThemeData = async (pArr,
         theme,
         srcCdnUrl,
         desktopImages,
@@ -767,20 +799,8 @@ export default class Theme {
         thumbnailImages,
         available_sections
     ) => {
-        const assets = ['themeBundle.css', 'themeBundle.common.js', 'themeBundle.umd.min.js'];
-        const urlHash = shortid.generate();
         try {
             let themeContent: any = readFile(`${process.cwd()}/config.json`);
-            Logger.warn('Uploading assets...');
-            let pArr = assets.map(async asset => {
-                fs.renameSync(
-                    path.join(Theme.BUILD_FOLDER, asset),
-                    `${Theme.BUILD_FOLDER}/${urlHash}-${asset}`
-                );
-                const assetPath = path.join(Theme.BUILD_FOLDER, `${urlHash}-${asset}`);
-                let res = await UploadService.uploadFile(assetPath, 'application-theme-assets');
-                return res.start.cdn.url;
-            });
             let [cssUrl, commonJsUrl, umdJsUrl] = await Promise.all(pArr);
             let packageJSON = JSON.parse(readFile(`${process.cwd()}/package.json`));
             if (!packageJSON.name) {
@@ -825,7 +845,7 @@ export default class Theme {
                 _.get(globalConfigData, 'information.features', [])
             );
         } catch (err) {
-            throw new CommandError(`Failed to upload assets `);
+            throw new CommandError(`Failed to set theme data `);
         }
     };
     private static systemPages = async theme => {
@@ -867,19 +887,9 @@ export default class Theme {
                 );
                 available_page.type = 'system';
                 delete available_page.sections;
-                availablePages.push(available_page);
+                 availablePages.push(available_page);
             });
-            Logger.warn('Updating theme...');
-            await Promise.all([ThemeService.updateTheme(theme)]);
-            Logger.warn('Updating pages...');
-            await asyncForEach(availablePages, async page => {
-                try {
-                    Logger.warn('Updating page: ', page.value);
-                    await ThemeService.updateAvailablePage(page);
-                } catch (error) {
-                    throw new CommandError(error.message);
-                }
-            });
+            return availablePages;
         } catch (err) {
             throw new CommandError(`Failed to update system pages`);
         }
