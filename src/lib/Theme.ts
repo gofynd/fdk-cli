@@ -252,7 +252,6 @@ export default class Theme {
             } catch (e) {
                 throw new CommandError(`Invalid config.json`);
             }
-            //vaidating files
             let available_sections = await Theme.getAvailableSectionsForSync();
             await Theme.validateAvailableSections(available_sections);
             // it will create index file for all sections inside /template/sections
