@@ -1,13 +1,12 @@
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import inquirer from 'inquirer';
-import { bootstrap } from '../../bin/fdk';
 import { URLS } from '../lib/api/services/url';
 import mockFunction from './helper';
 const context = require('./fixtures/context.json');
 const oauthData = require('./fixtures/oauthData.json');
 const data = require('./fixtures/email-login.json');
-import configStore, { CONFIG_KEYS } from '../lib/Config';
+import configStore from '../lib/Config';
 import { decodeBase64 } from '../helper/utils';
 import fs from 'fs-extra';
 import path from 'path';
@@ -23,7 +22,6 @@ afterEach(() => {
 async function login() {
     const inquirerMock = mockFunction(inquirer.prompt);
     inquirerMock.mockResolvedValue({ password: '1234567' });
-    const program = await bootstrap();
     await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '-e', 'anuragpandey@gofynd.com']);
 }
 
@@ -42,7 +40,6 @@ describe('Theme Context Commands', () => {
             'set-cookie': [{ Name: 'Anurag Pandey' }],
         });
         mock.onGet(`${URLS.OAUTH_TOKEN(context.company_id)}`).reply(200, oauthData);
-        console.log(context.company_id);
         mock.onGet(
             `${URLS.GET_APPLICATION_DETAILS(context.application_id, context.company_id)}`
         ).reply(200, context);
@@ -52,7 +49,6 @@ describe('Theme Context Commands', () => {
     });
 
     it('should successfully add theme context ', async () => {
-        console.log('inside adding context');
         await login();
         const inquirerMock = mockFunction(inquirer.prompt);
         inquirerMock.mockResolvedValue({ showCreateFolder: 'Yes' });

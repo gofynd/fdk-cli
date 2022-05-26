@@ -3,15 +3,13 @@ import MockAdapter from 'axios-mock-adapter';
 import inquirer from 'inquirer';
 import { URLS } from '../lib/api/services/url';
 import mockFunction from './helper';
-import path from 'path';
 const context = require('./fixtures/context.json');
 const oauthData = require('./fixtures/oauthData.json');
 const themeData = require('./fixtures/themeData.json');
-const imageData = require('./fixtures/imageData.json');
-const imageUploadData = require('./fixtures/imageUploadData.json');
 const assetsUploadData = require('./fixtures/assetsUploadData.json');
 const srcUploadData = require('./fixtures/srcUploadData.json');
 const getAvailablePageData = require('./fixtures/getAvailablePageData.json');
+const createdAvailablePageData = require('./fixtures/createdAvailablePageData.json');
 const completeUpload = require('./fixtures/completeUpload.json');
 const srcCompleteUpload = require('./fixtures/srcCompleteUpload.json');
 const assetsCompleteUpload = require('./fixtures/assetsCompleteUpload.json');
@@ -20,37 +18,32 @@ const updateAvailablePageData = require('./fixtures/updateAvailablePageData.json
 const syncThemeData = require('./fixtures/syncThemeData.json');
 const startUpload = require('./fixtures/startUpload.json');
 const publishThemeData = require('./fixtures/publishThemeData.json');
+const unpublishThemeData = require('./fixtures/unpublishThemeData.json');
+const initThemeData = require('./fixtures/initThemeData.json');
+const initAppConfigData = require('./fixtures/initAppConfigData.json');
 const data = require('./fixtures/email-login.json');
+import { decodeBase64 } from '../helper/utils';
 import { getActiveContext } from '../helper/utils';
 import { init } from '../fdk';
-import configStore, { CONFIG_KEYS } from '../lib/Config';
-import Env from '../lib/Env';
+import configStore from '../lib/Config';
 
 jest.mock('inquirer');
 let program;
 
-const activeContext = {
-    application_id: '622894659baaca3be88c9d65',
-    token: '4Eoh-yDMW',
-    company_id: 1,
-    expires_in: '2022-05-13T04:42:40.276Z'
-  }
-  const currentContext = {
-    name: 'royal',
-    application_id: '622894659baaca3be88c9d65',
-    domain: 'anuragbazaar.hostx0.de',
-    company_id: '1',
-    theme_id: '627c939976cee8683a47a087',
-    env: 'fyndx0'
-  }
 async function login() {
     const inquirerMock = mockFunction(inquirer.prompt);
     inquirerMock.mockResolvedValue({ password: '1234567' });
-    // const program = await bootstrap();
     await program.parseAsync(['node', './bin/fdk.js', 'login', '-e', 'anuragpandey@gofynd.com']);
 }
-const s3Url = 'https://fynd-staging-assets.s3-accelerate.amazonaws.com/x0/company/1/applications/622894659baaca3be88c9d65/theme/assets/fTSArfSBZ-themeBundle.common.js?AWSAccessKeyId=AKIAJUADR2WMPQT6ZJ2Q&Content-Type=application%2Fjavascript&Expires=1652268477&Signature=nAc1K6xhwU4Jz88czrw8og%2BrRXM%3D&x-amz-acl=public-read' 
-const responseUrl = 'https://api.fyndx0.de/service/platform/assets/v1.0/company/1/application/622894659baaca3be88c9d65/namespaces/application-theme-assets/upload/start'
+
+let configObj = JSON.parse(
+    decodeBase64(
+        'eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDUtMjZUMTM6NDM6MzcuMTQ4WiJ9'
+    )
+);
+const imageS3Url = startUpload.upload.url
+const srcS3Url = srcUploadData.upload.url
+const assetS3Url = assetsUploadData.upload.url
 describe('Theme Commands', () => {
     beforeEach(async () => {
         await program.parseAsync(['node', './bin/fdk.js', 'env', 'set', '-n', 'fyndx0']);
@@ -84,70 +77,51 @@ describe('Theme Commands', () => {
         ).replyOnce(200, startUpload);
         mock.onPost(
             `${URLS.START_UPLOAD_FILE(context.application_id, context.company_id, namespace)}`
-        ).reply(200,startUpload).onPut( `${s3Url}`).reply(200).onPost(`${URLS.COMPLETE_UPLOAD_FILE(
-            context.application_id,
-            context.company_id,
-            namespace
-        )}`).reply(200,completeUpload);
-        // mock.onPost(
-        //     `${URLS.START_UPLOAD_FILE(context.application_id, context.company_id, srcCompleteUpload.namespace)}`
-        // ).reply(200,srcUploadData).onPut( `${s3Url}`).reply(200).onPost(`${URLS.COMPLETE_UPLOAD_FILE(
-        //     context.application_id,
-        //     context.company_id,
-        //     srcCompleteUpload.namespace
-        // )}`).reply(200,srcCompleteUpload);
-        // mock.onPost(
-        //     `${URLS.START_UPLOAD_FILE(context.application_id, context.company_id, assetsCompleteUpload.namespace)}`
-        // ).reply(200,assetsUploadData).onPut( `${s3Url}`).reply(200).onPost(`${URLS.COMPLETE_UPLOAD_FILE(
-        //     context.application_id,
-        //     context.company_id,
-        //     assetsCompleteUpload.namespace
-        // )}`).reply(200,assetsCompleteUpload);
-        // mock.onPost(
-        //     `${URLS.COMPLETE_UPLOAD_FILE(
-        //         context.application_id,
-        //         context.company_id,
-        //         namespace
-        //     )}`
-        // ).reply(200, imageUploadData);
-        // mock.onPost(
-        //     `${URLS.COMPLETE_UPLOAD_FILE(
-        //         context.application_id,
-        //         context.company_id,
-        //        " application-theme-src"
-        //     )}`
-        // ).reply(200, srcUploadData);
-        // mock.onPost(
-        //     `${URLS.COMPLETE_UPLOAD_FILE(
-        //         context.application_id,
-        //         context.company_id,
-        //        
-        //  'application-theme-assets'
-        //     )}`
-        // ).reply(200, context);
+        ).reply(200,startUpload)
+        mock.onPut(`${imageS3Url}`).reply(200,'')
+        mock.onPost(`${URLS.COMPLETE_UPLOAD_FILE(context.application_id,context.company_id,namespace)}`).reply(200,completeUpload);
+        
+        mock.onPost(
+            `${URLS.START_UPLOAD_FILE(context.application_id, context.company_id, "application-theme-src")}`
+        ).reply(200,srcUploadData)
+        mock.onPut(`${srcS3Url}`).reply(200,'')
+        mock.onPost(`${URLS.COMPLETE_UPLOAD_FILE(context.application_id,context.company_id,"application-theme-src")}`).reply(200,srcCompleteUpload);
+        
+        mock.onPost(
+            `${URLS.START_UPLOAD_FILE(context.application_id, context.company_id, "application-theme-assets")}`
+        ).reply(200,assetsUploadData)
+        mock.onPut(`${assetS3Url}`).reply(200,'')
+        mock.onPost(`${URLS.COMPLETE_UPLOAD_FILE(context.application_id,context.company_id,"application-theme-assets")}`).reply(200,assetsCompleteUpload);
         mock.onGet(
             `${URLS.AVAILABLE_PAGE(context.application_id, context.company_id, context.theme_id)}`
         ).reply(200, getAvailablePageData);
-        // mock.onPost(
-        //     `${URLS.AVAILABLE_PAGE(context.application_id, context.company_id, context.theme_id)}`
-        // ).reply(200, context);
+        mock.onPost(
+            `${URLS.AVAILABLE_PAGE(context.application_id, context.company_id, context.theme_id)}`
+        ).reply(200, createdAvailablePageData);
         mock.onPut(
             `${URLS.THEME_BY_ID(context.application_id, context.company_id, context.theme_id)}`
         ).reply(200, updateThemeData);
         mock.onPut(
             `${URLS.AVAILABLE_PAGE(context.application_id, context.company_id, context.theme_id)}`
         ).reply(200, updateAvailablePageData);
-        // mock.onDelete(
-        //     `${URLS.THEME_BY_ID(context.application_id, context.company_id, context.theme_id)}`
-        // ).reply(200, themeData);
+        mock.onPut(
+            `${URLS.THEME_BY_ID(context.application_id, context.company_id, context.theme_id)}`
+        ).replyOnce(200, publishThemeData);
+        mock.onPut(
+            `${URLS.THEME_BY_ID(context.application_id, context.company_id, context.theme_id)}`
+        ).replyOnce(200, unpublishThemeData);
+        mock.onGet(
+            `${URLS.GET_APPLICATION_DETAILS(context.application_id, context.company_id)}`
+        ).reply(200, initAppConfigData);
+        mock.onGet(
+            `${URLS.THEME_BY_ID(context.application_id, context.company_id, context.theme_id)}`
+        ).reply(200, initThemeData);
     });
-    // afterEach(() => {
-    //     configStore.clear();
-    // });
+    afterEach(() => {
+        configStore.clear();
+    });
     it('should successfully create new theme', async () => {
         await login();
-        jest.setTimeout(1000000)
-        const assetCdnUrl = path.dirname(startUpload.cdn.url);
         const inquirerMock = mockFunction(inquirer.prompt);
         inquirerMock.mockResolvedValue({ pullConfig: 'Yes' });
         await program.parseAsync([
@@ -156,89 +130,87 @@ describe('Theme Commands', () => {
             'theme',
             'new',
             '-t',
-            'eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDUtMjNUMDg6MTA6MDEuMTU2WiJ9',
+            'eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDUtMjZUMTU6MzI6NTQuNDI0WiJ9',
             '-n',
-            'royalss',
+            'royald',
         ]);
-        // const x = {
-        //     application_id: '622894659baaca3be88c9d65',
-        //     token: '4Eoh-yDMW',
-        //     company_id: 1,
-        //     expires_in: '2022-05-09T11:05:57.197Z',
-        // };
-        console.log('after expect');
+        const currentContext = getActiveContext();
+        expect(configObj.application_id).toMatch(currentContext.application_id);
     });
 
-    // it('should successfully sync theme', async () => {
-    //     await login();
-    //     // jest.setTimeout(100000)
-    //     await program.parseAsync([
-    //         'ts-node',
-    //         './src/fdk.ts',
-    //         'theme',
-    //         'sync'
-    //     ]);
-    //     const x = {
-    //         application_id: '622894659baaca3be88c9d65',
-    //         token: '4Eoh-yDMW',
-    //         company_id: 1,
-    //         expires_in: '2022-05-09T11:05:57.197Z',
-    //     };
-    //     console.log('after expect');
-    // });
+    it('should successfully sync theme', async () => {
+        await login();
+        await program.parseAsync([
+            'ts-node',
+            './src/fdk.ts',
+            'theme',
+            'sync'
+        ]);
+        const currentContext = getActiveContext();
+        expect(configObj.application_id).toMatch(currentContext.application_id);
+    });
 
     
 
     // it('should successfully init theme', async () => {
     //     await login();
-    //     // const inquirerMock = mockFunction(inquirer.prompt);
-    //     // inquirerMock.mockResolvedValue({ pullConfig: 'Yes' });
+    //     console.log("1")
     //     await program.parseAsync([
     //         'ts-node',
     //         './src/fdk.ts',
     //         'theme',
     //         'init',
     //         '-t',
-    //         'eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDUtMTNUMTQ6MTg6MjEuODAzWiIsInRoZW1lX2lkIjoiNjIzYjA5ZmFlYjBiNmUwZjRmZjk3NThmIn0='
+    //         'eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDUtMjZUMTU6MjI6NDkuOTY4WiIsInRoZW1lX2lkIjoiNjI0NDJjYzYyNzhkYmM1MGU5YmZhY2UyIn0='
     //     ]);
-    //     const x = {
-    //         application_id: '622894659baaca3be88c9d65',
-    //         token: '4Eoh-yDMW',
-    //         company_id: 1,
-    //         expires_in: '2022-05-09T11:05:57.197Z',
-    //     };
-
-    //     // expect(cookies.Name).toMatch("Anurag Pandey");
-    //     // expect(true).toBeTruthy();
-    //     console.log('after expect');
+    //     console.log("2")
+    //     const currentContext = getActiveContext();
+    //     expect(configObj.application_id).toMatch(currentContext.application_id);
     // });
 
     // it('should successfully pull  theme', async () => {
     //     await login();
-    //     // jest.setTimeout(100000)
-    //     // const inquirerMock = mockFunction(inquirer.prompt);
-    //     // inquirerMock.mockResolvedValue({ pullConfig: 'Yes' });
     //     await program.parseAsync([
     //         'ts-node',
     //         './src/fdk.ts',
     //         'theme',
     //         'pull'
     //     ]);
-    //     console.log('after expect');
+    //     const currentContext = getActiveContext();
+    //     expect(configObj.application_id).toMatch(currentContext.application_id);
+    // });
+
+    // it('should successfully pull config theme', async () => {
+    //     await login();
+    //     await program.parseAsync([
+    //         'ts-node',
+    //         './src/fdk.ts',
+    //         'theme',
+    //         'pull-config'
+    //     ]);
+    //     expect(configObj.application_id).toMatch(currentContext.application_id);
     // });
 
     // it('should successfully publish  theme', async () => {
     //     await login();
-    //     // jest.setTimeout(100000)
-    //     // const inquirerMock = mockFunction(inquirer.prompt);
-    //     // inquirerMock.mockResolvedValue({ pullConfig: 'Yes' });
     //     await program.parseAsync([
     //         'ts-node',
     //         './src/fdk.ts',
     //         'theme',
     //         'publish'
     //     ]);
-    //     console.log('after expect');
+    //     expect(configObj.application_id).toMatch(currentContext.application_id);
+    // });
+
+    // it('should successfully unpublish  theme', async () => {
+    //     await login();
+    //     await program.parseAsync([
+    //         'ts-node',
+    //         './src/fdk.ts',
+    //         'theme',
+    //         'unpublish'
+    //     ]);
+    //     expect(configObj.application_id).toMatch(currentContext.application_id);
     // });
 
 });

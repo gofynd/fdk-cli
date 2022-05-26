@@ -1,0 +1,257 @@
+{
+  "_id": "62442cc6278dbc50e9bface2",
+  "information": {
+    "images": {
+      "desktop": [
+        null
+      ],
+      "android": [
+        null
+      ],
+      "ios": [
+        null
+      ],
+      "thumbnail": [
+        null
+      ]
+    },
+    "features": [
+      "Responsive"
+    ],
+    "name": "Artisan"
+  },
+  "src": {
+    "link": "https://hdn-1.addsale.com/x0/company/1/applications/622894659baaca3be88c9d65/theme/sources/kQzuCxwOT-archive.zip"
+  },
+  "assets": {
+    "css": {
+      "link": "https://hdn-1.addsale.com/x0/company/1/applications/622894659baaca3be88c9d65/theme/assets/vP2q4PlhK-themeBundle.css",
+      "links": []
+    },
+    "umd_js": {
+      "link": "https://hdn-1.addsale.com/x0/company/1/applications/622894659baaca3be88c9d65/theme/assets/vP2q4PlhK-themeBundle.umd.min.js",
+      "links": []
+    },
+    "common_js": {
+      "link": "https://hdn-1.addsale.com/x0/company/1/applications/622894659baaca3be88c9d65/theme/assets/vP2q4PlhK-themeBundle.common.js"
+    }
+  },
+  "config": {
+    "global_schema": {
+      "props": [
+        null
+      ]
+    },
+    "current": "default",
+    "preset": {
+      "pages": [
+        null
+      ]
+    },
+    "list": [
+      [
+        null
+      ]
+    ]
+  },
+  "colors": {
+    "primary_color": "#41434C",
+    "secondary_color": "#41434C",
+    "accent_color": "#FFFFFF",
+    "link_color": "#33B1C0",
+    "button_secondary_color": "#000000",
+    "bg_color": "#F8F8F8"
+  },
+  "font": {
+    "variants": {
+      "light": [
+        null
+      ],
+      "regular": [
+        null
+      ],
+      "medium": [
+        null
+      ],
+      "semi_bold": [
+        null
+      ],
+      "bold": [
+        null
+      ]
+    },
+    "family": "Judson"
+  },
+  "applied": true,
+  "published": false,
+  "archived": false,
+  "customized": true,
+  "version": "1.1.85",
+  "tags": [],
+  "application": "622894659baaca3be88c9d65",
+  "styles": {},
+  "available_sections": [
+    {
+      "props": [
+        null
+      ],
+      "blocks": [
+        null
+      ],
+      "name": "brandTemplate",
+      "label": "Brands List Page"
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [],
+      "name": "categoriesTemplate",
+      "label": "Categories Page"
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [
+        null
+      ],
+      "name": "collectionGrid",
+      "label": "Collection Grid"
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [
+        null
+      ],
+      "name": "collectionList",
+      "label": "Collection List"
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [
+        null
+      ],
+      "name": "collectionTemplate",
+      "label": "Collection List Page"
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [],
+      "name": "customHtml",
+      "label": "Custom HTML"
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [],
+      "name": "section_extension",
+      "label": "Extensions"
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [
+        null
+      ],
+      "name": "featuredProducts",
+      "label": "Featured Products",
+      "preset": [
+        null
+      ]
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [
+        null
+      ],
+      "name": "gallery",
+      "label": "Gallery",
+      "preset": [
+        null
+      ]
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [],
+      "name": "heroBanner",
+      "label": "Hero Banner"
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [],
+      "name": "imageBanner",
+      "label": "Hero Image"
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [],
+      "name": "videoBanner",
+      "label": "Hero Video"
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [
+        null
+      ],
+      "name": "image-carousel",
+      "label": "Image Carousel",
+      "preset": [
+        null
+      ]
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [],
+      "name": "productList",
+      "label": "Product List",
+      "preset": [
+        null
+      ]
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [
+        null
+      ],
+      "name": "testimonials",
+      "label": "Testimonial"
+    },
+    {
+      "props": [
+        null
+      ],
+      "blocks": [
+        null
+      ],
+      "name": "videoCarousel",
+      "label": "Video Carousel"
+    }
+  ],
+  "parent_theme": "610d4bb8cdf1d8c3b97d316d",
+  "parent_theme_version": "1.1.84",
+  "created_at": "2022-03-30T10:11:18.341Z",
+  "updated_at": "2022-05-25T08:17:52.026Z"
+}

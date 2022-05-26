@@ -60,22 +60,17 @@ export default class Theme {
     }
     public static async writeSettingJson(path, jsonObject) {
         try {
-            await fs.writeJSON(
-                path,
-                jsonObject,
-                {
-                    spaces: 2,
-                }
-            );
+            await fs.writeJSON(path, jsonObject, {
+                spaces: 2,
+            });
             Logger.success(`${path.split('/').slice(-1)[0]} written succesfully.!!!`);
-        } catch(err) {
+        } catch (err) {
             throw new CommandError(`Error writing ${path.split('/').slice(-1)[0]} file.!!!`);
         }
     }
     public static async readSettingsJson(path) {
         try {
             const settingsJson = await fs.readJSON(path);
-            
             Logger.success(`${path.split('/').slice(-1)[0]} read successfully.!!!`);
             return settingsJson;
         } catch(err) {
@@ -114,7 +109,6 @@ export default class Theme {
             Logger.warn('Copying template files');
             shouldDelete = true;
             await Theme.copyTemplateFiles(Theme.TEMPLATE_DIRECTORY, targetDirectory);
-            // console.log("theme",theme);
             let context: any = {
                 name: options.name,
                 application_id: appConfig._id,
@@ -145,21 +139,20 @@ export default class Theme {
                 }
             );
             console.log(b5.toString());
-            console.log("sync theeme done")
         } catch (error) {
-            console.log("error in syncing",error)
             if (shouldDelete) await Theme.cleanUp(targetDirectory);
             throw new CommandError(error.message, error.code);
         }
     }
     public static initTheme = async options => {
+        console.log("theme init")
         let shouldDelete = false;
         let targetDirectory = '';
         try {
             Logger.warn('Validating token');
             const configObj = JSON.parse(decodeBase64(options.token) || '{}');
             Debug(`Token Data: ${JSON.stringify(configObj)}`);
-            if (!configObj || !configObj.theme_id) throw new CommandError('Invalid token', ErrorCodes.INVALID_INPUT.code);
+            if (!configObj || !configObj.theme_id)throw new CommandError('Invalid token', ErrorCodes.INVALID_INPUT.code);
             if (new Date(Date.now()) > new Date(configObj.expires_in))
                 throw new CommandError(
                     'Token expired. Generate a new token',
@@ -243,38 +236,13 @@ export default class Theme {
     };
     private static syncTheme = async (isNew = false) => {
         try {
-            const currentContext =  getActiveContext();
-            const env = Env.getEnvValue();
-            console.log("env",env)
-            if (env !== currentContext.env) {
-                throw new CommandError(
-                    'Active context environment and cli environment are different. Use fdk current-env to know the active envoirnement',
-                    ErrorCodes.INVALID_CONTEXT.code
-                );
-            }
+            const currentContext = getActiveContext();
             currentContext.domain
                 ? Logger.success('Syncing Theme to: ' + currentContext.domain)
                 : Logger.warn('Please add domain to context');
             let { data: theme } = await ThemeService.getThemeById(currentContext);
-            const newConfig = Theme.getSettingsData(theme);
-            const oldConfig = await Theme.readSettingsJson(Theme.getSettingsDataPath());
-            const questions = [
-                {
-                    type: 'confirm',
-                    name: 'pullConfig',
-                    message: 'Do you wish to pull config from remote?',
-                },
-            ];
-            if (!isNew && !_.isEqual(newConfig, oldConfig)) {
-                await inquirer.prompt(questions).then(async answers => {
-                    if (answers.pullConfig) {
-                        await Theme.writeSettingJson(Theme.getSettingsDataPath(), newConfig);
-                        Logger.success('Config updated successfully');
-                    } else {
-                        Logger.warn('Using local config to sync');
-                    }
-                });
-            }
+            //if any changes from platform in sections|pages|settings it will pull latest configuration
+            await Theme.getLatestPlatformConfig(theme, (isNew = false));
             Theme.clearPreviousBuild();
             Logger.warn('Reading Files...');
             let themeContent: any = readFile(`${process.cwd()}/config.json`);
@@ -285,36 +253,13 @@ export default class Theme {
                 throw new CommandError(`Invalid config.json`);
             }
             let available_sections = await Theme.getAvailableSectionsForSync();
-            Logger.warn('Validating Files...');
-            available_sections = await Theme.validateSections(available_sections);
-            Theme.createSectionsIndexFile(available_sections);
-
-            let imageCdnUrl = '';
-            let assetCdnUrl = '';
+            await Theme.validateAvailableSections(available_sections);
+            // it will create index file for all sections inside /template/sections
+            await Theme.createSectionsIndexFile(available_sections);
             // get image cdn base url
-            {
-                let startData = {
-                    file_name: 'test.jpg',
-                    content_type: 'image/jpeg',
-                    size: '1',
-                };
-                let startAssetData = (
-                    await UploadService.startUpload(startData, 'application-theme-images')
-                ).data;
-                imageCdnUrl = path.dirname(startAssetData.cdn.url);
-            }
+            const imageCdnUrl = await Theme.getImageCdnBaseUrl();
             // get asset cdn base url
-            if (fs.existsSync(path.join(process.cwd(), 'theme/assets/fonts'))) {
-                let startData = {
-                    file_name: 'test.ttf',
-                    content_type: 'font/ttf',
-                    size: '10',
-                };
-                let startAssetData = (
-                    await UploadService.startUpload(startData, 'application-theme-assets')
-                ).data;
-                assetCdnUrl = path.dirname(startAssetData.cdn.url);
-            }
+            const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
             Logger.warn('Building Assets...');
             // build js css
             await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl });
@@ -329,15 +274,7 @@ export default class Theme {
                 await Theme.uploadThemePreviewImages();
             Logger.warn('Uploading theme assets/images...');
             // upload images
-            {
-                const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'assets/images');
-                const images = glob.sync('**/**.**', { cwd });
-                Logger.warn('Uploading images...');
-                await asyncForEach(images, async img => {
-                    const assetPath = path.join(Theme.BUILD_FOLDER, 'assets/images', img);
-                 await UploadService.uploadFile(assetPath, 'application-theme-images');
-                });
-            }
+            await Theme.assetsImageUploader();
             // upload fonts
             Logger.warn('Uploading theme assets/fonts...');
             await Theme.assetsFontsUploader();
@@ -345,9 +282,7 @@ export default class Theme {
             Logger.warn('Creating zip file...');
             await Theme.copyFilesToFdkFolder();
             //remove temp files
-            rimraf.sync(Theme.SRC_FOLDER);
-            const zipFilePath = path.join(Theme.SRC_ARCHIVE_FOLDER, Theme.ZIP_FILE_NAME);
-
+            rimraf.sync(path.join(process.cwd(),Theme.SRC_FOLDER));
             let srcCdnUrl;
             // src file upload
             Logger.warn('Uploading zip file...');
@@ -444,7 +379,6 @@ export default class Theme {
             rimraf.sync(path.resolve(process.cwd(), './theme'));
             createDirectory('theme');
             const { data: themeData } = await ThemeService.getThemeById(null);
-            console.log("themeData",themeData)
             const theme = _.cloneDeep({ ...themeData });
             rimraf.sync(path.resolve(process.cwd(), './.fdk/archive'));
             await downloadFile(theme.src.link, './.fdk/pull-archive.zip');
@@ -490,8 +424,7 @@ export default class Theme {
         let spinner;
         try {
             spinner = ora('Publishing theme').start();
-            const publish = await ThemeService.publishTheme();
-            console.log("publish",publish)
+            await ThemeService.publishTheme();
             spinner.succeed();
         } catch (error) {
             if (spinner.isSpinning) {
@@ -971,7 +904,7 @@ export default class Theme {
         }
     };
     private static srcUploader = async srcCdnUrl => {
-        const zipFilePath = path.join(Theme.SRC_ARCHIVE_FOLDER, Theme.ZIP_FILE_NAME);
+        const zipFilePath = path.join(process.cwd(),Theme.SRC_ARCHIVE_FOLDER, Theme.ZIP_FILE_NAME);
         try {
             let res = await UploadService.uploadFile(zipFilePath, 'application-theme-src');
             return (srcCdnUrl = res.start.cdn.url);

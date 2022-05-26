@@ -30,7 +30,6 @@ export default {
         }
     },
     uploadFile: async (filepath, namespace) => {
-        console.log('namespace in uploadfile', namespace);
         const activeContext = getActiveContext();
         let stats;
         // start
@@ -74,7 +73,6 @@ export default {
             data: fs.readFileSync(filepath),
             headers: { 'Content-type': contentType },
         });
-
         let uploadResponse = res2 ? res2.data : res2;
 
         // complete
