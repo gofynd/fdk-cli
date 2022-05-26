@@ -5,7 +5,7 @@ import { transformRequestOptions } from './../../helper/utils';
 const { addSignatureFn } = require('./helper/interceptors');
 import Curl from '../../helper/curl';
 axios.defaults.withCredentials = true;
-axios.defaults.timeout = 60000; // 1 minute
+axios.defaults.timeout = 300000; // 5 minute
 
 // Axios Interceptors
 axios.interceptors.request.use(addSignatureFn({}));
