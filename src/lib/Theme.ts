@@ -73,8 +73,7 @@ export default class Theme {
             );
             Logger.success(`${path.split('/').slice(-1)[0]} written succesfully.!!!`);
         } catch(err) {
-            Logger.error(`Error writing ${path.split('/').slice(-1)[0]} file.!!!`);
-            Logger.error(err);
+            throw new CommandError(`Error writing ${path.split('/').slice(-1)[0]} file.!!!`);
         }
     }
 
@@ -85,8 +84,7 @@ export default class Theme {
             Logger.success(`${path.split('/').slice(-1)[0]} read successfully.!!!`);
             return settingsJson;
         } catch(err) {
-            Logger.error(`Error reading ${path.split('/').slice(-1)[0]} file.!!!`);
-            Logger.error(err);
+            throw new CommandError(`Error reading ${path.split('/').slice(-1)[0]} file.!!!`);
         }
     }
 

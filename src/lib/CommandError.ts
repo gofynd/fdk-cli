@@ -38,5 +38,6 @@ export default class CommandError extends Error {
     Object.setPrototypeOf(this, CommandError.prototype);
     this.code = code || 'FDK-0004';
     this.message = message || 'Something went wrong';
+    process.exitCode = 1;
   }
 }

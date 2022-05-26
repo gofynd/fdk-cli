@@ -15,7 +15,7 @@ import { isAThemeDirectory } from './helper/utils';
 import inquirer from 'inquirer';
 import path from 'path';
 import Env from './lib/Env';
-import { getActiveContext } from './helper/utils.js';
+import { getActiveContext } from './helper/utils';
 import { THEME_COMMANDS, AUTHENTICATION_COMMANDS, ENVIRONMENT_COMMANDS } from './helper/constants';
 const packageJSON = require('../package.json');
 
@@ -70,21 +70,24 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
                 }
 
                 // check if user is logged in and context is set
-                const command = args[1].name();
+                const envCommand = args[1].parent.name();
+                const authCommand = args[1].name();
+                const themeCommand = args[1].name();
+
                 if (
-                    !(ENVIRONMENT_COMMANDS.findIndex(c => command.includes(c)) !== -1) &&
+                    !(ENVIRONMENT_COMMANDS.findIndex(c => envCommand.includes(c)) !== -1) &&
                     !configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)
                 ) {
                     throw new CommandError(COMMON_LOG_MESSAGES.EnvNotSet);
                 }
                 if (
-                    !(AUTHENTICATION_COMMANDS.findIndex(c => command.includes(c)) !== -1) &&
-                    !(ENVIRONMENT_COMMANDS.findIndex(c => command.includes(c)) !== -1) &&
+                    !(AUTHENTICATION_COMMANDS.findIndex(c => authCommand.includes(c)) !== -1) &&
+                    !(ENVIRONMENT_COMMANDS.findIndex(c => envCommand.includes(c)) !== -1) &&
                     !configStore.get(CONFIG_KEYS.COOKIE)
                 ) {
                     throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
                 }
-                if(THEME_COMMANDS.findIndex(c => command.includes(c)) !== -1) {
+                if(THEME_COMMANDS.findIndex(c => themeCommand.includes(c)) !== -1) {
                     const activeContextEnv = getActiveContext().env;
                     if(activeContextEnv !== Env.getEnvValue()) {
                         throw new CommandError(COMMON_LOG_MESSAGES.contextMismatch);
@@ -138,6 +141,8 @@ export async function init(programName: string) {
     registerCommands(program);
     //set API versios
     configStore.set(CONFIG_KEYS.API_VERSION, '1.0');
+    // set default environment
+    if(!configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)) configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'fynd')
     program.on('command:*', (subCommand: any) => {
         let msg = `"${subCommand.join(
             ' '
@@ -158,6 +163,7 @@ export async function init(programName: string) {
     if (program.args.length === 0) {
         program.help();
     }
+    return program;
 }
 
 async function checkCliVersionAsync() {
