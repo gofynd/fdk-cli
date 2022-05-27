@@ -90,14 +90,16 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 		}
 
 		const jetfireUrl = new URL(urlJoin(domain, req.originalUrl));
-
-		if (!isSSR) {
+		let themeUrl = "";
+		if (isSSR) {
+            const BUNDLE_PATH = path.join(process.cwd(), '/.fdk/dist/themeBundle.common.js');
+            const User = Configstore.get(CONFIG_KEYS.USER);
+            themeUrl = (await UploadService.uploadFile(BUNDLE_PATH, 'fdk-cli-dev-files', User._id))
+                .start.cdn.url;
+		} else {
 			jetfireUrl.searchParams.set('__csr', 'true');
 		}
 		try {
-			const BUNDLE_PATH = path.join(process.cwd(), '/.fdk/dist/themeBundle.common.js');
-			const User = Configstore.get(CONFIG_KEYS.USER);
-			const imageLoc = await UploadService.uploadFile(BUNDLE_PATH, 'fdk-cli-dev-files', User._id);
 			
 			// Bundle directly passed on with POST request body.
 			const { data: html } = await axios({
@@ -108,7 +110,7 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 					'Accept': 'application/json'
 				},
 				data: {
-					theme_url: imageLoc.start.cdn.url
+					theme_url: themeUrl
 				}
 			});
 
