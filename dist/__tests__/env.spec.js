@@ -58,92 +58,76 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AVAILABLE_ENVS = void 0;
-var Config_1 = __importStar(require("./Config"));
-var CommandError_1 = __importDefault(require("./CommandError"));
-var Logger_1 = __importStar(require("./Logger"));
-var chalk_1 = __importDefault(require("chalk"));
-exports.AVAILABLE_ENVS = {
-    fyndx1: 'api.fyndx1.de',
-    fyndx0: 'api.fyndx0.de',
-    fynd: 'api.fynd.com',
-    jiox2: 'api.jiox2.de',
-    jiox1: 'api.jiox1.de',
-    jiox0: 'api.jiox0.de',
-    jioretailer: 'api.jioretailer.com',
-    jioecomm: 'api.jioecomm.com',
-    jiomarketx0: 'api.jiomarketx0.de',
-    jiox5: 'api.jiox5.de',
-    jiox3: 'api.jiox3.de',
-    jiomartpartners: 'api.jiomartpartners.com',
-    jmpx2: 'api.jmpx2.de'
-};
-var Env = /** @class */ (function () {
-    function Env() {
-    }
-    Env.setEnv = function (ctx) {
-        Config_1.default.set(Config_1.CONFIG_KEYS.CURRENT_ENV, {}); // active_context: {}
-        Config_1.default.set(Config_1.CONFIG_KEYS.CURRENT_ENV_VALUE, ctx); // x0: {}
-    };
-    Env.getEnvValue = function () {
-        return Config_1.default.get(Config_1.CONFIG_KEYS.CURRENT_ENV_VALUE);
-    };
-    Env.getEnv = function () {
-        var ctx = Env.getEnvValue();
-        if (!ctx) {
-            throw new CommandError_1.default(Logger_1.COMMON_LOG_MESSAGES.EnvNotSet);
-        }
-        Logger_1.default.success("Active Environment: ".concat(chalk_1.default.bold(ctx)));
-    };
-    Env.listEnvs = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var ACTIVE_ENVIRONMENT_1;
-            return __generator(this, function (_a) {
-                try {
-                    ACTIVE_ENVIRONMENT_1 = Env.getEnvValue();
-                    Logger_1.default.info(chalk_1.default.bold.blueBright("List of supported Environments:"));
-                    Object.keys(exports.AVAILABLE_ENVS).forEach(function (key) {
-                        if (ACTIVE_ENVIRONMENT_1 && key.toString() === ACTIVE_ENVIRONMENT_1.toString()) {
-                            Logger_1.default.info("".concat(chalk_1.default.bold.greenBright(key), "*"));
-                        }
-                        else {
-                            Logger_1.default.info(chalk_1.default.bold.gray(key));
-                        }
-                    });
-                }
-                catch (error) {
-                    throw new CommandError_1.default(error.message);
-                }
-                return [2 /*return*/];
-            });
+var fdk_1 = require("../fdk");
+var Config_1 = __importStar(require("../lib/Config"));
+var program;
+describe('Env Commands', function () {
+    beforeAll(function () { return __awaiter(void 0, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, (0, fdk_1.init)('fdk')];
+                case 1:
+                    program = _a.sent();
+                    return [2 /*return*/];
+            }
         });
-    };
-    Env.setNewEnvs = function (options) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                try {
-                    if (options.name) {
-                        if (Object.keys(exports.AVAILABLE_ENVS).includes(options.name)) {
-                            Env.setEnv(options.name);
-                            Logger_1.default.success("Env set to: ".concat(chalk_1.default.bold(options.name)));
-                        }
-                        else {
-                            Logger_1.default.error("*".concat(chalk_1.default.bold(options.name), "* environment is not supported.\n"));
-                            Env.listEnvs();
-                        }
-                    }
-                }
-                catch (e) {
-                    throw new CommandError_1.default(e.message);
-                }
-                return [2 /*return*/];
-            });
+    }); });
+    afterEach(function () {
+        Config_1.default.clear();
+    });
+    it('should console current set env', function () { return __awaiter(void 0, void 0, void 0, function () {
+        var currentEnv;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, program.parseAsync(['ts-node', './src/fdk.ts', 'env', 'set', '-n', 'fyndx0'])];
+                case 1:
+                    _a.sent();
+                    currentEnv = Config_1.default.get(Config_1.CONFIG_KEYS.CURRENT_ENV_VALUE);
+                    return [4 /*yield*/, new Promise(function (r) { return setTimeout(r, 2000); })];
+                case 2:
+                    _a.sent();
+                    expect(currentEnv).toMatch('fyndx0');
+                    return [2 /*return*/];
+            }
         });
-    };
-    return Env;
-}());
-exports.default = Env;
+    }); });
+    it('should console current active env', function () { return __awaiter(void 0, void 0, void 0, function () {
+        var currentEnv;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, program.parseAsync(['ts-node', './src/fdk.ts', 'env', 'set', '-n', 'fyndx0'])];
+                case 1:
+                    _a.sent();
+                    return [4 /*yield*/, program.parseAsync(['ts-node', './src/fdk.ts', 'env', 'get'])];
+                case 2:
+                    _a.sent();
+                    currentEnv = Config_1.default.get(Config_1.CONFIG_KEYS.CURRENT_ENV_VALUE);
+                    return [4 /*yield*/, new Promise(function (r) { return setTimeout(r, 2000); })];
+                case 3:
+                    _a.sent();
+                    expect(currentEnv).toMatch('fyndx0');
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should console all env list', function () { return __awaiter(void 0, void 0, void 0, function () {
+        var currentEnv;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, program.parseAsync(['ts-node', './src/fdk.ts', 'env', 'set', '-n', 'fyndx0'])];
+                case 1:
+                    _a.sent();
+                    return [4 /*yield*/, program.parseAsync(['ts-node', './src/fdk.ts', 'env', 'ls'])];
+                case 2:
+                    _a.sent();
+                    currentEnv = Config_1.default.get(Config_1.CONFIG_KEYS.CURRENT_ENV_VALUE);
+                    return [4 /*yield*/, new Promise(function (r) { return setTimeout(r, 2000); })];
+                case 3:
+                    _a.sent();
+                    expect(currentEnv).toMatch('fyndx0');
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+});

@@ -62,7 +62,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.init = void 0;
+exports.parseCommands = exports.init = void 0;
 var commander_1 = __importStar(require("commander"));
 var leven_1 = __importDefault(require("leven"));
 var latest_version_1 = __importDefault(require("latest-version"));
@@ -214,16 +214,20 @@ function init(programName) {
                 }
                 console.log(chalk_1.default.yellow(msg));
             });
-            commander_1.default.parse(process.argv);
-            // Show help when no sub-command specified
-            if (commander_1.default.args.length === 0) {
-                commander_1.default.help();
-            }
+            // skip this for test cases
             return [2 /*return*/, commander_1.default];
         });
     });
 }
 exports.init = init;
+function parseCommands() {
+    commander_1.default.parse(process.argv);
+    // Show help when no sub-command specified
+    if (commander_1.default.args.length === 0) {
+        commander_1.default.help();
+    }
+}
+exports.parseCommands = parseCommands;
 function checkCliVersionAsync() {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {

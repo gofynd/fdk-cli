@@ -21,7 +21,7 @@ var utils_1 = require("./../../helper/utils");
 var addSignatureFn = require('./helper/interceptors').addSignatureFn;
 var curl_1 = __importDefault(require("../../helper/curl"));
 axios_1.default.defaults.withCredentials = true;
-axios_1.default.defaults.timeout = 60000; // 1 minute
+axios_1.default.defaults.timeout = 300000; // 5 minute
 // Axios Interceptors
 axios_1.default.interceptors.request.use(addSignatureFn({}));
 axios_1.default.interceptors.response.use(function (response) {
