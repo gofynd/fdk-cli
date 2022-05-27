@@ -80,7 +80,9 @@ exports.AVAILABLE_ENVS = {
     jiox5: 'api.jiox5.de',
     jiox3: 'api.jiox3.de',
     jiomartpartners: 'api.jiomartpartners.com',
-    jmpx2: 'api.jmpx2.de'
+    jmpx2: 'api.jmpx2.de',
+    tirabeauty: 'api.tirabeauty.com',
+    tirax2: 'api.tirax2.de',
 };
 var Env = /** @class */ (function () {
     function Env() {
