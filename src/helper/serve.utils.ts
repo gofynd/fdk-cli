@@ -98,8 +98,6 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 			const BUNDLE_PATH = path.join(process.cwd(), '/.fdk/dist/themeBundle.common.js');
 			const User = Configstore.get(CONFIG_KEYS.USER);
 			const imageLoc = await UploadService.uploadFile(BUNDLE_PATH, 'fdk-cli-dev-files', User._id);
-			console.log('Jetfire URL: ', jetfireUrl.toString());
-			console.log('S3 URL: ', imageLoc.start.cdn.url);
 			
 			// Bundle directly passed on with POST request body.
 			const { data: html } = await axios({
