@@ -17,7 +17,7 @@
     "build": "npm run clean && tsc",
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build",
-    "test": "jest",
+    "test": "jest --runInBand",
     "debug": "node ./bin/fdk login"
   },
   "devDependencies": {
