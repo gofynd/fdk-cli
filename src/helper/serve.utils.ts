@@ -80,7 +80,7 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 
 	app.use(`/api`, proxy(`${host}`));
 	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
-	app.get('/__webpack_hmr', async (req, res, next) => {
+	app.get(['/__webpack_hmr', 'manifest.json'], async (req, res, next) => {
 		return res.end()
 	})
 	app.get('/*', async (req, res) => {
@@ -97,26 +97,22 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 		try {
 			const BUNDLE_PATH = path.join(process.cwd(), '/.fdk/dist/themeBundle.common.js');
 			const User = Configstore.get(CONFIG_KEYS.USER);
-			const imageLoc = await UploadService.uploadFile(BUNDLE_PATH, 'application-theme-assets', User._id);
+			const imageLoc = await UploadService.uploadFile(BUNDLE_PATH, 'fdk-cli-dev-files', User._id);
 			console.log('Jetfire URL: ', jetfireUrl.toString());
 			console.log('S3 URL: ', imageLoc.start.cdn.url);
 			
 			// Bundle directly passed on with POST request body.
-			try {
-				var { data: html } = await axios({
-					method: 'POST',
-					url: jetfireUrl.toString(),
-					headers: {
-						'content-type': 'application/json',
-      					'Accept': 'application/json'
-					},
-					data: {
-						theme_url: imageLoc.start.cdn.url
-					}
-				});
-			} catch(e) {
-				console.log('POST API ERROR', e);
-			}
+			const { data: html } = await axios({
+				method: 'POST',
+				url: jetfireUrl.toString(),
+				headers: {
+					'content-type': 'application/json',
+					'Accept': 'application/json'
+				},
+				data: {
+					theme_url: imageLoc.start.cdn.url
+				}
+			});
 
 			let $ = cheerio.load(html);
 			$('head').prepend(`
