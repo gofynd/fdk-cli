@@ -292,7 +292,7 @@ export default class Theme {
             let pArr = await Theme.uploadBundle();
             let [cssUrl, commonJsUrl, umdJsUrl] = await Promise.all(pArr);
             // setting theme data
-            await Theme.setThemeData(
+          const newTheme = await Theme.setThemeData(
                 theme,
                 cssUrl,
                 commonJsUrl,
@@ -305,9 +305,10 @@ export default class Theme {
                 available_sections
             );
             // extract page level settings schema
-            const availablePages = await Theme.getSystemPages(theme);
+            const availablePages = await Theme.getSystemPages(newTheme);
             Logger.warn('Updating theme...');
-            await Promise.all([ThemeService.updateTheme(theme)]);
+            console.log("updating newtheme")
+            await Promise.all([ThemeService.updateTheme(newTheme)]);
             Logger.warn('Updating available pages...');
             await asyncForEach(availablePages, async page => {
                 try {
@@ -853,6 +854,7 @@ export default class Theme {
                 'information.features',
                 _.get(globalConfigData, 'information.features', [])
             );
+            return theme;
         } catch (err) {
             throw new CommandError(`Failed to set theme data `);
         }
