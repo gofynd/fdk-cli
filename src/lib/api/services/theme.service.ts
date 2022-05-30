@@ -23,7 +23,6 @@ export default {
   },
   getThemeById: data => {
     try {
-      // console.log("inside getthemeby id",data)
       const activeContext = data ? data : getActiveContext();
       const axiosOption = Object.assign({}, getCommonHeaderOptions());
       return ApiClient.get(
