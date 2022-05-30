@@ -60,7 +60,7 @@ describe('Theme Context Commands', () => {
             '-t',
             'eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDUtMDlUMDQ6NDg6MjguODg5WiIsInRoZW1lX2lkIjoiNjIzYjA5ZmFlYjBiNmUwZjRmZjk3NThmIn0=',
             '-n',
-            'fyndabcdefjki',
+            'fyndx0',
         ]);
         const x = {
             application_id: '622894659baaca3be88c9d65',

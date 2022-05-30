@@ -4,7 +4,6 @@ import inquirer from 'inquirer';
 import { URLS } from '../lib/api/services/url';
 import mockFunction from './helper';
 import fs from 'fs-extra';
-import path from 'path';
 const context = require('./fixtures/context.json');
 const oauthData = require('./fixtures/oauthData.json');
 const themeData = require('./fixtures/themeData.json');
@@ -54,7 +53,6 @@ describe('Theme Commands', () => {
         });
     });
     beforeAll(async () => {
-        const namespace = 'application-theme-images';
         program = await init('fdk');
         const mock = new MockAdapter(axios);
         mock.onPost(`${URLS.LOGIN_USER()}`).reply(200, data, {
@@ -75,14 +73,14 @@ describe('Theme Commands', () => {
             `${URLS.THEME_BY_ID(context.application_id, context.company_id, context.theme_id)}`
         ).reply(200, syncThemeData);
         mock.onPost(
-            `${URLS.START_UPLOAD_FILE(context.application_id, context.company_id, namespace)}`
+            `${URLS.START_UPLOAD_FILE(context.application_id, context.company_id, 'application-theme-images')}`
         ).replyOnce(200, startUpload);
         mock.onPost(
-            `${URLS.START_UPLOAD_FILE(context.application_id, context.company_id, namespace)}`
+            `${URLS.START_UPLOAD_FILE(context.application_id, context.company_id, 'application-theme-images')}`
         ).reply(200, startUpload);
         mock.onPut(`${imageS3Url}`).reply(200, '');
         mock.onPost(
-            `${URLS.COMPLETE_UPLOAD_FILE(context.application_id, context.company_id, namespace)}`
+            `${URLS.COMPLETE_UPLOAD_FILE(context.application_id, context.company_id, 'application-theme-images')}`
         ).reply(200, completeUpload);
 
         mock.onPost(

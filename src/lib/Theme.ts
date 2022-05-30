@@ -64,7 +64,7 @@ export default class Theme {
                 spaces: 2,
             });
             Logger.success(`${path.split('/').slice(-1)[0]} written succesfully.!!!`);
-        } catch (err) {
+        } catch(err) {
             throw new CommandError(`Error writing ${path.split('/').slice(-1)[0]} file.!!!`);
         }
     }
