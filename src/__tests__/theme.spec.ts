@@ -43,9 +43,9 @@ let configObj = JSON.parse(
         'eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDUtMjZUMTM6NDM6MzcuMTQ4WiJ9'
     )
 );
-const imageS3Url = startUpload.upload.url
-const srcS3Url = srcUploadData.upload.url
-const assetS3Url = assetsUploadData.upload.url
+const imageS3Url = startUpload.upload.url;
+const srcS3Url = srcUploadData.upload.url;
+const assetS3Url = assetsUploadData.upload.url;
 describe('Theme Commands', () => {
     beforeEach(async () => {
         await program.parseAsync(['node', './bin/fdk.js', 'env', 'set', '-n', 'fyndx0']);
@@ -79,21 +79,43 @@ describe('Theme Commands', () => {
         ).replyOnce(200, startUpload);
         mock.onPost(
             `${URLS.START_UPLOAD_FILE(context.application_id, context.company_id, namespace)}`
-        ).reply(200,startUpload)
-        mock.onPut(`${imageS3Url}`).reply(200,'')
-        mock.onPost(`${URLS.COMPLETE_UPLOAD_FILE(context.application_id,context.company_id,namespace)}`).reply(200,completeUpload);
-        
+        ).reply(200, startUpload);
+        mock.onPut(`${imageS3Url}`).reply(200, '');
         mock.onPost(
-            `${URLS.START_UPLOAD_FILE(context.application_id, context.company_id, "application-theme-src")}`
-        ).reply(200,srcUploadData)
-        mock.onPut(`${srcS3Url}`).reply(200,'')
-        mock.onPost(`${URLS.COMPLETE_UPLOAD_FILE(context.application_id,context.company_id,"application-theme-src")}`).reply(200,srcCompleteUpload);
-        
+            `${URLS.COMPLETE_UPLOAD_FILE(context.application_id, context.company_id, namespace)}`
+        ).reply(200, completeUpload);
+
         mock.onPost(
-            `${URLS.START_UPLOAD_FILE(context.application_id, context.company_id, "application-theme-assets")}`
-        ).reply(200,assetsUploadData)
-        mock.onPut(`${assetS3Url}`).reply(200,'')
-        mock.onPost(`${URLS.COMPLETE_UPLOAD_FILE(context.application_id,context.company_id,"application-theme-assets")}`).reply(200,assetsCompleteUpload);
+            `${URLS.START_UPLOAD_FILE(
+                context.application_id,
+                context.company_id,
+                'application-theme-src'
+            )}`
+        ).reply(200, srcUploadData);
+        mock.onPut(`${srcS3Url}`).reply(200, '');
+        mock.onPost(
+            `${URLS.COMPLETE_UPLOAD_FILE(
+                context.application_id,
+                context.company_id,
+                'application-theme-src'
+            )}`
+        ).reply(200, srcCompleteUpload);
+
+        mock.onPost(
+            `${URLS.START_UPLOAD_FILE(
+                context.application_id,
+                context.company_id,
+                'application-theme-assets'
+            )}`
+        ).reply(200, assetsUploadData);
+        mock.onPut(`${assetS3Url}`).reply(200, '');
+        mock.onPost(
+            `${URLS.COMPLETE_UPLOAD_FILE(
+                context.application_id,
+                context.company_id,
+                'application-theme-assets'
+            )}`
+        ).reply(200, assetsCompleteUpload);
         mock.onGet(
             `${URLS.AVAILABLE_PAGE(context.application_id, context.company_id, context.theme_id)}`
         ).reply(200, getAvailablePageData);
@@ -107,10 +129,18 @@ describe('Theme Commands', () => {
             `${URLS.AVAILABLE_PAGE(context.application_id, context.company_id, context.theme_id)}`
         ).reply(200, updateAvailablePageData);
         mock.onPut(
-            `${URLS.THEME_BY_ID(context.application_id, context.company_id, context.theme_id)}/publish`
+            `${URLS.THEME_BY_ID(
+                context.application_id,
+                context.company_id,
+                context.theme_id
+            )}/publish`
         ).reply(200, publishThemeData);
         mock.onPut(
-            `${URLS.THEME_BY_ID(context.application_id, context.company_id, context.theme_id)}/unpublish`
+            `${URLS.THEME_BY_ID(
+                context.application_id,
+                context.company_id,
+                context.theme_id
+            )}/unpublish`
         ).replyOnce(200, unpublishThemeData);
         mock.onGet(
             `${URLS.GET_APPLICATION_DETAILS(context.application_id, context.company_id)}`
@@ -118,71 +148,52 @@ describe('Theme Commands', () => {
         mock.onGet(
             `${URLS.THEME_BY_ID(context.application_id, context.company_id, initThemeData._id)}`
         ).reply(200, initThemeData);
-        mock.onGet(x)
-        .reply(200, function () {        
-          return fs.createReadStream('/Users/anuragpandey/Downloads/4jEiG5tL0-archive');
+        mock.onGet(x).reply(200, function () {
+            return fs.createReadStream('/Users/anuragpandey/Downloads/4jEiG5tL0-archive');
         });
     });
-    const x = 'https://hdn-1.addsale.com/x0/company/1/applications/622894659baaca3be88c9d65/theme/sources/4jEiG5tL0-archive.zip'
+    const x =
+        'https://hdn-1.addsale.com/x0/company/1/applications/622894659baaca3be88c9d65/theme/sources/4jEiG5tL0-archive.zip';
     afterEach(() => {
         configStore.clear();
     });
-    // const y= path.join(process.cwd(),'rolex')
-    // afterAll(() => {
-    //     // fs.rmSync(y, { recursive: true, force: true });
-    //     fs.rmdir(y,{ recursive: true, force: true } ,(err) => {
-    //         if (err) {
-    //             throw err;
-    //         }
-        
-    //         console.log(`${y} is deleted!`);
-    //     });
-    // })
-    // it('should successfully create new theme', async () => {
-    //     await login();
-    //     await program.parseAsync([
-    //         'ts-node',
-    //         './src/fdk.ts',
-    //         'theme',
-    //         'new',
-    //         '-t',
-    //         'eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDUtMzBUMDc6MjA6MjMuNzA3WiJ9',
-    //         '-n',
-    //         'rolex',
-    //     ]);
-    //     const currentContext = getActiveContext();
-    //     expect(configObj.application_id).toMatch(currentContext.application_id);
-    // });
-
-    // it('should successfully sync theme', async () => {
-    //     await login();
-    // const inquirerMock = mockFunction(inquirer.prompt);
-    //     inquirerMock.mockResolvedValue({ pullConfig: 'Yes' });
-    //     await program.parseAsync([
-    //         'ts-node',
-    //         './src/fdk.ts',
-    //         'theme',
-    //         'sync'
-    //     ]);
-    //     const currentContext = getActiveContext();
-    //     expect(configObj.application_id).toMatch(currentContext.application_id);
-    // });
-
-    
-
-    it('should successfully init theme', async () => {
+    it('should successfully create new theme', async () => {
         await login();
         await program.parseAsync([
             'ts-node',
             './src/fdk.ts',
             'theme',
-            'init',
+            'new',
             '-t',
-            'eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDUtMzBUMDk6MzM6NDEuOTU5WiIsInRoZW1lX2lkIjoiNjI4ZjM0ZGVmM2UwOTEzYzA2YWMxZjc3In0='
+            'eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDUtMzBUMTE6MDQ6MjkuNTQ4WiJ9',
+            '-n',
+            'rolex',
         ]);
         const currentContext = getActiveContext();
         expect(configObj.application_id).toMatch(currentContext.application_id);
     });
+
+    it('should successfully sync theme', async () => {
+        await login();
+        const inquirerMock = mockFunction(inquirer.prompt);
+        inquirerMock.mockResolvedValue({ pullConfig: 'Yes' });
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'sync']);
+        const currentContext = getActiveContext();
+        expect(configObj.application_id).toMatch(currentContext.application_id);
+    });
+    // it('should successfully init theme', async () => {
+    //     await login();
+    //     await program.parseAsync([
+    //         'ts-node',
+    //         './src/fdk.ts',
+    //         'theme',
+    //         'init',
+    //         '-t',
+    //         'eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDUtMzBUMTA6MTI6NTcuMTYxWiIsInRoZW1lX2lkIjoiNjI4ZjM0ZGVmM2UwOTEzYzA2YWMxZjc3In0='
+    //     ]);
+    //     const currentContext = getActiveContext();
+    //     expect(configObj.application_id).toMatch(currentContext.application_id);
+    // });
 
     // it('should successfully pull  theme', async () => {
     //     await login();
@@ -196,40 +207,24 @@ describe('Theme Commands', () => {
     //     expect(configObj.application_id).toMatch(currentContext.application_id);
     // });
 
-    // it('should successfully pull config theme', async () => {
-    //     await login();
-    //     await program.parseAsync([
-    //         'ts-node',
-    //         './src/fdk.ts',
-    //         'theme',
-    //         'pull-config'
-    //     ]);
-    //     const currentContext = getActiveContext();
-    //     expect(configObj.application_id).toMatch(currentContext.application_id);
-    // });
+    it('should successfully pull config theme', async () => {
+        await login();
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'pull-config']);
+        const currentContext = getActiveContext();
+        expect(configObj.application_id).toMatch(currentContext.application_id);
+    });
 
-    // it('should successfully publish  theme', async () => {
-    //     await login();
-    //     await program.parseAsync([
-    //         'ts-node',
-    //         './src/fdk.ts',
-    //         'theme',
-    //         'publish'
-    //     ]);
-    //     const currentContext = getActiveContext();
-    //     expect(configObj.application_id).toMatch(currentContext.application_id);
-    // });
+    it('should successfully publish  theme', async () => {
+        await login();
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'publish']);
+        const currentContext = getActiveContext();
+        expect(configObj.application_id).toMatch(currentContext.application_id);
+    });
 
-    // it('should successfully unpublish  theme', async () => {
-    //     await login();
-    //     await program.parseAsync([
-    //         'ts-node',
-    //         './src/fdk.ts',
-    //         'theme',
-    //         'unpublish'
-    //     ]);
-    //     const currentContext = getActiveContext();
-    //     expect(configObj.application_id).toMatch(currentContext.application_id);
-    // });
-
+    it('should successfully unpublish  theme', async () => {
+        await login();
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'unpublish']);
+        const currentContext = getActiveContext();
+        expect(configObj.application_id).toMatch(currentContext.application_id);
+    });
 });

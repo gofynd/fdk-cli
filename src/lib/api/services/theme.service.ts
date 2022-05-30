@@ -7,7 +7,6 @@ import { getCommonHeaderOptions } from './utils';
 export default {
   createTheme: async data => {
     try {
-      // console.log("indside createtheme",data)
       const axiosOption = Object.assign(
         {},
         {
@@ -95,7 +94,6 @@ export default {
   },
   createAvailabePage: data => {
     try {
-      // console.log("inside create available page")
       const activeContext = getActiveContext();
       const axiosOption = Object.assign(
         {},
@@ -118,7 +116,6 @@ export default {
   },
   updateAvailablePage: data => {
     try {
-      // console.log("inside updateAvailable pages")
       const activeContext = getActiveContext();
       const axiosOption = Object.assign(
         {},

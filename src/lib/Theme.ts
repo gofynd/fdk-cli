@@ -145,7 +145,6 @@ export default class Theme {
         }
     }
     public static initTheme = async options => {
-        console.log("theme init")
         let shouldDelete = false;
         let targetDirectory = '';
         try {
