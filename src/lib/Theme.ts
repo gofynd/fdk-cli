@@ -292,7 +292,7 @@ export default class Theme {
             let pArr = await Theme.uploadBundle();
             let [cssUrl, commonJsUrl, umdJsUrl] = await Promise.all(pArr);
             // setting theme data
-          const newTheme = await Theme.setThemeData(
+            const newTheme = await Theme.setThemeData(
                 theme,
                 cssUrl,
                 commonJsUrl,
