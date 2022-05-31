@@ -307,7 +307,6 @@ export default class Theme {
             // extract page level settings schema
             const availablePages = await Theme.getSystemPages(newTheme);
             Logger.warn('Updating theme...');
-            console.log("updating newtheme")
             await Promise.all([ThemeService.updateTheme(newTheme)]);
             Logger.warn('Updating available pages...');
             await asyncForEach(availablePages, async page => {
