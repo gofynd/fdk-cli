@@ -6,7 +6,7 @@ import { createDirectory } from './file.utils'
 import Logger from '../lib/Logger';
 export function archiveFolder({ srcFolder, destFolder, zipFileName }) {
     return new Promise((resolve, reject) => {
-        let filePath = path.resolve(destFolder, zipFileName);
+        let filePath = path.resolve(process.cwd(), destFolder, zipFileName);
         // clear previous build archive
         const archiveExists = fs.existsSync(filePath);
 
