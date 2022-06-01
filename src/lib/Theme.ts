@@ -779,7 +779,6 @@ export default class Theme {
         const assets = ['themeBundle.css', 'themeBundle.common.js', 'themeBundle.umd.min.js'];
             const urlHash = shortid.generate();
         try {
-            Logger.warn('Uploading assets...');
             let pArr = assets.map(async asset => {
                  fs.renameSync(
                     path.join(Theme.BUILD_FOLDER, asset),
