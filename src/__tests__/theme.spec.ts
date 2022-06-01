@@ -184,7 +184,6 @@ describe('Theme Commands', () => {
         const filePath = path.join(process.cwd() + '/../');
         try {
             rimraf.sync(filePath);
-            console.log(`${filePath} is deleted!`);
         } catch (err) {
             console.error(`Error while deleting ${filePath}.`);
         }

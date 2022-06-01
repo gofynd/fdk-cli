@@ -24,7 +24,6 @@ afterAll(() => {
     let filePath = path.join(process.cwd(), './.fdk/context.json');
     try {
         rimraf.sync(filePath);
-        console.log(`${filePath} is deleted!`);
     } catch (err) {
         console.error(`Error while deleting ${filePath}.`);
     }
@@ -95,6 +94,6 @@ describe('Theme Context Commands', () => {
         const contextPath = path.join(process.cwd(), '.fdk/context.json');
         let contextJSON = await fs.readJSON(contextPath);
         let contextObj = contextJSON.theme.active_context;
-        expect(contextObj).toMatch('fyndabcdefjk');
+        expect(contextObj).toMatch('fyndx0');
     });
 });
