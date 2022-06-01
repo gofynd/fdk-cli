@@ -11,6 +11,7 @@ import { decodeBase64 } from '../helper/utils';
 import fs from 'fs-extra';
 import path from 'path';
 import { init } from '../fdk';
+import rimraf from 'rimraf';
 
 jest.mock('inquirer');
 let program;
@@ -19,6 +20,15 @@ afterEach(() => {
     configStore.clear();
 });
 
+afterAll(() => {
+    let filePath = path.join(process.cwd(),'./.fdk/context.json')
+    try {
+        rimraf.sync(filePath);
+        console.log(`${filePath} is deleted!`);
+    } catch (err) {
+        console.error(`Error while deleting ${filePath}.`);
+    }
+})
 async function login() {
     const inquirerMock = mockFunction(inquirer.prompt);
     inquirerMock.mockResolvedValue({ password: '1234567' });
