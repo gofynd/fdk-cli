@@ -633,7 +633,6 @@ export default class Theme {
         try {
             const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'assets/images');
             const images = glob.sync('**/**.**', { cwd });
-            Logger.warn('Uploading images...');
             await asyncForEach(images, async img => {
                 const assetPath = path.join(Theme.BUILD_FOLDER, '/assets/images', img);
                 await UploadService.uploadFile(assetPath, 'application-theme-images');
@@ -746,7 +745,6 @@ export default class Theme {
             if (fs.existsSync(path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts'))) {
                 const cwd = path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts');
                 const fonts = glob.sync('**/**.**', { cwd });
-                Logger.warn('Uploading fonts...');
                 await asyncForEach(fonts, async font => {
                     const assetPath = path.join(Theme.BUILD_FOLDER, 'assets/fonts', font);
                     await UploadService.uploadFile(assetPath, 'application-theme-assets');
