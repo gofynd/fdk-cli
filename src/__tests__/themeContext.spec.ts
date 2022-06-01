@@ -21,14 +21,14 @@ afterEach(() => {
 });
 
 afterAll(() => {
-    let filePath = path.join(process.cwd(),'./.fdk/context.json')
+    let filePath = path.join(process.cwd(), './.fdk/context.json');
     try {
         rimraf.sync(filePath);
         console.log(`${filePath} is deleted!`);
     } catch (err) {
         console.error(`Error while deleting ${filePath}.`);
     }
-})
+});
 async function login() {
     const inquirerMock = mockFunction(inquirer.prompt);
     inquirerMock.mockResolvedValue({ password: '1234567' });
@@ -90,7 +90,7 @@ describe('Theme Context Commands', () => {
     it('should successfully show theme context list', async () => {
         await login();
         const inquirerMock = mockFunction(inquirer.prompt);
-        inquirerMock.mockResolvedValue({ listContext: 'fyndabcdefjk' });
+        inquirerMock.mockResolvedValue({ listContext: 'fyndx0' });
         await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'context-list']);
         const contextPath = path.join(process.cwd(), '.fdk/context.json');
         let contextJSON = await fs.readJSON(contextPath);

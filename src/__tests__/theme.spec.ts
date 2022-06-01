@@ -3,7 +3,7 @@ import MockAdapter from 'axios-mock-adapter';
 import inquirer from 'inquirer';
 import { URLS } from '../lib/api/services/url';
 import mockFunction from './helper';
-import {generateToken} from './helper'
+import { generateToken } from './helper';
 import fs from 'fs-extra';
 import rimraf from 'rimraf';
 import path from 'path';
@@ -84,14 +84,26 @@ describe('Theme Commands', () => {
             `${URLS.THEME_BY_ID(context.application_id, context.company_id, context.theme_id)}`
         ).reply(200, syncThemeData);
         mock.onPost(
-            `${URLS.START_UPLOAD_FILE(context.application_id, context.company_id, 'application-theme-images')}`
+            `${URLS.START_UPLOAD_FILE(
+                context.application_id,
+                context.company_id,
+                'application-theme-images'
+            )}`
         ).replyOnce(200, startUpload);
         mock.onPost(
-            `${URLS.START_UPLOAD_FILE(context.application_id, context.company_id, 'application-theme-images')}`
+            `${URLS.START_UPLOAD_FILE(
+                context.application_id,
+                context.company_id,
+                'application-theme-images'
+            )}`
         ).reply(200, startUpload);
         mock.onPut(`${imageS3Url}`).reply(200, '');
         mock.onPost(
-            `${URLS.COMPLETE_UPLOAD_FILE(context.application_id, context.company_id, 'application-theme-images')}`
+            `${URLS.COMPLETE_UPLOAD_FILE(
+                context.application_id,
+                context.company_id,
+                'application-theme-images'
+            )}`
         ).reply(200, completeUpload);
 
         mock.onPost(
@@ -157,28 +169,26 @@ describe('Theme Commands', () => {
         mock.onGet(
             `${URLS.THEME_BY_ID(context.application_id, context.company_id, initThemeData._id)}`
         ).reply(200, initThemeData);
-        
-        let filePath = path.join(process.cwd(),'/src/__tests__/fixtures/archive.zip')
-        let url = initThemeData.src.link 
-        mock.onGet(initThemeData.src.link).reply(function() {
+
+        let filePath = path.join(process.cwd(), '/src/__tests__/fixtures/archive.zip');
+        let url = initThemeData.src.link;
+        mock.onGet(initThemeData.src.link).reply(function () {
             return [200, fs.createReadStream(filePath)];
         });
     });
-    // const x =
-    //     'https://hdn-1.addsale.com/x0/company/1/applications/622894659baaca3be88c9d65/theme/sources/4jEiG5tL0-archive.zip';
+
     afterEach(() => {
         configStore.clear();
     });
     afterAll(() => {
-        const filePath = path.join(process.cwd() + '/../')
+        const filePath = path.join(process.cwd() + '/../');
         try {
             rimraf.sync(filePath);
-        
             console.log(`${filePath} is deleted!`);
         } catch (err) {
             console.error(`Error while deleting ${filePath}.`);
         }
-    })
+    });
     it('should successfully create new theme', async () => {
         await login();
         await program.parseAsync([
@@ -203,7 +213,6 @@ describe('Theme Commands', () => {
         const currentContext = getActiveContext();
         expect(configObj.application_id).toMatch(currentContext.application_id);
     });
-   
 
     it('should successfully pull config theme', async () => {
         await login();
@@ -242,12 +251,7 @@ describe('Theme Commands', () => {
 
     it('should successfully pull  theme', async () => {
         await login();
-        await program.parseAsync([
-            'ts-node',
-            './src/fdk.ts',
-            'theme',
-            'pull'
-        ]);
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'pull']);
         const currentContext = getActiveContext();
         expect(configObj.application_id).toMatch(currentContext.application_id);
     });

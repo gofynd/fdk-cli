@@ -64,7 +64,7 @@ export default class Theme {
                 spaces: 2,
             });
             Logger.success(`${path.split('/').slice(-1)[0]} written succesfully.!!!`);
-        } catch(err) {
+        } catch (err) {
             throw new CommandError(`Error writing ${path.split('/').slice(-1)[0]} file.!!!`);
         }
     }
@@ -73,7 +73,7 @@ export default class Theme {
             const settingsJson = await fs.readJSON(path);
             Logger.success(`${path.split('/').slice(-1)[0]} read successfully.!!!`);
             return settingsJson;
-        } catch(err) {
+        } catch (err) {
             throw new CommandError(`Error reading ${path.split('/').slice(-1)[0]} file.!!!`);
         }
     }
@@ -151,7 +151,8 @@ export default class Theme {
             Logger.warn('Validating token');
             const configObj = JSON.parse(decodeBase64(options.token) || '{}');
             Debug(`Token Data: ${JSON.stringify(configObj)}`);
-            if (!configObj || !configObj.theme_id)throw new CommandError('Invalid token', ErrorCodes.INVALID_INPUT.code);
+            if (!configObj || !configObj.theme_id)
+                throw new CommandError('Invalid token', ErrorCodes.INVALID_INPUT.code);
             if (new Date(Date.now()) > new Date(configObj.expires_in))
                 throw new CommandError(
                     'Token expired. Generate a new token',
@@ -281,7 +282,7 @@ export default class Theme {
             Logger.warn('Creating zip file...');
             await Theme.copyFilesToFdkFolder();
             //remove temp files
-            rimraf.sync(path.join(process.cwd(),Theme.SRC_FOLDER));
+            rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
             let srcCdnUrl;
             // src file upload
             Logger.warn('Uploading zip file...');
@@ -779,11 +780,11 @@ export default class Theme {
     };
     private static uploadBundle = async () => {
         const assets = ['themeBundle.css', 'themeBundle.common.js', 'themeBundle.umd.min.js'];
-            const urlHash = shortid.generate();
+        const urlHash = shortid.generate();
         try {
             Logger.warn('Uploading assets...');
-            let pArr =assets.map(async asset => {
-                 fs.renameSync(
+            let pArr = assets.map(async asset => {
+                fs.renameSync(
                     path.join(Theme.BUILD_FOLDER, asset),
                     `${Theme.BUILD_FOLDER}/${urlHash}-${asset}`
                 );
@@ -895,7 +896,7 @@ export default class Theme {
                 );
                 available_page.type = 'system';
                 delete available_page.sections;
-                 availablePages.push(available_page);
+                availablePages.push(available_page);
             });
             return availablePages;
         } catch (err) {
@@ -903,7 +904,7 @@ export default class Theme {
         }
     };
     private static srcUploader = async srcCdnUrl => {
-        const zipFilePath = path.join(process.cwd(),Theme.SRC_ARCHIVE_FOLDER, Theme.ZIP_FILE_NAME);
+        const zipFilePath = path.join(process.cwd(), Theme.SRC_ARCHIVE_FOLDER, Theme.ZIP_FILE_NAME);
         try {
             let res = await UploadService.uploadFile(zipFilePath, 'application-theme-src');
             return (srcCdnUrl = res.start.cdn.url);
