@@ -231,15 +231,6 @@ describe('Theme Commands', () => {
         expect(fs.existsSync(filePath)).toBe(true);
     });
 
-    it('should successfully sync theme', async () => {
-        await login();
-        const inquirerMock = mockFunction(inquirer.prompt);
-        inquirerMock.mockResolvedValue({ pullConfig: 'Yes' });
-        await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'sync']);
-        const currentContext = getActiveContext();
-        expect(configObj.application_id).toMatch(currentContext.application_id);
-    });
-
     it('should successfully pull config theme', async () => {
         await login();
         const filePath = path.join(process.cwd(),'/theme/config/settings_data.json')
@@ -256,7 +247,7 @@ describe('Theme Commands', () => {
         } catch (e) {
             throw new CommandError(`Invalid config.json`);
         }
-        expect(_.isEqual(newSettings_data, oldSettings_data)).toBeFalsy();
+        expect(_.isEqual(newSettings_data, oldSettings_data)).toBe(false);
     });
 
     it('should successfully publish  theme', async () => {
@@ -269,6 +260,14 @@ describe('Theme Commands', () => {
     it('should successfully unpublish  theme', async () => {
         await login();
         await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'unpublish']);
+        const currentContext = getActiveContext();
+        expect(configObj.application_id).toMatch(currentContext.application_id);
+    });
+    it('should successfully sync theme', async () => {
+        await login();
+        const inquirerMock = mockFunction(inquirer.prompt);
+        inquirerMock.mockResolvedValue({ pullConfig: 'Yes' });
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'sync']);
         const currentContext = getActiveContext();
         expect(configObj.application_id).toMatch(currentContext.application_id);
     });
