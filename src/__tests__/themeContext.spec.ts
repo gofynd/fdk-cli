@@ -3,7 +3,7 @@ import MockAdapter from 'axios-mock-adapter';
 import inquirer from 'inquirer';
 import { URLS } from '../lib/api/services/url';
 import mockFunction from './helper';
-const context = require('./fixtures/context.json');
+const appConfig = require('./fixtures/appConfig.json');
 const oauthData = require('./fixtures/oauthData.json');
 const data = require('./fixtures/email-login.json');
 import configStore from '../lib/Config';
@@ -12,6 +12,8 @@ import fs from 'fs-extra';
 import path from 'path';
 import { init } from '../fdk';
 import rimraf from 'rimraf';
+import { readFile } from '../helper/file.utils';
+import CommandError from '../lib/CommandError';
 
 jest.mock('inquirer');
 let program;
@@ -48,13 +50,13 @@ describe('Theme Context Commands', () => {
         mock.onPost(`${URLS.LOGIN_USER()}`).reply(200, data, {
             'set-cookie': [{ Name: 'Anurag Pandey' }],
         });
-        mock.onGet(`${URLS.OAUTH_TOKEN(context.company_id)}`).reply(200, oauthData);
+        mock.onGet(`${URLS.OAUTH_TOKEN(appConfig.company_id)}`).reply(200, oauthData);
         mock.onGet(
-            `${URLS.GET_APPLICATION_DETAILS(context.application_id, context.company_id)}`
-        ).reply(200, context);
+            `${URLS.GET_APPLICATION_DETAILS(appConfig.application_id, appConfig.company_id)}`
+        ).reply(200, appConfig);
         mock.onGet(
-            `${URLS.THEME_BY_ID(context.application_id, context.company_id, context.theme_id)}`
-        ).reply(200, context);
+            `${URLS.THEME_BY_ID(appConfig.application_id, appConfig.company_id, appConfig.theme_id)}`
+        ).reply(200, appConfig);
     });
 
     it('should successfully add theme context ', async () => {
@@ -71,19 +73,18 @@ describe('Theme Context Commands', () => {
             '-n',
             'fyndx0',
         ]);
-        const x = {
-            application_id: '622894659baaca3be88c9d65',
-            token: '4Eoh-yDMW',
-            company_id: 1,
-            expires_in: '2022-05-09T04:48:28.889Z',
-            theme_id: '623b09faeb0b6e0f4ff9758f',
-        };
+      let context: any = readFile(path.join(process.cwd(),'./.fdk/context.json'))
+            try {
+                context = JSON.parse(context);
+            } catch (e) {
+                throw new CommandError(`Invalid config.json`);
+            }
         const configObj = JSON.parse(
             decodeBase64(
                 'eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDUtMDlUMDQ6NDg6MjguODg5WiIsInRoZW1lX2lkIjoiNjIzYjA5ZmFlYjBiNmUwZjRmZjk3NThmIn0='
             )
         );
-        expect(configObj).toMatchObject(x);
+        expect(configObj.application_id).toMatch(context.theme.contexts.fyndx0.application_id);
     });
 
     it('should successfully show theme context list', async () => {
