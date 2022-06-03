@@ -242,7 +242,7 @@ export default class Theme {
                 : Logger.warn('Please add domain to context');
             let { data: theme } = await ThemeService.getThemeById(currentContext);
             //if any changes from platform in sections|pages|settings it will pull latest configuration
-            await Theme.getLatestPlatformConfig(theme, (isNew = false));
+            await Theme.matchWithLatestPlatformConfig(theme, (isNew = false));
             Theme.clearPreviousBuild();
             Logger.warn('Reading Files...');
             let themeContent: any = readFile(`${process.cwd()}/config.json`);
@@ -279,20 +279,19 @@ export default class Theme {
             Logger.warn('Uploading theme assets/fonts...');
             await Theme.assetsFontsUploader();
             //copy files to .fdk
-            Logger.warn('Creating zip file...');
-            await Theme.copyFilesToFdkFolder();
+            Logger.warn('Creating theme source code zip file...');
+            await Theme.copyThemeSourceToFdkFolder();
             //remove temp files
-            rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
-            let srcCdnUrl;
+            rimraf.sync(Theme.SRC_FOLDER);
             // src file upload
-            Logger.warn('Uploading zip file...');
-            await Theme.srcUploader(srcCdnUrl);
+            Logger.warn('Uploading theme source code zip file...');
+            let srcCdnUrl = await Theme.uploadThemeSrcZip();
             //uploading bundle files
             Logger.warn('Uploading bundle files...');
-            let pArr = await Theme.uploadBundle();
+            let pArr = await Theme.uploadThemeBundle();
             let [cssUrl, commonJsUrl, umdJsUrl] = await Promise.all(pArr);
             // setting theme data
-            await Theme.setThemeData(
+            const newTheme = await Theme.setThemeData(
                 theme,
                 cssUrl,
                 commonJsUrl,
@@ -305,16 +304,16 @@ export default class Theme {
                 available_sections
             );
             // extract page level settings schema
-            const availablePages = await Theme.getSystemPages(theme);
+            const availablePages = await Theme.getSystemPages(newTheme);
             Logger.warn('Updating theme...');
-            await Promise.all([ThemeService.updateTheme(theme)]);
+            await Promise.all([ThemeService.updateTheme(newTheme)]);
             Logger.warn('Updating available pages...');
             await asyncForEach(availablePages, async page => {
                 try {
                     Logger.warn('Updating page: ', page.value);
                     await ThemeService.updateAvailablePage(page);
                 } catch (error) {
-                    throw new CommandError(error.message);
+                    throw new CommandError(error.message, error.code);
                 }
             });
             Logger.success('Theme syncing DONE...');
@@ -612,13 +611,12 @@ export default class Theme {
         try {
             const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'assets/images');
             const images = glob.sync('**/**.**', { cwd });
-            Logger.warn('Uploading images...');
             await asyncForEach(images, async img => {
                 const assetPath = path.join(Theme.BUILD_FOLDER, '/assets/images', img);
                 await UploadService.uploadFile(assetPath, 'application-theme-images');
             });
         } catch (err) {
-            throw new CommandError(`Failed to upload assets/images`);
+            throw new CommandError(`Failed to upload assets/images`, err.code);
         }
     };
     private static uploadThemePreviewImages = async () => {
@@ -680,7 +678,7 @@ export default class Theme {
             thumbnailImages = await Promise.all(pArr);
             return [androidImages, iosImages, desktopImages, thumbnailImages];
         } catch (err) {
-            throw new CommandError(`Failed to upload theme/config/images`);
+            throw new CommandError(`Failed to upload theme/config/images`, err.code);
         }
     };
 
@@ -697,7 +695,7 @@ export default class Theme {
             ).data;
             return (imageCdnUrl = path.dirname(startAssetData.cdn.url));
         } catch (err) {
-            throw new CommandError(`Failed in getting image cdn base url`);
+            throw new CommandError(`Failed in getting image CDN base url`, err.code);
         }
     };
 
@@ -717,7 +715,7 @@ export default class Theme {
             }
             return assetCdnUrl;
         } catch (err) {
-            throw new CommandError(`Failed in getting assets cdn base url`);
+            throw new CommandError(`Failed in getting assets CDN base url`, err.code);
         }
     };
     private static assetsFontsUploader = async () => {
@@ -725,17 +723,16 @@ export default class Theme {
             if (fs.existsSync(path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts'))) {
                 const cwd = path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts');
                 const fonts = glob.sync('**/**.**', { cwd });
-                Logger.warn('Uploading fonts...');
                 await asyncForEach(fonts, async font => {
                     const assetPath = path.join(Theme.BUILD_FOLDER, 'assets/fonts', font);
                     await UploadService.uploadFile(assetPath, 'application-theme-assets');
                 });
             }
         } catch (err) {
-            throw new CommandError(`Failed to upload assets/fonts`);
+            throw new CommandError(`Failed to upload assets/fonts`, err.code);
         }
     };
-    private static copyFilesToFdkFolder = async () => {
+    private static copyThemeSourceToFdkFolder = async () => {
         try {
             await fs.copy('./theme', Theme.SRC_FOLDER);
             fs.copyFileSync('./package.json', Theme.SRC_FOLDER + '/package.json');
@@ -756,13 +753,12 @@ export default class Theme {
             throw new CommandError(err.message, err.code);
         }
     };
-    private static uploadBundle = async () => {
+    private static uploadThemeBundle = async () => {
         const assets = ['themeBundle.css', 'themeBundle.common.js', 'themeBundle.umd.min.js'];
         const urlHash = shortid.generate();
         try {
-            Logger.warn('Uploading assets...');
             let pArr = assets.map(async asset => {
-                fs.renameSync(
+                 fs.renameSync(
                     path.join(Theme.BUILD_FOLDER, asset),
                     `${Theme.BUILD_FOLDER}/${urlHash}-${asset}`
                 );
@@ -772,7 +768,7 @@ export default class Theme {
             });
             return pArr;
         } catch (err) {
-            throw new CommandError(`Failed to upload assets `);
+            throw new CommandError(`Failed to upload theme bundle `, err.code);
         }
     };
     private static setThemeData = async (
@@ -831,6 +827,7 @@ export default class Theme {
                 'information.features',
                 _.get(globalConfigData, 'information.features', [])
             );
+            return theme;
         } catch (err) {
             throw new CommandError(`Failed to set theme data `);
         }
@@ -850,7 +847,7 @@ export default class Theme {
                 try {
                     available_page = (await ThemeService.getAvailablePage(pageName)).data;
                 } catch (error) {
-                    Logger.log('Creating Page: ', pageName);
+                    throw new CommandError(`Failed while getting page details: ${pageName}`, error.code);
                 }
                 if (!available_page) {
                     const pageData = {
@@ -878,20 +875,20 @@ export default class Theme {
             });
             return availablePages;
         } catch (err) {
-            throw new CommandError(`Failed to update system pages`);
+            throw new CommandError(`Failed to fetch system pages`, err.code);
         }
     };
-    private static srcUploader = async srcCdnUrl => {
-        const zipFilePath = path.join(process.cwd(), Theme.SRC_ARCHIVE_FOLDER, Theme.ZIP_FILE_NAME);
+    private static uploadThemeSrcZip = async () => {
+        const zipFilePath = path.join(Theme.SRC_ARCHIVE_FOLDER, Theme.ZIP_FILE_NAME);
         try {
             let res = await UploadService.uploadFile(zipFilePath, 'application-theme-src');
-            return (srcCdnUrl = res.start.cdn.url);
+            return res.start.cdn.url;
         } catch (err) {
-            throw new CommandError(`Failed to upload src file `);
+            throw new CommandError(`Failed to upload src folder`, err.code);
         }
     };
 
-    private static getLatestPlatformConfig = async (theme, isNew) => {
+    private static matchWithLatestPlatformConfig = async (theme, isNew) => {
         try {
             const newConfig = Theme.getSettingsData(theme);
             const oldConfig = await Theme.readSettingsJson(Theme.getSettingsDataPath());
