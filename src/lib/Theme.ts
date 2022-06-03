@@ -2,6 +2,7 @@ import {
     asyncForEach,
     createContext,
     decodeBase64,
+    evaluateModule,
     getActiveContext,
     pageNameModifier,
 } from '../helper/utils';
@@ -517,7 +518,7 @@ export default class Theme {
                     _.get(globalConfigData, 'information.features', [])
                 );
 
-                // extract page level settings schema
+                // extract system page level settings schema
                 let pageTemplateFiles = fs
                     .readdirSync(`${process.cwd()}/theme/templates/pages`)
                     .filter(o => o != 'index.js');
@@ -558,6 +559,73 @@ export default class Theme {
                     delete available_page.sections;
                     availablePages.push(available_page);
                 });
+
+                // extract custom page level settings schema
+                const bundleFiles = await fs.readFile(
+                    path.join(Theme.BUILD_FOLDER, `${urlHash}-themeBundle.common.js`),
+                    'utf-8'
+                );
+                const themeBundle = evaluateModule(bundleFiles);
+                const customTemplates = themeBundle.getCustomTemplates();
+                const customFiles = {};
+
+                const customRoutes = (ctTemplates, parentKey = null) => {
+                    for (let key in ctTemplates) {
+                        const routerPath = (parentKey && `${parentKey}/${key}`) || `c/${key}`;
+                        const value = routerPath.replace(/\//g, ':::');
+                        customFiles[value] = {
+                            fileName: ctTemplates[key].component.__file,
+                            value,
+                            text: pageNameModifier(key),
+                            path: routerPath,
+                        };
+                        if (
+                            ctTemplates[key].children &&
+                            Object.keys(ctTemplates[key].children).length
+                        ) {
+                            customRoutes(ctTemplates[key].children, routerPath);
+                        }
+                    }
+                };
+                customRoutes(customTemplates);
+                for (let key in customFiles) {
+                    const customPageConfig = customFiles[key];
+                    let customPageData;
+                    try {
+                        customPageData = (
+                            await ThemeService.getAvailablePage(customPageConfig.value)
+                        ).data;
+                    } catch (error) {
+                        Logger.log('Creating Page: ', JSON.stringify(customFiles[key]));
+                    }
+
+                    if (!customPageData) {
+                        const body = {
+                            value: customPageConfig.value,
+                            text: customPageConfig.text,
+                            path: customPageConfig.path,
+                            props: [],
+                            sections: [],
+                            sections_meta: [],
+                            type: 'custom',
+                        };
+                        customPageData = (await ThemeService.createAvailabePage(body)).data;
+                    }
+                    customPageData.props =
+                        (
+                            Theme.extractSettingsFromFile(
+                                `${process.cwd()}/theme/custom-templates/${
+                                    customPageConfig.fileName
+                                }`
+                            ) || {}
+                        ).props || [];
+                    customPageData.sections_meta = Theme.extractSectionsFromFile(
+                        `${process.cwd()}/theme/custom-templates/${customPageConfig.fileName}`
+                    );
+                    customPageData.type = 'custom';
+                    delete customPageData.sections;
+                    availablePages.push(customPageData);
+                }
                 Logger.warn('Updating theme...');
                 await Promise.all([ThemeService.updateTheme(theme)]);
                 Logger.warn('Updating pages...');
