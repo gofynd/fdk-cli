@@ -3,6 +3,8 @@ import MockAdapter from 'axios-mock-adapter';
 import inquirer from 'inquirer';
 import { URLS } from '../lib/api/services/url';
 import mockFunction from './helper';
+import { generateToken } from './helper';
+const {contextToken} =require('./constants');
 const appConfig = require('./fixtures/appConfig.json');
 const oauthData = require('./fixtures/oauthData.json');
 const data = require('./fixtures/email-login.json');
@@ -22,6 +24,12 @@ afterEach(() => {
     configStore.clear();
 });
 
+let configObj = JSON.parse(
+    decodeBase64(`${contextToken}`
+    )
+);
+let addContextToken = generateToken(configObj);
+
 afterAll(() => {
     let filePath = path.join(process.cwd(), './.fdk/context.json');
     try {
@@ -33,7 +41,7 @@ afterAll(() => {
 async function login() {
     const inquirerMock = mockFunction(inquirer.prompt);
     inquirerMock.mockResolvedValue({ password: '1234567' });
-    await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '-e', 'anuragpandey@gofynd.com']);
+    await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '-e', 'anything@something.com']);
 }
 
 describe('Theme Context Commands', () => {
@@ -48,7 +56,7 @@ describe('Theme Context Commands', () => {
         program = await init('fdk');
         const mock = new MockAdapter(axios);
         mock.onPost(`${URLS.LOGIN_USER()}`).reply(200, data, {
-            'set-cookie': [{ Name: 'Anurag Pandey' }],
+            'set-cookie': [{ Name: 'some one' }],
         });
         mock.onGet(`${URLS.OAUTH_TOKEN(appConfig.company_id)}`).reply(200, oauthData);
         mock.onGet(
@@ -69,7 +77,7 @@ describe('Theme Context Commands', () => {
             'theme',
             'context',
             '-t',
-            'eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDUtMDlUMDQ6NDg6MjguODg5WiIsInRoZW1lX2lkIjoiNjIzYjA5ZmFlYjBiNmUwZjRmZjk3NThmIn0=',
+            `${addContextToken}`,
             '-n',
             'fyndx0',
         ]);
@@ -79,11 +87,6 @@ describe('Theme Context Commands', () => {
             } catch (e) {
                 throw new CommandError(`Invalid config.json`);
             }
-        const configObj = JSON.parse(
-            decodeBase64(
-                'eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDUtMDlUMDQ6NDg6MjguODg5WiIsInRoZW1lX2lkIjoiNjIzYjA5ZmFlYjBiNmUwZjRmZjk3NThmIn0='
-            )
-        );
         expect(configObj.application_id).toMatch(context.theme.contexts.fyndx0.application_id);
     });
 

@@ -27,6 +27,7 @@ const unpublishThemeData = require('./fixtures/unpublishThemeData.json');
 const initThemeData = require('./fixtures/initThemeData.json');
 const initAppConfigData = require('./fixtures/initAppConfigData.json');
 const data = require('./fixtures/email-login.json');
+const {themeToken,initToken} =require('./constants');
 import { decodeBase64 } from '../helper/utils';
 import { getActiveContext } from '../helper/utils';
 import { init } from '../fdk';
@@ -43,17 +44,15 @@ async function login() {
 }
 
 let configObj = JSON.parse(
-    decodeBase64(
-        'eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDUtMjZUMTM6NDM6MzcuMTQ4WiJ9'
+    decodeBase64(`${themeToken}`
     )
 );
 let initconfigObj = JSON.parse(
-    decodeBase64(
-        'eyJhcHBsaWNhdGlvbl9pZCI6IjYyMjg5NDY1OWJhYWNhM2JlODhjOWQ2NSIsInRva2VuIjoiNEVvaC15RE1XIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDYtMDFUMTA6NTA6MDkuNDk0WiIsInRoZW1lX2lkIjoiNjI4ZjM0ZGVmM2UwOTEzYzA2YWMxZjc3In0='
+    decodeBase64(`${initToken}`
     )
 );
-let token = generateToken(configObj);
-let initToken = generateToken(initconfigObj);
+let createThemeToken = generateToken(configObj);
+let initThemeToken = generateToken(initconfigObj);
 
 const imageS3Url = startUpload.upload.url;
 const srcS3Url = srcUploadData.upload.url;
@@ -148,13 +147,8 @@ describe('Theme Commands', () => {
                 'application-theme-assets'
             )}`
         ).reply(200, assetsCompleteUpload);
-        mock.onGet(
-            `${URLS.AVAILABLE_PAGE(
-                appConfig.application_id,
-                appConfig.company_id,
-                appConfig.theme_id
-            )}`
-        ).reply(200, getAvailablePageData);
+        const availablePageUrl = new RegExp('https://api.fyndx0.de/service/platform/theme/v1.0/company/1/application/622894659baaca3be88c9d65/623b09faeb0b6e0f4ff9758f/*');
+        mock.onGet(availablePageUrl).reply(200, getAvailablePageData);
         mock.onPost(
             `${URLS.AVAILABLE_PAGE(
                 appConfig.application_id,
@@ -169,13 +163,8 @@ describe('Theme Commands', () => {
                 appConfig.theme_id
             )}`
         ).reply(200, updateThemeData);
-        mock.onPut(
-            `${URLS.AVAILABLE_PAGE(
-                appConfig.application_id,
-                appConfig.company_id,
-                appConfig.theme_id
-            )}`
-        ).reply(200, updateAvailablePageData);
+        const updateAvailablePageUrl = new RegExp('https://api.fyndx0.de/service/platform/theme/v1.0/company/1/application/622894659baaca3be88c9d65/623b09faeb0b6e0f4ff9758f/*');
+        mock.onPut(updateAvailablePageUrl).reply(200, updateAvailablePageData);
         mock.onPut(
             `${URLS.THEME_BY_ID(
                 appConfig.application_id,
@@ -223,7 +212,7 @@ describe('Theme Commands', () => {
             'theme',
             'new',
             '-t',
-            `${token}`,
+            `${createThemeToken}`,
             '-n',
             'rolex',
         ]);
@@ -233,15 +222,15 @@ describe('Theme Commands', () => {
 
     it('should successfully pull config theme', async () => {
         await login();
-        const filePath = path.join(process.cwd(),'/theme/config/settings_data.json')
-        let oldSettings_data: any = readFile(filePath)
+        const filePath = path.join(process.cwd(), '/theme/config/settings_data.json');
+        let oldSettings_data: any = readFile(filePath);
         try {
             oldSettings_data = JSON.parse(oldSettings_data);
         } catch (e) {
             throw new CommandError(`Invalid config.json`);
         }
         await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'pull-config']);
-        let newSettings_data: any = readFile(filePath)
+        let newSettings_data: any = readFile(filePath);
         try {
             newSettings_data = JSON.parse(newSettings_data);
         } catch (e) {
@@ -280,7 +269,7 @@ describe('Theme Commands', () => {
             'theme',
             'init',
             '-t',
-            `${initToken}`,
+            `${initThemeToken}`,
         ]);
         const filePath = path.join(process.cwd());
         expect(fs.existsSync(filePath)).toBe(true);
