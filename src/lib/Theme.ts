@@ -757,32 +757,10 @@ export default class Theme {
                 .readdirSync(path.join(Theme.TEMPLATE_DIRECTORY, '/sections'))
                 .filter(o => o != 'index.js');
         } catch (err) {}
-        let pArr = sectionsFiles.map(async f => {
-            let image_section = compiler.parseComponent(
-                readFile(path.join(Theme.TEMPLATE_DIRECTORY, 'sections', f))
-            );
-            let sectionSettings = await new Promise((resolve, reject) => {
-                require('@babel/core').transform(
-                    image_section.script.content,
-                    {
-                        plugins: ['@babel/plugin-transform-modules-commonjs'],
-                    },
-                    (err, result) => {
-                        if (err) {
-                            return reject(err);
-                        }
-                        try {
-                            let modules = requireFromString(result.code);
-                            return resolve(modules.settings);
-                        } catch (e) {
-                            return reject(e);
-                        }
-                    }
-                );
-            });
-            return sectionSettings;
+        let settings = sectionsFiles.map(f => {
+            return Theme.extractSettingsFromFile(`${Theme.TEMPLATE_DIRECTORY}/theme/sections/${f}`);
         });
-        return Promise.all(pArr);
+        return settings;
     }
     private static async getAvailableSectionsForSync() {
         let sectionsFiles = fs

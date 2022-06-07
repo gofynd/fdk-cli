@@ -2,13 +2,16 @@
 
 'use strict';
 
+const chalk = require('chalk');
+
 const currentNodeVersion = process.versions.node;
 const semver = currentNodeVersion.split('.');
 const major = Number(semver[0]);
 
 const bootstrap = () => {
-  const { init } = require('../dist/fdk');
+  const { init, parseCommands } = require('../dist/fdk');
   const program = init('fdk');
+  parseCommands();
   return program;
 }
 
@@ -40,6 +43,15 @@ else {
     .commandDir('../src/partners/cmds')
     .option('host', {
       describe: 'Set host for syncing resources'
+    }).check((argv, options) => {
+      // regex for validation cli-host (host with subdomain mandatory)
+      let hostRegex = /^(http(s)?:\/\/)?([a-zA-Z0-9]([-a-zA-Z0-9]{1,61}[a-zA-Z0-9])?\.)+([a-zA-Z0-9]{1,2}([-a-zA-Z0-9]{0,252}[a-zA-Z0-9])?)\.([a-zA-Z]{2,63})$/g
+      const host = argv.host
+      if (host && !hostRegex.test(host)) {
+        console.log(chalk.red('Invalid host'));
+        process.exit(1);
+      }
+      return true
     })
     .version()
     .help().argv;

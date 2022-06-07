@@ -1,6 +1,6 @@
 {
   "name": "@gofynd/fdk-cli",
-  "version": "2.2.3",
+  "version": "2.2.7",
   "main": "index.js",
   "license": "MIT",
   "bin": {
@@ -17,7 +17,7 @@
     "build": "npm run clean && tsc",
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build",
-    "test": "jest  -- ./src/__tests__/*.spec.ts",
+    "test": "jest --runInBand",
     "debug": "node ./bin/fdk login"
   },
   "devDependencies": {

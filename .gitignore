@@ -1,5 +1,4 @@
 node_modules
-dist
 # Logs
 logs
 *.log
@@ -129,8 +128,6 @@ dist
 /build
 /captures
 .externalNativeBuild
-.vscode/*
-.vscode/settings.json
 .project
 **/.settings
 artifacts/
