@@ -517,126 +517,121 @@ export default class Theme {
                     'information.features',
                     _.get(globalConfigData, 'information.features', [])
                 );
-
-                // extract system page level settings schema
-                let pageTemplateFiles = fs
-                    .readdirSync(`${process.cwd()}/theme/templates/pages`)
-                    .filter(o => o != 'index.js');
                 theme.config = theme.config || {};
-                let availablePages = [];
-                await asyncForEach(pageTemplateFiles, async fileName => {
-                    let pageName = fileName.replace('.vue', '');
-                    // SYSTEM Pages
-                    let available_page;
-                    try {
-                        available_page = (await ThemeService.getAvailablePage(pageName)).data;
-                    } catch (error) {
-                        Logger.log('Creating Page: ', pageName);
-                    }
 
-                    if (!available_page) {
-                        const pageData = {
-                            value: pageName,
-                            props: [],
-                            sections: [],
-                            sections_meta: [],
-                            type: 'system',
-                            text: pageNameModifier(pageName),
-                        };
+                // Update available pages
+                {
+                    const allPages = (await ThemeService.getAllAvailablePage()).data.pages;
+                    const systemPagesDB = allPages.filter(x => x.type == "system");
+                    const customPagesDB = allPages.filter(x => x.type == "custom");
+                    const pagesToSave = [];
 
-                        available_page = (await ThemeService.createAvailabePage(pageData)).data;
-                    }
-                    available_page.props =
-                        (
-                            Theme.extractSettingsFromFile(
-                                `${process.cwd()}/theme/templates/pages/${fileName}`
-                            ) || {}
-                        ).props || [];
-                    available_page.sections_meta = Theme.extractSectionsFromFile(
-                        `${process.cwd()}/theme/templates/pages/${fileName}`
-                    );
-                    available_page.type = 'system';
-                    delete available_page.sections;
-                    availablePages.push(available_page);
-                });
-
-                // extract custom page level settings schema
-                const bundleFiles = await fs.readFile(
-                    path.join(Theme.BUILD_FOLDER, `${urlHash}-themeBundle.common.js`),
-                    'utf-8'
-                );
-                const themeBundle = evaluateModule(bundleFiles);
-                const customTemplates = themeBundle.getCustomTemplates();
-                const customFiles = {};
-
-                const customRoutes = (ctTemplates, parentKey = null) => {
-                    for (let key in ctTemplates) {
-                        const routerPath = (parentKey && `${parentKey}/${key}`) || `c/${key}`;
-                        const value = routerPath.replace(/\//g, ':::');
-                        customFiles[value] = {
-                            fileName: ctTemplates[key].component.__file,
-                            value,
-                            text: pageNameModifier(key),
-                            path: routerPath,
-                        };
-                        if (
-                            ctTemplates[key].children &&
-                            Object.keys(ctTemplates[key].children).length
-                        ) {
-                            customRoutes(ctTemplates[key].children, routerPath);
+                    // extract system page level settings schema
+                    let systemPages = fs
+                        .readdirSync(`${process.cwd()}/theme/templates/pages`)
+                        .filter(o => o != 'index.js');
+                    await asyncForEach(systemPages, async fileName => {
+                        let pageName = fileName.replace('.vue', '');
+                        // SYSTEM Pages
+                        let systemPage = systemPagesDB.find(p => p.value == pageName);
+                        if (systemPage) {
+                            delete systemPage.sections;
+                        } else {
+                            Logger.log('Creating Page: ', pageName);
+                            const pageData = {
+                                value: pageName,
+                                props: [],
+                                sections: [],
+                                sections_meta: [],
+                                type: 'system',
+                                text: pageNameModifier(pageName),
+                            };
+                            systemPage = (await ThemeService.createAvailabePage(pageData)).data;
                         }
-                    }
-                };
-                customRoutes(customTemplates);
-                for (let key in customFiles) {
-                    const customPageConfig = customFiles[key];
-                    let customPageData;
-                    try {
-                        customPageData = (
-                            await ThemeService.getAvailablePage(customPageConfig.value)
-                        ).data;
-                    } catch (error) {
-                        Logger.log('Creating Page: ', JSON.stringify(customFiles[key]));
-                    }
-
-                    if (!customPageData) {
-                        const body = {
-                            value: customPageConfig.value,
-                            text: customPageConfig.text,
-                            path: customPageConfig.path,
-                            props: [],
-                            sections: [],
-                            sections_meta: [],
-                            type: 'custom',
-                        };
-                        customPageData = (await ThemeService.createAvailabePage(body)).data;
-                    }
-                    customPageData.props =
-                        (
-                            Theme.extractSettingsFromFile(
-                                `${process.cwd()}/theme/custom-templates/${
-                                    customPageConfig.fileName
-                                }`
-                            ) || {}
-                        ).props || [];
-                    customPageData.sections_meta = Theme.extractSectionsFromFile(
-                        `${process.cwd()}/theme/custom-templates/${customPageConfig.fileName}`
+                        systemPage.props =
+                            (
+                                Theme.extractSettingsFromFile(
+                                    `${process.cwd()}/theme/templates/pages/${fileName}`
+                                ) || {}
+                            ).props || [];
+                        systemPage.sections_meta = Theme.extractSectionsFromFile(
+                            `${process.cwd()}/theme/templates/pages/${fileName}`
+                        );
+                        systemPage.type = 'system';
+                        pagesToSave.push(systemPage)
+                    });
+                    
+                    // extract custom page level settings schema
+                    const bundleFiles = await fs.readFile(
+                        path.join(Theme.BUILD_FOLDER, `${urlHash}-themeBundle.common.js`),
+                        'utf-8'
                     );
-                    customPageData.type = 'custom';
-                    delete customPageData.sections;
-                    availablePages.push(customPageData);
-                }
-                Logger.warn('Updating theme...');
-                await Promise.all([ThemeService.updateTheme(theme)]);
-                Logger.warn('Updating pages...');
-                await asyncForEach(availablePages, async page => {
-                    try {
-                        Logger.warn('Updating page: ', page.value);
-                        await ThemeService.updateAvailablePage(page);
-                    } catch (error) {
-                        throw new CommandError(error.message);
+                    const themeBundle = evaluateModule(bundleFiles);
+                    const customTemplates = themeBundle.getCustomTemplates();
+                    const customFiles = {};
+                    const customRoutes = (ctTemplates, parentKey = null) => {
+                        for (let key in ctTemplates) {
+                            const routerPath = (parentKey && `${parentKey}/${key}`) || `c/${key}`;
+                            const value = routerPath.replace(/\//g, ':::');
+                            customFiles[value] = {
+                                fileName: ctTemplates[key].component.__file,
+                                value,
+                                text: pageNameModifier(key),
+                                path: routerPath,
+                            };
+                            if (
+                                ctTemplates[key].children &&
+                                Object.keys(ctTemplates[key].children).length
+                            ) {
+                                customRoutes(ctTemplates[key].children, routerPath);
+                            }
+                        }
+                    };
+                    customRoutes(customTemplates);
+
+                    // Delete custom pages removed from code
+                    const pagesToDelete = customPagesDB.filter(x => !customFiles[x.value]);
+                    await Promise.all(pagesToDelete.map(page => {
+                        return ThemeService.deleteAvailablePage(page.value)
+                    }))
+
+                    for (let key in customFiles) {
+                        const customPageConfig = customFiles[key];
+                        let customPage = customPagesDB.find(p => p.value == key);
+                        if (customPage) {
+                            delete customPage.sections;
+                        } else {
+                            Logger.log('Creating Custom Page: ', key);
+                            const pageData = {
+                                value: customPageConfig.value,
+                                text: customPageConfig.text,
+                                path: customPageConfig.path,
+                                props: [],
+                                sections: [],
+                                sections_meta: [],
+                                type: 'custom'
+                            };
+                            customPage = (await ThemeService.createAvailabePage(pageData)).data;
+                        }
+                        customPage.props =
+                            (
+                                Theme.extractSettingsFromFile(
+                                    `${process.cwd()}/theme/custom-templates/${
+                                        customPageConfig.fileName
+                                    }`
+                                ) || {}
+                            ).props || [];
+                        customPage.sections_meta = Theme.extractSectionsFromFile(
+                            `${process.cwd()}/theme/custom-templates/${customPageConfig.fileName}`
+                        );
+                        customPage.type = 'custom';
+                        pagesToSave.push(customPage);
                     }
-                });
+                    Logger.warn('Updating theme...');
+                    await ThemeService.updateTheme(theme);
+                    Logger.warn('Updating pages...');
+                    await ThemeService.updateAllAvailablePages({ pages: pagesToSave });
+                }
                 Logger.success('DONE...');
             }
         } catch (error) {
