@@ -380,7 +380,8 @@ export default class Theme {
             const { data: themeData } = await ThemeService.getThemeById(null);
             const theme = _.cloneDeep({ ...themeData });
             rimraf.sync(path.resolve(process.cwd(), './.fdk/archive'));
-            await downloadFile(theme.src.link, './.fdk/pull-archive.zip');
+            const zipFilePath = path.join(process.cwd(),'./.fdk/pull-archive.zip')
+            await downloadFile(theme.src.link, zipFilePath);
             await extractArchive({
                 zipPath: path.resolve(process.cwd(), './.fdk/pull-archive.zip'),
                 destFolderPath: path.resolve(process.cwd(), './theme'),

@@ -25,6 +25,7 @@ const startUpload = require('./fixtures/startUpload.json');
 const publishThemeData = require('./fixtures/publishThemeData.json');
 const unpublishThemeData = require('./fixtures/unpublishThemeData.json');
 const initThemeData = require('./fixtures/initThemeData.json');
+const pullThemeData = require('./fixtures/pullThemeData.json');
 const initAppConfigData = require('./fixtures/initAppConfigData.json');
 const data = require('./fixtures/email-login.json');
 const {themeToken,initToken} =require('./constants');
@@ -41,6 +42,19 @@ async function login() {
     const inquirerMock = mockFunction(inquirer.prompt);
     inquirerMock.mockResolvedValue({ password: '1234567' });
     await program.parseAsync(['node', './bin/fdk.js', 'login', '-e', 'abcd@something.com']);
+}
+
+async function createTheme() {
+    await program.parseAsync([
+        'ts-node',
+        './src/fdk.ts',
+        'theme',
+        'new',
+        '-t',
+        `${createThemeToken}`,
+        '-n',
+        'rolex',
+    ]);
 }
 
 let configObj = JSON.parse(
@@ -185,25 +199,38 @@ describe('Theme Commands', () => {
         mock.onGet(
             `${URLS.THEME_BY_ID(appConfig.application_id, appConfig.company_id, initThemeData._id)}`
         ).reply(200, initThemeData);
-
         let filePath = path.join(process.cwd(), '/src/__tests__/fixtures/archive.zip');
-        let url = initThemeData.src.link;
         mock.onGet(initThemeData.src.link).reply(function () {
             return [200, fs.createReadStream(filePath)];
+        });
+
+        mock.onGet(
+            `${URLS.THEME_BY_ID(appConfig.application_id, appConfig.company_id, appConfig.theme_id)}`
+        ).reply(200, pullThemeData);
+        let zipfilePath = path.join(process.cwd(), '/src/__tests__/fixtures/pull-archive.zip');
+        mock.onGet(pullThemeData.src.link).reply(function () {
+            return [200, fs.createReadStream(zipfilePath)];
         });
     });
 
     afterEach(() => {
+        const themeFile = path.join(process.cwd(),'rolex')
+        console.log("themeFule",themeFile)
+        try {
+            rimraf.sync(themeFile);
+        } catch (err) {
+            console.error(`Error while deleting ${themeFile}.`);
+        }
         configStore.clear();
     });
-    afterAll(() => {
-        const filePath = path.join(process.cwd() + '/../');
-        try {
-            rimraf.sync(filePath);
-        } catch (err) {
-            console.error(`Error while deleting ${filePath}.`);
-        }
-    });
+    // afterAll(() => {
+    //     const filePath = path.join(process.cwd() + '/../');
+        // try {
+        //     rimraf.sync(filePath);
+        // } catch (err) {
+        //     console.error(`Error while deleting ${filePath}.`);
+        // }
+    // });
     it('should successfully create new theme', async () => {
         await login();
         await program.parseAsync([
@@ -216,12 +243,14 @@ describe('Theme Commands', () => {
             '-n',
             'rolex',
         ]);
-        const filePath = path.join(process.cwd());
+        process.chdir(`../`);
+        const filePath = path.join(process.cwd(),'rolex');
         expect(fs.existsSync(filePath)).toBe(true);
     });
 
     it('should successfully pull config theme', async () => {
         await login();
+        await createTheme();
         const filePath = path.join(process.cwd(), '/theme/config/settings_data.json');
         let oldSettings_data: any = readFile(filePath);
         try {
@@ -241,6 +270,7 @@ describe('Theme Commands', () => {
 
     it('should successfully publish  theme', async () => {
         await login();
+        await createTheme();
         await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'publish']);
         const currentContext = getActiveContext();
         expect(configObj.application_id).toMatch(currentContext.application_id);
@@ -248,12 +278,14 @@ describe('Theme Commands', () => {
 
     it('should successfully unpublish  theme', async () => {
         await login();
+        await createTheme();
         await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'unpublish']);
         const currentContext = getActiveContext();
         expect(configObj.application_id).toMatch(currentContext.application_id);
     });
     it('should successfully sync theme', async () => {
         await login();
+        await createTheme();
         const inquirerMock = mockFunction(inquirer.prompt);
         inquirerMock.mockResolvedValue({ pullConfig: 'Yes' });
         await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'sync']);
@@ -263,6 +295,7 @@ describe('Theme Commands', () => {
 
     it('should successfully init theme', async () => {
         await login();
+        await createTheme();
         await program.parseAsync([
             'ts-node',
             './src/fdk.ts',
@@ -277,6 +310,7 @@ describe('Theme Commands', () => {
 
     it('should successfully pull  theme', async () => {
         await login();
+        await createTheme();
         await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'pull']);
         const filePath = path.join(process.cwd(), './.fdk/pull-archive.zip');
         expect(fs.existsSync(filePath)).toBe(true);
