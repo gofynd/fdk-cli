@@ -3,8 +3,8 @@ import MockAdapter from 'axios-mock-adapter';
 import inquirer from 'inquirer';
 import { URLS } from '../lib/api/services/url';
 import mockFunction from './helper';
-import { generateToken } from './helper';
-const {contextToken} =require('./constants');
+import { generateToken, setEnv } from './helper';
+const { contextToken } = require('./constants');
 const appConfig = require('./fixtures/appConfig.json');
 const oauthData = require('./fixtures/oauthData.json');
 const data = require('./fixtures/email-login.json');
@@ -20,17 +20,11 @@ import CommandError from '../lib/CommandError';
 jest.mock('inquirer');
 let program;
 
-afterEach(() => {
-    configStore.clear();
-});
-
-let configObj = JSON.parse(
-    decodeBase64(`${contextToken}`
-    )
-);
+let configObj = JSON.parse(decodeBase64(`${contextToken}`));
 let addContextToken = generateToken(configObj);
 
 afterAll(() => {
+    configStore.clear();
     let filePath = path.join(process.cwd(), './.fdk/context.json');
     try {
         rimraf.sync(filePath);
@@ -45,14 +39,8 @@ async function login() {
 }
 
 describe('Theme Context Commands', () => {
-    beforeEach(async () => {
-        await program.parseAsync(['ts-node', './src/fdk.ts', 'env', 'set', '-n', 'fyndx0']);
-        program.commands.forEach(command => {
-            command._optionValues = {};
-        });
-    });
-
     beforeAll(async () => {
+        setEnv();
         program = await init('fdk');
         const mock = new MockAdapter(axios);
         mock.onPost(`${URLS.LOGIN_USER()}`).reply(200, data, {
@@ -63,7 +51,11 @@ describe('Theme Context Commands', () => {
             `${URLS.GET_APPLICATION_DETAILS(appConfig.application_id, appConfig.company_id)}`
         ).reply(200, appConfig);
         mock.onGet(
-            `${URLS.THEME_BY_ID(appConfig.application_id, appConfig.company_id, appConfig.theme_id)}`
+            `${URLS.THEME_BY_ID(
+                appConfig.application_id,
+                appConfig.company_id,
+                appConfig.theme_id
+            )}`
         ).reply(200, appConfig);
     });
 
@@ -81,12 +73,12 @@ describe('Theme Context Commands', () => {
             '-n',
             'fyndx0',
         ]);
-      let context: any = readFile(path.join(process.cwd(),'./.fdk/context.json'))
-            try {
-                context = JSON.parse(context);
-            } catch (e) {
-                throw new CommandError(`Invalid config.json`);
-            }
+        let context: any = readFile(path.join(process.cwd(), './.fdk/context.json'));
+        try {
+            context = JSON.parse(context);
+        } catch (e) {
+            throw new CommandError(`Invalid config.json`);
+        }
         expect(configObj.application_id).toMatch(context.theme.contexts.fyndx0.application_id);
     });
 

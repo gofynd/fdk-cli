@@ -3,7 +3,7 @@ import MockAdapter from 'axios-mock-adapter';
 import inquirer from 'inquirer';
 import { URLS } from '../lib/api/services/url';
 import mockFunction from './helper';
-import { generateToken } from './helper';
+import { generateToken, setEnv } from './helper';
 import fs from 'fs-extra';
 import rimraf from 'rimraf';
 import path from 'path';
@@ -27,8 +27,9 @@ const unpublishThemeData = require('./fixtures/unpublishThemeData.json');
 const initThemeData = require('./fixtures/initThemeData.json');
 const pullThemeData = require('./fixtures/pullThemeData.json');
 const initAppConfigData = require('./fixtures/initAppConfigData.json');
+const deleteData = require('./fixtures/deleteData.json');
 const data = require('./fixtures/email-login.json');
-const {themeToken,initToken} =require('./constants');
+const { themeToken, initToken } = require('./constants');
 import { decodeBase64 } from '../helper/utils';
 import { getActiveContext } from '../helper/utils';
 import { init } from '../fdk';
@@ -41,7 +42,7 @@ let program;
 async function login() {
     const inquirerMock = mockFunction(inquirer.prompt);
     inquirerMock.mockResolvedValue({ password: '1234567' });
-    await program.parseAsync(['node', './bin/fdk.js', 'login', '-e', 'abcd@something.com']);
+    await program.parseAsync(['node', './bin/fdk.js', 'login', '-e', 'anything@something.com']);
 }
 
 async function createTheme() {
@@ -57,14 +58,8 @@ async function createTheme() {
     ]);
 }
 
-let configObj = JSON.parse(
-    decodeBase64(`${themeToken}`
-    )
-);
-let initconfigObj = JSON.parse(
-    decodeBase64(`${initToken}`
-    )
-);
+let configObj = JSON.parse(decodeBase64(`${themeToken}`));
+let initconfigObj = JSON.parse(decodeBase64(`${initToken}`));
 let createThemeToken = generateToken(configObj);
 let initThemeToken = generateToken(initconfigObj);
 
@@ -73,13 +68,8 @@ const srcS3Url = srcUploadData.upload.url;
 const assetS3Url = assetsUploadData.upload.url;
 
 describe('Theme Commands', () => {
-    beforeEach(async () => {
-        await program.parseAsync(['node', './bin/fdk.js', 'env', 'set', '-n', 'fyndx0']);
-        program.commands.forEach(command => {
-            command._optionValues = {};
-        });
-    });
     beforeAll(async () => {
+        setEnv();
         program = await init('fdk');
         const mock = new MockAdapter(axios);
         mock.onPost(`${URLS.LOGIN_USER()}`).reply(200, data, {
@@ -161,7 +151,9 @@ describe('Theme Commands', () => {
                 'application-theme-assets'
             )}`
         ).reply(200, assetsCompleteUpload);
-        const availablePageUrl = new RegExp('https://api.fyndx0.de/service/platform/theme/v1.0/company/1/application/622894659baaca3be88c9d65/623b09faeb0b6e0f4ff9758f/*');
+        const availablePageUrl = new RegExp(
+            'https://api.fyndx0.de/service/platform/theme/v1.0/company/1/application/622894659baaca3be88c9d65/623b09faeb0b6e0f4ff9758f/*'
+        );
         mock.onGet(availablePageUrl).reply(200, getAvailablePageData);
         mock.onPost(
             `${URLS.AVAILABLE_PAGE(
@@ -177,7 +169,9 @@ describe('Theme Commands', () => {
                 appConfig.theme_id
             )}`
         ).reply(200, updateThemeData);
-        const updateAvailablePageUrl = new RegExp('https://api.fyndx0.de/service/platform/theme/v1.0/company/1/application/622894659baaca3be88c9d65/623b09faeb0b6e0f4ff9758f/*');
+        const updateAvailablePageUrl = new RegExp(
+            'https://api.fyndx0.de/service/platform/theme/v1.0/company/1/application/622894659baaca3be88c9d65/623b09faeb0b6e0f4ff9758f/*'
+        );
         mock.onPut(updateAvailablePageUrl).reply(200, updateAvailablePageData);
         mock.onPut(
             `${URLS.THEME_BY_ID(
@@ -205,32 +199,36 @@ describe('Theme Commands', () => {
         });
 
         mock.onGet(
-            `${URLS.THEME_BY_ID(appConfig.application_id, appConfig.company_id, appConfig.theme_id)}`
+            `${URLS.THEME_BY_ID(
+                appConfig.application_id,
+                appConfig.company_id,
+                appConfig.theme_id
+            )}`
         ).reply(200, pullThemeData);
         let zipfilePath = path.join(process.cwd(), '/src/__tests__/fixtures/pull-archive.zip');
         mock.onGet(pullThemeData.src.link).reply(function () {
             return [200, fs.createReadStream(zipfilePath)];
         });
+        mock.onDelete(
+            `${URLS.THEME_BY_ID(
+                appConfig.application_id,
+                appConfig.company_id,
+                appConfig.theme_id
+            )}`
+        ).reply(200, deleteData);
     });
 
     afterEach(() => {
-        const themeFile = path.join(process.cwd(),'rolex')
-        console.log("themeFule",themeFile)
+        const themeFile = path.join(process.cwd(), 'rolex');
         try {
             rimraf.sync(themeFile);
         } catch (err) {
             console.error(`Error while deleting ${themeFile}.`);
         }
+    });
+    afterAll(() => {
         configStore.clear();
     });
-    // afterAll(() => {
-    //     const filePath = path.join(process.cwd() + '/../');
-        // try {
-        //     rimraf.sync(filePath);
-        // } catch (err) {
-        //     console.error(`Error while deleting ${filePath}.`);
-        // }
-    // });
     it('should successfully create new theme', async () => {
         await login();
         await program.parseAsync([
@@ -244,7 +242,7 @@ describe('Theme Commands', () => {
             'rolex',
         ]);
         process.chdir(`../`);
-        const filePath = path.join(process.cwd(),'rolex');
+        const filePath = path.join(process.cwd(), 'rolex');
         expect(fs.existsSync(filePath)).toBe(true);
     });
 
@@ -265,6 +263,7 @@ describe('Theme Commands', () => {
         } catch (e) {
             throw new CommandError(`Invalid config.json`);
         }
+        process.chdir(`../`);
         expect(_.isEqual(newSettings_data, oldSettings_data)).toBe(false);
     });
 
@@ -273,6 +272,7 @@ describe('Theme Commands', () => {
         await createTheme();
         await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'publish']);
         const currentContext = getActiveContext();
+        process.chdir(`../`);
         expect(configObj.application_id).toMatch(currentContext.application_id);
     });
 
@@ -281,6 +281,7 @@ describe('Theme Commands', () => {
         await createTheme();
         await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'unpublish']);
         const currentContext = getActiveContext();
+        process.chdir(`../`);
         expect(configObj.application_id).toMatch(currentContext.application_id);
     });
     it('should successfully sync theme', async () => {
@@ -290,6 +291,7 @@ describe('Theme Commands', () => {
         inquirerMock.mockResolvedValue({ pullConfig: 'Yes' });
         await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'sync']);
         const currentContext = getActiveContext();
+        process.chdir(`../`);
         expect(configObj.application_id).toMatch(currentContext.application_id);
     });
 
@@ -304,7 +306,8 @@ describe('Theme Commands', () => {
             '-t',
             `${initThemeToken}`,
         ]);
-        const filePath = path.join(process.cwd());
+        process.chdir(`../../`);
+        const filePath = path.join(process.cwd(), 'rolex/vivek-theme');
         expect(fs.existsSync(filePath)).toBe(true);
     });
 
@@ -313,6 +316,7 @@ describe('Theme Commands', () => {
         await createTheme();
         await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'pull']);
         const filePath = path.join(process.cwd(), './.fdk/pull-archive.zip');
+        process.chdir(`../`);
         expect(fs.existsSync(filePath)).toBe(true);
     });
 });
