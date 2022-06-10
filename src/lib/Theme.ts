@@ -6,8 +6,7 @@ import {
     pageNameModifier,
 } from '../helper/utils';
 import CommandError, { ErrorCodes } from './CommandError';
-import Logger, { COMMON_LOG_MESSAGES } from './Logger';
-import ConfigStore, { CONFIG_KEYS } from './Config';
+import Logger from './Logger';
 import ConfigurationService from './api/services/configuration.service';
 import fs from 'fs-extra';
 import path from 'path';
@@ -16,11 +15,9 @@ import rimraf from 'rimraf';
 import Box from 'boxen';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import compiler from 'vue-template-compiler';
 import cheerio from 'cheerio';
 import glob from 'glob';
 import _ from 'lodash';
-import requireFromString from 'require-from-string';
 import { createDirectory, writeFile, readFile } from '../helper/file.utils';
 import shortid from 'shortid';
 
@@ -29,7 +26,7 @@ import UploadService from './api/services/upload.service';
 import { build, devBuild } from '../helper/build';
 import { archiveFolder, extractArchive } from '../helper/archive';
 import urlJoin from 'url-join';
-import { getFullLocalUrl, startServer, reload } from '../helper/serve.utils';
+import { getFullLocalUrl, startServer, reload, getPort } from '../helper/serve.utils';
 import { BASE_URL } from './api/services/url';
 import open from 'open';
 import chokidar from 'chokidar';
@@ -64,15 +61,11 @@ export default class Theme {
 
     public static async writeSettingJson(path, jsonObject) {
         try {
-            await fs.writeJSON(
-                path,
-                jsonObject,
-                {
-                    spaces: 2,
-                }
-            );
+            await fs.writeJSON(path, jsonObject, {
+                spaces: 2,
+            });
             Logger.success(`${path.split('/').slice(-1)[0]} written succesfully.!!!`);
-        } catch(err) {
+        } catch (err) {
             throw new CommandError(`Error writing ${path.split('/').slice(-1)[0]} file.!!!`);
         }
     }
@@ -80,10 +73,10 @@ export default class Theme {
     public static async readSettingsJson(path) {
         try {
             const settingsJson = await fs.readJSON(path);
-            
+
             Logger.success(`${path.split('/').slice(-1)[0]} read successfully.!!!`);
             return settingsJson;
-        } catch(err) {
+        } catch (err) {
             throw new CommandError(`Error reading ${path.split('/').slice(-1)[0]} file.!!!`);
         }
     }
@@ -163,7 +156,8 @@ export default class Theme {
             Logger.warn('Validating token');
             const configObj = JSON.parse(decodeBase64(options.token) || '{}');
             Debug(`Token Data: ${JSON.stringify(configObj)}`);
-            if (!configObj || !configObj.theme_id) throw new CommandError('Invalid token', ErrorCodes.INVALID_INPUT.code);
+            if (!configObj || !configObj.theme_id)
+                throw new CommandError('Invalid token', ErrorCodes.INVALID_INPUT.code);
             if (new Date(Date.now()) > new Date(configObj.expires_in))
                 throw new CommandError(
                     'Token expired. Generate a new token',
@@ -199,8 +193,16 @@ export default class Theme {
             let preset = _.get(themeData, 'config.preset', {});
             let information = { features: _.get(themeData, 'information.features', []) };
 
-            await Theme.writeSettingJson(Theme.getSettingsDataPath(), { list, current, preset, information });
-            await Theme.writeSettingJson(Theme.getSettingsSchemaPath(), _.get(themeData, 'config.global_schema', { props: [] }));
+            await Theme.writeSettingJson(Theme.getSettingsDataPath(), {
+                list,
+                current,
+                preset,
+                information,
+            });
+            await Theme.writeSettingJson(
+                Theme.getSettingsSchemaPath(),
+                _.get(themeData, 'config.global_schema', { props: [] })
+            );
 
             fs.writeJson(
                 path.join(targetDirectory, '/config.json'),
@@ -502,7 +504,9 @@ export default class Theme {
                 _.set(theme, 'information.images.android', androidImages);
                 _.set(theme, 'information.images.thumbnail', thumbnailImages);
                 _.set(theme, 'information.name', Theme.unSanitizeThemeName(packageJSON.name));
-                let globalConfigSchema = await Theme.readSettingsJson(Theme.getSettingsSchemaPath());
+                let globalConfigSchema = await Theme.readSettingsJson(
+                    Theme.getSettingsSchemaPath()
+                );
                 let globalConfigData = await Theme.readSettingsJson(Theme.getSettingsDataPath());
                 theme.config = theme.config || {};
                 theme.config.global_schema = globalConfigSchema;
@@ -585,8 +589,19 @@ export default class Theme {
                     : false;
 
             const DEFAULT_PORT = 5001;
-            const serverPort = typeof options['port'] === 'string' ? parseInt(options['port']) : typeof options['port'] === 'number' ? options['port'] : DEFAULT_PORT;
-
+            const serverPort =
+                typeof options['port'] === 'string'
+                    ? parseInt(options['port'])
+                    : typeof options['port'] === 'number'
+                    ? options['port']
+                    : DEFAULT_PORT;
+            const port = await getPort(serverPort);
+            if (port !== serverPort)
+                Logger.warn(
+                    chalk.bold.yellowBright(
+                        `PORT: ${serverPort} is busy, Switching to PORT: ${port}`
+                    )
+                );
             !isSSR ? Logger.warn('Disabling SSR') : null;
             let { data: appInfo } = await ConfigurationService.getApplicationDetails();
             let domain = Array.isArray(appInfo.domains)
@@ -597,16 +612,16 @@ export default class Theme {
             Logger.success(`Locally building............`);
             await devBuild({
                 buildFolder: Theme.BUILD_FOLDER,
-                imageCdnUrl: urlJoin(getFullLocalUrl(), 'assets/images'),
+                imageCdnUrl: urlJoin(getFullLocalUrl(port), 'assets/images'),
                 isProd: isSSR,
             });
 
             // start dev server
             Logger.info(chalk.bold.blueBright(`Starting server...`));
-            await startServer({ domain, host, isSSR, serverPort });
+            await startServer({ domain, host, isSSR, port });
 
             // open browser
-            await open(getFullLocalUrl());
+            await open(getFullLocalUrl(port));
             console.log(chalk.bold.green(`Watching files for changes`));
             let watcher = chokidar.watch(path.resolve(process.cwd(), 'theme'), {
                 persistent: true,
@@ -615,7 +630,7 @@ export default class Theme {
                 console.log(chalk.bold.green(`building............`));
                 await devBuild({
                     buildFolder: path.resolve(process.cwd(), Theme.BUILD_FOLDER),
-                    imageCdnUrl: urlJoin(getFullLocalUrl(), 'assets/images'),
+                    imageCdnUrl: urlJoin(getFullLocalUrl(port), 'assets/images'),
                     isProd: isSSR,
                 });
                 reload();
@@ -650,8 +665,16 @@ export default class Theme {
             let preset = _.get(theme, 'config.preset', {});
             let information = { features: _.get(theme, 'information.features', []) };
 
-            await Theme.writeSettingJson(Theme.getSettingsDataPath(), { list, current, preset, information });
-            await Theme.writeSettingJson(Theme.getSettingsSchemaPath(), _.get(theme, 'config.global_schema', { props: [] }))
+            await Theme.writeSettingJson(Theme.getSettingsDataPath(), {
+                list,
+                current,
+                preset,
+                information,
+            });
+            await Theme.writeSettingJson(
+                Theme.getSettingsSchemaPath(),
+                _.get(theme, 'config.global_schema', { props: [] })
+            );
 
             const packageJSON = await fs.readJSON(process.cwd() + '/theme/package.json');
             await fs.writeJSON(process.cwd() + '/package.json', packageJSON, {

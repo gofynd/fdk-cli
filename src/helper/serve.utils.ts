@@ -30,11 +30,11 @@ export function getLocalBaseUrl() {
 	return "https://localhost";
 }
 
-export function getFullLocalUrl() {
+export function getFullLocalUrl(port) {
 	return `${getLocalBaseUrl()}:${port}`;
 }
 
-export async function createTunnel() {
+export async function createTunnel(port) {
 	tunnel = await localtunnel({ port, local_https: true, allow_invalid_cert: true });
 	Logger.success(`Tunnelled at -- ${tunnel.url}`);
 	reload()
@@ -44,7 +44,7 @@ function isTunnelRunning() {
 	return tunnel && !tunnel.closed
 }
 
-export async function checkTunnel() {
+export async function checkTunnel(port) {
 	try {
 		if (isTunnelRunning()) {
 			const res = await axios.get(tunnel.url + '/_healthz')
@@ -52,31 +52,23 @@ export async function checkTunnel() {
 				return
 			}
 		}
-		await createTunnel()
+		await createTunnel(port)
 	} catch (e) {
-		await createTunnel()
+		await createTunnel(port)
 	}
 }
 
-function getPort(port) {
+export function getPort(port) {
 	return detect(port);
 }
 
-export async function startServer({ domain, host, isSSR, serverPort }) {
-
-	try {
-		port = await getPort(serverPort);
-		if(port !== serverPort) Logger.warn(chalk.bold.yellowBright(`PORT: ${serverPort} is busy, Switching to PORT: ${port}`));
-	} catch(e) {
-		Logger.error('Error occurred while detecting port.\n', e);
-	}
-
+export async function startServer({ domain, host, isSSR, port }) {
 	const app = require('https-localhost')(getLocalBaseUrl());
 	const certs = await app.getCerts();
 	const server = require('https').createServer(certs, app);
 	const io = require('socket.io')(server);
 	if (isSSR && !isTunnelRunning()) {
-		await createTunnel()
+		await createTunnel(port)
 	}
 
 	io.on('connection', function (socket) {
@@ -156,7 +148,7 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 		const jetfireUrl = new URL(urlJoin(domain, req.originalUrl));
 		if (isSSR) {
 			if (!isTunnelRunning()) {
-				await createTunnel()
+				await createTunnel(port)
 			}
 			const { protocol, host: tnnelHost } = new URL(tunnel.url);
 			jetfireUrl.searchParams.set('__cli_protocol', protocol);
@@ -188,21 +180,21 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 				`);
 			$('#theme-umd-js').attr(
 				'src',
-				urlJoin(getFullLocalUrl(), 'themeBundle.umd.js')
+				urlJoin(getFullLocalUrl(port), 'themeBundle.umd.js')
 			);
 			$('#theme-umd-js-link').attr(
 				'href',
-				urlJoin(getFullLocalUrl(), 'themeBundle.umd.js')
+				urlJoin(getFullLocalUrl(port), 'themeBundle.umd.js')
 			);
 			$('#theme-css').attr(
 				'href',
-				urlJoin(getFullLocalUrl(), 'themeBundle.css')
+				urlJoin(getFullLocalUrl(port), 'themeBundle.css')
 			);
 			res.send($.html({ decodeEntities: false }));
 		} catch (e) {
 			if (e.response && e.response.status == 504) {
 				if (!isTunnelRunning()) {
-					await createTunnel()
+					await createTunnel(port)
 				}
 				res.redirect(req.originalUrl)
 			} else if (e.response && e.response.status == 500) {
@@ -252,7 +244,7 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 			}
 			Logger.success(`Starting server on port -- ${port}`);
 			if (isSSR) {
-				interval = setInterval(checkTunnel, 1000 * 30);
+				interval = setInterval(checkTunnel, 1000 * 30, port);
 			}
 			resolve(true);
 		});
