@@ -1,5 +1,5 @@
 {
-    "access_token": "oa-ea316a2765d70ee7f2003af008a743b2436f989b",
+    "access_token": "oa-ea316a2765ee7f2003a8a743b2436f989b",
     "token_type": "Bearer",
     "expires_in": 7199,
     "scope": [ "company/*', 'app/*/*" ],
