@@ -9,6 +9,7 @@ import rimraf from 'rimraf';
 import path from 'path';
 import _ from 'lodash';
 import { readFile } from '../helper/file.utils';
+import { extractArchive } from '../helper/archive';
 const appConfig = require('./fixtures/appConfig.json');
 const oauthData = require('./fixtures/oauthData.json');
 const themeData = require('./fixtures/themeData.json');
@@ -32,6 +33,7 @@ const data = require('./fixtures/email-login.json');
 const { themeToken, initToken } = require('./constants');
 import { decodeBase64 } from '../helper/utils';
 import { getActiveContext } from '../helper/utils';
+import { createDirectory } from '../helper/file.utils';
 import { init } from '../fdk';
 import configStore from '../lib/Config';
 import CommandError from '../lib/CommandError';
@@ -46,16 +48,10 @@ async function login() {
 }
 
 async function createTheme() {
-    await program.parseAsync([
-        'ts-node',
-        './src/fdk.ts',
-        'theme',
-        'new',
-        '-t',
-        `${createThemeToken}`,
-        '-n',
-        'rolex',
-    ]);
+    let zipPath = path.join(__dirname, 'fixtures/rolex.zip');
+    let destination = path.join(__dirname, '../../.test-theme');
+    await extractArchive({ zipPath, destFolderPath: destination });
+    process.chdir(`./rolex`);
 }
 
 let configObj = JSON.parse(decodeBase64(`${themeToken}`));
@@ -70,6 +66,8 @@ const assetS3Url = assetsUploadData.upload.url;
 describe('Theme Commands', () => {
     beforeAll(async () => {
         setEnv();
+        createDirectory(path.join(__dirname, '../../.test-theme'));
+        process.chdir(`./.test-theme/`);
         program = await init('fdk');
         const mock = new MockAdapter(axios);
         mock.onPost(`${URLS.LOGIN_USER()}`).reply(200, data, {
@@ -189,7 +187,7 @@ describe('Theme Commands', () => {
         mock.onGet(
             `${URLS.THEME_BY_ID(appConfig.application_id, appConfig.company_id, initThemeData._id)}`
         ).reply(200, initThemeData);
-        let filePath = path.join(process.cwd(), '/src/__tests__/fixtures/archive.zip');
+        let filePath = path.join(__dirname, 'fixtures/archive.zip');
         mock.onGet(initThemeData.src.link).reply(function () {
             return [200, fs.createReadStream(filePath)];
         });
@@ -201,7 +199,7 @@ describe('Theme Commands', () => {
                 appConfig.theme_id
             )}`
         ).reply(200, pullThemeData);
-        let zipfilePath = path.join(process.cwd(), '/src/__tests__/fixtures/pull-archive.zip');
+        let zipfilePath = path.join(__dirname, '/fixtures/pull-archive.zip');
         mock.onGet(pullThemeData.src.link).reply(function () {
             return [200, fs.createReadStream(zipfilePath)];
         });
@@ -216,16 +214,19 @@ describe('Theme Commands', () => {
     });
 
     afterEach(() => {
-        const themeFile = path.join(process.cwd(), 'rolex');
+        const testThemeDir = path.join(process.cwd(), 'rolex');
         try {
-            rimraf.sync(themeFile);
+            rimraf.sync(testThemeDir);
         } catch (err) {
-            console.error(`Error while deleting ${themeFile}.`);
+            console.error(`Error while deleting ${testThemeDir}.`);
         }
     });
+
     afterAll(() => {
+        rimraf.sync(path.join(__dirname, '../../.test-theme'));
         configStore.clear();
     });
+
     it('should successfully create new theme', async () => {
         await program.parseAsync([
             'ts-node',
@@ -246,18 +247,10 @@ describe('Theme Commands', () => {
         await createTheme();
         const filePath = path.join(process.cwd(), '/theme/config/settings_data.json');
         let oldSettings_data: any = readFile(filePath);
-        try {
-            oldSettings_data = JSON.parse(oldSettings_data);
-        } catch (e) {
-            throw new CommandError(`Invalid config.json`);
-        }
+        oldSettings_data = JSON.parse(oldSettings_data);
         await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'pull-config']);
         let newSettings_data: any = readFile(filePath);
-        try {
-            newSettings_data = JSON.parse(newSettings_data);
-        } catch (e) {
-            throw new CommandError(`Invalid config.json`);
-        }
+        newSettings_data = JSON.parse(newSettings_data);
         process.chdir(`../`);
         expect(_.isEqual(newSettings_data, oldSettings_data)).toBe(false);
     });
@@ -277,6 +270,7 @@ describe('Theme Commands', () => {
         process.chdir(`../`);
         expect(configObj.application_id).toMatch(currentContext.application_id);
     });
+
     it('should successfully sync theme', async () => {
         await createTheme();
         const inquirerMock = mockFunction(inquirer.prompt);
@@ -288,7 +282,6 @@ describe('Theme Commands', () => {
     });
 
     it('should successfully init theme', async () => {
-        await createTheme();
         await program.parseAsync([
             'ts-node',
             './src/fdk.ts',
@@ -297,12 +290,12 @@ describe('Theme Commands', () => {
             '-t',
             `${initThemeToken}`,
         ]);
-        process.chdir(`../../`);
-        const filePath = path.join(process.cwd(), 'rolex/vivek-theme');
+        process.chdir(`../`);
+        const filePath = path.join(process.cwd(), 'vivek-theme');
         expect(fs.existsSync(filePath)).toBe(true);
     });
 
-    it('should successfully pull  theme', async () => {
+    it('should successfully pull theme', async () => {
         await createTheme();
         await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'pull']);
         const filePath = path.join(process.cwd(), './.fdk/pull-archive.zip');
