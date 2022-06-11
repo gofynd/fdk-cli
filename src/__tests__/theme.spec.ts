@@ -152,16 +152,15 @@ describe('Theme Commands', () => {
             )}`
         ).reply(200, assetsCompleteUpload);
         const availablePageUrl = new RegExp(
-            'https://api.fyndx0.de/service/platform/theme/v1.0/company/1/application/622894659baaca3be88c9d65/623b09faeb0b6e0f4ff9758f/*'
-        );
-        mock.onGet(availablePageUrl).reply(200, getAvailablePageData);
-        mock.onPost(
             `${URLS.AVAILABLE_PAGE(
                 appConfig.application_id,
                 appConfig.company_id,
-                appConfig.theme_id
+                appConfig.theme_id,
+                '*'
             )}`
-        ).reply(200, appConfig);
+        );
+        mock.onGet(availablePageUrl).reply(200, getAvailablePageData);
+        mock.onPost().reply(200, appConfig);
         mock.onPut(
             `${URLS.THEME_BY_ID(
                 appConfig.application_id,
@@ -169,10 +168,7 @@ describe('Theme Commands', () => {
                 appConfig.theme_id
             )}`
         ).reply(200, updateThemeData);
-        const updateAvailablePageUrl = new RegExp(
-            'https://api.fyndx0.de/service/platform/theme/v1.0/company/1/application/622894659baaca3be88c9d65/623b09faeb0b6e0f4ff9758f/*'
-        );
-        mock.onPut(updateAvailablePageUrl).reply(200, updateAvailablePageData);
+        mock.onPut(availablePageUrl).reply(200, updateAvailablePageData);
         mock.onPut(
             `${URLS.THEME_BY_ID(
                 appConfig.application_id,
@@ -216,6 +212,7 @@ describe('Theme Commands', () => {
                 appConfig.theme_id
             )}`
         ).reply(200, deleteData);
+        await login();
     });
 
     afterEach(() => {
@@ -230,7 +227,6 @@ describe('Theme Commands', () => {
         configStore.clear();
     });
     it('should successfully create new theme', async () => {
-        await login();
         await program.parseAsync([
             'ts-node',
             './src/fdk.ts',
@@ -247,7 +243,6 @@ describe('Theme Commands', () => {
     });
 
     it('should successfully pull config theme', async () => {
-        await login();
         await createTheme();
         const filePath = path.join(process.cwd(), '/theme/config/settings_data.json');
         let oldSettings_data: any = readFile(filePath);
@@ -268,7 +263,6 @@ describe('Theme Commands', () => {
     });
 
     it('should successfully publish  theme', async () => {
-        await login();
         await createTheme();
         await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'publish']);
         const currentContext = getActiveContext();
@@ -277,7 +271,6 @@ describe('Theme Commands', () => {
     });
 
     it('should successfully unpublish  theme', async () => {
-        await login();
         await createTheme();
         await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'unpublish']);
         const currentContext = getActiveContext();
@@ -285,7 +278,6 @@ describe('Theme Commands', () => {
         expect(configObj.application_id).toMatch(currentContext.application_id);
     });
     it('should successfully sync theme', async () => {
-        await login();
         await createTheme();
         const inquirerMock = mockFunction(inquirer.prompt);
         inquirerMock.mockResolvedValue({ pullConfig: 'Yes' });
@@ -296,7 +288,6 @@ describe('Theme Commands', () => {
     });
 
     it('should successfully init theme', async () => {
-        await login();
         await createTheme();
         await program.parseAsync([
             'ts-node',
@@ -312,7 +303,6 @@ describe('Theme Commands', () => {
     });
 
     it('should successfully pull  theme', async () => {
-        await login();
         await createTheme();
         await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'pull']);
         const filePath = path.join(process.cwd(), './.fdk/pull-archive.zip');
