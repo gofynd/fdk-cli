@@ -6,8 +6,7 @@ import {
     pageNameModifier,
 } from '../helper/utils';
 import CommandError, { ErrorCodes } from './CommandError';
-import Logger, { COMMON_LOG_MESSAGES } from './Logger';
-import ConfigStore, { CONFIG_KEYS } from './Config';
+import Logger from './Logger';
 import ConfigurationService from './api/services/configuration.service';
 import fs from 'fs-extra';
 import path from 'path';
@@ -16,11 +15,9 @@ import rimraf from 'rimraf';
 import Box from 'boxen';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import compiler from 'vue-template-compiler';
 import cheerio from 'cheerio';
 import glob from 'glob';
 import _ from 'lodash';
-import requireFromString from 'require-from-string';
 import { createDirectory, writeFile, readFile } from '../helper/file.utils';
 import shortid from 'shortid';
 import ThemeService from './api/services/theme.service';
@@ -28,7 +25,7 @@ import UploadService from './api/services/upload.service';
 import { build, devBuild } from '../helper/build';
 import { archiveFolder, extractArchive } from '../helper/archive';
 import urlJoin from 'url-join';
-import { getFullLocalUrl, startServer, reload } from '../helper/serve.utils';
+import { getFullLocalUrl, startServer, reload, getPort } from '../helper/serve.utils';
 import { BASE_URL } from './api/services/url';
 import open from 'open';
 import chokidar from 'chokidar';
@@ -339,6 +336,13 @@ export default class Theme {
                     : typeof options['port'] === 'number'
                     ? options['port']
                     : DEFAULT_PORT;
+            const port = await getPort(serverPort);
+            if (port !== serverPort)
+                Logger.warn(
+                    chalk.bold.yellowBright(
+                        `PORT: ${serverPort} is busy, Switching to PORT: ${port}`
+                    )
+                );
             !isSSR ? Logger.warn('Disabling SSR') : null;
             let { data: appInfo } = await ConfigurationService.getApplicationDetails();
             let domain = Array.isArray(appInfo.domains)
@@ -350,14 +354,15 @@ export default class Theme {
             Theme.createVueConfig();
             await devBuild({
                 buildFolder: Theme.BUILD_FOLDER,
-                imageCdnUrl: urlJoin(getFullLocalUrl(host), 'assets/images'),
+                imageCdnUrl: urlJoin(getFullLocalUrl(port), 'assets/images'),
                 isProd: isSSR,
             });
             // start dev server
             Logger.info(chalk.bold.blueBright(`Starting server...`));
-            await startServer({ domain, host, isSSR, serverPort });
+            await startServer({ domain, host, isSSR, port });
+
             // open browser
-            await open(getFullLocalUrl(host));
+            await open(getFullLocalUrl(port));
             console.log(chalk.bold.green(`Watching files for changes`));
             let watcher = chokidar.watch(path.resolve(process.cwd(), 'theme'), {
                 persistent: true,
@@ -366,7 +371,7 @@ export default class Theme {
                 console.log(chalk.bold.green(`building............`));
                 await devBuild({
                     buildFolder: path.resolve(process.cwd(), Theme.BUILD_FOLDER),
-                    imageCdnUrl: urlJoin(getFullLocalUrl(host), 'assets/images'),
+                    imageCdnUrl: urlJoin(getFullLocalUrl(port), 'assets/images'),
                     isProd: isSSR,
                 });
                 reload();

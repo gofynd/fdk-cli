@@ -7,13 +7,15 @@ import express from 'express';
 import { SourceMapConsumer } from 'source-map'
 import urlJoin from 'url-join';
 import { parse as stackTraceParser}  from 'stacktrace-parser';
-import proxy from 'express-http-proxy';
 import Theme from '../lib/Theme';
 import glob from 'glob';
 import detect from 'detect-port';
 import chalk from 'chalk';
 import UploadService from '../lib/api/services/upload.service';
 import Configstore, { CONFIG_KEYS } from '../lib/Config';
+import { createProxyMiddleware, fixRequestBody } from 'http-proxy-middleware';
+import { addSignatureFn }  from '../lib/api/helper/interceptors';
+const { transformRequest } = axios.defaults;
 
 const BUILD_FOLDER = './.fdk/dist';
 let port = 5001;
@@ -26,27 +28,20 @@ export function reload() {
 	});
 }
 
-export function getLocalBaseUrl(host) {
-	return host.replace('api', 'localdev');
+export function getLocalBaseUrl() {
+	return "https://localhost";
 }
 
-export function getFullLocalUrl(host) {
-	return `${getLocalBaseUrl(host)}:${port}`;
+export function getFullLocalUrl(port) {
+	return `${getLocalBaseUrl()}:${port}`;
 }
 
-function getPort(port) {
+export function getPort(port) {
 	return detect(port);
 }
 
-export async function startServer({ domain, host, isSSR, serverPort }) {
-
-	try {
-		port = await getPort(serverPort);
-		if(port !== serverPort) Logger.warn(chalk.bold.yellowBright(`PORT: ${serverPort} is busy, Switching to PORT: ${port}`));
-	} catch(e) {
-		Logger.error('Error occurred while detecting port.\n', e);
-	}
-	const app = require('https-localhost')(getLocalBaseUrl(host));
+export async function startServer({ domain, host, isSSR, port }) {
+	const app = require('https-localhost')(getLocalBaseUrl());
 	const certs = await app.getCerts();
 	const server = require('https').createServer(certs, app);
 	const io = require('socket.io')(server);
@@ -80,7 +75,45 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 		res.json({ ok: 'ok' });
 	});
 
-	app.use(`/api`, proxy(`${host}`));
+	// parse application/x-www-form-urlencoded
+	app.use(express.json());
+	  
+	const options = {
+		target: host, // target host
+		changeOrigin: true, // needed for virtual hosted sites
+		cookieDomainRewrite: 'localhost', // rewrite cookies to localhost
+		onProxyReq: fixRequestBody,
+		router: function(req) {
+			//change host for /ext routes
+			if(req.baseUrl === '/ext'){
+				return `https://${req.headers['x-fp-cli-forwarded-host']}`;
+			}
+			return host;
+		}
+	  };
+
+	  // proxy to solve CORS issue
+	  const corsProxy = createProxyMiddleware(options);
+	  app.use(['/service', '/ext'], async (req,res,next) => {
+		// formating express request object as per axios so signature logic will work  
+		req.transformRequest = transformRequest;
+		req.url = req.originalUrl;
+		req.data = req.body;
+		if(req.baseUrl === '/ext'){
+			host = `https://${req.headers['x-fp-cli-forwarded-host']}`;
+		}
+		req.baseURL = host;
+		delete req.headers['x-fp-signature'];
+		delete req.headers['x-fp-date'];
+		const url = new URL(host);
+		req.headers.host = url.host;
+		// regenerating signature as per proxy server
+		const config = await addSignatureFn(options)(req);
+		req.headers['x-fp-signature'] = config.headers['x-fp-signature'];
+		req.headers['x-fp-date'] = config.headers['x-fp-date'];
+		next();
+	  }, corsProxy);
+
 	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
 	app.get(['/__webpack_hmr', 'manifest.json'], async (req, res, next) => {
 		return res.end()
@@ -112,7 +145,8 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 					'Accept': 'application/json'
 				},
 				data: {
-					theme_url: themeUrl
+					theme_url: themeUrl,
+					port: port.toString()
 				}
 			});
 
@@ -138,18 +172,18 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 
 			const umdJsInitial = $('link[data-umdjs-cli-source="initial"]');
 			umdJsInitial
-				.after(`<script type="text/javascript" src="${urlJoin(getFullLocalUrl(host), 'themeBundle.umd.js')}"></script>`);
+				.after(`<script type="text/javascript" src="${urlJoin(getFullLocalUrl(port), 'themeBundle.umd.js')}"></script>`);
 			const umdJsAssests = glob.sync(`${Theme.BUILD_FOLDER}/themeBundle.umd.**.js`).filter(x => !x.includes(".min."));
 			umdJsAssests.forEach((umdJsLink) => {
 				umdJsInitial
-					.after(`<script type="text/javascript" src="${urlJoin(getFullLocalUrl(host), umdJsLink.replace("./.fdk/dist/", ""))}"></script>`);
+					.after(`<script type="text/javascript" src="${urlJoin(getFullLocalUrl(port), umdJsLink.replace("./.fdk/dist/", ""))}"></script>`);
 			});
 
 			const cssAssests = glob.sync(`${Theme.BUILD_FOLDER}/**.css`);
 			const cssInitial = $('link[data-css-cli-source="initial"]');
 			cssAssests.forEach((cssLink) => {
 				cssInitial
-					.after(`<link rel="stylesheet" href="${urlJoin(getFullLocalUrl(host), cssLink.replace("./.fdk/dist/", ""))}"></link>`);
+					.after(`<link rel="stylesheet" href="${urlJoin(getFullLocalUrl(port), cssLink.replace("./.fdk/dist/", ""))}"></link>`);
 			});
 			res.send($.html({ decodeEntities: false }));
 		} catch (e) {
