@@ -23,7 +23,7 @@ export function build({ buildFolder, imageCdnUrl, assetCdnUrl, assetHash = '' })
             if (!code) {
                 return resolve(true);
             }
-            reject({ message: 'Build Failed' });
+            reject({ message: 'Vue.js Build Failed' });
         });
     });
 }

@@ -7,22 +7,26 @@ import validator from 'validator';
 
 const AuthenticationHandler = async (options, command) => {
   try {
-    const { email, mobile } = options;
+    const { email, mobile, password } = options;
     // Email Input
     if (email && email.length) {
       if (!validator.isEmail(email)) {
         throw new CommandError('Enter a valid email');
       }
-      const questions = [
-        {
-          type: 'password',
-          name: 'password',
-          message: 'Enter password',
-        },
-      ];
-      await inquirer.prompt(questions).then(async answers => {
-        await Auth.loginUserWithEmail(email, answers.password);
-      });
+      if (!password) {
+        const questions = [
+          {
+            type: 'password',
+            name: 'password',
+            message: 'Enter password',
+          },
+        ];
+        await inquirer.prompt(questions).then(async answers => {
+          await Auth.loginUserWithEmail(email, answers.password);
+        });
+      } else {
+        await Auth.loginUserWithEmail(email, password);
+      }
     }
     // Mobile input
     else if (mobile && mobile.length) {
@@ -44,6 +48,7 @@ export default function context(program: Command) {
     .command('auth')
     .alias('login')
     .option('-e, --email [email]', 'Email ID')
+    .option('-p, --password [email]', 'password')
     .option('-m, --mobile [mobile]', 'Mobile number')
     .description('Login user with email or phone number')
     .asyncAction(AuthenticationHandler);
