@@ -1,6 +1,5 @@
 import path from 'path';
 import fs from 'fs'
-import localtunnel from 'localtunnel'
 import Logger from '../lib/Logger';
 import axios from 'axios';
 import cheerio from 'cheerio';
@@ -13,12 +12,13 @@ import Theme from '../lib/Theme';
 import glob from 'glob';
 import detect from 'detect-port';
 import chalk from 'chalk';
+import UploadService from '../lib/api/services/upload.service';
+import Configstore, { CONFIG_KEYS } from '../lib/Config';
 
 const BUILD_FOLDER = './.fdk/dist';
 let port = 5001;
 let sockets = [];
 let publicCache = {};
-let tunnel
 
 export function reload() {
 	sockets.forEach((s) => {
@@ -34,30 +34,6 @@ export function getFullLocalUrl(host) {
 	return `${getLocalBaseUrl(host)}:${port}`;
 }
 
-export async function createTunnel() {
-	tunnel = await localtunnel({ port, local_https: true, allow_invalid_cert: true });
-	Logger.success(`Tunnelled at -- ${tunnel.url}`);
-	reload()
-}
-
-function isTunnelRunning() {
-	return tunnel && !tunnel.closed
-}
-
-export async function checkTunnel() {
-	try {
-		if (isTunnelRunning()) {
-			const res = await axios.get(tunnel.url + '/_healthz')
-			if (res.data.ok === 'ok') {
-				return
-			}
-		}
-		await createTunnel()
-	} catch (e) {
-		await createTunnel()
-	}
-}
-
 function getPort(port) {
 	return detect(port);
 }
@@ -70,14 +46,10 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 	} catch(e) {
 		Logger.error('Error occurred while detecting port.\n', e);
 	}
-
 	const app = require('https-localhost')(getLocalBaseUrl(host));
 	const certs = await app.getCerts();
 	const server = require('https').createServer(certs, app);
 	const io = require('socket.io')(server);
-	if (isSSR && !isTunnelRunning()) {
-		await createTunnel()
-	}
 
 	io.on('connection', function (socket) {
 		sockets.push(socket);
@@ -87,53 +59,63 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 	});
 
 	app.use('/public', async (req, res, done) => {
-		let { url } = req;
-		if (publicCache[url]) {
+		try {
+			const { url } = req;
+			if (publicCache[url]) {
+				res.set(publicCache[url].headers);
+				return res.send(publicCache[url].body);
+			}
+			const networkRes = await axios.get(urlJoin(domain, 'public', url));
+			publicCache[url] = publicCache[url] || {};
+			publicCache[url].body = networkRes.data;
+			publicCache[url].headers = networkRes.headers;
 			res.set(publicCache[url].headers);
 			return res.send(publicCache[url].body);
+		} catch(e) {
+			console.log("Error loading file ", url)
 		}
-		let networkRes = await axios.get(urlJoin(domain, 'public', req.url));
-		publicCache[url] = publicCache[url] || {};
-		publicCache[url].body = networkRes.data;
-		publicCache[url].headers = networkRes.headers;
-		res.set(publicCache[url].headers);
-		return res.send(publicCache[url].body);
 	});
 
 	app.get('/_healthz', (req, res) => {
 		res.json({ ok: 'ok' });
 	});
 
-	// app.use('/platform', proxy(`https://${host}`, {
-	//   proxyReqPathResolver: function (req) {
-	//     return `/platform${req.url}`;
-	//   }
-	// }));
 	app.use(`/api`, proxy(`${host}`));
 	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
-
+	app.get(['/__webpack_hmr', 'manifest.json'], async (req, res, next) => {
+		return res.end()
+	})
 	app.get('/*', async (req, res) => {
-		if (req.originalUrl == '/themeBundle.common.js') {
-			return res.sendFile(path.resolve(process.cwd(), `${BUILD_FOLDER}/themeBundle.common.js`))
-		}
+
 		if (req.originalUrl == '/favicon.ico' || req.originalUrl == '/.webp') {
 			return res.status(404).send('Not found');
 		}
-		console.log(req.hostname, req.url)
+
 		const jetfireUrl = new URL(urlJoin(domain, req.originalUrl));
-		jetfireUrl.searchParams.set('__cli', "true");
+		let themeUrl = "";
 		if (isSSR) {
-			if (!isTunnelRunning()) {
-				await createTunnel()
-			}
-			const { protocol, host: tunnelHost } = new URL(tunnel.url);
-			jetfireUrl.searchParams.set('__cli_protocol', protocol);
-			jetfireUrl.searchParams.set('__cli_url', tunnelHost);
+            const BUNDLE_PATH = path.join(process.cwd(), '/.fdk/dist/themeBundle.common.js');
+            const User = Configstore.get(CONFIG_KEYS.USER);
+            themeUrl = (await UploadService.uploadFile(BUNDLE_PATH, 'fdk-cli-dev-files', User._id))
+                .start.cdn.url;
 		} else {
 			jetfireUrl.searchParams.set('__csr', 'true');
 		}
 		try {
-			let { data: html } = await axios.get(jetfireUrl.toString());
+			
+			// Bundle directly passed on with POST request body.
+			const { data: html } = await axios({
+				method: 'POST',
+				url: jetfireUrl.toString(),
+				headers: {
+					'content-type': 'application/json',
+					'Accept': 'application/json'
+				},
+				data: {
+					theme_url: themeUrl
+				}
+			});
+
 			let $ = cheerio.load(html);
 			$('head').prepend(`
 					<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
@@ -172,9 +154,6 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 			res.send($.html({ decodeEntities: false }));
 		} catch (e) {
 			if (e.response && e.response.status == 504) {
-				if (!isTunnelRunning()) {
-					await createTunnel()
-				}
 				res.redirect(req.originalUrl)
 			} else if (e.response && e.response.status == 500) {
 				try {
@@ -210,21 +189,11 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 	});
 
 	await new Promise((resolve, reject) => {
-		let interval;
 		server.listen(port, (err) => {
 			if (err) {
-				if (isSSR) {
-					if (interval) {
-						clearInterval(interval);
-					}
-					tunnel.close()
-				}
 				return reject(err);
 			}
-			Logger.success(`Starting server on port -- ${port}`);
-			if (isSSR) {
-				interval = setInterval(checkTunnel, 1000 * 30);
-			}
+			Logger.success(`Starting starter at port -- ${port} in ${isSSR? 'SSR': 'Non-SSR'} mode`);
 			resolve(true);
 		});
 	});
