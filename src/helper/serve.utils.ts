@@ -5,7 +5,10 @@ import Logger from '../lib/Logger';
 import axios from 'axios';
 import cheerio from 'cheerio';
 import express from 'express';
-import { SourceMapConsumer } from 'source-map'
+import { SourceMapConsumer } from 'source-map';
+import {
+    getActiveContext,
+} from './utils';
 import urlJoin from 'url-join';
 import { parse as stackTraceParser}  from 'stacktrace-parser';
 import { createProxyMiddleware, fixRequestBody } from 'http-proxy-middleware';
@@ -63,6 +66,8 @@ export function getPort(port) {
 }
 
 export async function startServer({ domain, host, isSSR, port }) {
+	const currentContext = getActiveContext();
+	const currentDomain = `https://${currentContext.domain}`;
 	const app = require('https-localhost')(getLocalBaseUrl());
 	const certs = await app.getCerts();
 	const server = require('https').createServer(certs, app);
@@ -105,9 +110,12 @@ export async function startServer({ domain, host, isSSR, port }) {
 		cookieDomainRewrite: 'localhost', // rewrite cookies to localhost
 		onProxyReq: fixRequestBody,
 		router: function(req) {
-			//change host for /ext routes
-			if(req.baseUrl === '/ext'){
+			// change host for /ext routes for data loaders
+			if(req.baseUrl === '/ext' && req.headers['x-fp-cli-forwarded-host']){
 				return `https://${req.headers['x-fp-cli-forwarded-host']}`;
+			}else if(req.baseUrl === '/ext'){
+				// normal extensions with /ext routes
+				return currentDomain;
 			}
 			return host;
 		}
@@ -120,7 +128,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 		req.transformRequest = transformRequest;
 		req.url = req.originalUrl;
 		req.data = req.body;
-		if(req.baseUrl === '/ext'){
+		if(req.baseUrl === '/ext' && req.headers['x-fp-cli-forwarded-host']){
 			host = `https://${req.headers['x-fp-cli-forwarded-host']}`;
 		}
 		req.baseURL = host;
