@@ -848,7 +848,7 @@ export default class Theme {
                 try {
                     available_page = (await ThemeService.getAvailablePage(pageName)).data;
                 } catch (error) {
-                    throw new CommandError(`Failed while getting page details: ${pageName}`, error.code);
+                    Logger.log('Creating Page:', pageName);
                 }
                 if (!available_page) {
                     const pageData = {
