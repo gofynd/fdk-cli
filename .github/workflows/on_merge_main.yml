@@ -22,10 +22,10 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: npm install, npm test, 
+    - name: npm install, npm run test, 
       run: |
         npm install
-        npm test
+        npm run test
       env:
         API_KEY: ${{ secrets.API_KEY }}
         API_SECRET: ${{ secrets.API_SECRET }}
