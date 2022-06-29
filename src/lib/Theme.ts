@@ -744,6 +744,7 @@ export default class Theme {
                 zipFileName: Theme.ZIP_FILE_NAME,
             });
         } catch (err) {
+            console.log("err", err);
             throw new CommandError(`Failed to copying theme files to .fdk folder`);
         }
     };
