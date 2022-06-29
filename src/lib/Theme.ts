@@ -736,8 +736,8 @@ export default class Theme {
     };
     private static copyThemeSourceToFdkFolder = async () => {
         try {
-            await fs.copy(path.normalize('./theme'), Theme.SRC_FOLDER);
-            fs.copyFileSync(path.normalize('./package.json'), path.normalize(Theme.SRC_FOLDER + '/package.json'));
+            await fs.copy(path.join(process.cwd(),'./theme'), Theme.SRC_FOLDER);
+            fs.copyFileSync(path.join('./package.json'), path.normalize(Theme.SRC_FOLDER + '/package.json'));
             await archiveFolder({
                 srcFolder: Theme.SRC_FOLDER,
                 destFolder: Theme.SRC_ARCHIVE_FOLDER,
