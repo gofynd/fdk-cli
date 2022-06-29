@@ -5,6 +5,7 @@ import extract from 'extract-zip';
 import { createDirectory } from './file.utils'
 import Logger from '../lib/Logger';
 export function archiveFolder({ srcFolder, destFolder, zipFileName }) {
+    console.log("Archiving");
     return new Promise((resolve, reject) => {
         let filePath = path.resolve(process.cwd(), destFolder, zipFileName);
         // clear previous build archive
@@ -27,6 +28,7 @@ export function archiveFolder({ srcFolder, destFolder, zipFileName }) {
             console.log(err);
             Logger.warn(err.message)
             if (err.code === 'ENOENT') {
+
                 // log warning
             } else {
                 // throw error
@@ -39,6 +41,7 @@ export function archiveFolder({ srcFolder, destFolder, zipFileName }) {
         });
 
         archive.on('error', function (err) {
+            console.log(err);
             Logger.error(err.message)
             reject(err);
         });
