@@ -267,7 +267,7 @@ console.log("build dones")
             // check if build folder exists, as during build, vue fails with non-error code even when it errors out
             console.log("paths",(!fs.existsSync(Theme.BUILD_FOLDER)))
             console.log("paths",process.cwd())
-            const directoryPath = path.join(__dirname, 'Documents');
+            const directoryPath = path.join(process.cwd());
             fs.readdir(directoryPath, function (err, files) {
                 console.log("inside reddir")
                 //handling error
