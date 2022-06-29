@@ -264,8 +264,20 @@ export default class Theme {
             // build js css
             await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl });
 console.log("build dones")
+console.log
             // check if build folder exists, as during build, vue fails with non-error code even when it errors out
             console.log("paths",(!fs.existsSync(Theme.BUILD_FOLDER)))
+            fs.readdir(Theme.BUILD_FOLDER), function (err, files) {
+                //handling error
+                if (err) {
+                    return console.log('Unable to scan directory: ' + err);
+                } 
+                //listing all files using forEach
+                files.forEach(function (file) {
+                    // Do whatever you want to do with the file
+                    console.log(file); 
+                });
+            };
             if (!fs.existsSync(Theme.BUILD_FOLDER)) {
                 console.log("inside build existence")
                 throw new Error('Build Failed');
