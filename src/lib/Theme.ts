@@ -266,7 +266,9 @@ export default class Theme {
 console.log("build dones")
             // check if build folder exists, as during build, vue fails with non-error code even when it errors out
             console.log("paths",(!fs.existsSync(Theme.BUILD_FOLDER)))
+            console.log("paths",process.cwd())
             fs.readdir(process.cwd()), function (err, files) {
+                console.log("inside reddir")
                 //handling error
                 if (err) {
                     return console.log('Unable to scan directory: ' + err);
