@@ -48,9 +48,9 @@ export default class Theme {
         pull-config
     */
     static TEMPLATE_DIRECTORY = path.join(__dirname, '../../template');
-    static BUILD_FOLDER = './.fdk/dist';
-    static SRC_FOLDER = './.fdk/temp-theme';
-    static SRC_ARCHIVE_FOLDER = './.fdk/archive';
+    static BUILD_FOLDER = path.normalize('./.fdk/dist');
+    static SRC_FOLDER = path.normalize('./.fdk/temp-theme');
+    static SRC_ARCHIVE_FOLDER = path.normalize('./.fdk/archive');
     static ZIP_FILE_NAME = `archive.zip`;
     public static getSettingsDataPath() {
         return path.join(process.cwd(), '/theme/config/settings_data.json');
