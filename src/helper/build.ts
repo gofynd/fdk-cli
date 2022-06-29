@@ -15,7 +15,6 @@ export function build({ buildFolder, imageCdnUrl, assetCdnUrl }) {
 
         b.stdout.pipe(process.stdout);
         b.stderr.pipe(process.stderr);
-
         b.on('exit', function (code) {
             if (!code) {
                 return resolve(true);

@@ -29,7 +29,7 @@ import { build, devBuild } from '../helper/build';
 import { archiveFolder, extractArchive } from '../helper/archive';
 import urlJoin from 'url-join';
 import { getFullLocalUrl, startServer, reload } from '../helper/serve.utils';
-import { BASE_URL } from './api/services/url';
+import { getBaseURL } from './api/services/url';
 import open from 'open';
 import chokidar from 'chokidar';
 import { downloadFile } from '../helper/download';
@@ -263,7 +263,6 @@ export default class Theme {
             Logger.warn('Building Assets...');
             // build js css
             await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl });
-
             // check if build folder exists, as during build, vue fails with non-error code even when it errors out
             if (!fs.existsSync(Theme.BUILD_FOLDER)) {
                 throw new Error('Build Failed');
@@ -341,7 +340,7 @@ export default class Theme {
             let domain = Array.isArray(appInfo.domains)
                 ? `https://${appInfo.domains.filter(d => d.is_primary)[0].name}`
                 : `https://${appInfo.domain.name}`;
-            let host = BASE_URL;
+            let host = getBaseURL();
             // initial build
             Logger.success(`Locally building............`);
             await devBuild({
@@ -380,7 +379,8 @@ export default class Theme {
             const { data: themeData } = await ThemeService.getThemeById(null);
             const theme = _.cloneDeep({ ...themeData });
             rimraf.sync(path.resolve(process.cwd(), './.fdk/archive'));
-            await downloadFile(theme.src.link, './.fdk/pull-archive.zip');
+            const zipFilePath = path.join(process.cwd(),'./.fdk/pull-archive.zip')
+            await downloadFile(theme.src.link, zipFilePath);
             await extractArchive({
                 zipPath: path.resolve(process.cwd(), './.fdk/pull-archive.zip'),
                 destFolderPath: path.resolve(process.cwd(), './theme'),
@@ -575,8 +575,8 @@ export default class Theme {
             if (fs.existsSync(targetDirectory)) {
                 if (fs.existsSync(`${targetDirectory}/.fdk/context.json`)) {
                     const contexts = await fs.readJSON(`${targetDirectory}/.fdk/context.json`);
-                    const activeContext = contexts.active_context;
-                    await ThemeService.deleteThemeById(contexts.contexts[activeContext]);
+                    const activeContext = contexts.theme.active_context;
+                    await ThemeService.deleteThemeById(contexts.theme.contexts[activeContext]);
                 }
                 rimraf.sync(targetDirectory);
             }
@@ -755,7 +755,7 @@ export default class Theme {
     };
     private static uploadThemeBundle = async () => {
         const assets = ['themeBundle.css', 'themeBundle.common.js', 'themeBundle.umd.min.js'];
-            const urlHash = shortid.generate();
+        const urlHash = shortid.generate();
         try {
             let pArr = assets.map(async asset => {
                  fs.renameSync(
@@ -847,7 +847,7 @@ export default class Theme {
                 try {
                     available_page = (await ThemeService.getAvailablePage(pageName)).data;
                 } catch (error) {
-                    throw new CommandError(`Failed while getting page details: ${pageName}`, error.code);
+                    Logger.log('Creating Page:', pageName);
                 }
                 if (!available_page) {
                     const pageData = {

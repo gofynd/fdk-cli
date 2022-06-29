@@ -1,0 +1,17 @@
+{
+  "file_name": "7bVSKrkQV-themeBundle.css",
+  "operation": "putObject",
+  "size": 328860,
+  "namespace": "application-theme-assets",
+  "content_type": "text/css",
+  "file_path": "/company/285/applications/628b54933f2552a4a4c251eb/theme/assets/7bVSKrkQV-themeBundle.css",
+  "method": "PUT",
+  "tags": [],
+  "upload": {
+    "url": "https://fynd-staging-assets.s3-accelerate.amazonaws.com/x0/company/285/applications/628b54933f2552a4a4c251eb/theme/assets/7bVSKrkQV-themeBundle.css?AWSAccessKeyId=AKIAJUADR2WMPQT6ZJ2Q&Content-Type=text%2Fcss&Expires=1653550516&Signature=NV2HK2J2MvcdMBCkXMtlljCgCIw%3D&x-amz-acl=public-read",
+    "expiry": 1800
+  },
+  "cdn": {
+    "url": "https://hdn-1.addsale.com/x0/company/285/applications/628b54933f2552a4a4c251eb/theme/assets/7bVSKrkQV-themeBundle.css"
+  }
+}

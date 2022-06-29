@@ -4,8 +4,8 @@ import ThemeContext from '../../lib/ThemeContext';
 export default function themeCommandBuilder() {
     const theme = new commander.Command('theme').description('Theme Commands');
     theme
-        .command('add')
-        .alias('new')
+        .command('new')
+        .alias('add')
         .description('Create Theme')
         .requiredOption('-t, --token [token]', 'Token')
         .requiredOption('-n, --name [name]', 'Theme name')

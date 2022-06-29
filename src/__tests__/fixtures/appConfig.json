@@ -1,0 +1,51 @@
+{
+    "website": { "enabled": true, "basepath": "/" },
+    "cors": { "domains": [] },
+    "auth": { "enabled": true },
+    "description": "",
+    "channel_type": "website-and-mobile-apps",
+    "cache_ttl": -1,
+    "internal": false,
+    "is_active": true,
+    "mode": "live",
+    "_id": "622894659baaca3be88c9d65",
+    "theme_id": "623b09faeb0b6e0f4ff9758f",
+    "application_id": "622894659baaca3be88c9d65",
+    "company_id": "1",
+    "name": "anurag",
+    "owner": "67e6926e2537b3e9890ff468",
+   "logo": {
+      "secure_url": "https://hdn-1.addsale.com/x0/company/164/applications/5efc9913f474c329718e3690/application/pictures/free-logo/original/olqHM8LNr-JioMart-Groceries.png"
+    },
+    "favicon": {
+      "secure_url": "https://hdn-1.addsale.com/x0/company/164/applications/5efc9913f474c329718e3690/application/pictures/free-logo/original/olqHM8LNr-JioMart-Groceries.png"
+    },
+    "banner": {
+      "secure_url": "https://hdn-1.addsale.com/x0/company/164/applications/5efc9913f474c329718e3690/application/pictures/landscape-banner/original/D2fr98CUH-JioMart-Groceries.png"
+    },
+    "domains": [
+      {
+        "verified": true,
+        "is_primary": true,
+        "is_shortlink": true,
+        "_id": "622894659baaca99888c9d66",
+        "name": "anuragbazaar.hostx0.de"
+      }
+    ],
+    "token": "4Eoh-yDMW",
+    "tokens": [ { "token": "4Eoh-yDMW", "created_at": "2022-03-09T11:49:57.590Z" } ],
+    "redirections": [],
+    "meta": [],
+    "created_at": "2022-03-09T11:49:57.590Z",
+    "modified_at": "2022-03-31T07:00:33.332Z",
+    "__v": "0",
+    "mobile_logo": { "secure_url": "" },
+    "domain": {
+      "verified": true,
+      "is_primary": true,
+      "is_shortlink": true,
+      "_id": "622894659baaca99888c9d66",
+      "name": "anuragbazaar.hostx0.de"
+    },
+    "id": "622894659baaca3be88c9d65"
+  }
