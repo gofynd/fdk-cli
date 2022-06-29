@@ -614,7 +614,7 @@ export default class Theme {
             const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'assets/images');
             const images = glob.sync('**/**.**', { cwd });
             await asyncForEach(images, async img => {
-                const assetPath = path.join(Theme.BUILD_FOLDER, '/assets/images', img);
+                const assetPath = path.join(process.cwd(),Theme.BUILD_FOLDER, '/assets/images', img);
                 await UploadService.uploadFile(assetPath, 'application-theme-images');
             });
         } catch (err) {
