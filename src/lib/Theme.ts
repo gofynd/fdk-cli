@@ -265,8 +265,8 @@ export default class Theme {
             await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl });
             // check if build folder exists, as during build, vue fails with non-error code even when it errors out
             console.log("Theme.BUILD_FOLDER",Theme.BUILD_FOLDER);
-            console.log(fs.existsSync(Theme.BUILD_FOLDER));
-            if (!fs.existsSync(Theme.BUILD_FOLDER)) {
+            console.log("dist exists", path.join(process.cwd(), Theme.BUILD_FOLDER));
+            if (!fs.existsSync(path.join(process.cwd(), Theme.BUILD_FOLDER))) {
                 throw new Error('Build Failed');
             }
             Logger.warn('Uploading theme preview images...');
