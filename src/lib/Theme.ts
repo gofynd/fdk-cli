@@ -267,6 +267,7 @@ console.log("build dones")
             // check if build folder exists, as during build, vue fails with non-error code even when it errors out
             console.log("paths",(!fs.existsSync(Theme.BUILD_FOLDER)))
             if (!fs.existsSync(Theme.BUILD_FOLDER)) {
+                console.log("inside build existence")
                 throw new Error('Build Failed');
             }
             Logger.warn('Uploading theme preview images...');
