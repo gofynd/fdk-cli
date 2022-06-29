@@ -268,6 +268,7 @@ console.log("build dones")
             console.log("paths",(!fs.existsSync(Theme.BUILD_FOLDER)))
          
             const directoryPath = path.join(process.cwd(),'.fdk');
+            console.log("existsfile",fs.existsSync(path.join(process.cwd(),'.fdk/dist')))
             console.log("paths",directoryPath)
             fs.readdir(directoryPath, function (err, files) {
                 console.log("inside reddir")
