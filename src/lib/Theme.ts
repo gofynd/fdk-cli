@@ -266,9 +266,9 @@ export default class Theme {
 console.log("build dones")
             // check if build folder exists, as during build, vue fails with non-error code even when it errors out
             console.log("paths",Theme.BUILD_FOLDER)
-            if (!fs.existsSync(Theme.BUILD_FOLDER)) {
-                throw new Error('Build Failed');
-            }
+            // if (!fs.existsSync(Theme.BUILD_FOLDER)) {
+            //     throw new Error('Build Failed');
+            // }
             Logger.warn('Uploading theme preview images...');
             // upload theme preview images
             let [androidImages, iosImages, desktopImages, thumbnailImages] =
