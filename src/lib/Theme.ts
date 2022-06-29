@@ -48,9 +48,9 @@ export default class Theme {
         pull-config
     */
     static TEMPLATE_DIRECTORY = path.join(__dirname, '../../template');
-    static BUILD_FOLDER = path.normalize('./.fdk/dist');
-    static SRC_FOLDER = path.normalize('./.fdk/temp-theme');
-    static SRC_ARCHIVE_FOLDER = path.normalize('./.fdk/archive');
+    static BUILD_FOLDER = './.fdk/dist';
+    static SRC_FOLDER = './.fdk/temp-theme';
+    static SRC_ARCHIVE_FOLDER = './.fdk/archive';
     static ZIP_FILE_NAME = `archive.zip`;
     public static getSettingsDataPath() {
         return path.join(process.cwd(), '/theme/config/settings_data.json');
@@ -264,7 +264,7 @@ export default class Theme {
             // build js css
             await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl });
             // check if build folder exists, as during build, vue fails with non-error code even when it errors out
-            if (!fs.existsSync(path.join(process.cwd(), Theme.BUILD_FOLDER))) {
+            if (!fs.existsSync(Theme.BUILD_FOLDER)) {
                 throw new Error('Build Failed');
             }
             Logger.warn('Uploading theme preview images...');
@@ -612,7 +612,7 @@ export default class Theme {
             const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'assets/images');
             const images = glob.sync('**/**.**', { cwd });
             await asyncForEach(images, async img => {
-                const assetPath = path.join(process.cwd(),Theme.BUILD_FOLDER, '/assets/images', img);
+                const assetPath = path.join(Theme.BUILD_FOLDER, '/assets/images', img);
                 await UploadService.uploadFile(assetPath, 'application-theme-images');
             });
         } catch (err) {
@@ -734,17 +734,15 @@ export default class Theme {
     };
     private static copyThemeSourceToFdkFolder = async () => {
         try {
-            await fs.copy(path.join(process.cwd(),'./theme'), Theme.SRC_FOLDER);
+            await fs.copy('./theme', Theme.SRC_FOLDER);
             console.log("theme folder copied");
-            fs.copyFileSync(path.join(process.cwd(),'./package.json'), path.normalize(Theme.SRC_FOLDER + '/package.json'));
-            console.log("package.json copied");
+            fs.copyFileSync('./package.json', path.normalize(Theme.SRC_FOLDER + '/package.json'));
             await archiveFolder({
                 srcFolder: Theme.SRC_FOLDER,
                 destFolder: Theme.SRC_ARCHIVE_FOLDER,
                 zipFileName: Theme.ZIP_FILE_NAME,
             });
         } catch (err) {
-            console.log("err", err);
             throw new CommandError(`Failed to copying theme files to .fdk folder`);
         }
     };

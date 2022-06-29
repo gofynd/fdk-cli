@@ -2,7 +2,7 @@ name: Merge CI
 
 on:
   push:
-    branches: [ theme-test-cases ]
+    branches: [ master ]
 
 jobs:
   build:
@@ -12,11 +12,11 @@ jobs:
     strategy:
       matrix:
         os: [
-          # ubuntu-latest, 
-          # macos-latest, 
-          windows-latest
+          ubuntu-latest, 
+          macos-latest, 
+          # windows-latest
           ]
-        node-version: [12.x]
+        node-version: [12.x, 14.x, 15.x]
 
     steps:
     - uses: actions/checkout@v2
