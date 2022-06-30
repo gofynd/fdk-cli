@@ -11,6 +11,7 @@ import ConfigStore, { CONFIG_KEYS } from './Config';
 import ConfigurationService from './api/services/configuration.service';
 import fs from 'fs-extra';
 import path from 'path';
+const https = require('https');
 import execa from 'execa';
 import rimraf from 'rimraf';
 import Box from 'boxen';
@@ -36,6 +37,7 @@ import { downloadFile } from '../helper/download';
 import Env from './Env';
 import Debug from './Debug';
 import ora from 'ora';
+import { options } from 'yargs';
 export default class Theme {
     /*
         new theme from default template -> create
@@ -758,7 +760,7 @@ export default class Theme {
         const urlHash = shortid.generate();
         try {
             let pArr = assets.map(async asset => {
-                 fs.renameSync(
+                fs.renameSync(
                     path.join(Theme.BUILD_FOLDER, asset),
                     `${Theme.BUILD_FOLDER}/${urlHash}-${asset}`
                 );
