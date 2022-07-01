@@ -37,7 +37,7 @@ import { downloadFile } from '../helper/download';
 import Env from './Env';
 import Debug from './Debug';
 import ora from 'ora';
-import { options } from 'yargs';
+import simpleGit from 'simple-git';
 export default class Theme {
     /*
         new theme from default template -> create
@@ -913,6 +913,19 @@ export default class Theme {
             }
         } catch (err) {
             throw new CommandError(err.message, err.code);
+        }
+    };
+
+    public static templateDownload = async options => {
+        const url = options.url;
+        try {
+            const git = simpleGit();
+            await git
+                .clone(url)
+                .then(() => console.log('done'))
+                // .catch(err => console.error('failed: ', err.message));
+        } catch (err) {
+            throw new CommandError(`failed to download repository`,err.message, err.code);
         }
     };
 }

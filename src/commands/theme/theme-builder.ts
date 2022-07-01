@@ -18,7 +18,7 @@ export default function themeCommandBuilder() {
         .asyncAction(Theme.initTheme); // todo
 
     theme.command('sync').description('Sync theme').asyncAction(Theme.syncThemeWrapper);
-
+    theme.command('template').description('download template').requiredOption('-u, --url [url]', 'repo url').asyncAction(Theme.templateDownload);
     theme
         .command('serve')
         .description('Serve theme')
