@@ -34,5 +34,6 @@ module.exports = {
     "!**/node_modules/**",
     "!**/vendor/**",
     "!**/__tests__/**"
-  ]
+  ],
+  testTimeout: 1000000,
 };
