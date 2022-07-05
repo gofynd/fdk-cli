@@ -46,5 +46,6 @@ export default function themeCommandBuilder() {
 
     theme.command('context-list').description('List all contexts').asyncAction(ThemeContext.listThemeContext);
 
+    theme.command('active-context').description('print active_context').asyncAction(ThemeContext.activeContext);
     return theme;
 }
