@@ -20,7 +20,7 @@ export const AVAILABLE_ENVS = {
   jmpx2: 'api.jmpx2.de',
   tirabeauty:'api.tirabeauty.com',
   tirax2:'api.tirax2.de',
-
+  tiraz5: 'api.tiraz5.de'
 };
 
 type EnvType = keyof typeof AVAILABLE_ENVS;
