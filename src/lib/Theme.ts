@@ -316,6 +316,11 @@ export default class Theme {
                 }
             });
             Logger.success('Theme syncing DONE...');
+            Logger.success('Your Theme was pushed successfully');
+            Logger.log('View your theme')
+            console.log(path.join(`${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true`))
+            Logger.log('Customize this theme in Theme Editor');
+            console.log(path.join(`https://platform.${currentContext.env}.de/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`))
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
