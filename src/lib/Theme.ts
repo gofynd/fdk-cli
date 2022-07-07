@@ -316,11 +316,27 @@ export default class Theme {
                 }
             });
             Logger.success('Theme syncing DONE...');
-            Logger.success('Your Theme was pushed successfully');
-            Logger.log('View your theme')
-            console.log(path.join(`${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true`))
-            Logger.log('Customize this theme in Theme Editor');
-            console.log(path.join(`https://platform.${currentContext.env}.de/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`))
+            var b5 = Box(
+                chalk.green.bold('Your Theme was pushed successfully\n') +
+                    chalk.blue.bold('View your theme:\n') +
+                    chalk.white(
+                        path.join(
+                            `${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true\n`
+                        )
+                    ) +
+                    chalk.blue.bold('Customize this theme in Theme Editor:\n') +
+                    chalk.white(
+                        path.join(
+                            `https://platform.${currentContext.env}.de/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`
+                        )
+                    ),
+                {
+                    padding: 1,
+                    margin: 1,
+                    borderColor: 'green',
+                }
+            );
+            console.log(b5.toString());
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
@@ -384,7 +400,7 @@ export default class Theme {
             const { data: themeData } = await ThemeService.getThemeById(null);
             const theme = _.cloneDeep({ ...themeData });
             rimraf.sync(path.resolve(process.cwd(), './.fdk/archive'));
-            const zipFilePath = path.join(process.cwd(),'./.fdk/pull-archive.zip')
+            const zipFilePath = path.join(process.cwd(), './.fdk/pull-archive.zip');
             await downloadFile(theme.src.link, zipFilePath);
             await extractArchive({
                 zipPath: path.resolve(process.cwd(), './.fdk/pull-archive.zip'),
@@ -763,7 +779,7 @@ export default class Theme {
         const urlHash = shortid.generate();
         try {
             let pArr = assets.map(async asset => {
-                 fs.renameSync(
+                fs.renameSync(
                     path.join(Theme.BUILD_FOLDER, asset),
                     `${Theme.BUILD_FOLDER}/${urlHash}-${asset}`
                 );
