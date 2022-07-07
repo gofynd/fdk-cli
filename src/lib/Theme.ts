@@ -318,12 +318,14 @@ export default class Theme {
             Logger.success('Theme syncing DONE...');
             var b5 = Box(
                 chalk.green.bold('Your Theme was pushed successfully\n') +
+                chalk.white('\n') +
                     chalk.blue.bold('View your theme:\n') +
                     chalk.white(
                         path.join(
                             `${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true\n`
                         )
                     ) +
+                    chalk.white('\n') +
                     chalk.blue.bold('Customize this theme in Theme Editor:\n') +
                     chalk.white(
                         path.join(
