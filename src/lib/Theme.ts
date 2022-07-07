@@ -37,7 +37,7 @@ import { downloadFile } from '../helper/download';
 import Env from './Env';
 import Debug from './Debug';
 import ora from 'ora';
-import simpleGit from 'simple-git';
+const simpleGit = require('simple-git');
 export default class Theme {
     /*
         new theme from default template -> create
@@ -381,7 +381,7 @@ export default class Theme {
             const { data: themeData } = await ThemeService.getThemeById(null);
             const theme = _.cloneDeep({ ...themeData });
             rimraf.sync(path.resolve(process.cwd(), './.fdk/archive'));
-            const zipFilePath = path.join(process.cwd(),'./.fdk/pull-archive.zip')
+            const zipFilePath = path.join(process.cwd(), './.fdk/pull-archive.zip');
             await downloadFile(theme.src.link, zipFilePath);
             await extractArchive({
                 zipPath: path.resolve(process.cwd(), './.fdk/pull-archive.zip'),
@@ -917,15 +917,13 @@ export default class Theme {
     };
 
     public static templateDownload = async options => {
-        const url = options.url;
+        const url = options.url || 'https://github.com/anuragpandey1115/Social-App.git';
         try {
             const git = simpleGit();
-            await git
-                .clone(url)
-                .then(() => console.log('done'))
-                // .catch(err => console.error('failed: ', err.message));
+            await git.clone(url).then(() => console.log('done'));
+            // .catch(err => console.error('failed: ', err.message));
         } catch (err) {
-            throw new CommandError(`failed to download repository`,err.message, err.code);
+            throw new CommandError(`failed to download repository`, err.message, err.code);
         }
     };
 }
