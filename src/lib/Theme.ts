@@ -913,4 +913,13 @@ export default class Theme {
             throw new CommandError(err.message, err.code);
         }
     };
+
+    public static previewTheme =  async() => {
+        const currentContext = getActiveContext();
+        try{
+           await open(`https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true&upgrade=true`);
+        }catch(err){
+            throw new CommandError(err.message, err.code);
+        }
+    }
 }

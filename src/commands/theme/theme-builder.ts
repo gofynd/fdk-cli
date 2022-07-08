@@ -19,6 +19,8 @@ export default function themeCommandBuilder() {
 
     theme.command('sync').description('Sync theme').asyncAction(Theme.syncThemeWrapper);
 
+    theme.command('open').description('preview theme').asyncAction(Theme.previewTheme);
+
     theme
         .command('serve')
         .description('Serve theme')
