@@ -19,6 +19,7 @@ export default function themeCommandBuilder() {
 
     theme.command('sync').description('Sync theme').asyncAction(Theme.syncThemeWrapper);
 
+    theme.command('package').description('generate zip file of theme').asyncAction(Theme.generateZip);
     theme
         .command('serve')
         .description('Serve theme')
@@ -44,7 +45,10 @@ export default function themeCommandBuilder() {
         .requiredOption('-n, --name [name]', 'Context name')
         .asyncAction(ThemeContext.addThemeContext);
 
-    theme.command('context-list').description('List all contexts').asyncAction(ThemeContext.listThemeContext);
+    theme
+        .command('context-list')
+        .description('List all contexts')
+        .asyncAction(ThemeContext.listThemeContext);
 
     return theme;
 }

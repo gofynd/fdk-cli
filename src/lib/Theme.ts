@@ -913,4 +913,19 @@ export default class Theme {
             throw new CommandError(err.message, err.code);
         }
     };
+
+    public static generateZip = async () => {
+        try {
+            await fs.copy('./template', Theme.SRC_FOLDER);
+            fs.copyFileSync('./package.json', Theme.SRC_FOLDER + '/package.json');
+            await archiveFolder({
+                srcFolder: Theme.SRC_FOLDER,
+                destFolder: Theme.SRC_ARCHIVE_FOLDER,
+                zipFileName: 'temp.zip',
+            });
+        } catch (err) {
+            throw new CommandError(`Failed to copying theme files to .fdk folder`);
+        }
+        rimraf.sync(Theme.SRC_FOLDER);
+    };
 }
