@@ -379,7 +379,7 @@ export default class Theme {
             const { data: themeData } = await ThemeService.getThemeById(null);
             const theme = _.cloneDeep({ ...themeData });
             rimraf.sync(path.resolve(process.cwd(), './.fdk/archive'));
-            const zipFilePath = path.join(process.cwd(),'./.fdk/pull-archive.zip')
+            const zipFilePath = path.join(process.cwd(), './.fdk/pull-archive.zip');
             await downloadFile(theme.src.link, zipFilePath);
             await extractArchive({
                 zipPath: path.resolve(process.cwd(), './.fdk/pull-archive.zip'),
@@ -758,7 +758,7 @@ export default class Theme {
         const urlHash = shortid.generate();
         try {
             let pArr = assets.map(async asset => {
-                 fs.renameSync(
+                fs.renameSync(
                     path.join(Theme.BUILD_FOLDER, asset),
                     `${Theme.BUILD_FOLDER}/${urlHash}-${asset}`
                 );
@@ -914,18 +914,18 @@ export default class Theme {
         }
     };
 
-    public static generateZip = async () => {
+    public static generateThemeZip = async () => {
         try {
-            await fs.copy('./template', Theme.SRC_FOLDER);
-            fs.copyFileSync('./package.json', Theme.SRC_FOLDER + '/package.json');
+            let filepath = path.join(process.cwd(), 'template', 'package.json');
+            let packageContent: any = readFile(filepath);
+            let Content = JSON.parse(packageContent);
             await archiveFolder({
-                srcFolder: Theme.SRC_FOLDER,
-                destFolder: Theme.SRC_ARCHIVE_FOLDER,
-                zipFileName: 'temp.zip',
+                srcFolder: path.join(process.cwd(),'template'),
+                destFolder: path.join(process.cwd()),
+                zipFileName: `${Content.name}_${Content.version}.zip`,
             });
         } catch (err) {
             throw new CommandError(`Failed to copying theme files to .fdk folder`);
         }
-        rimraf.sync(Theme.SRC_FOLDER);
     };
 }

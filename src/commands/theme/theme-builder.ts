@@ -19,7 +19,7 @@ export default function themeCommandBuilder() {
 
     theme.command('sync').description('Sync theme').asyncAction(Theme.syncThemeWrapper);
 
-    theme.command('package').description('generate zip file of theme').asyncAction(Theme.generateZip);
+    theme.command('package').description('generate zip file of theme').asyncAction(Theme.generateThemeZip);
     theme
         .command('serve')
         .description('Serve theme')
