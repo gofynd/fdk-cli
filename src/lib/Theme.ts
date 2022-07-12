@@ -573,22 +573,15 @@ export default class Theme {
     private static async cleanUp(targetDirectory = process.cwd()) {
         try {
             Logger.warn('Cleaning up');
-            Logger.info('target directory', targetDirectory);
             if (fs.existsSync(targetDirectory)) {
-                Logger.info('CHECK target dir');
                 if (fs.existsSync(`${path.join(targetDirectory, '.fdk', 'context.json')}`)) {
-                    Logger.info('CHECK context.json');
                     const contexts = await fs.readJSON(`${path.join(targetDirectory, '.fdk', 'context.json')}`);
                     const activeContext = contexts.theme.active_context;
                     await ThemeService.deleteThemeById(contexts.theme.contexts[activeContext]);
-                    console.log('CHECK END context.json')
                 }
-                Logger.info('CHECK rimraf');
                 rimraf.sync(targetDirectory);
-                Logger.info('CHECK END rimraf')
             }
         } catch (error) {
-            Logger.info('ERROR', error);
             throw new CommandError(error.message);
         }
     }
@@ -621,7 +614,7 @@ export default class Theme {
             const images = glob.sync(path.join('**', '**.**'), { cwd });
             console.log('IMAGES ARRAY', images);
             await asyncForEach(images, async img => {
-                const assetPath = path.join(Theme.BUILD_FOLDER, 'assets', 'images', img);
+                const assetPath = path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets', 'images', img);
                 await UploadService.uploadFile(assetPath, 'application-theme-images');
             });
         } catch (err) {
