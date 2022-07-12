@@ -580,7 +580,9 @@ export default class Theme {
                     const contexts = await fs.readJSON(`${path.join(targetDirectory, '.fdk', 'context.json')}`);
                     const activeContext = contexts.theme.active_context;
                     await ThemeService.deleteThemeById(contexts.theme.contexts[activeContext]);
+                    console.log('CHECK END context.json')
                 }
+                Logger.info('CHECK rimraf');
                 rimraf.sync(targetDirectory);
             }
         } catch (error) {
