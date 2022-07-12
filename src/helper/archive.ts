@@ -15,8 +15,9 @@ export function archiveFolder({ srcFolder, destFolder, zipFileName }) {
             fs.unlinkSync(filePath);
         }
 
-        if (!fs.existsSync(destFolder)) {
-            fs.mkdirSync(destFolder)
+        Logger.info('DIR PATH',path.resolve(process.cwd(), destFolder));
+        if (!fs.existsSync(path.resolve(process.cwd(), destFolder))) {
+            fs.mkdirSync(path.resolve(process.cwd(), destFolder));
         }
 
         const output = fs.createWriteStream(filePath);
