@@ -265,7 +265,7 @@ export default class Theme {
             await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl });
             // check if build folder exists, as during build, vue fails with non-error code even when it errors out
             Logger.info('CHECK start Build fail')
-            // if (!fs.existsSync(Theme.BUILD_FOLDER)) {
+            // if (!fs.existsSync(path.join(process.cwd(), Theme.BUILD_FOLDER))) {
             //     throw new Error('Build Failed');
             // }
             Logger.warn('Uploading theme preview images...');
@@ -737,7 +737,9 @@ export default class Theme {
     private static copyThemeSourceToFdkFolder = async () => {
         try {
             await fs.copy(path.join(process.cwd(), 'theme'), path.join(process.cwd(), Theme.SRC_FOLDER));
+            Logger.info('CHECK before archive 1');
             fs.copyFileSync(path.join(process.cwd(), 'package.json'), path.join(process.cwd(), Theme.SRC_FOLDER, 'package.json'));
+            Logger.info('CHECK before archive 2')
             await archiveFolder({
                 srcFolder: Theme.SRC_FOLDER,
                 destFolder: Theme.SRC_ARCHIVE_FOLDER,
