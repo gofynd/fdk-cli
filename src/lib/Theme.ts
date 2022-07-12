@@ -48,15 +48,15 @@ export default class Theme {
         pull-config
     */
     static TEMPLATE_DIRECTORY = path.join(__dirname, '../../template');
-    static BUILD_FOLDER = './.fdk/dist';
-    static SRC_FOLDER = './.fdk/temp-theme';
-    static SRC_ARCHIVE_FOLDER = './.fdk/archive';
+    static BUILD_FOLDER = path.join('.fdk', 'dist');
+    static SRC_FOLDER = path.join('.fdk', 'temp-theme');
+    static SRC_ARCHIVE_FOLDER = path.join('.fdk', 'archive');
     static ZIP_FILE_NAME = `archive.zip`;
     public static getSettingsDataPath() {
-        return path.join(process.cwd(), '/theme/config/settings_data.json');
+        return path.join(process.cwd(), 'theme', 'config', 'settings_data.json');
     }
     public static getSettingsSchemaPath() {
-        return path.join(process.cwd(), '/theme/config/settings_schema.json');
+        return path.join(process.cwd(), 'theme', 'config', 'settings_schema.json');
     }
     public static async writeSettingJson(path, jsonObject) {
         try {
@@ -265,6 +265,7 @@ export default class Theme {
             await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl });
             // check if build folder exists, as during build, vue fails with non-error code even when it errors out
             if (!fs.existsSync(Theme.BUILD_FOLDER)) {
+                Logger.info('CHECK Build failed');
                 throw new Error('Build Failed');
             }
             Logger.warn('Uploading theme preview images...');
