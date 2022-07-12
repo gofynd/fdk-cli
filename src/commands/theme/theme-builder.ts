@@ -9,6 +9,7 @@ export default function themeCommandBuilder() {
         .description('Create Theme')
         .requiredOption('-t, --token [token]', 'Token')
         .requiredOption('-n, --name [name]', 'Theme name')
+        .option('-u', '--url [url]', 'repo url')
         .asyncAction(Theme.createTheme);
 
     theme
@@ -18,7 +19,6 @@ export default function themeCommandBuilder() {
         .asyncAction(Theme.initTheme); // todo
 
     theme.command('sync').description('Sync theme').asyncAction(Theme.syncThemeWrapper);
-    theme.command('template').description('download template').requiredOption('-u, --url [url]', 'repo url').asyncAction(Theme.templateDownload);
     theme
         .command('serve')
         .description('Serve theme')
@@ -44,7 +44,10 @@ export default function themeCommandBuilder() {
         .requiredOption('-n, --name [name]', 'Context name')
         .asyncAction(ThemeContext.addThemeContext);
 
-    theme.command('context-list').description('List all contexts').asyncAction(ThemeContext.listThemeContext);
+    theme
+        .command('context-list')
+        .description('List all contexts')
+        .asyncAction(ThemeContext.listThemeContext);
 
     return theme;
 }

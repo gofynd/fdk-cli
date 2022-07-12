@@ -108,6 +108,12 @@ export default class Theme {
                 available_sections,
             };
             const { data: theme } = await ThemeService.createTheme({ ...configObj, ...themeData });
+
+            if (options.u) {
+                Logger.warn('cloning template');
+                await Theme.templateDownload(options);
+            }
+
             Logger.warn('Copying template files');
             shouldDelete = true;
             await Theme.copyTemplateFiles(Theme.TEMPLATE_DIRECTORY, targetDirectory);
@@ -919,8 +925,12 @@ export default class Theme {
     public static templateDownload = async options => {
         const url = options.url || 'https://github.com/anuragpandey1115/Social-App.git';
         try {
+            const folderPath = path.join(process.cwd(), 'templatess');
+            fs.mkdirSync(folderPath);
             const git = simpleGit();
-            await git.clone(url).then(() => console.log('done'));
+            if (fs.existsSync(folderPath)) {
+                await git.clone(url, 'templatess').then(() => console.log('done'));
+            }
             // .catch(err => console.error('failed: ', err.message));
         } catch (err) {
             throw new CommandError(`failed to download repository`, err.message, err.code);
