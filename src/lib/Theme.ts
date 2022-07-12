@@ -572,9 +572,12 @@ export default class Theme {
     private static async cleanUp(targetDirectory = process.cwd()) {
         try {
             Logger.warn('Cleaning up');
+            Logger.info('target directory', targetDirectory);
             if (fs.existsSync(targetDirectory)) {
-                if (fs.existsSync(`${targetDirectory}/.fdk/context.json`)) {
-                    const contexts = await fs.readJSON(`${targetDirectory}/.fdk/context.json`);
+                Logger.info('CHECK target dir');
+                if (fs.existsSync(`${path.join(targetDirectory, '.fdk', 'context.json')}`)) {
+                    Logger.info('CHECK context.json');
+                    const contexts = await fs.readJSON(`${path.join(targetDirectory, '.fdk', 'context.json')}`);
                     const activeContext = contexts.theme.active_context;
                     await ThemeService.deleteThemeById(contexts.theme.contexts[activeContext]);
                 }
