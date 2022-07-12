@@ -617,10 +617,10 @@ export default class Theme {
     };
     private static assetsImageUploader = async () => {
         try {
-            const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'assets/images');
-            const images = glob.sync('**/**.**', { cwd });
+            const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'assets', 'images');
+            const images = glob.sync(path.join('**', '**.**'), { cwd });
             await asyncForEach(images, async img => {
-                const assetPath = path.join(Theme.BUILD_FOLDER, '/assets/images', img);
+                const assetPath = path.join(Theme.BUILD_FOLDER, 'assets', 'images', img);
                 await UploadService.uploadFile(assetPath, 'application-theme-images');
             });
         } catch (err) {
