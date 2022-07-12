@@ -47,7 +47,7 @@ export default class Theme {
         unpublish theme
         pull-config
     */
-    static TEMPLATE_DIRECTORY = path.join(__dirname, '../../template');
+    static TEMPLATE_DIRECTORY = path.join(__dirname, '..', '..', 'template');
     static BUILD_FOLDER = path.join('.fdk', 'dist');
     static SRC_FOLDER = path.join('.fdk', 'temp-theme');
     static SRC_ARCHIVE_FOLDER = path.join('.fdk', 'archive');
@@ -619,6 +619,7 @@ export default class Theme {
         try {
             const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'assets', 'images');
             const images = glob.sync(path.join('**', '**.**'), { cwd });
+            console.log('IMAGES ARRAY', images);
             await asyncForEach(images, async img => {
                 const assetPath = path.join(Theme.BUILD_FOLDER, 'assets', 'images', img);
                 await UploadService.uploadFile(assetPath, 'application-theme-images');
