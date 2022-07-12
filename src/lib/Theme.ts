@@ -63,18 +63,18 @@ export default class Theme {
             await fs.writeJSON(path, jsonObject, {
                 spaces: 2,
             });
-            Logger.success(`${path.split('/').slice(-1)[0]} written succesfully.!!!`);
+            Logger.success(`${path} written succesfully.!!!`);
         } catch (err) {
-            throw new CommandError(`Error writing ${path.split('/').slice(-1)[0]} file.!!!`);
+            throw new CommandError(`Error writing ${path} file.!!!`);
         }
     }
     public static async readSettingsJson(path) {
         try {
             const settingsJson = await fs.readJSON(path);
-            Logger.success(`${path.split('/').slice(-1)[0]} read successfully.!!!`);
+            Logger.success(`${path} read successfully.!!!`);
             return settingsJson;
         } catch (err) {
-            throw new CommandError(`Error reading ${path.split('/').slice(-1)[0]} file.!!!`);
+            throw new CommandError(`Error reading ${path} file.!!!`);
         }
     }
     public static async createTheme(options) {
@@ -264,8 +264,8 @@ export default class Theme {
             // build js css
             await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl });
             // check if build folder exists, as during build, vue fails with non-error code even when it errors out
+            Logger.info('CHECK start Build fail')
             if (!fs.existsSync(Theme.BUILD_FOLDER)) {
-                Logger.info('CHECK Build failed');
                 throw new Error('Build Failed');
             }
             Logger.warn('Uploading theme preview images...');
