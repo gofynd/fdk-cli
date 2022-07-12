@@ -45,7 +45,7 @@ export function archiveFolder({ srcFolder, destFolder, zipFileName }) {
         });
 
         archive.pipe(output);
-        archive.directory(srcFolder, false);
+        archive.directory(path.resolve(process.cwd(), srcFolder), false);
         archive.finalize();
     });
 }
