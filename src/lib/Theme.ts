@@ -584,8 +584,10 @@ export default class Theme {
                 }
                 Logger.info('CHECK rimraf');
                 rimraf.sync(targetDirectory);
+                Logger.info('CHECK END rimraf')
             }
         } catch (error) {
+            Logger.info('ERROR', error);
             throw new CommandError(error.message);
         }
     }
