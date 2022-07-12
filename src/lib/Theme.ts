@@ -737,7 +737,8 @@ export default class Theme {
     private static copyThemeSourceToFdkFolder = async () => {
         try {
             await fs.copy(path.join(process.cwd(), 'theme'), path.join(process.cwd(), Theme.SRC_FOLDER));
-            Logger.info('CHECK before archive 1');
+            Logger.info('CHECK before archive 1', process.cwd());
+            Logger.info('PATH 1', path.join(process.cwd(), 'package.json'), 'Path 2', path.join(process.cwd(), Theme.SRC_FOLDER, 'package.json'));
             fs.copyFileSync(path.join(process.cwd(), 'package.json'), path.join(process.cwd(), Theme.SRC_FOLDER, 'package.json'));
             Logger.info('CHECK before archive 2')
             await archiveFolder({
