@@ -282,7 +282,7 @@ export default class Theme {
             Logger.warn('Creating theme source code zip file...');
             await Theme.copyThemeSourceToFdkFolder();
             //remove temp files
-            rimraf.sync(Theme.SRC_FOLDER);
+            rimraf.sync(process.cwd(), Theme.SRC_FOLDER);
             // src file upload
             Logger.warn('Uploading theme source code zip file...');
             let srcCdnUrl = await Theme.uploadThemeSrcZip();
@@ -767,7 +767,7 @@ export default class Theme {
                     path.join(Theme.BUILD_FOLDER, asset),
                     `${Theme.BUILD_FOLDER}/${urlHash}-${asset}`
                 );
-                const assetPath = path.join(Theme.BUILD_FOLDER, `${urlHash}-${asset}`);
+                const assetPath = path.join(process.cwd(), Theme.BUILD_FOLDER, `${urlHash}-${asset}`);
                 let res = await UploadService.uploadFile(assetPath, 'application-theme-assets');
                 return res.start.cdn.url;
             });
@@ -884,7 +884,7 @@ export default class Theme {
         }
     };
     private static uploadThemeSrcZip = async () => {
-        const zipFilePath = path.join(Theme.SRC_ARCHIVE_FOLDER, Theme.ZIP_FILE_NAME);
+        const zipFilePath = path.join(process.cwd(), Theme.SRC_ARCHIVE_FOLDER, Theme.ZIP_FILE_NAME);
         try {
             let res = await UploadService.uploadFile(zipFilePath, 'application-theme-src');
             return res.start.cdn.url;
