@@ -282,7 +282,7 @@ export default class Theme {
             Logger.warn('Creating theme source code zip file...');
             await Theme.copyThemeSourceToFdkFolder();
             //remove temp files
-            rimraf.sync(process.cwd(), Theme.SRC_FOLDER);
+            rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
             // src file upload
             Logger.warn('Uploading theme source code zip file...');
             let srcCdnUrl = await Theme.uploadThemeSrcZip();
