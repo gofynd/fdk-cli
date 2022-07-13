@@ -917,15 +917,15 @@ export default class Theme {
     public static generateThemeZip = async () => {
         let filepath = path.join(process.cwd(), 'template', 'package.json');
         let packageContent: any = readFile(filepath);
-        let Content = JSON.parse(packageContent);
+        let content = JSON.parse(packageContent);
         try {
             await archiveFolder({
                 srcFolder: path.join(process.cwd(), 'template'),
                 destFolder: path.join(process.cwd()),
-                zipFileName: `${Content.name}_${Content.version}.zip`,
+                zipFileName: `${content.name}_${content.version}.zip`,
             });
         } catch (err) {
-            throw new CommandError(`Failed to generate .zip file of ${Content.name} theme`);
+            throw new CommandError(`Failed to generate .zip file of ${content.name} theme`);
         }
     };
 }
