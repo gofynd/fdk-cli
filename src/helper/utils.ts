@@ -9,6 +9,7 @@ const FDK_PATH = () => path.join(process.cwd(), '.fdk');
 const CONTEXT_PATH = () => path.join(FDK_PATH(), 'context.json');
 const DEFAULT_CONTEXT = { theme: {active_context: '', contexts: {}}, partners: {} };
 export interface ThemeContextInterface {
+  name?: string;
   application_id?: string;
   application_token?: string;
   theme_id?: string;
