@@ -79,8 +79,6 @@ export default class Theme {
         }
     }
     public static async createTheme(options) {
-        const link = terminalLink('My Website', 'https://sindresorhus.com');
-        console.log(link);
         let shouldDelete = false;
         const targetDirectory = path.join(process.cwd(), options.name);
         try {
@@ -322,19 +320,12 @@ export default class Theme {
             var b5 = Box(
                 chalk.green.bold('Your Theme was pushed successfully\n') +
                     chalk.white('\n') +
-                    chalk.blue.bold('View your theme:\n') +
-                    chalk.white(
-                        path.join(
-                            `${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true\n`
-                        )
-                    ) +
+                    chalk.white('View your theme:\n') +
+                    chalk.green(terminalLink( '',`https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true`)) +
                     chalk.white('\n') +
-                    chalk.blue.bold('Customize this theme in Theme Editor:\n') +
-                    chalk.white(
-                        path.join(
-                            `https://platform.${currentContext.env}.de/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`
-                        )
-                    ),
+                    chalk.white('\n') +
+                    chalk.white('Customize this theme in Theme Editor:\n') +
+                    chalk.green(terminalLink('',`https://platform.${currentContext.env}.de/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`)),
                 {
                     padding: 1,
                     margin: 1,
