@@ -13,6 +13,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import execa from 'execa';
 import rimraf from 'rimraf';
+import terminalLink from 'terminal-link';
 import Box from 'boxen';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
@@ -316,9 +317,17 @@ export default class Theme {
                 }
             });
             Logger.success('Theme syncing DONE...');
+            if (terminalLink.isSupported) {
+                const link = terminalLink(
+                    'preview url',
+                    `${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true`
+                );
+                console.log(link);
+            }
+
             var b5 = Box(
                 chalk.green.bold('Your Theme was pushed successfully\n') +
-                chalk.white('\n') +
+                    chalk.white('\n') +
                     chalk.blue.bold('View your theme:\n') +
                     chalk.white(
                         path.join(
