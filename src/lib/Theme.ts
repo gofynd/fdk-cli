@@ -79,6 +79,8 @@ export default class Theme {
         }
     }
     public static async createTheme(options) {
+        const link = terminalLink('My Website', 'https://sindresorhus.com');
+        console.log(link);
         let shouldDelete = false;
         const targetDirectory = path.join(process.cwd(), options.name);
         try {
@@ -317,14 +319,6 @@ export default class Theme {
                 }
             });
             Logger.success('Theme syncing DONE...');
-            if (terminalLink.isSupported) {
-                const link = terminalLink(
-                    'preview url',
-                    `${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true`
-                );
-                console.log(link);
-            }
-
             var b5 = Box(
                 chalk.green.bold('Your Theme was pushed successfully\n') +
                     chalk.white('\n') +
