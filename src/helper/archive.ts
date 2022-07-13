@@ -7,7 +7,6 @@ import Logger from '../lib/Logger';
 export function archiveFolder({ srcFolder, destFolder, zipFileName }) {
     return new Promise((resolve, reject) => {
         let filePath = path.resolve(process.cwd(), destFolder, zipFileName);
-        Logger.info('File path', filePath);
         // clear previous build archive
         const archiveExists = fs.existsSync(filePath);
 
@@ -15,7 +14,6 @@ export function archiveFolder({ srcFolder, destFolder, zipFileName }) {
             fs.unlinkSync(filePath);
         }
 
-        Logger.info('DIR PATH',path.resolve(process.cwd(), destFolder));
         if (!fs.existsSync(path.resolve(process.cwd(), destFolder))) {
             fs.mkdirSync(path.resolve(process.cwd(), destFolder));
         }
