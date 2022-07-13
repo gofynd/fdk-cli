@@ -765,7 +765,7 @@ export default class Theme {
             let pArr = assets.map(async asset => {
                  fs.renameSync(
                     path.join(Theme.BUILD_FOLDER, asset),
-                    `${Theme.BUILD_FOLDER}/${urlHash}-${asset}`
+                    path.join(Theme.BUILD_FOLDER, `${urlHash}-${asset}`)
                 );
                 const assetPath = path.join(process.cwd(), Theme.BUILD_FOLDER, `${urlHash}-${asset}`);
                 let res = await UploadService.uploadFile(assetPath, 'application-theme-assets');
@@ -789,8 +789,8 @@ export default class Theme {
         available_sections
     ) => {
         try {
-            let themeContent: any = readFile(`${process.cwd()}/config.json`);
-            let packageJSON = JSON.parse(readFile(`${process.cwd()}/package.json`));
+            let themeContent: any = readFile(path.join(process.cwd(), 'config.json'));
+            let packageJSON = JSON.parse(readFile(path.join(process.cwd(), 'package.json')));
             if (!packageJSON.name) {
                 throw new Error('package.json name can not be empty');
             }
@@ -815,10 +815,10 @@ export default class Theme {
             _.set(theme, 'information.images.thumbnail', thumbnailImages);
             _.set(theme, 'information.name', Theme.unSanitizeThemeName(packageJSON.name));
             let globalConfigSchema = await fs.readJSON(
-                `${process.cwd()}/theme/config/settings_schema.json`
+                path.join(process.cwd(), 'theme', 'config', 'settings_schema.json')
             );
             let globalConfigData = await fs.readJSON(
-                `${process.cwd()}/theme/config/settings_data.json`
+                path.join(process.cwd(), 'theme', 'config', 'settings_data.json')
             );
             theme.config = theme.config || {};
             theme.config.global_schema = globalConfigSchema;
