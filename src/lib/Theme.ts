@@ -764,8 +764,8 @@ export default class Theme {
         try {
             let pArr = assets.map(async asset => {
                  fs.renameSync(
-                    path.join(Theme.BUILD_FOLDER, asset),
-                    path.join(Theme.BUILD_FOLDER, `${urlHash}-${asset}`)
+                    path.join(process.cwd(), Theme.BUILD_FOLDER, asset),
+                    path.join(process.cwd(), Theme.BUILD_FOLDER, `${urlHash}-${asset}`)
                 );
                 const assetPath = path.join(process.cwd(), Theme.BUILD_FOLDER, `${urlHash}-${asset}`);
                 let res = await UploadService.uploadFile(assetPath, 'application-theme-assets');
