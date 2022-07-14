@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@babel/core": "7.14.3",
-    "@babel/plugin-transform-modules-commonjs": "7.14.0",
+    "@babel/plugin-transform-modules-commonjs": "^7.14.0",
     "@types/open": "^6.2.1",
     "archiver": "^5.3.0",
     "async": "^3.2.0",
