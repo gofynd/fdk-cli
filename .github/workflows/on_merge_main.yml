@@ -2,7 +2,7 @@ name: Merge CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ release-test-cases-fix ]
 
 jobs:
   build:

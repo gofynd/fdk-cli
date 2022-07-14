@@ -49,7 +49,7 @@ export default class Theme {
     static TEMPLATE_DIRECTORY = path.join(__dirname, '../../template');
     static BUILD_FOLDER = './.fdk/dist';
     static SRC_FOLDER = './.fdk/temp-theme';
-    static VUE_CLI_CONFIG_PATH = path.join(process.cwd(), './.fdk/vue.config.js');
+    static VUE_CLI_CONFIG_PATH = './.fdk/vue.config.js';
     static SRC_ARCHIVE_FOLDER = './.fdk/archive';
     static ZIP_FILE_NAME = `archive.zip`;
     public static getSettingsDataPath() {
@@ -647,8 +647,8 @@ export default class Theme {
                 Logger.success('fdk.config.js file generated');
             }
         }
-        rimraf.sync(Theme.VUE_CLI_CONFIG_PATH);
-        fs.writeFileSync(Theme.VUE_CLI_CONFIG_PATH, themeVueConfigTemplate);
+        rimraf.sync(path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH));
+        fs.writeFileSync(path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH), themeVueConfigTemplate);
     }
 
     private static assetsImageUploader = async () => {
