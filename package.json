@@ -9,7 +9,7 @@
   "files": [
     "bin",
     "dist",
-    "src",
+    "src/**/*.js",
     "template"
   ],
   "scripts": {
