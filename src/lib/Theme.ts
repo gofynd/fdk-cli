@@ -12,6 +12,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import execa from 'execa';
 import rimraf from 'rimraf';
+import terminalLink from 'terminal-link';
 import Box from 'boxen';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
@@ -317,6 +318,22 @@ export default class Theme {
                 }
             });
             Logger.success('Theme syncing DONE...');
+            var b5 = Box(
+                chalk.green.bold('Your Theme was pushed successfully\n') +
+                    chalk.white('\n') +
+                    chalk.white('View your theme:\n') +
+                    chalk.green(terminalLink( '',`https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true`)) +
+                    chalk.white('\n') +
+                    chalk.white('\n') +
+                    chalk.white('Customize this theme in Theme Editor:\n') +
+                    chalk.green(terminalLink('',`https://platform.${currentContext.env}.de/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`)),
+                {
+                    padding: 1,
+                    margin: 1,
+                    borderColor: 'green',
+                }
+            );
+            console.log(b5.toString());
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
@@ -389,7 +406,7 @@ export default class Theme {
             const { data: themeData } = await ThemeService.getThemeById(null);
             const theme = _.cloneDeep({ ...themeData });
             rimraf.sync(path.resolve(process.cwd(), './.fdk/archive'));
-            const zipFilePath = path.join(process.cwd(),'./.fdk/pull-archive.zip')
+            const zipFilePath = path.join(process.cwd(), './.fdk/pull-archive.zip');
             await downloadFile(theme.src.link, zipFilePath);
             await extractArchive({
                 zipPath: path.resolve(process.cwd(), './.fdk/pull-archive.zip'),
