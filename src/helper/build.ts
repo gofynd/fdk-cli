@@ -1,5 +1,6 @@
 import { exec } from 'child_process'
 import Theme from '../lib/Theme';
+import path from 'path';
 
 export function build({ buildFolder, imageCdnUrl, assetCdnUrl, assetHash = '' }) {
     return new Promise((resolve, reject) => {
@@ -12,7 +13,7 @@ export function build({ buildFolder, imageCdnUrl, assetCdnUrl, assetHash = '' })
                     ASSET_CDN_URL: assetCdnUrl,
                     ASSET_HASH: assetHash,
                     NODE_ENV: "production",
-                    VUE_CLI_SERVICE_CONFIG_PATH: Theme.VUE_CLI_CONFIG_PATH
+                    VUE_CLI_SERVICE_CONFIG_PATH: path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH)
                 }
             });
 
@@ -40,7 +41,7 @@ export function devBuild({ buildFolder, imageCdnUrl, isProd } : DevBuild) {
                     ...process.env,
                     IMAGE_CDN_URL: imageCdnUrl,
                     NODE_ENV: (isProd && "production") || "development",
-                    VUE_CLI_SERVICE_CONFIG_PATH: Theme.VUE_CLI_CONFIG_PATH
+                    VUE_CLI_SERVICE_CONFIG_PATH: path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH)
                 }
             });
 
