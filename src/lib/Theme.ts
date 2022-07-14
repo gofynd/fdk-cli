@@ -801,21 +801,21 @@ export default class Theme {
         try {
             Logger.warn('Uploading commonjs...');
             const commonJS = `${assetHash}_themeBundle.common.js`;
-            const commonJsUrlRes = await UploadService.uploadFile(path.join(Theme.BUILD_FOLDER, commonJS), 'application-theme-assets');
+            const commonJsUrlRes = await UploadService.uploadFile(path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS), 'application-theme-assets');
             const commonJsUrl = commonJsUrlRes.start.cdn.url
     
             Logger.warn('Uploading umdjs...');
-            const umdMinAssets = glob.sync(`${Theme.BUILD_FOLDER}/${assetHash}_themeBundle.umd.min.**.js`);
+            const umdMinAssets = glob.sync(path.join(process.cwd(), Theme.BUILD_FOLDER, `${assetHash}_themeBundle.umd.min.**.js`));
             umdMinAssets.push(`${assetHash}_themeBundle.umd.min.js`)
             const umdJSPromisesArr = umdMinAssets.map(async asset => {
-                const assetPath = path.join(Theme.BUILD_FOLDER, asset);
+                const assetPath = path.join(process.cwd(), Theme.BUILD_FOLDER, asset);
                 let res = await UploadService.uploadFile(assetPath, 'application-theme-assets');
                 return res.start.cdn.url;
             });
             const umdJsUrls = await Promise.all(umdJSPromisesArr);
     
             Logger.warn('Uploading css...');
-            let cssAssests = glob.sync(`${Theme.BUILD_FOLDER}/**.css`);
+            let cssAssests = glob.sync(path.join(process.cwd(), Theme.BUILD_FOLDER, '**.css'));
             let cssPromisesArr = cssAssests.map(async asset => {
                 let res = await UploadService.uploadFile(asset, 'application-theme-assets');
                 return res.start.cdn.url;
