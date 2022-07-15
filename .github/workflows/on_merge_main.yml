@@ -2,7 +2,7 @@ name: Merge CI
 
 on:
   push:
-    branches: [ master, CI/CD-fix ]
+    branches: [ master ]
 
 jobs:
   build:
