@@ -73,7 +73,7 @@ describe('Theme Context Commands', () => {
             '-n',
             'fyndx0',
         ]);
-        let context: any = readFile(path.join(process.cwd(), '.fdk', 'context.json'));
+        let context: any = readFile(path.join(process.cwd(), './.fdk/context.json'));
         try {
             context = JSON.parse(context);
         } catch (e) {
