@@ -63,6 +63,7 @@ describe('Theme Context Commands', () => {
         await login();
         const inquirerMock = mockFunction(inquirer.prompt);
         inquirerMock.mockResolvedValue({ showCreateFolder: 'Yes' });
+        console.log("CWD", process.cwd());
         await program.parseAsync([
             'ts-node',
             './src/fdk.ts',
