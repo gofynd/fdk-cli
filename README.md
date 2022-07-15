@@ -69,12 +69,14 @@ ___
 | [init](#theme-init)     | Initialize an existing theme |
 | [context](#theme-context)     | Add context of a theme |
 | [context-list](#theme-context-list)     | List all available contexts |
+| [active-context](theme-active-context)    | show currently active context |
 | [serve](#theme-serve)     | Start theme serving on localhost |
 | [sync](#theme-sync)     | Sync theme to application |
 | [pull](#theme-pull)     | Pull latest theme code |
 | [pull-config](#theme-pull-config)     | Pull latest theme config |
 | [publish](#theme-publish)     | Publish theme to library |
 | [unpublish](#theme-unpublish)     | Unpublish theme |
+| [open](#theme-open)    | preview theme |
 
 ### Extension Commands
 | Command        | Description           | 
