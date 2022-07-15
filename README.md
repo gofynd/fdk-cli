@@ -265,8 +265,17 @@ This command is used to get a list of available context. You can also set active
 fdk theme context-list
 ```
 ___
+<div id="theme-active-context"></div>
 
+#### **active-context**
+This command is used to get currently active context.
+#### **Syntax**
+```sh
+fdk theme active-context
+```
+___
 <div id="theme-serve"></div>
+
 
 
 #### **serve**
@@ -339,6 +348,14 @@ This command is used to unpublish your theme.
 fdk theme unpublish
 ```
 ___
+<div id="theme-open"></div>
+
+#### **open**
+This command is used to preview the theme on browser.
+#### **Syntax**
+```sh
+fdk theme open 
+```
 ### Extension Commands
 Extensions are pluggable snippets of code that can be installed in your applications so improve the feature set of your application. To know more visit - [Fynd Partners](https://partners.fynd.com/)
 
