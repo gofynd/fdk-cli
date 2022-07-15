@@ -210,7 +210,7 @@ export default class Theme {
                     spaces: 2,
                 }
             );
-            Logger.warn('Saving context', context);
+            Logger.warn('Saving context');
             await createContext(context);
             Logger.warn('Installing dependencies');
             if (fs.existsSync(process.cwd() + '/theme/package.json')) {
