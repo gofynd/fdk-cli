@@ -302,4 +302,14 @@ describe('Theme Commands', () => {
         process.chdir(`../`);
         expect(fs.existsSync(filePath)).toBe(true);
     });
+
+    it('should successfully generate .zip file of theme', async () => {
+        let filepath = path.join(process.cwd(), 'template', 'package.json');
+        let packageContent: any = readFile(filepath);
+        let content = JSON.parse(packageContent);
+        let fileNamme = `${content.name}_${content.version}.zip`;
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'package']);
+        expect(fs.existsSync(fileNamme)).toBe(true);
+    });
+
 });
