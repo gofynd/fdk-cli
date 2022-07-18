@@ -642,10 +642,10 @@ export default class Theme {
         const fdkConfigPath = path.join(process.cwd(), 'fdk.config.js');
         if (fs.existsSync(oldVueConfigPath)) {
             if (fs.existsSync(fdkConfigPath)) {
-                throw new CommandError(`vue.config.js is not supported, move its file content to fdk.config,js`, ErrorCodes.NOT_KNOWN.code);
+                throw new CommandError(`vue.config.js is not supported, move its file content to fdk.config.js`, ErrorCodes.NOT_KNOWN.code);
             } else {
                 fs.renameSync(oldVueConfigPath, fdkConfigPath);
-                Logger.success('fdk.config.js file generated');
+                Logger.success('Renamed file from vue.config.js to fdk.config.js');
             }
         }
         rimraf.sync(path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH));
