@@ -5,22 +5,25 @@ import Logger, { COMMON_LOG_MESSAGES } from './Logger';
 import chalk from 'chalk';
 
 export const AVAILABLE_ENVS = {
-  fyndx1: 'api.fyndx1.de',
   fyndx0: 'api.fyndx0.de',
+  fyndx1: 'api.fyndx1.de',
   fynd: 'api.fynd.com',
-  jiox2: 'api.jiox2.de',
-  jiox1: 'api.jiox1.de',
   jiox0: 'api.jiox0.de',
+  jiox1: 'api.jiox1.de',
+  jiox2: 'api.jiox2.de',
+  jiox3: 'api.jiox3.de',
+  jiox5: 'api.jiox5.de',
   jioretailer: 'api.jioretailer.com',
   jioecomm: 'api.jioecomm.com',
   jiomarketx0: 'api.jiomarketx0.de',
-  jiox5: 'api.jiox5.de',
-  jiox3: 'api.jiox3.de',
-  jiomartpartners: 'api.jiomartpartners.com',
+  jiomarketxz5: 'api.jiomarketz5.de',
+  jiomarket: 'api.jiomarket.com',
   jmpx2: 'api.jmpx2.de',
-  tirabeauty:'api.tirabeauty.com',
+  jmpx3: 'api.jmpx3.de',
+  jiomartpartners: 'api.jiomartpartners.com',
   tirax2:'api.tirax2.de',
-  tiraz5: 'api.tiraz5.de'
+  tiraz5: 'api.tiraz5.de',
+  tirabeauty:'api.tirabeauty.com',
 };
 
 type EnvType = keyof typeof AVAILABLE_ENVS;
