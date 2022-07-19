@@ -223,6 +223,7 @@ describe('Theme Commands', () => {
 
     afterAll(() => {
         rimraf.sync(path.join(__dirname, '..', '..', 'test-theme'));
+        process.chdir(path.join(__dirname, '..', '..'));
         configStore.clear();
     });
 

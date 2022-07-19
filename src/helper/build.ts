@@ -1,6 +1,8 @@
 import { exec } from 'child_process'
 import path from 'path'
-export function build({ buildFolder, imageCdnUrl, assetCdnUrl }) {
+import Theme from '../lib/Theme';
+
+export function build({ buildFolder, imageCdnUrl, assetCdnUrl, assetHash = '' }) {
     const VUE_CLI_PATH = path.join('.', 'node_modules', '@vue', 'cli', 'bin', 'vue.js');
     const THEME_ENTRY_FILE = path.join('theme', 'index.js');
 
@@ -12,7 +14,9 @@ export function build({ buildFolder, imageCdnUrl, assetCdnUrl }) {
                     ...process.env,
                     IMAGE_CDN_URL: imageCdnUrl,
                     ASSET_CDN_URL: assetCdnUrl,
-                    NODE_ENV: "production"
+                    ASSET_HASH: assetHash,
+                    NODE_ENV: "production",
+                    VUE_CLI_SERVICE_CONFIG_PATH: path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH)
                 }
             });
 
@@ -42,7 +46,8 @@ export function devBuild({ buildFolder, imageCdnUrl, isProd } : DevBuild) {
                 env: {
                     ...process.env,
                     IMAGE_CDN_URL: imageCdnUrl,
-                    NODE_ENV: (isProd && "production") || "development"
+                    NODE_ENV: (isProd && "production") || "development",
+                    VUE_CLI_SERVICE_CONFIG_PATH: path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH)
                 }
             });
 
