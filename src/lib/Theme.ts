@@ -263,6 +263,7 @@ export default class Theme {
             // get asset cdn base url
             const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
             Logger.warn('Building Assets...');
+            Theme.createVueConfig();
             // build js css
             await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl, assetHash });
 
@@ -644,10 +645,10 @@ export default class Theme {
         const fdkConfigPath = path.join(process.cwd(), 'fdk.config.js');
         if (fs.existsSync(oldVueConfigPath)) {
             if (fs.existsSync(fdkConfigPath)) {
-                throw "vue.config.js is not supported, move its file content to fdk.config,js"
+                throw new CommandError(`vue.config.js is not supported, move its file content to fdk.config.js`, ErrorCodes.NOT_KNOWN.code);
             } else {
                 fs.renameSync(oldVueConfigPath, fdkConfigPath);
-                Logger.success('fdk.config.js file generated');
+                Logger.success('Renamed file from vue.config.js to fdk.config.js');
             }
         }
         rimraf.sync(path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH));
