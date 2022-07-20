@@ -3,11 +3,11 @@ import path from 'path'
 import Theme from '../lib/Theme';
 
 export function build({ buildFolder, imageCdnUrl, assetCdnUrl, assetHash = '' }) {
-    const VUE_CLI_PATH = path.join('.', 'node_modules', '@vue', 'cli', 'bin', 'vue.js');
+    const VUE_CLI_PATH = path.join('.', 'node_modules', '@vue', 'cli-service', 'bin', 'vue-cli-service.js');
     const THEME_ENTRY_FILE = path.join('theme', 'index.js');
 
     return new Promise((resolve, reject) => {
-        let b = exec(`node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name ${assetHash}_themeBundle ${THEME_ENTRY_FILE}`,
+        let b = exec(`node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle --filename ${assetHash}_themeBundle ${THEME_ENTRY_FILE}`,
             {
                 cwd: process.cwd(),
                 env: {
@@ -36,7 +36,7 @@ interface DevBuild {
     isProd: boolean
 }
 export function devBuild({ buildFolder, imageCdnUrl, isProd } : DevBuild) {
-    const VUE_CLI_PATH = path.join('.', 'node_modules', '@vue', 'cli', 'bin', 'vue.js');
+    const VUE_CLI_PATH = path.join('.', 'node_modules', '@vue', 'cli-service', 'bin', 'vue-cli-service.js');
     const THEME_ENTRY_FILE = path.join('theme', 'index.js');
 
     return new Promise((resolve, reject) => {
