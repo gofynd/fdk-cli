@@ -16,7 +16,7 @@ export const AVAILABLE_ENVS = {
   jioretailer: 'api.jioretailer.com',
   jioecomm: 'api.jioecomm.com',
   jiomarketx0: 'api.jiomarketx0.de',
-  jiomarketxz5: 'api.jiomarketz5.de',
+  jiomarketz5: 'api.jiomarketz5.de',
   jiomarket: 'api.jiomarket.com',
   jmpx2: 'api.jmpx2.de',
   jmpx3: 'api.jmpx3.de',
