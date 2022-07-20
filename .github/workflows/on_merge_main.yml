@@ -2,7 +2,7 @@ name: Merge CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ bug-fpco-3525-windows-test-cases-fix-v1 ]
 
 jobs:
   build:
