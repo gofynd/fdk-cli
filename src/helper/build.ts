@@ -7,7 +7,7 @@ export function build({ buildFolder, imageCdnUrl, assetCdnUrl, assetHash = '' })
     const THEME_ENTRY_FILE = path.join('theme', 'index.js');
 
     return new Promise((resolve, reject) => {
-        let b = exec(`node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle ${THEME_ENTRY_FILE}`,
+        let b = exec(`node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name ${assetHash}_themeBundle ${THEME_ENTRY_FILE}`,
             {
                 cwd: process.cwd(),
                 env: {
