@@ -19,6 +19,9 @@ export default function themeCommandBuilder() {
         .asyncAction(Theme.initTheme); // todo
 
     theme.command('sync').description('Sync theme').asyncAction(Theme.syncThemeWrapper);
+
+    theme.command('open').description('preview theme').asyncAction(Theme.previewTheme);
+
     theme
         .command('serve')
         .description('Serve theme')
@@ -49,5 +52,6 @@ export default function themeCommandBuilder() {
         .description('List all contexts')
         .asyncAction(ThemeContext.listThemeContext);
 
+    theme.command('active-context').description('print active_context').asyncAction(ThemeContext.activeContext);
     return theme;
 }

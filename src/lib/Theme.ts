@@ -6,22 +6,20 @@ import {
     pageNameModifier,
 } from '../helper/utils';
 import CommandError, { ErrorCodes } from './CommandError';
-import Logger, { COMMON_LOG_MESSAGES } from './Logger';
-import ConfigStore, { CONFIG_KEYS } from './Config';
+import Logger from './Logger';
 import ConfigurationService from './api/services/configuration.service';
 import fs from 'fs-extra';
 import path from 'path';
 const https = require('https');
 import execa from 'execa';
 import rimraf from 'rimraf';
+import terminalLink from 'terminal-link';
 import Box from 'boxen';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import compiler from 'vue-template-compiler';
 import cheerio from 'cheerio';
 import glob from 'glob';
 import _ from 'lodash';
-import requireFromString from 'require-from-string';
 import { createDirectory, writeFile, readFile } from '../helper/file.utils';
 import shortid from 'shortid';
 import ThemeService from './api/services/theme.service';
@@ -29,7 +27,7 @@ import UploadService from './api/services/upload.service';
 import { build, devBuild } from '../helper/build';
 import { archiveFolder, extractArchive } from '../helper/archive';
 import urlJoin from 'url-join';
-import { getFullLocalUrl, startServer, reload } from '../helper/serve.utils';
+import { getFullLocalUrl, startServer, reload, getPort } from '../helper/serve.utils';
 import { getBaseURL } from './api/services/url';
 import open from 'open';
 import chokidar from 'chokidar';
@@ -38,6 +36,7 @@ import Env from './Env';
 import Debug from './Debug';
 import ora from 'ora';
 const simpleGit = require('simple-git');
+import { themeVueConfigTemplate } from '../helper/theme.vue.config';
 export default class Theme {
     /*
         new theme from default template -> create
@@ -52,6 +51,7 @@ export default class Theme {
     static TEMPLATE_DIRECTORY = path.join(__dirname, '../../template');
     static BUILD_FOLDER = './.fdk/dist';
     static SRC_FOLDER = './.fdk/temp-theme';
+    static VUE_CLI_CONFIG_PATH = './.fdk/vue.config.js';
     static SRC_ARCHIVE_FOLDER = './.fdk/archive';
     static ZIP_FILE_NAME = `archive.zip`;
     public static getSettingsDataPath() {
@@ -266,11 +266,14 @@ export default class Theme {
             await Theme.createSectionsIndexFile(available_sections);
             // get image cdn base url
             const imageCdnUrl = await Theme.getImageCdnBaseUrl();
+            const assetHash = shortid.generate();
             // get asset cdn base url
             const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
             Logger.warn('Building Assets...');
+            Theme.createVueConfig();
             // build js css
-            await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl });
+            await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl, assetHash });
+
             // check if build folder exists, as during build, vue fails with non-error code even when it errors out
             if (!fs.existsSync(Theme.BUILD_FOLDER)) {
                 throw new Error('Build Failed');
@@ -295,14 +298,14 @@ export default class Theme {
             let srcCdnUrl = await Theme.uploadThemeSrcZip();
             //uploading bundle files
             Logger.warn('Uploading bundle files...');
-            let pArr = await Theme.uploadThemeBundle();
-            let [cssUrl, commonJsUrl, umdJsUrl] = await Promise.all(pArr);
+            let pArr = await Theme.uploadThemeBundle({ assetHash });
+            let [cssUrls, commonJsUrl, umdJsUrls] = await Promise.all(pArr);
             // setting theme data
             const newTheme = await Theme.setThemeData(
                 theme,
-                cssUrl,
+                cssUrls,
                 commonJsUrl,
-                umdJsUrl,
+                umdJsUrls,
                 srcCdnUrl,
                 desktopImages,
                 iosImages,
@@ -324,6 +327,22 @@ export default class Theme {
                 }
             });
             Logger.success('Theme syncing DONE...');
+            var b5 = Box(
+                chalk.green.bold('Your Theme was pushed successfully\n') +
+                    chalk.white('\n') +
+                    chalk.white('View your theme:\n') +
+                    chalk.green(terminalLink( '',`https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true`)) +
+                    chalk.white('\n') +
+                    chalk.white('\n') +
+                    chalk.white('Customize this theme in Theme Editor:\n') +
+                    chalk.green(terminalLink('',`https://platform.${currentContext.env}.de/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`)),
+                {
+                    padding: 1,
+                    margin: 1,
+                    borderColor: 'green',
+                }
+            );
+            console.log(b5.toString());
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
@@ -343,6 +362,13 @@ export default class Theme {
                     : typeof options['port'] === 'number'
                     ? options['port']
                     : DEFAULT_PORT;
+            const port = await getPort(serverPort);
+            if (port !== serverPort)
+                Logger.warn(
+                    chalk.bold.yellowBright(
+                        `PORT: ${serverPort} is busy, Switching to PORT: ${port}`
+                    )
+                );
             !isSSR ? Logger.warn('Disabling SSR') : null;
             let { data: appInfo } = await ConfigurationService.getApplicationDetails();
             let domain = Array.isArray(appInfo.domains)
@@ -351,16 +377,18 @@ export default class Theme {
             let host = getBaseURL();
             // initial build
             Logger.success(`Locally building............`);
+            Theme.createVueConfig();
             await devBuild({
                 buildFolder: Theme.BUILD_FOLDER,
-                imageCdnUrl: urlJoin(getFullLocalUrl(host), 'assets/images'),
+                imageCdnUrl: urlJoin(getFullLocalUrl(port), 'assets/images'),
                 isProd: isSSR,
             });
             // start dev server
             Logger.info(chalk.bold.blueBright(`Starting server...`));
-            await startServer({ domain, host, isSSR, serverPort });
+            await startServer({ domain, host, isSSR, port });
+
             // open browser
-            await open(getFullLocalUrl(host));
+            await open(getFullLocalUrl(port));
             console.log(chalk.bold.green(`Watching files for changes`));
             let watcher = chokidar.watch(path.resolve(process.cwd(), 'theme'), {
                 persistent: true,
@@ -369,7 +397,7 @@ export default class Theme {
                 console.log(chalk.bold.green(`building............`));
                 await devBuild({
                     buildFolder: path.resolve(process.cwd(), Theme.BUILD_FOLDER),
-                    imageCdnUrl: urlJoin(getFullLocalUrl(host), 'assets/images'),
+                    imageCdnUrl: urlJoin(getFullLocalUrl(port), 'assets/images'),
                     isProd: isSSR,
                 });
                 reload();
@@ -467,6 +495,7 @@ export default class Theme {
                 };
             }
             await Theme.writeSettingJson(Theme.getSettingsDataPath(), newConfig);
+            Theme.createVueConfig();
             Logger.success('Config updated successfully');
         } catch (error) {
             throw new CommandError(error.message, error.code);
@@ -615,6 +644,22 @@ export default class Theme {
         rimraf.sync(Theme.BUILD_FOLDER);
         rimraf.sync(Theme.SRC_ARCHIVE_FOLDER);
     };
+
+    private static createVueConfig() {
+        const oldVueConfigPath = path.join(process.cwd(), 'vue.config.js');
+        const fdkConfigPath = path.join(process.cwd(), 'fdk.config.js');
+        if (fs.existsSync(oldVueConfigPath)) {
+            if (fs.existsSync(fdkConfigPath)) {
+                throw new CommandError(`vue.config.js is not supported, move its file content to fdk.config.js`, ErrorCodes.NOT_KNOWN.code);
+            } else {
+                fs.renameSync(oldVueConfigPath, fdkConfigPath);
+                Logger.success('Renamed file from vue.config.js to fdk.config.js');
+            }
+        }
+        rimraf.sync(path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH));
+        fs.writeFileSync(path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH), themeVueConfigTemplate);
+    }
+
     private static assetsImageUploader = async () => {
         try {
             const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'assets/images');
@@ -761,29 +806,41 @@ export default class Theme {
             throw new CommandError(err.message, err.code);
         }
     };
-    private static uploadThemeBundle = async () => {
-        const assets = ['themeBundle.css', 'themeBundle.common.js', 'themeBundle.umd.min.js'];
-        const urlHash = shortid.generate();
+    private static uploadThemeBundle = async ({ assetHash }) => {
         try {
-            let pArr = assets.map(async asset => {
-                fs.renameSync(
-                    path.join(Theme.BUILD_FOLDER, asset),
-                    `${Theme.BUILD_FOLDER}/${urlHash}-${asset}`
-                );
-                const assetPath = path.join(Theme.BUILD_FOLDER, `${urlHash}-${asset}`);
+            Logger.warn('Uploading commonjs...');
+            const commonJS = `${assetHash}_themeBundle.common.js`;
+            const commonJsUrlRes = await UploadService.uploadFile(path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS), 'application-theme-assets');
+            const commonJsUrl = commonJsUrlRes.start.cdn.url
+    
+            Logger.warn('Uploading umdjs...');
+            const umdMinAssets = glob.sync(path.join(process.cwd(), Theme.BUILD_FOLDER, `${assetHash}_themeBundle.umd.min.**.js`));
+            umdMinAssets.push(`${assetHash}_themeBundle.umd.min.js`)
+            const umdJSPromisesArr = umdMinAssets.map(async asset => {
+                const assetPath = path.join(process.cwd(), Theme.BUILD_FOLDER, asset);
                 let res = await UploadService.uploadFile(assetPath, 'application-theme-assets');
                 return res.start.cdn.url;
             });
-            return pArr;
+            const umdJsUrls = await Promise.all(umdJSPromisesArr);
+    
+            Logger.warn('Uploading css...');
+            let cssAssests = glob.sync(path.join(process.cwd(), Theme.BUILD_FOLDER, '**.css'));
+            let cssPromisesArr = cssAssests.map(async asset => {
+                let res = await UploadService.uploadFile(asset, 'application-theme-assets');
+                return res.start.cdn.url;
+            });    
+            const cssUrls = await Promise.all(cssPromisesArr);
+
+            return [cssUrls, commonJsUrl, umdJsUrls];
         } catch (err) {
             throw new CommandError(`Failed to upload theme bundle `, err.code);
         }
     };
     private static setThemeData = async (
         theme,
-        cssUrl,
+        cssUrls,
         commonJsUrl,
-        umdJsUrl,
+        umdJsUrls,
         srcCdnUrl,
         desktopImages,
         iosImages,
@@ -801,11 +858,13 @@ export default class Theme {
             theme.src.link = srcCdnUrl;
             theme.assets = theme.assets || {};
             theme.assets.umdJs = theme.assets.umdJs || {};
-            theme.assets.umdJs.link = umdJsUrl;
+            theme.assets.umdJs.links = umdJsUrls;
+            theme.assets.umdJs.link = "";
             theme.assets.commonJs = theme.assets.commonJs || {};
             theme.assets.commonJs.link = commonJsUrl;
             theme.assets.css = theme.assets.css || {};
-            theme.assets.css.link = cssUrl;
+            theme.assets.css.links = cssUrls;
+            theme.assets.css.link = "";
             // TODO Issue here
             theme = {
                 ...theme,
@@ -936,4 +995,12 @@ export default class Theme {
             throw new CommandError(`failed to download repository`, err.message, err.code);
         }
     };
+    public static previewTheme =  async() => {
+        const currentContext = getActiveContext();
+        try{
+           await open(`https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true&upgrade=true`);
+        }catch(err){
+            throw new CommandError(err.message, err.code);
+        }
+    }
 }
