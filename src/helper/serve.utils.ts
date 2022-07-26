@@ -236,6 +236,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 				return reject(err);
 			}
 			Logger.success(`Starting starter at port -- ${port} in ${isSSR? 'SSR': 'Non-SSR'} mode`);
+			Logger.success(`Using Debugging build`);
 			resolve(true);
 		});
 	});
