@@ -15,8 +15,7 @@ export default {
       );
       return res;
     } catch (error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
-      throw new Error();
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path);
     }
   },
 };

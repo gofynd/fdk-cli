@@ -23,8 +23,7 @@ export default {
       );
       return res;
     } catch (error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
-      throw new Error();
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path);
     }
   },
   uploadFile: async (filepath, namespace, file_name = null) => {
@@ -97,8 +96,7 @@ export default {
         complete: completeResponse,
       };
     } catch(error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
-      throw new Error();
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path);
     }
   }
 };

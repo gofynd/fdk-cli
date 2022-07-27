@@ -17,8 +17,7 @@ export default {
       const res = await ApiClient.post(URLS.CREATE_THEME(data.application_id, data.company_id), axiosOption);
       return res;
     } catch (error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
-      throw new Error();
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path);
     }
   },
   getThemeById: async data => {
@@ -35,8 +34,7 @@ export default {
       );
       return res;
     } catch (error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
-      throw new Error();
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path);
     }
   },
   updateTheme: async data => {
@@ -59,8 +57,7 @@ export default {
       );
       return res;
     } catch (error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
-      throw new Error();
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path);
     }
   },
   deleteThemeById: async data => {
@@ -77,8 +74,7 @@ export default {
       );
       return res;
     } catch (error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
-      throw new Error();
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path);
     }
   },
 
@@ -97,8 +93,7 @@ export default {
       );
       return res;
     } catch (error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
-      throw new Error();
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path);
     }
   },
   createAvailabePage: async data => {
@@ -121,8 +116,7 @@ export default {
       );
       return res;
     } catch (error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
-      throw new Error();
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path);
     }
   },
   updateAvailablePage: async data => {
@@ -146,8 +140,7 @@ export default {
       );
       return res;
     } catch (error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
-      throw new Error();
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path);
     }
   },
   publishTheme: async () => {
@@ -167,8 +160,7 @@ export default {
       );
       return res;
     } catch (error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
-      throw new Error();
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path);
     }
   },
   unPublishTheme: async () => {
@@ -188,8 +180,7 @@ export default {
       );
       return res;
     } catch (error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
-      throw new Error();
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path);
     }
   },
 };

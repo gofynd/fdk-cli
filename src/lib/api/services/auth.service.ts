@@ -16,8 +16,7 @@ export default {
             const res = await ApiClient.post(URLS.LOGIN_USER(), axiosOption);
             return res;
         } catch(error) {
-            consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
-            throw new Error();
+            consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path);
         }
     },
     sendMobileOtp: async (data) => {
@@ -32,8 +31,7 @@ export default {
             const res = await ApiClient.post(URLS.SEND_OTP(), axiosOption);
             return res;
         } catch(error) {
-            consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
-            throw new Error();
+            consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path);
         }
     },
     verifyMobileOtp: async (data) => {
@@ -48,8 +46,7 @@ export default {
             const res = await ApiClient.post(URLS.VERIFY_OTP(), axiosOption);
             return res;
         } catch(error) {
-            consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
-            throw new Error();
+            consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path);
         }
     },
     getOauthToken: async (company_id) => {
@@ -61,8 +58,7 @@ export default {
             );
             return res;
         } catch(error) {
-            consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
-            throw new Error();
+            consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path);
         }
     }
 }
