@@ -1,5 +1,5 @@
 import { getActiveContext } from '../../../helper/utils';
-import CommandError from '../../CommandError';
+import { consolidateErrorMessage } from '../../../helper/error.utils';
 import ApiClient from '../ApiClient';
 import { URLS } from './url';
 import { getCommonHeaderOptions } from './utils';
@@ -7,7 +7,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import mime from 'mime';
 export default {
-  startUpload: (data, namespace) => {
+  startUpload: async (data, namespace) => {
     try {
       const activeContext = getActiveContext();
       const axiosOption = Object.assign(
@@ -17,16 +17,19 @@ export default {
         },
         getCommonHeaderOptions()
       );
-      return ApiClient.post(
+      const res = await ApiClient.post(
         URLS.START_UPLOAD_FILE(activeContext.application_id, activeContext.company_id, namespace),
         axiosOption
       );
+      return res;
     } catch (error) {
-      throw new CommandError(error.message, error.code);
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
+      throw new Error();
     }
   },
   uploadFile: async (filepath, namespace, file_name = null) => {
-    const activeContext = getActiveContext();
+    try {
+      const activeContext = getActiveContext();
     let stats;
     // start
     try {
@@ -58,40 +61,44 @@ export default {
     );
     const startResponse = res1 ? res1.data : res1;
 
-        let s3Url = startResponse.upload.url;
+    let s3Url = startResponse.upload.url;
 
-        //upload file to s3
-        const res2 = await ApiClient.put(s3Url, {
-            data: fs.readFileSync(filepath),
-            headers: { 'Content-type': contentType },
-        });
-        let uploadResponse = res2 ? res2.data : res2;
+    //upload file to s3
+    const res2 = await ApiClient.put(s3Url, {
+        data: fs.readFileSync(filepath),
+        headers: { 'Content-type': contentType },
+    });
+    let uploadResponse = res2 ? res2.data : res2;
 
-        // complete
-        axiosOption = Object.assign(
-            {},
-            {
-                data: {
-                    response: startResponse,
-                    ...startData,
-                },
+    // complete
+    axiosOption = Object.assign(
+        {},
+        {
+            data: {
+                response: startResponse,
+                ...startData,
             },
-            getCommonHeaderOptions()
-        );
-        const res3 = await ApiClient.post(
-            URLS.COMPLETE_UPLOAD_FILE(
-                activeContext.application_id,
-                activeContext.company_id,
-                namespace
-            ),
-            axiosOption
-        );
-        let completeResponse = res3 ? res3.data : res3;
+        },
+        getCommonHeaderOptions()
+    );
+    const res3 = await ApiClient.post(
+        URLS.COMPLETE_UPLOAD_FILE(
+            activeContext.application_id,
+            activeContext.company_id,
+            namespace
+        ),
+        axiosOption
+    );
+    let completeResponse = res3 ? res3.data : res3;
 
-        return {
-            start: startResponse,
-            upload: uploadResponse,
-            complete: completeResponse,
-        };
-    },
+    return {
+        start: startResponse,
+        upload: uploadResponse,
+        complete: completeResponse,
+      };
+    } catch(error) {
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
+      throw new Error();
+    }
+  }
 };
