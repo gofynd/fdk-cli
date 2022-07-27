@@ -1,5 +1,5 @@
 import { getActiveContext } from '../../../helper/utils';
-import CommandError from '../../CommandError';
+import { consolidateErrorMessage } from '../../../helper/error.utils';
 import ApiClient from '../ApiClient';
 import { URLS } from './url';
 import { getCommonHeaderOptions } from './utils';
@@ -14,17 +14,18 @@ export default {
         },
         getCommonHeaderOptions()
       );
-      return ApiClient.post(URLS.CREATE_THEME(data.application_id, data.company_id), axiosOption);
+      const res = await ApiClient.post(URLS.CREATE_THEME(data.application_id, data.company_id), axiosOption);
+      return res;
     } catch (error) {
-      console.log(error, 'ewrr');
-      throw new CommandError(error.message, error.code);
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
+      throw new Error();
     }
   },
-  getThemeById: data => {
+  getThemeById: async data => {
     try {
       const activeContext = data ? data : getActiveContext();
       const axiosOption = Object.assign({}, getCommonHeaderOptions());
-      return ApiClient.get(
+      const res = await ApiClient.get(
         URLS.THEME_BY_ID(
           activeContext.application_id,
           activeContext.company_id,
@@ -32,11 +33,13 @@ export default {
         ),
         axiosOption
       );
+      return res;
     } catch (error) {
-      throw new CommandError(error.message, error.code);
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
+      throw new Error();
     }
   },
-  updateTheme: data => {
+  updateTheme: async data => {
     try {
       const activeContext = getActiveContext();
       const axiosOption = Object.assign(
@@ -46,7 +49,7 @@ export default {
         },
         getCommonHeaderOptions()
       );
-      return ApiClient.put(
+      const res = await ApiClient.put(
         URLS.THEME_BY_ID(
           activeContext.application_id,
           activeContext.company_id,
@@ -54,15 +57,17 @@ export default {
         ),
         axiosOption
       );
+      return res;
     } catch (error) {
-      throw new CommandError(error.message, error.code);
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
+      throw new Error();
     }
   },
-  deleteThemeById: data => {
+  deleteThemeById: async data => {
     try {
       const activeContext = data ? data : getActiveContext();
       const axiosOption = Object.assign({}, getCommonHeaderOptions());
-      return ApiClient.del(
+      const res = await ApiClient.del(
         URLS.THEME_BY_ID(
           activeContext.application_id,
           activeContext.company_id,
@@ -70,16 +75,18 @@ export default {
         ),
         axiosOption
       );
+      return res;
     } catch (error) {
-      throw new CommandError(error.message, error.code);
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
+      throw new Error();
     }
   },
 
-  getAvailablePage: pageValue => {
+  getAvailablePage: async pageValue => {
     try {
       const activeContext = getActiveContext();
       const axiosOption = Object.assign({}, getCommonHeaderOptions());
-      return ApiClient.get(
+      const res = await ApiClient.get(
         URLS.AVAILABLE_PAGE(
           activeContext.application_id,
           activeContext.company_id,
@@ -88,11 +95,13 @@ export default {
         ),
         axiosOption
       );
+      return res;
     } catch (error) {
-      throw new CommandError(error.message, error.code);
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
+      throw new Error();
     }
   },
-  createAvailabePage: data => {
+  createAvailabePage: async data => {
     try {
       const activeContext = getActiveContext();
       const axiosOption = Object.assign(
@@ -102,7 +111,7 @@ export default {
         },
         getCommonHeaderOptions()
       );
-      return ApiClient.post(
+      const res = await ApiClient.post(
         URLS.AVAILABLE_PAGE(
           activeContext.application_id,
           activeContext.company_id,
@@ -110,11 +119,13 @@ export default {
         ),
         axiosOption
       );
+      return res;
     } catch (error) {
-      throw new CommandError(error.message, error.code);
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
+      throw new Error();
     }
   },
-  updateAvailablePage: data => {
+  updateAvailablePage: async data => {
     try {
       const activeContext = getActiveContext();
       const axiosOption = Object.assign(
@@ -124,7 +135,7 @@ export default {
         },
         getCommonHeaderOptions()
       );
-      return ApiClient.put(
+      const res = await ApiClient.put(
         URLS.AVAILABLE_PAGE(
           activeContext.application_id,
           activeContext.company_id,
@@ -133,18 +144,20 @@ export default {
         ),
         axiosOption
       );
+      return res;
     } catch (error) {
-      throw new CommandError(error.message, error.code);
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
+      throw new Error();
     }
   },
-  publishTheme: () => {
+  publishTheme: async () => {
     try {
       const activeContext = getActiveContext();
       const axiosOption = Object.assign(
         {},
         getCommonHeaderOptions()
       );
-      return ApiClient.put(
+      const res = await ApiClient.put(
         URLS.THEME_BY_ID(
           activeContext.application_id,
           activeContext.company_id,
@@ -152,18 +165,20 @@ export default {
         ) + '/publish',
         axiosOption
       );
+      return res;
     } catch (error) {
-      throw new CommandError(error.message, error.code);
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
+      throw new Error();
     }
   },
-  unPublishTheme: () => {
+  unPublishTheme: async () => {
     try {
       const activeContext = getActiveContext();
       const axiosOption = Object.assign(
         {},
         getCommonHeaderOptions()
       );
-      return ApiClient.put(
+      const res = await ApiClient.put(
         URLS.THEME_BY_ID(
           activeContext.application_id,
           activeContext.company_id,
@@ -171,8 +186,10 @@ export default {
         ) + '/unpublish',
         axiosOption
       );
+      return res;
     } catch (error) {
-      throw new CommandError(error.message, error.code);
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path)
+      throw new Error();
     }
   },
 };
