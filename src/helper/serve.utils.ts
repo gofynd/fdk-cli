@@ -107,9 +107,6 @@ export async function startServer({ domain, host, isSSR, port }) {
 		req.transformRequest = transformRequest;
 		req.url = req.originalUrl;
 		req.data = req.body;
-		if(req.baseUrl === '/ext' && req.headers['x-fp-cli-forwarded-host']){
-			host = `https://${req.headers['x-fp-cli-forwarded-host']}`;
-		}
 		req.baseURL = host;
 		delete req.headers['x-fp-signature'];
 		delete req.headers['x-fp-date'];
