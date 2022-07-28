@@ -507,7 +507,7 @@ export default class Theme {
     }
     private static async installNpmPackages() {
         return new Promise((resolve, reject) => {
-            let exec = execa('npm', ['ci'], { cwd: process.cwd() });
+            let exec = execa('npm', ['i'], { cwd: process.cwd() });
             exec.stdout.pipe(process.stdout);
             exec.stderr.pipe(process.stderr);
             exec.on('exit', function (code) {

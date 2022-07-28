@@ -17,7 +17,6 @@ module.exports = {
     // disable eslint
     config.module.rules.delete('eslint');
     config.module.rules.delete('svg');
-    config.module.rule('vue').uses.delete('cache-loader');
   
     const imagesRule = config.module.rule('images');
     imagesRule.uses.clear();
