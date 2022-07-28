@@ -84,33 +84,24 @@ export async function startServer({ domain, host, isSSR, port }) {
 	app.use(express.json());
 	  
 	const options = {
-		target: host, // target host
+		target: currentDomain, // target host
 		changeOrigin: true, // needed for virtual hosted sites
 		cookieDomainRewrite: 'localhost', // rewrite cookies to localhost
-		onProxyReq: fixRequestBody,
-		router: function(req) {
-			// change host for /ext routes for data loaders
-			if(req.baseUrl === '/ext' && req.headers['x-fp-cli-forwarded-host']){
-				return `https://${req.headers['x-fp-cli-forwarded-host']}`;
-			}else if(req.baseUrl === '/ext'){
-				// normal extensions with /ext routes
-				return currentDomain;
-			}
-			return host;
-		}
+		onProxyReq: fixRequestBody
 	  };
 
 	  // proxy to solve CORS issue
 	  const corsProxy = createProxyMiddleware(options);
 	  app.use(['/service', '/ext'], async (req,res,next) => {
-		// formating express request object as per axios so signature logic will work  
+		// generating new signature for proxy server
 		req.transformRequest = transformRequest;
+		req.originalUrl = req.originalUrl.startsWith('/service') ? req.originalUrl.replace('/service','/api/service'): req.originalUrl;
 		req.url = req.originalUrl;
 		req.data = req.body;
-		req.baseURL = host;
+		req.baseURL = currentDomain;
 		delete req.headers['x-fp-signature'];
 		delete req.headers['x-fp-date'];
-		const url = new URL(host);
+		const url = new URL(currentDomain);
 		req.headers.host = url.host;
 		// regenerating signature as per proxy server
 		const config = await addSignatureFn(options)(req);
@@ -233,7 +224,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 				return reject(err);
 			}
 			Logger.success(`Starting starter at port -- ${port} in ${isSSR? 'SSR': 'Non-SSR'} mode`);
-			Logger.success(`Using Debugging build`);
+			Logger.success(`************* Using Debugging build`);
 			resolve(true);
 		});
 	});
