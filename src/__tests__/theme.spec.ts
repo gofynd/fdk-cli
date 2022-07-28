@@ -302,5 +302,4 @@ describe('Theme Commands', () => {
         process.chdir(`../`);
         expect(fs.existsSync(filePath)).toBe(true);
     });
-
 });
