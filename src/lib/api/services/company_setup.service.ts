@@ -20,7 +20,7 @@ export default {
             const res = await ApiClient.post(URLS.SETUP_COMPANY(company_id), axiosOption);
             return res;   
         } catch(error) {
-            consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.response?.data?.message, error?.request?.path);
+            consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
         }
     },
 }
