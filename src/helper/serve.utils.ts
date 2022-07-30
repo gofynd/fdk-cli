@@ -4,6 +4,7 @@ import Logger from '../lib/Logger';
 import axios from 'axios';
 import cheerio from 'cheerio';
 import express from 'express';
+import _ from 'lodash';
 import { SourceMapConsumer } from 'source-map';
 import {
     getActiveContext,
@@ -97,7 +98,10 @@ export async function startServer({ domain, host, isSSR, port }) {
 		req.transformRequest = transformRequest;
 		req.originalUrl = req.originalUrl.startsWith('/service') ? req.originalUrl.replace('/service','/api/service'): req.originalUrl;
 		req.url = req.originalUrl;
-		req.data = req.body;
+		// don't send body for GET request
+		if(!_.isEmpty(req.body)){
+			req.data = req.body;
+		}
 		req.baseURL = currentDomain;
 		delete req.headers['x-fp-signature'];
 		delete req.headers['x-fp-date'];
