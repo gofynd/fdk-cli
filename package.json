@@ -18,7 +18,7 @@
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build",
     "test": "jest --runInBand",
-    "debug": "node ./bin/fdk login"
+    "debug": "cd /Users/vivekprajapati/Documents/fynd/jiomarket-theme && node /Users/vivekprajapati/Documents/fynd/fdk-cli/./bin/fdk theme serve"
   },
   "devDependencies": {
     "@types/async": "^3.2.6",
