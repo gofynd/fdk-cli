@@ -982,7 +982,7 @@ export default class Theme {
     };
 
     public static templateDownload = async options => {
-        const url = options.url || 'https://github.com/anuragpandey1115/Social-App.git';
+        const url = options.url || 'https://github.com/gofynd/Emerge';
         try {
             const folderPath = path.join(process.cwd(), 'templatess');
             fs.mkdirSync(folderPath);
