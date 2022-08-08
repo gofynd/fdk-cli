@@ -47,7 +47,7 @@ export default class ThemeContext {
             }
             if (!hasContext()) {
                 Logger.warn('No theme contexts available');
-                Logger.success('Add a theme context using `fdk theme context -t [your-theme-token] -n [context-name]`');
+                Logger.success('Add a theme context using `fdk theme context -t [your-theme-token] -n [context-name]` ');
                 return;
             }
             const contextPath = path.join(process.cwd(), '.fdk','context.json');
