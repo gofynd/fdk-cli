@@ -10,7 +10,6 @@ import Logger from './Logger';
 import ConfigurationService from './api/services/configuration.service';
 import fs from 'fs-extra';
 import path from 'path';
-const https = require('https');
 import execa from 'execa';
 import rimraf from 'rimraf';
 import terminalLink from 'terminal-link';
@@ -110,7 +109,6 @@ export default class Theme {
             const { data: theme } = await ThemeService.createTheme({ ...configObj, ...themeData });
 
             createDirectory(targetDirectory);
-            Logger.warn('cloning template');
             await Theme.templateDownload(options,targetDirectory);
             shouldDelete = true;
             let context: any = {
@@ -982,7 +980,7 @@ export default class Theme {
         try {
             const git = simpleGit();
             if (fs.existsSync(targetDirectory)) {
-                await git.clone(url, targetDirectory).then(() => console.log('cloning done'));
+                await git.clone(url, targetDirectory).then(() => console.log(`cloned your template inside ${targetDirectory} folder`));
             }
         } catch (err) {
             throw new CommandError(`failed to download repository`, err.message, err.code);
