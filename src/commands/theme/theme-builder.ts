@@ -47,10 +47,7 @@ export default function themeCommandBuilder() {
         .requiredOption('-n, --name [name]', 'Context name')
         .asyncAction(ThemeContext.addThemeContext);
 
-    theme
-        .command('context-list')
-        .description('List all contexts')
-        .asyncAction(ThemeContext.listThemeContext);
+    theme.command('context-list').description('List all contexts').asyncAction(ThemeContext.listThemeContext);
 
     theme.command('active-context').description('print active_context').asyncAction(ThemeContext.activeContext);
     return theme;

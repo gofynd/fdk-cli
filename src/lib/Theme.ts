@@ -327,21 +327,11 @@ export default class Theme {
                 chalk.green.bold('Your Theme was pushed successfully\n') +
                     chalk.white('\n') +
                     chalk.white('View your theme:\n') +
-                    chalk.green(
-                        terminalLink(
-                            '',
-                            `https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true`
-                        )
-                    ) +
+                    chalk.green(terminalLink( '',`https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true`)) +
                     chalk.white('\n') +
                     chalk.white('\n') +
                     chalk.white('Customize this theme in Theme Editor:\n') +
-                    chalk.green(
-                        terminalLink(
-                            '',
-                            `https://platform.${currentContext.env}.de/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`
-                        )
-                    ),
+                    chalk.green(terminalLink('',`https://platform.${currentContext.env}.de/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`)),
                 {
                     padding: 1,
                     margin: 1,
@@ -656,20 +646,14 @@ export default class Theme {
         const fdkConfigPath = path.join(process.cwd(), 'fdk.config.js');
         if (fs.existsSync(oldVueConfigPath)) {
             if (fs.existsSync(fdkConfigPath)) {
-                throw new CommandError(
-                    `vue.config.js is not supported, move its file content to fdk.config.js`,
-                    ErrorCodes.NOT_KNOWN.code
-                );
+                throw new CommandError(`vue.config.js is not supported, move its file content to fdk.config.js`, ErrorCodes.NOT_KNOWN.code);
             } else {
                 fs.renameSync(oldVueConfigPath, fdkConfigPath);
                 Logger.success('Renamed file from vue.config.js to fdk.config.js');
             }
         }
         rimraf.sync(path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH));
-        fs.writeFileSync(
-            path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH),
-            themeVueConfigTemplate
-        );
+        fs.writeFileSync(path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH), themeVueConfigTemplate);
     }
 
     private static assetsImageUploader = async () => {
@@ -822,11 +806,8 @@ export default class Theme {
         try {
             Logger.warn('Uploading commonjs...');
             const commonJS = `${assetHash}_themeBundle.common.js`;
-            const commonJsUrlRes = await UploadService.uploadFile(
-                path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS),
-                'application-theme-assets'
-            );
-            const commonJsUrl = commonJsUrlRes.start.cdn.url;
+            const commonJsUrlRes = await UploadService.uploadFile(path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS), 'application-theme-assets');
+            const commonJsUrl = commonJsUrlRes.start.cdn.url
 
             Logger.warn('Uploading umdjs...');
             const umdMinAssets = glob.sync(path.join(process.cwd(), Theme.BUILD_FOLDER, `${assetHash}_themeBundle.umd.min.**.js`));
@@ -874,12 +855,12 @@ export default class Theme {
             theme.assets = theme.assets || {};
             theme.assets.umdJs = theme.assets.umdJs || {};
             theme.assets.umdJs.links = umdJsUrls;
-            theme.assets.umdJs.link = '';
+            theme.assets.umdJs.link = "";
             theme.assets.commonJs = theme.assets.commonJs || {};
             theme.assets.commonJs.link = commonJsUrl;
             theme.assets.css = theme.assets.css || {};
             theme.assets.css.links = cssUrls;
-            theme.assets.css.link = '';
+            theme.assets.css.link = "";
             // TODO Issue here
             theme = {
                 ...theme,
@@ -1010,11 +991,9 @@ export default class Theme {
     public static previewTheme = async () => {
         const currentContext = getActiveContext();
         try {
-            await open(
-                `https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true&upgrade=true`
-            );
+            await open(`https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true&upgrade=true`);
         } catch (err) {
             throw new CommandError(err.message, err.code);
         }
-    };
+    }
 }
