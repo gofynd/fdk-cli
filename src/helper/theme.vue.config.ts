@@ -77,6 +77,8 @@ const configureWebpack = (config) => {
 }
 
 const chainWebpack = (config) => {
+  config.module.rule('vue').uses.delete('cache-loader');
+
   if (typeof vueChainWebpack == "function") {
     vueChainWebpack(config)
   }

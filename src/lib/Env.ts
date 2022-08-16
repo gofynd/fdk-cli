@@ -23,6 +23,7 @@ export const AVAILABLE_ENVS = {
   jiomartpartners: 'api.jiomartpartners.com',
   tirax2:'api.tirax2.de',
   tiraz5: 'api.tiraz5.de',
+  tiraz0: 'api.tiraz0.de',
   tirabeauty:'api.tirabeauty.com',
 };
 

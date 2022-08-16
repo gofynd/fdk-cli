@@ -827,16 +827,10 @@ export default class Theme {
             const commonJsUrl = commonJsUrlRes.start.cdn.url;
 
             Logger.warn('Uploading umdjs...');
-            const umdMinAssets = glob.sync(
-                path.join(
-                    process.cwd(),
-                    Theme.BUILD_FOLDER,
-                    `${assetHash}_themeBundle.umd.min.**.js`
-                )
-            );
-            umdMinAssets.push(`${assetHash}_themeBundle.umd.min.js`);
+            const umdMinAssets = glob.sync(path.join(process.cwd(), Theme.BUILD_FOLDER, `${assetHash}_themeBundle.umd.min.**.js`));
+            umdMinAssets.push(path.join(process.cwd(), Theme.BUILD_FOLDER, `${assetHash}_themeBundle.umd.min.js`));
             const umdJSPromisesArr = umdMinAssets.map(async asset => {
-                const assetPath = path.join(process.cwd(), Theme.BUILD_FOLDER, asset);
+                const assetPath = asset;
                 let res = await UploadService.uploadFile(assetPath, 'application-theme-assets');
                 return res.start.cdn.url;
             });
