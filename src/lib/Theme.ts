@@ -320,8 +320,8 @@ export default class Theme {
                 }
             });
             Logger.success('Theme syncing DONE...');
-            let getDomain = `https://${AVAILABLE_ENVS[currentContext.env]}`;
-            const url = new URL(getDomain);
+            let domainURL = `https://${AVAILABLE_ENVS[currentContext.env]}`;
+            const url = new URL(domainURL);
             const hostName = url.hostname;
             let domain = hostName.replace('api.', '');
             var b5 = Box(
