@@ -809,7 +809,6 @@ export default class Theme {
             const commonJS = `${assetHash}_themeBundle.common.js`;
             const commonJsUrlRes = await UploadService.uploadFile(path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS), 'application-theme-assets');
             const commonJsUrl = commonJsUrlRes.start.cdn.url
-
             Logger.warn('Uploading umdjs...');
             const umdMinAssets = glob.sync(path.join(process.cwd(), Theme.BUILD_FOLDER, `${assetHash}_themeBundle.umd.min.**.js`));
             umdMinAssets.push(`${assetHash}_themeBundle.umd.min.js`)
@@ -824,7 +823,7 @@ export default class Theme {
             let cssPromisesArr = cssAssests.map(async asset => {
                 let res = await UploadService.uploadFile(asset, 'application-theme-assets');
                 return res.start.cdn.url;
-            });
+            });   
             const cssUrls = await Promise.all(cssPromisesArr);
             return [cssUrls, commonJsUrl, umdJsUrls];
         } catch (err) {
@@ -979,8 +978,8 @@ export default class Theme {
     public static previewTheme =  async() => {
         const currentContext = getActiveContext();
         try{
-            await open(`https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true&upgrade=true`);
-         }catch(err){
+           await open(`https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true&upgrade=true`);
+        }catch(err){
             throw new CommandError(err.message, err.code);
         }
     };
