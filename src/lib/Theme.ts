@@ -823,7 +823,7 @@ export default class Theme {
             let cssPromisesArr = cssAssests.map(async asset => {
                 let res = await UploadService.uploadFile(asset, 'application-theme-assets');
                 return res.start.cdn.url;
-            });   
+            });    
             const cssUrls = await Promise.all(cssPromisesArr);
             return [cssUrls, commonJsUrl, umdJsUrls];
         } catch (err) {
@@ -982,5 +982,5 @@ export default class Theme {
         }catch(err){
             throw new CommandError(err.message, err.code);
         }
-    };
+    }
 }
