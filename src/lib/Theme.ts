@@ -11,6 +11,7 @@ import ConfigurationService from './api/services/configuration.service';
 import fs from 'fs-extra';
 import path from 'path';
 import execa from 'execa';
+import { AVAILABLE_ENVS } from './Env';
 import rimraf from 'rimraf';
 import terminalLink from 'terminal-link';
 import Box from 'boxen';
@@ -34,6 +35,7 @@ import { downloadFile } from '../helper/download';
 import Env from './Env';
 import Debug from './Debug';
 import ora from 'ora';
+const simpleGit = require('simple-git');
 import { themeVueConfigTemplate } from '../helper/theme.vue.config';
 export default class Theme {
     /*
@@ -46,35 +48,36 @@ export default class Theme {
         unpublish theme
         pull-config
     */
-    static TEMPLATE_DIRECTORY = path.join(__dirname, '../../template');
-    static BUILD_FOLDER = './.fdk/dist';
-    static SRC_FOLDER = './.fdk/temp-theme';
-    static VUE_CLI_CONFIG_PATH = './.fdk/vue.config.js';
-    static SRC_ARCHIVE_FOLDER = './.fdk/archive';
+    static TEMPLATE_DIRECTORY = path.join(__dirname, '..', '..', 'template');
+    static BUILD_FOLDER = path.join('.fdk', 'dist');
+    static SRC_FOLDER = path.join('.fdk', 'temp-theme');
+    static VUE_CLI_CONFIG_PATH = path.join('.fdk', 'vue.config.js');
+    static SRC_ARCHIVE_FOLDER = path.join('.fdk', 'archive');
     static ZIP_FILE_NAME = `archive.zip`;
+
     public static getSettingsDataPath() {
-        return path.join(process.cwd(), '/theme/config/settings_data.json');
+        return path.join(process.cwd(), 'theme', 'config', 'settings_data.json');
     }
     public static getSettingsSchemaPath() {
-        return path.join(process.cwd(), '/theme/config/settings_schema.json');
+        return path.join(process.cwd(), 'theme', 'config', 'settings_schema.json');
     }
     public static async writeSettingJson(path, jsonObject) {
         try {
             await fs.writeJSON(path, jsonObject, {
                 spaces: 2,
             });
-            Logger.success(`${path.split('/').slice(-1)[0]} written succesfully.!!!`);
+            Logger.success(`${path} written succesfully.!!!`);
         } catch (err) {
-            throw new CommandError(`Error writing ${path.split('/').slice(-1)[0]} file.!!!`);
+            throw new CommandError(`Error writing ${path} file.!!!`);
         }
     }
     public static async readSettingsJson(path) {
         try {
             const settingsJson = await fs.readJSON(path);
-            Logger.success(`${path.split('/').slice(-1)[0]} read successfully.!!!`);
+            Logger.success(`${path} read successfully.!!!`);
             return settingsJson;
         } catch (err) {
-            throw new CommandError(`Error reading ${path.split('/').slice(-1)[0]} file.!!!`);
+            throw new CommandError(`Error reading ${path} file.!!!`);
         }
     }
     public static async createTheme(options) {
@@ -85,6 +88,7 @@ export default class Theme {
                 shouldDelete = false;
                 throw new CommandError(`Folder ${options.name} already exists`);
             }
+            
             Logger.warn('Validating token');
             const configObj = JSON.parse(decodeBase64(options.token) || '{}');
             Debug(`Token Data: ${JSON.stringify(configObj)}`);
@@ -97,6 +101,7 @@ export default class Theme {
             }
             Debug(`Token expires in: ${configObj.expires_in}`);
             const { data: appConfig } = await ConfigurationService.getApplicationDetails(configObj);
+            
             Logger.warn('Creating Theme');
             let available_sections = await Theme.getAvailableSections();
             const themeData = {
@@ -106,9 +111,10 @@ export default class Theme {
                 available_sections,
             };
             const { data: theme } = await ThemeService.createTheme({ ...configObj, ...themeData });
-            Logger.warn('Copying template files');
+
+            createDirectory(targetDirectory);
+            await Theme.templateDownload(options,targetDirectory);
             shouldDelete = true;
-            await Theme.copyTemplateFiles(Theme.TEMPLATE_DIRECTORY, targetDirectory);
             let context: any = {
                 name: options.name,
                 application_id: appConfig._id,
@@ -116,16 +122,20 @@ export default class Theme {
                 company_id: appConfig.company_id,
                 theme_id: theme._id,
             };
-            process.chdir(`./${options.name}`);
+            process.chdir(path.join('.', options.name));
+
             Logger.warn('Saving context');
             await createContext(context);
+
             Logger.warn('Installing dependencies');
             await Theme.installNpmPackages();
-            let packageJSON = await fs.readJSON(`${process.cwd()}/package.json`);
+
+            let packageJSON = await fs.readJSON(path.join(process.cwd(), 'package.json'));
             packageJSON.name = Theme.sanitizeThemeName(options.name);
             await fs.writeJSON(`${process.cwd()}/package.json`, packageJSON, {
                 spaces: 2,
             });
+
             Logger.warn('Syncing theme');
             await Theme.syncTheme(true);
             var b5 = Box(
@@ -153,23 +163,30 @@ export default class Theme {
             Debug(`Token Data: ${JSON.stringify(configObj)}`);
             if (!configObj || !configObj.theme_id)
                 throw new CommandError('Invalid token', ErrorCodes.INVALID_INPUT.code);
-            if (new Date(Date.now()) > new Date(configObj.expires_in))
+            
+            if (new Date(Date.now()) > new Date(configObj.expires_in)) {
                 throw new CommandError(
                     'Token expired. Generate a new token',
                     ErrorCodes.INVALID_INPUT.code
                 );
+            }
+            
             const { data: appConfig } = await ConfigurationService.getApplicationDetails(configObj);
+            
             Logger.warn('Fetching Template Files');
             const { data: themeData } = await ThemeService.getThemeById(configObj);
             const themeName = themeData?.information?.name || 'default';
+            
             targetDirectory = path.join(process.cwd(), themeName);
             if (fs.existsSync(targetDirectory)) {
                 shouldDelete = false;
                 throw new CommandError(`Folder ${themeName}  already exists`);
             }
+
             Logger.warn('Copying template files');
             shouldDelete = true;
             await Theme.copyTemplateFiles(Theme.TEMPLATE_DIRECTORY, targetDirectory);
+            
             let context: any = {
                 name: themeName + '-' + Env.getEnvValue(),
                 application_id: appConfig._id,
@@ -177,28 +194,35 @@ export default class Theme {
                 company_id: appConfig.company_id,
                 theme_id: themeData._id,
             };
-            process.chdir(`./${themeName}`);
-            let zipPath = path.join(targetDirectory, '.fdk/archive/archive.zip');
-            Logger.warn('Downloading bundle files');
+
+            process.chdir(path.join('.', themeName));
+            let zipPath = path.join(targetDirectory, '.fdk', 'archive', 'archive.zip');
+            
+            Logger.warn('Downloading bundle file...');
             await downloadFile(themeData.src.link, zipPath);
+            
+            Logger.warn('Extracting bundle archive...')
             await extractArchive({ zipPath, destFolderPath: path.resolve(process.cwd(), 'theme') });
+            
             Logger.warn('Generating Configuration Files');
             let list = _.get(themeData, 'config.list', []);
             let current = _.get(themeData, 'config.current', 'default');
             let preset = _.get(themeData, 'config.preset', {});
             let information = { features: _.get(themeData, 'information.features', []) };
+            
             await Theme.writeSettingJson(Theme.getSettingsDataPath(), {
                 list,
                 current,
                 preset,
                 information,
             });
+
             await Theme.writeSettingJson(
                 Theme.getSettingsSchemaPath(),
                 _.get(themeData, 'config.global_schema', { props: [] })
             );
             fs.writeJson(
-                path.join(targetDirectory, '/config.json'),
+                path.join(targetDirectory, 'config.json'),
                 {
                     theme: {
                         colors: themeData.colors,
@@ -210,20 +234,23 @@ export default class Theme {
                     spaces: 2,
                 }
             );
+
             Logger.warn('Saving context');
             await createContext(context);
+
             Logger.warn('Installing dependencies');
-            if (fs.existsSync(process.cwd() + '/theme/package.json')) {
+            if (fs.existsSync(path.join(process.cwd(), 'theme', 'package.json'))) {
                 writeFile(
-                    process.cwd() + '/package.json',
-                    fs.readFileSync(process.cwd() + '/theme/package.json')
+                    path.join(process.cwd(), 'package.json'),
+                    fs.readFileSync(path.join(process.cwd(), 'theme', 'package.json'))
                 );
-                rimraf.sync(process.cwd() + '/theme/package.json');
+                rimraf.sync(path.join(process.cwd(), 'theme', 'package.json'));
             }
+
             await Theme.installNpmPackages();
-            let packageJSON = await fs.readJSON(`${process.cwd()}/package.json`);
+            let packageJSON = await fs.readJSON(path.join(process.cwd(), 'package.json'));
             packageJSON.name = Theme.sanitizeThemeName(themeName);
-            await fs.writeJSON(`${process.cwd()}/package.json`, packageJSON, {
+            await fs.writeJSON(path.join(process.cwd(), 'package.json'), packageJSON, {
                 spaces: 2,
             });
         } catch (error) {
@@ -241,9 +268,11 @@ export default class Theme {
                 ? Logger.success('Syncing Theme to: ' + currentContext.domain)
                 : Logger.warn('Please add domain to context');
             let { data: theme } = await ThemeService.getThemeById(currentContext);
+            
             //if any changes from platform in sections|pages|settings it will pull latest configuration
             await Theme.matchWithLatestPlatformConfig(theme, (isNew = false));
             Theme.clearPreviousBuild();
+            
             Logger.warn('Reading Files...');
             let themeContent: any = readFile(`${process.cwd()}/config.json`);
 
@@ -252,11 +281,14 @@ export default class Theme {
             } catch (e) {
                 throw new CommandError(`Invalid config.json`);
             }
+
             let available_sections = await Theme.getAvailableSectionsForSync();
             await Theme.validateAvailableSections(available_sections);
+            
             // it will create index file for all sections inside /template/sections
             await Theme.createSectionsIndexFile(available_sections);
-            // get image cdn base url
+            
+            Logger.warn('Building Assets...');
             const imageCdnUrl = await Theme.getImageCdnBaseUrl();
             const assetHash = shortid.generate();
             // get asset cdn base url
@@ -267,28 +299,29 @@ export default class Theme {
             await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl, assetHash });
 
             // check if build folder exists, as during build, vue fails with non-error code even when it errors out
-            if (!fs.existsSync(Theme.BUILD_FOLDER)) {
+            if (!fs.existsSync(path.join(process.cwd(), Theme.BUILD_FOLDER))) {
                 throw new Error('Build Failed');
             }
+
             Logger.warn('Uploading theme preview images...');
-            // upload theme preview images
             let [androidImages, iosImages, desktopImages, thumbnailImages] =
                 await Theme.uploadThemePreviewImages();
+            
             Logger.warn('Uploading theme assets/images...');
-            // upload images
             await Theme.assetsImageUploader();
-            // upload fonts
+            
             Logger.warn('Uploading theme assets/fonts...');
             await Theme.assetsFontsUploader();
-            //copy files to .fdk
+
             Logger.warn('Creating theme source code zip file...');
             await Theme.copyThemeSourceToFdkFolder();
+            
             //remove temp files
-            rimraf.sync(Theme.SRC_FOLDER);
-            // src file upload
+            rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
+
             Logger.warn('Uploading theme source code zip file...');
             let srcCdnUrl = await Theme.uploadThemeSrcZip();
-            //uploading bundle files
+
             Logger.warn('Uploading bundle files...');
             let pArr = await Theme.uploadThemeBundle({ assetHash });
             let [cssUrls, commonJsUrl, umdJsUrls] = await Promise.all(pArr);
@@ -305,10 +338,13 @@ export default class Theme {
                 thumbnailImages,
                 available_sections
             );
+
             // extract page level settings schema
             const availablePages = await Theme.getSystemPages(newTheme);
+            
             Logger.warn('Updating theme...');
             await Promise.all([ThemeService.updateTheme(newTheme)]);
+            
             Logger.warn('Updating available pages...');
             await asyncForEach(availablePages, async page => {
                 try {
@@ -318,16 +354,21 @@ export default class Theme {
                     throw new CommandError(error.message, error.code);
                 }
             });
+
             Logger.success('Theme syncing DONE...');
+            let domainURL = `https://${AVAILABLE_ENVS[currentContext.env]}`;
+            const url = new URL(domainURL);
+            const hostName = url.hostname;
+            let domain = hostName.replace('api.', '');
             var b5 = Box(
                 chalk.green.bold('Your Theme was pushed successfully\n') +
                     chalk.white('\n') +
                     chalk.white('View your theme:\n') +
-                    chalk.green(terminalLink( '',`https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true`)) +
+                    chalk.green(terminalLink('',`https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true`)) +
                     chalk.white('\n') +
                     chalk.white('\n') +
                     chalk.white('Customize this theme in Theme Editor:\n') +
-                    chalk.green(terminalLink('',`https://platform.${currentContext.env}.de/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`)),
+                    chalk.green(terminalLink('',`https://platform.${domain}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`)),
                 {
                     padding: 1,
                     margin: 1,
@@ -540,9 +581,19 @@ export default class Theme {
         return settings;
     }
     private static extractSettingsFromFile(path) {
-        let $ = cheerio.load(readFile(path));
-        let settingsText = $('settings').text();
-        return settingsText ? JSON.parse(settingsText) : {};
+        try {
+            let $ = cheerio.load(readFile(path));
+            let settingsText = $('settings').text();
+
+            try {
+                return settingsText ? JSON.parse(settingsText) : {};
+            } catch(err) {
+                const themeFilePath = path.split('sections')[1];
+                throw new Error(`Invalid JSON Object in /theme/sections${themeFilePath}. Validate JSON from https://jsonlint.com/`);
+            }
+        } catch(error) {
+            throw new Error(`Extracting settings element from section files failed.!`);
+        }
     }
     private static validateSections(available_sections) {
         let fileNameRegex = /^[0-9a-zA-Z-_ ... ]+$/;
@@ -602,8 +653,8 @@ export default class Theme {
         try {
             Logger.warn('Cleaning up');
             if (fs.existsSync(targetDirectory)) {
-                if (fs.existsSync(`${targetDirectory}/.fdk/context.json`)) {
-                    const contexts = await fs.readJSON(`${targetDirectory}/.fdk/context.json`);
+                if (fs.existsSync(`${path.join(targetDirectory, '.fdk', 'context.json')}`)) {
+                    const contexts = await fs.readJSON(`${path.join(targetDirectory, '.fdk', 'context.json')}`);
                     const activeContext = contexts.theme.active_context;
                     await ThemeService.deleteThemeById(contexts.theme.contexts[activeContext]);
                 }
@@ -654,10 +705,10 @@ export default class Theme {
 
     private static assetsImageUploader = async () => {
         try {
-            const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'assets/images');
-            const images = glob.sync('**/**.**', { cwd });
+            const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'assets', 'images');
+            const images = glob.sync(path.join('**', '**.**'), { cwd });
             await asyncForEach(images, async img => {
-                const assetPath = path.join(Theme.BUILD_FOLDER, '/assets/images', img);
+                const assetPath = path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets', 'images', img);
                 await UploadService.uploadFile(assetPath, 'application-theme-images');
             });
         } catch (err) {
@@ -705,7 +756,10 @@ export default class Theme {
             desktopImages = await Promise.all(pArr);
             const thumbnailImageFolder = path.resolve(
                 process.cwd(),
-                'theme/config/images/thumbnail'
+                'theme',
+                'config',
+                'images',
+                'thumbnail'
             );
             thumbnailImages = glob.sync('**/**.**', { cwd: thumbnailImageFolder });
             Logger.warn('Uploading thumbnail images...');
@@ -713,7 +767,10 @@ export default class Theme {
                 .map(async img => {
                     const assetPath = path.join(
                         process.cwd(),
-                        'theme/config/images/thumbnail',
+                        'theme',
+                        'config',
+                        'images',
+                        'thumbnail',
                         img
                     );
                     let res = await UploadService.uploadFile(assetPath, 'application-theme-images');
@@ -747,7 +804,7 @@ export default class Theme {
     private static getAssetCdnBaseUrl = async () => {
         let assetCdnUrl = '';
         try {
-            if (fs.existsSync(path.join(process.cwd(), 'theme/assets/fonts'))) {
+            if (fs.existsSync(path.join(process.cwd(), 'theme', 'assets', 'fonts'))) {
                 let startData = {
                     file_name: 'test.ttf',
                     content_type: 'font/ttf',
@@ -765,11 +822,11 @@ export default class Theme {
     };
     private static assetsFontsUploader = async () => {
         try {
-            if (fs.existsSync(path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts'))) {
-                const cwd = path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets/fonts');
+            if (fs.existsSync(path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets', 'fonts'))) {
+                const cwd = path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets', 'fonts');
                 const fonts = glob.sync('**/**.**', { cwd });
                 await asyncForEach(fonts, async font => {
-                    const assetPath = path.join(Theme.BUILD_FOLDER, 'assets/fonts', font);
+                    const assetPath = path.join(Theme.BUILD_FOLDER, 'assets', 'fonts', font);
                     await UploadService.uploadFile(assetPath, 'application-theme-assets');
                 });
             }
@@ -779,8 +836,8 @@ export default class Theme {
     };
     private static copyThemeSourceToFdkFolder = async () => {
         try {
-            await fs.copy('./theme', Theme.SRC_FOLDER);
-            fs.copyFileSync('./package.json', Theme.SRC_FOLDER + '/package.json');
+            await fs.copy(path.join(process.cwd(), 'theme'), path.join(process.cwd(), Theme.SRC_FOLDER));
+            fs.copyFileSync(path.join(process.cwd(), 'package.json'), path.join(process.cwd(), Theme.SRC_FOLDER, 'package.json'));
             await archiveFolder({
                 srcFolder: Theme.SRC_FOLDER,
                 destFolder: Theme.SRC_ARCHIVE_FOLDER,
@@ -804,7 +861,6 @@ export default class Theme {
             const commonJS = `${assetHash}_themeBundle.common.js`;
             const commonJsUrlRes = await UploadService.uploadFile(path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS), 'application-theme-assets');
             const commonJsUrl = commonJsUrlRes.start.cdn.url
-    
             Logger.warn('Uploading umdjs...');
             const umdMinAssets = glob.sync(path.join(process.cwd(), Theme.BUILD_FOLDER, `${assetHash}_themeBundle.umd.min.**.js`));
             umdMinAssets.push(path.join(process.cwd(), Theme.BUILD_FOLDER, `${assetHash}_themeBundle.umd.min.js`));
@@ -814,15 +870,13 @@ export default class Theme {
                 return res.start.cdn.url;
             });
             const umdJsUrls = await Promise.all(umdJSPromisesArr);
-    
             Logger.warn('Uploading css...');
             let cssAssests = glob.sync(path.join(process.cwd(), Theme.BUILD_FOLDER, '**.css'));
             let cssPromisesArr = cssAssests.map(async asset => {
                 let res = await UploadService.uploadFile(asset, 'application-theme-assets');
                 return res.start.cdn.url;
-            });    
+            });
             const cssUrls = await Promise.all(cssPromisesArr);
-
             return [cssUrls, commonJsUrl, umdJsUrls];
         } catch (err) {
             throw new CommandError(`Failed to upload theme bundle `, err.code);
@@ -841,8 +895,8 @@ export default class Theme {
         available_sections
     ) => {
         try {
-            let themeContent: any = readFile(`${process.cwd()}/config.json`);
-            let packageJSON = JSON.parse(readFile(`${process.cwd()}/package.json`));
+            let themeContent: any = readFile(path.join(process.cwd(), 'config.json'));
+            let packageJSON = JSON.parse(readFile(path.join(process.cwd(), 'package.json')));
             if (!packageJSON.name) {
                 throw new Error('package.json name can not be empty');
             }
@@ -869,10 +923,10 @@ export default class Theme {
             _.set(theme, 'information.images.thumbnail', thumbnailImages);
             _.set(theme, 'information.name', Theme.unSanitizeThemeName(packageJSON.name));
             let globalConfigSchema = await fs.readJSON(
-                `${process.cwd()}/theme/config/settings_schema.json`
+                path.join(process.cwd(), 'theme', 'config', 'settings_schema.json')
             );
             let globalConfigData = await fs.readJSON(
-                `${process.cwd()}/theme/config/settings_data.json`
+                path.join(process.cwd(), 'theme', 'config', 'settings_data.json')
             );
             theme.config = theme.config || {};
             theme.config.global_schema = globalConfigSchema;
@@ -894,8 +948,7 @@ export default class Theme {
     private static getSystemPages = async theme => {
         try {
             let pageTemplateFiles = fs
-                .readdirSync(`${process.cwd()}/theme/templates/pages`)
-
+                .readdirSync(path.join(process.cwd(), 'theme', 'templates', 'pages'))
                 .filter(o => o != 'index.js');
             theme.config = theme.config || {};
             let availablePages = [];
@@ -922,11 +975,11 @@ export default class Theme {
                 available_page.props =
                     (
                         Theme.extractSettingsFromFile(
-                            `${process.cwd()}/theme/templates/pages/${fileName}`
+                            path.join(process.cwd(), 'theme', 'templates', 'pages', fileName)
                         ) || {}
                     ).props || [];
                 available_page.sections_meta = Theme.extractSectionsFromFile(
-                    `${process.cwd()}/theme/templates/pages/${fileName}`
+                    path.join(process.cwd(), 'theme', 'templates', 'pages', fileName)
                 );
                 available_page.type = 'system';
                 delete available_page.sections;
@@ -938,7 +991,7 @@ export default class Theme {
         }
     };
     private static uploadThemeSrcZip = async () => {
-        const zipFilePath = path.join(Theme.SRC_ARCHIVE_FOLDER, Theme.ZIP_FILE_NAME);
+        const zipFilePath = path.join(process.cwd(), Theme.SRC_ARCHIVE_FOLDER, Theme.ZIP_FILE_NAME);
         try {
             let res = await UploadService.uploadFile(zipFilePath, 'application-theme-src');
             return res.start.cdn.url;
@@ -973,11 +1026,22 @@ export default class Theme {
         }
     };
 
-    public static previewTheme =  async() => {
+    public static templateDownload = async (options,targetDirectory) => {
+        const url = options.url || 'https://github.com/gofynd/Emerge';
+        try {
+            const git = simpleGit();
+            if (fs.existsSync(targetDirectory)) {
+                await git.clone(url, targetDirectory).then(() => console.log(`cloned your template inside ${targetDirectory} folder`));
+            }
+        } catch (err) {
+            throw new CommandError(`failed to download repository`, err.message, err.code);
+        }
+    };
+    public static previewTheme = async () => {
         const currentContext = getActiveContext();
-        try{
-           await open(`https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true&upgrade=true`);
-        }catch(err){
+        try {
+            await open(`https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true&upgrade=true`);
+        } catch (err) {
             throw new CommandError(err.message, err.code);
         }
     }

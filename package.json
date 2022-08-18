@@ -1,6 +1,6 @@
 {
   "name": "@gofynd/fdk-cli",
-  "version": "2.3.5",
+  "version": "2.3.6-beta.1",
   "main": "index.js",
   "license": "MIT",
   "bin": {
@@ -94,6 +94,7 @@
     "rimraf": "^3.0.2",
     "semver": "^6.3.0",
     "shortid": "^2.2.16",
+    "simple-git": "^3.10.0",
     "socket.io": "^2.3.0",
     "source-map": "^0.7.3",
     "stacktrace-parser": "^0.1.10",
