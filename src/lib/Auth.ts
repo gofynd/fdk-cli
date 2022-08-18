@@ -85,4 +85,11 @@ export default class Auth {
             throw new CommandError(error.message);
         }
     }
+    public static getLoggedInState() {
+        try {
+            return ConfigStore.get(CONFIG_KEYS.USER);
+        } catch(error) {
+            throw new CommandError(error.message);
+        }
+    }
 }

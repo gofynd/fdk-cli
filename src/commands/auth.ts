@@ -4,11 +4,10 @@ import Auth from '../lib/Auth';
 import CommandError from '../lib/CommandError';
 import Debug from '../lib/Debug';
 import validator from 'validator';
-import ConfigStore, { CONFIG_KEYS } from '../lib/Config';
 
 const AuthenticationHandler = async (options, command) => {
   try {
-    if(ConfigStore.get(CONFIG_KEYS.USER)) {
+    if(Auth.getLoggedInState()) {
       throw new CommandError('You are already logged In');
     }
 
