@@ -109,10 +109,7 @@ export default class Theme {
             const { data: theme } = await ThemeService.createTheme({ ...configObj, ...themeData });
             createDirectory(targetDirectory);
             await Theme.templateDownload(options,targetDirectory);
-            // Logger.warn('Copying template files');
-
             shouldDelete = true;
-            // await Theme.copyTemplateFiles(Theme.TEMPLATE_DIRECTORY, targetDirectory);
             let context: any = {
                 name: options.name,
                 application_id: appConfig._id,
@@ -982,7 +979,7 @@ export default class Theme {
         try {
             const git = simpleGit();
             if (fs.existsSync(targetDirectory)) {
-                await git.clone(url, targetDirectory).then(() => console.log(`cloned your template inside ${targetDirectory} folder`));
+                await git.clone(url, targetDirectory);
             }
         } catch (err) {
             throw new CommandError(`failed to download repository`, err.message, err.code);
