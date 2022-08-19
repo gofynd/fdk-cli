@@ -13,7 +13,7 @@ import path from 'path';
 import execa from 'execa';
 import rimraf from 'rimraf';
 import terminalLink from 'terminal-link';
-import simpleGit from 'simple-git';
+import { simpleGit } from 'simple-git';
 import Box from 'boxen';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
