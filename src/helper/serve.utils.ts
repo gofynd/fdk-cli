@@ -119,6 +119,8 @@ export async function startServer({ domain, host, isSSR, port }) {
 		return res.end()
 	})
 	app.get('/*', async (req, res) => {
+		const BUNDLE_PATH = path.join(process.cwd(), path.join('.fdk', 'dist', 'themeBundle.common.js'));
+		if(!fs.existsSync(BUNDLE_PATH)) return res.send(`<h1>Loading</h1>`);
 
 		if (req.originalUrl == '/favicon.ico' || req.originalUrl == '/.webp') {
 			return res.status(404).send('Not found');
@@ -127,7 +129,6 @@ export async function startServer({ domain, host, isSSR, port }) {
 		const jetfireUrl = new URL(urlJoin(domain, req.originalUrl));
 		let themeUrl = "";
 		if (isSSR) {
-            const BUNDLE_PATH = path.join(process.cwd(), '/.fdk/dist/themeBundle.common.js');
             const User = Configstore.get(CONFIG_KEYS.USER);
             themeUrl = (await UploadService.uploadFile(BUNDLE_PATH, 'fdk-cli-dev-files', User._id))
                 .start.cdn.url;
