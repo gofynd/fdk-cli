@@ -4,16 +4,10 @@ import Auth from '../lib/Auth';
 import CommandError from '../lib/CommandError';
 import Debug from '../lib/Debug';
 import validator from 'validator';
-import ConfigStore, { CONFIG_KEYS } from '../lib/Config';
 
 const AuthenticationHandler = async (options, command) => {
   try {
-    if(ConfigStore.get(CONFIG_KEYS.USER)) {
-      throw new CommandError('You are already logged In');
-    }
-
     const { email, mobile, password } = options;
-
     // Email Input
     if (email && email.length) {
       if (!validator.isEmail(email)) {
@@ -35,7 +29,6 @@ const AuthenticationHandler = async (options, command) => {
         await Auth.loginUserWithEmail(email, password);
       }
     }
-
     // Mobile input
     else if (mobile && mobile.length) {
       if (!validator.isMobilePhone(mobile, 'en-IN')) {
