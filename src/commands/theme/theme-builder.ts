@@ -9,7 +9,7 @@ export default function themeCommandBuilder() {
         .description('Create Theme')
         .requiredOption('-t, --token [token]', 'Token')
         .requiredOption('-n, --name [name]', 'Theme name')
-        .option('-u', '--url [url]', 'repo url')
+        .option('-u, --url [url]', 'repo url')
         .asyncAction(Theme.createTheme);
 
     theme
