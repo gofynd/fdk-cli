@@ -1,9 +1,9 @@
-name: Master merge
+name: Run test cases
 
 on: workflow_call
 
 jobs:
-  build:
+  run-test-cases:
     runs-on: ${{ matrix.os }}
 
     strategy:
