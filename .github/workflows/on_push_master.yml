@@ -1,4 +1,4 @@
-name: Merge CI
+name: Master merge
 
 on:
   push:
