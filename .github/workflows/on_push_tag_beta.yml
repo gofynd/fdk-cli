@@ -8,7 +8,8 @@ jobs:
   call-workflow:
     uses: ./.github/workflows/call_test_cases.yml
 
-  build:
+  publish-beta-release:
+    needs: call-workflow
     runs-on: ubuntu-latest
 
     steps:
