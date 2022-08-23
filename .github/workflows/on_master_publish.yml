@@ -1,7 +1,7 @@
-name: Publish beta Package to npmjs
+name: Publish Package to npmjs
 on:
-  tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+-beta.[0-9]$'
+  release:
+    types: [created]
 
 jobs:
   build:
@@ -15,6 +15,6 @@ jobs:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
-      - run: npm publish --tag beta --access public
+      - run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}
