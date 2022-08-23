@@ -1,13 +1,8 @@
 name: Master merge
 
-on:
-  push:
-    branches: [ master ]
+on: workflow_call
 
 jobs:
-  call-workflow:
-      uses: ./.github/workflows/call_test_cases.yml
-
   build:
     runs-on: ${{ matrix.os }}
 
@@ -16,7 +11,7 @@ jobs:
         os: [
           ubuntu-latest, 
           macos-latest, 
-          # windows-latest
+          windows-latest
           ]
         node-version: [12.x, 14.x, 15.x]
 
@@ -28,7 +23,6 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: Coveralls (Uploading test report)
-      uses: coverallsapp/github-action@master
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Install packages and run test cases
+      run: npm install
+      run: npm test
