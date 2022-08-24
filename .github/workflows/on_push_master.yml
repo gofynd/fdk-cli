@@ -2,7 +2,7 @@ name: Master merge
 
 on:
   push:
-    branches: [ fix-coveralls-job ]
+    branches: [ master ]
 
 jobs:
   call-workflow:
