@@ -7,15 +7,3 @@ on:
 jobs:
   call-workflow:
       uses: ./.github/workflows/call_test_cases.yml
-
-  generate-coveralls-report:
-    needs: call-workflow
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Coveralls (Uploading test report)
-      uses: coverallsapp/github-action@master
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
