@@ -5,7 +5,11 @@ on:
         - v[0-9]+.[0-9]+.[0-9]+-beta.[0-9]
 
 jobs:
-  build:
+  call-workflow:
+    uses: ./.github/workflows/call_test_cases.yml
+
+  publish-beta-release:
+    needs: call-workflow
     runs-on: ubuntu-latest
 
     steps:
