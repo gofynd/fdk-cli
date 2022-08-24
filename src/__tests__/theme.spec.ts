@@ -228,21 +228,21 @@ describe('Theme Commands', () => {
         configStore.clear();
     });
 
-    // it('should successfully create new theme', async () => {
-    //     await program.parseAsync([
-    //         'ts-node',
-    //         './src/fdk.ts',
-    //         'theme',
-    //         'new',
-    //         '-t',
-    //         `${createThemeToken}`,
-    //         '-n',
-    //         'rolex',
-    //     ]);
-    //     process.chdir(`../`);
-    //     const filePath = path.join(process.cwd(), 'rolex');
-    //     expect(fs.existsSync(filePath)).toBe(true);
-    // });
+    it('should successfully create new theme', async () => {
+        await program.parseAsync([
+            'ts-node',
+            './src/fdk.ts',
+            'theme',
+            'new',
+            '-t',
+            `${createThemeToken}`,
+            '-n',
+            'rolex',
+        ]);
+        process.chdir(`../`);
+        const filePath = path.join(process.cwd(), 'rolex');
+        expect(fs.existsSync(filePath)).toBe(true);
+    });
 
     it('should successfully pull config theme', async () => {
         await createTheme();
@@ -256,51 +256,51 @@ describe('Theme Commands', () => {
         expect(_.isEqual(newSettings_data, oldSettings_data)).toBe(false);
     });
 
-    // it('should successfully publish  theme', async () => {
-    //     await createTheme();
-    //     await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'publish']);
-    //     const currentContext = getActiveContext();
-    //     process.chdir(`../`);
-    //     expect(configObj.application_id).toMatch(currentContext.application_id);
-    // });
+    it('should successfully publish  theme', async () => {
+        await createTheme();
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'publish']);
+        const currentContext = getActiveContext();
+        process.chdir(`../`);
+        expect(configObj.application_id).toMatch(currentContext.application_id);
+    });
 
-    // it('should successfully unpublish  theme', async () => {
-    //     await createTheme();
-    //     await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'unpublish']);
-    //     const currentContext = getActiveContext();
-    //     process.chdir(`../`);
-    //     expect(configObj.application_id).toMatch(currentContext.application_id);
-    // });
+    it('should successfully unpublish  theme', async () => {
+        await createTheme();
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'unpublish']);
+        const currentContext = getActiveContext();
+        process.chdir(`../`);
+        expect(configObj.application_id).toMatch(currentContext.application_id);
+    });
 
-    // it('should successfully sync theme', async () => {
-    //     await createTheme();
-    //     const inquirerMock = mockFunction(inquirer.prompt);
-    //     inquirerMock.mockResolvedValue({ pullConfig: 'Yes' });
-    //     await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'sync']);
-    //     const currentContext = getActiveContext();
-    //     process.chdir(`../`);
-    //     expect(configObj.application_id).toMatch(currentContext.application_id);
-    // });
+    it('should successfully sync theme', async () => {
+        await createTheme();
+        const inquirerMock = mockFunction(inquirer.prompt);
+        inquirerMock.mockResolvedValue({ pullConfig: 'Yes' });
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'sync']);
+        const currentContext = getActiveContext();
+        process.chdir(`../`);
+        expect(configObj.application_id).toMatch(currentContext.application_id);
+    });
 
-    // it('should successfully init theme', async () => {
-    //     await program.parseAsync([
-    //         'ts-node',
-    //         './src/fdk.ts',
-    //         'theme',
-    //         'init',
-    //         '-t',
-    //         `${initThemeToken}`,
-    //     ]);
-    //     process.chdir(`../`);
-    //     const filePath = path.join(process.cwd(), 'vivek-theme');
-    //     expect(fs.existsSync(filePath)).toBe(true);
-    // });
+    it('should successfully init theme', async () => {
+        await program.parseAsync([
+            'ts-node',
+            './src/fdk.ts',
+            'theme',
+            'init',
+            '-t',
+            `${initThemeToken}`,
+        ]);
+        process.chdir(`../`);
+        const filePath = path.join(process.cwd(), 'vivek-theme');
+        expect(fs.existsSync(filePath)).toBe(true);
+    });
 
-    // it('should successfully pull theme', async () => {
-    //     await createTheme();
-    //     await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'pull']);
-    //     const filePath = path.join(process.cwd(), './.fdk/pull-archive.zip');
-    //     process.chdir(`../`);
-    //     expect(fs.existsSync(filePath)).toBe(true);
-    // });
+    it('should successfully pull theme', async () => {
+        await createTheme();
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'pull']);
+        const filePath = path.join(process.cwd(), './.fdk/pull-archive.zip');
+        process.chdir(`../`);
+        expect(fs.existsSync(filePath)).toBe(true);
+    });
 });
