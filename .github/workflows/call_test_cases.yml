@@ -33,8 +33,8 @@ jobs:
         npm install
         npm test
 
-    if: steps.get_branch.outputs.branch == 'master'
-      - name: Coveralls (Uploading test report)
+    - if: steps.get_branch.outputs.branch == 'master'
+        name: Coveralls (Uploading test report)
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}

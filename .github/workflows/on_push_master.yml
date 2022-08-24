@@ -7,8 +7,3 @@ on:
 jobs:
   call-workflow:
       uses: ./.github/workflows/call_test_cases.yml
-
-    - name: Coveralls (Uploading test report)
-      uses: coverallsapp/github-action@master
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
