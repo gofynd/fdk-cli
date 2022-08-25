@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 const url = require('url');
 const querystring = require('query-string');
@@ -15,7 +15,7 @@ function hash(string, encoding) {
 // This function assumes the string has already been percent encoded
 function encodeRfc3986(urlEncodedString) {
   return urlEncodedString.replace(/[!'()*]/g, function (c) {
-    return '%' + c.charCodeAt(0).toString(16).toUpperCase();
+    return '%' + c.charCodeAt(0).toString(16).toUpperCase()
   });
 }
 
@@ -25,16 +25,16 @@ function encodeRfc3986Full(str) {
 }
 
 const HEADERS_TO_IGNORE = {
-  authorization: true,
-  connection: true,
+  'authorization': true,
+  'connection': true,
   'x-amzn-trace-id': true,
   'user-agent': true,
-  expect: true,
+  'expect': true,
   'presigned-expires': true,
-  range: true,
+  'range': true,
 };
 
-const HEADERS_TO_INCLUDE = ['x-fp-.*', 'host'];
+const HEADERS_TO_INCLUDE = ["x\-fp\-.*", "host"];
 
 // request: { path | body, [host], [method], [headers], [service], [region] }
 class RequestSigner {
@@ -46,7 +46,7 @@ class RequestSigner {
       request = url.parse(request);
     }
 
-    let headers = (request.headers = request.headers || {});
+    let headers = request.headers = (request.headers || { });
     this.request = request;
 
     if (!request.method && request.body) {
@@ -74,7 +74,8 @@ class RequestSigner {
     let query;
 
     if (request.signQuery) {
-      this.parsedPath.query = query = this.parsedPath.query || {};
+
+      this.parsedPath.query = query = this.parsedPath.query || { };
 
       if (query['x-fp-date']) {
         this.datetime = query['x-fp-date'];
@@ -82,6 +83,7 @@ class RequestSigner {
         query['x-fp-date'] = this.getDateTime();
       }
     } else {
+
       if (!request.doNotModifyHeaders) {
         if (headers['x-fp-date']) {
           this.datetime = headers['x-fp-date'] || headers['x-fp-date'];
@@ -90,8 +92,8 @@ class RequestSigner {
         }
       }
 
-      delete headers['x-fp-signature'];
-      delete headers['X-Fp-Signature'];
+      delete headers["x-fp-signature"];
+      delete headers["X-Fp-Signature"];
     }
   }
 
@@ -123,14 +125,17 @@ class RequestSigner {
   }
 
   signature() {
-    let kCredentials = '1234567';
+    let kCredentials = "1234567";
     let strTosign = this.stringToSign();
     // console.log(strTosign);
     return `v1.1:${hmac(kCredentials, strTosign, 'hex')}`;
   }
 
   stringToSign() {
-    return [this.getDateTime(), hash(this.canonicalString(), 'hex')].join('\n');
+    return [
+      this.getDateTime(),
+      hash(this.canonicalString(), 'hex'),
+    ].join('\n');
   }
 
   canonicalString() {
@@ -152,46 +157,36 @@ class RequestSigner {
         if (!key) {
           return obj;
         }
-        obj[encodeRfc3986Full(key)] = !Array.isArray(query[key])
-          ? query[key]
-          : firstValOnly
-          ? query[key][0]
-          : query[key];
+        obj[encodeRfc3986Full(key)] = !Array.isArray(query[key]) ? query[key] :
+          (firstValOnly ? query[key][0] : query[key]);
         return obj;
-      }, {});
+      }, { });
       let encodedQueryPieces = [];
-      Object.keys(reducedQuery)
-        .sort()
-        .forEach(function (key) {
-          if (!Array.isArray(reducedQuery[key])) {
-            encodedQueryPieces.push(key + '=' + encodeRfc3986Full(reducedQuery[key]));
-          } else {
-            reducedQuery[key]
-              .map(encodeRfc3986Full)
-              .sort()
-              .forEach(function (val) {
-                encodedQueryPieces.push(key + '=' + val);
-              });
-          }
-        });
+      Object.keys(reducedQuery).sort().forEach(function (key) {
+        if (!Array.isArray(reducedQuery[key])) {
+          encodedQueryPieces.push(key + '=' + encodeRfc3986Full(reducedQuery[key]));
+        } else {
+          reducedQuery[key].map(encodeRfc3986Full).sort()
+            .forEach(function (val) {
+              encodedQueryPieces.push(key + '=' + val);
+            });
+        }
+      });
       queryStr = encodedQueryPieces.join('&');
     }
     if (pathStr !== '/') {
       if (normalizePath) {
         pathStr = pathStr.replace(/\/{2,}/g, '/');
       }
-      pathStr = pathStr
-        .split('/')
-        .reduce(function (path, piece) {
-          if (normalizePath && piece === '..') {
-            path.pop();
-          } else if (!normalizePath || piece !== '.') {
-            if (decodePath) piece = decodeURIComponent(piece.replace(/\+/g, ' '));
-            path.push(encodeRfc3986Full(piece));
-          }
-          return path;
-        }, [])
-        .join('/');
+      pathStr = pathStr.split('/').reduce(function (path, piece) {
+        if (normalizePath && piece === '..') {
+          path.pop();
+        } else if (!normalizePath || piece !== '.') {
+          if (decodePath) piece = decodeURIComponent(piece.replace(/\+/g, ' '))
+          path.push(encodeRfc3986Full(piece));
+        }
+        return path;
+      }, []).join('/');
       if (pathStr[0] !== '/') pathStr = '/' + pathStr;
       if (decodeSlashesInPath) pathStr = pathStr.replace(/%2F/g, '/');
     }
@@ -204,9 +199,6 @@ class RequestSigner {
       this.signedHeaders(),
       bodyHash,
     ].join('\n');
-    // console.log("====================");
-    // console.log(canonicalReq);
-    // console.log("====================");
     return canonicalReq;
   }
 
@@ -222,7 +214,7 @@ class RequestSigner {
         if (notInIgnoreHeader) {
           let foundMatch = false;
           for (let t in HEADERS_TO_INCLUDE) {
-            foundMatch = foundMatch || new RegExp(HEADERS_TO_INCLUDE[t], 'ig').test(key);
+            foundMatch = foundMatch || new RegExp(HEADERS_TO_INCLUDE[t], "ig").test(key);
           }
           return foundMatch;
         } else {
@@ -244,11 +236,12 @@ class RequestSigner {
         return key.toLowerCase();
       })
       .filter(function (key) {
+
         let notInIgnoreHeader = HEADERS_TO_IGNORE[key.toLowerCase()] == null;
         if (notInIgnoreHeader) {
           let foundMatch = false;
           for (let t in HEADERS_TO_INCLUDE) {
-            foundMatch = foundMatch || new RegExp(HEADERS_TO_INCLUDE[t], 'ig').test(key);
+            foundMatch = foundMatch || new RegExp(HEADERS_TO_INCLUDE[t], "ig").test(key);
           }
           return foundMatch;
         } else {
@@ -261,7 +254,6 @@ class RequestSigner {
 
   parsePath() {
     let path = this.request.path || '/';
-
     let queryIx = path.indexOf('?');
     let query = null;
 
@@ -272,7 +264,6 @@ class RequestSigner {
     path = path.split("/").map((t) => {
       return encodeURIComponent(decodeURIComponent(t));
     }).join("/");
-
 
     this.parsedPath = {
       path: path,
@@ -297,10 +288,11 @@ class RequestSigner {
   }
 }
 
+
 function signMethod(request) {
   return new RequestSigner(request).sign();
 }
 
 module.exports = {
-  sign: signMethod,
+  sign: signMethod
 };

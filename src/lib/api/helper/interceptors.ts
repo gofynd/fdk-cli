@@ -41,7 +41,7 @@ function interceptorFn(options) {
                 url = combineURLs(config.baseURL, config.url);
             }
             const { host, pathname, search } = new URL(url);
-            if (pathname.startsWith('/service') || pathname.startsWith('/ext')) {
+            if (pathname.includes('/service') || pathname.startsWith('/ext')) {
                 const { data, headers, method, params } = config;
                 // set cookie
                 const cookie = ConfigStore.get(CONFIG_KEYS.COOKIE);
@@ -87,7 +87,6 @@ function interceptorFn(options) {
                     patch,
                     ...headersToSign
                 } = headers;
-
                 const signingOptions = {
                     method: method && method.toUpperCase(),
                     host: host,
@@ -100,6 +99,7 @@ function interceptorFn(options) {
                 // config.headers = signingOptions.headers;
                 config.headers['x-fp-date'] = signingOptions.headers['x-fp-date'];
                 config.headers['x-fp-signature'] = signingOptions.headers['x-fp-signature'];
+                config.headers['x-debug'] = true;
             }
             return config;
         } catch (error) {
