@@ -9,7 +9,7 @@ jobs:
   call-workflow:
     uses: ./.github/workflows/call_test_cases.yml
 
-  publish-beta-release:
+  publish-test-release:
     needs: call-workflow
     runs-on: ubuntu-latest
 
