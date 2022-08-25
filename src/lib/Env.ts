@@ -25,7 +25,9 @@ export const AVAILABLE_ENVS = {
   tiraz5: 'api.tiraz5.de',
   tiraz0: 'api.tiraz0.de',
   tirabeauty:'api.tirabeauty.com',
-  azortez0: 'api.sngz0.de'
+  sngz0: 'api.sngz0.de',
+  sngz5: 'api.sngz5.de',
+  sng: 'api.sng.com'
 };
 
 type EnvType = keyof typeof AVAILABLE_ENVS;
