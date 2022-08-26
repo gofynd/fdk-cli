@@ -2,13 +2,14 @@ name: Publish beta Package to npmjs
 on:
   push:
     tags:
-        - v[0-9]+.[0-9]+.[0-9]+-beta.[0-9]
+        - v[0-9]+.[0-9]+.[0-9]+-alpha.[0-9]+
+        - v[0-9]+.[0-9]+.[0-9]+-beta.[0-9]+
 
 jobs:
   call-workflow:
     uses: ./.github/workflows/call_test_cases.yml
 
-  publish-beta-release:
+  publish-test-release:
     needs: call-workflow
     runs-on: ubuntu-latest
 
