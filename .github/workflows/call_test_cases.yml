@@ -1,12 +1,9 @@
-name: Merge CI
+name: Run test cases
 
-on:
-  push:
-    branches: [ master ]
+on: workflow_call
 
 jobs:
-  build:
-
+  run-test-cases:
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -19,6 +16,11 @@ jobs:
         node-version: [12.x, 14.x, 15.x]
 
     steps:
+    - name: Get branch name
+      shell: bash
+      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+      id: get_branch
+
     - uses: actions/checkout@v2
 
     - name: Use Node.js ${{ matrix.node-version }}
@@ -26,12 +28,13 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: npm install, npm test, 
+    - name: Install packages and run test cases
       run: |
         npm install
         npm test
-        
+
     - name: Coveralls (Uploading test report)
+      if: ${{ steps.get_branch.outputs.branch == 'master' }}
       uses: coverallsapp/github-action@master
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
