@@ -49,7 +49,7 @@ export default class Theme {
     static TEMPLATE_DIRECTORY = path.join(__dirname, '../../template');
     static BUILD_FOLDER = './.fdk/dist';
     static SRC_FOLDER = './.fdk/temp-theme';
-    static VUE_CLI_CONFIG_PATH = './.fdk/vue.config.js';
+    static VUE_CLI_CONFIG_PATH = path.join(process.cwd(), './.fdk/vue.config.js');
     static SRC_ARCHIVE_FOLDER = './.fdk/archive';
     static ZIP_FILE_NAME = `archive.zip`;
     public static getSettingsDataPath() {
@@ -262,7 +262,6 @@ export default class Theme {
             // get asset cdn base url
             const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
             Logger.warn('Building Assets...');
-            Theme.createVueConfig();
             // build js css
             await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl, assetHash });
 
@@ -642,14 +641,14 @@ export default class Theme {
         const fdkConfigPath = path.join(process.cwd(), 'fdk.config.js');
         if (fs.existsSync(oldVueConfigPath)) {
             if (fs.existsSync(fdkConfigPath)) {
-                throw new CommandError(`vue.config.js is not supported, move its file content to fdk.config.js`, ErrorCodes.NOT_KNOWN.code);
+                throw "vue.config.js is not supported, move its file content to fdk.config,js"
             } else {
                 fs.renameSync(oldVueConfigPath, fdkConfigPath);
-                Logger.success('Renamed file from vue.config.js to fdk.config.js');
+                Logger.success('fdk.config.js file generated');
             }
         }
-        rimraf.sync(path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH));
-        fs.writeFileSync(path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH), themeVueConfigTemplate);
+        rimraf.sync(Theme.VUE_CLI_CONFIG_PATH);
+        fs.writeFileSync(Theme.VUE_CLI_CONFIG_PATH, themeVueConfigTemplate);
     }
 
     private static assetsImageUploader = async () => {
@@ -802,21 +801,21 @@ export default class Theme {
         try {
             Logger.warn('Uploading commonjs...');
             const commonJS = `${assetHash}_themeBundle.common.js`;
-            const commonJsUrlRes = await UploadService.uploadFile(path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS), 'application-theme-assets');
+            const commonJsUrlRes = await UploadService.uploadFile(path.join(Theme.BUILD_FOLDER, commonJS), 'application-theme-assets');
             const commonJsUrl = commonJsUrlRes.start.cdn.url
     
             Logger.warn('Uploading umdjs...');
-            const umdMinAssets = glob.sync(path.join(process.cwd(), Theme.BUILD_FOLDER, `${assetHash}_themeBundle.umd.min.**.js`));
-            umdMinAssets.push(path.join(process.cwd(), Theme.BUILD_FOLDER, `${assetHash}_themeBundle.umd.min.js`));
+            const umdMinAssets = glob.sync(`${Theme.BUILD_FOLDER}/${assetHash}_themeBundle.umd.min.**.js`);
+            umdMinAssets.push(`${assetHash}_themeBundle.umd.min.js`)
             const umdJSPromisesArr = umdMinAssets.map(async asset => {
-                const assetPath = asset;
+                const assetPath = path.join(Theme.BUILD_FOLDER, asset);
                 let res = await UploadService.uploadFile(assetPath, 'application-theme-assets');
                 return res.start.cdn.url;
             });
             const umdJsUrls = await Promise.all(umdJSPromisesArr);
     
             Logger.warn('Uploading css...');
-            let cssAssests = glob.sync(path.join(process.cwd(), Theme.BUILD_FOLDER, '**.css'));
+            let cssAssests = glob.sync(`${Theme.BUILD_FOLDER}/**.css`);
             let cssPromisesArr = cssAssests.map(async asset => {
                 let res = await UploadService.uploadFile(asset, 'application-theme-assets');
                 return res.start.cdn.url;
