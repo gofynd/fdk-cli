@@ -16,14 +16,16 @@ export const AVAILABLE_ENVS = {
   jioretailer: 'api.jioretailer.com',
   jioecomm: 'api.jioecomm.com',
   jiomarketx0: 'api.jiomarketx0.de',
-  jiomarketxz5: 'api.jiomarketz5.de',
+  jiomarketz5: 'api.jiomarketz5.de',
   jiomarket: 'api.jiomarket.com',
   jmpx2: 'api.jmpx2.de',
   jmpx3: 'api.jmpx3.de',
   jiomartpartners: 'api.jiomartpartners.com',
   tirax2:'api.tirax2.de',
   tiraz5: 'api.tiraz5.de',
+  tiraz0: 'api.tiraz0.de',
   tirabeauty:'api.tirabeauty.com',
+  azortez0: 'api.sngz0.de'
 };
 
 type EnvType = keyof typeof AVAILABLE_ENVS;
