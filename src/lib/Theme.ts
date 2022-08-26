@@ -4,6 +4,7 @@ import {
     decodeBase64,
     getActiveContext,
     pageNameModifier,
+    isAThemeDirectory,
 } from '../helper/utils';
 import CommandError, { ErrorCodes } from './CommandError';
 import Logger from './Logger';
@@ -35,6 +36,7 @@ import Env from './Env';
 import Debug from './Debug';
 import ora from 'ora';
 import { themeVueConfigTemplate } from '../helper/theme.vue.config';
+import { next } from 'cheerio/lib/api/traversing';
 export default class Theme {
     /*
         new theme from default template -> create
@@ -323,11 +325,21 @@ export default class Theme {
                 chalk.green.bold('Your Theme was pushed successfully\n') +
                     chalk.white('\n') +
                     chalk.white('View your theme:\n') +
-                    chalk.green(terminalLink( '',`https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true`)) +
+                    chalk.green(
+                        terminalLink(
+                            '',
+                            `https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true`
+                        )
+                    ) +
                     chalk.white('\n') +
                     chalk.white('\n') +
                     chalk.white('Customize this theme in Theme Editor:\n') +
-                    chalk.green(terminalLink('',`https://platform.${currentContext.env}.de/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`)),
+                    chalk.green(
+                        terminalLink(
+                            '',
+                            `https://platform.${currentContext.env}.de/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`
+                        )
+                    ),
                 {
                     padding: 1,
                     margin: 1,
@@ -642,14 +654,20 @@ export default class Theme {
         const fdkConfigPath = path.join(process.cwd(), 'fdk.config.js');
         if (fs.existsSync(oldVueConfigPath)) {
             if (fs.existsSync(fdkConfigPath)) {
-                throw new CommandError(`vue.config.js is not supported, move its file content to fdk.config.js`, ErrorCodes.NOT_KNOWN.code);
+                throw new CommandError(
+                    `vue.config.js is not supported, move its file content to fdk.config.js`,
+                    ErrorCodes.NOT_KNOWN.code
+                );
             } else {
                 fs.renameSync(oldVueConfigPath, fdkConfigPath);
                 Logger.success('Renamed file from vue.config.js to fdk.config.js');
             }
         }
         rimraf.sync(path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH));
-        fs.writeFileSync(path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH), themeVueConfigTemplate);
+        fs.writeFileSync(
+            path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH),
+            themeVueConfigTemplate
+        );
     }
 
     private static assetsImageUploader = async () => {
@@ -802,9 +820,12 @@ export default class Theme {
         try {
             Logger.warn('Uploading commonjs...');
             const commonJS = `${assetHash}_themeBundle.common.js`;
-            const commonJsUrlRes = await UploadService.uploadFile(path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS), 'application-theme-assets');
-            const commonJsUrl = commonJsUrlRes.start.cdn.url
-    
+            const commonJsUrlRes = await UploadService.uploadFile(
+                path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS),
+                'application-theme-assets'
+            );
+            const commonJsUrl = commonJsUrlRes.start.cdn.url;
+
             Logger.warn('Uploading umdjs...');
             const umdMinAssets = glob.sync(path.join(process.cwd(), Theme.BUILD_FOLDER, `${assetHash}_themeBundle.umd.min.**.js`));
             umdMinAssets.push(path.join(process.cwd(), Theme.BUILD_FOLDER, `${assetHash}_themeBundle.umd.min.js`));
@@ -814,13 +835,13 @@ export default class Theme {
                 return res.start.cdn.url;
             });
             const umdJsUrls = await Promise.all(umdJSPromisesArr);
-    
+
             Logger.warn('Uploading css...');
             let cssAssests = glob.sync(path.join(process.cwd(), Theme.BUILD_FOLDER, '**.css'));
             let cssPromisesArr = cssAssests.map(async asset => {
                 let res = await UploadService.uploadFile(asset, 'application-theme-assets');
                 return res.start.cdn.url;
-            });    
+            });
             const cssUrls = await Promise.all(cssPromisesArr);
 
             return [cssUrls, commonJsUrl, umdJsUrls];
@@ -851,12 +872,12 @@ export default class Theme {
             theme.assets = theme.assets || {};
             theme.assets.umdJs = theme.assets.umdJs || {};
             theme.assets.umdJs.links = umdJsUrls;
-            theme.assets.umdJs.link = "";
+            theme.assets.umdJs.link = '';
             theme.assets.commonJs = theme.assets.commonJs || {};
             theme.assets.commonJs.link = commonJsUrl;
             theme.assets.css = theme.assets.css || {};
             theme.assets.css.links = cssUrls;
-            theme.assets.css.link = "";
+            theme.assets.css.link = '';
             // TODO Issue here
             theme = {
                 ...theme,
@@ -973,12 +994,41 @@ export default class Theme {
         }
     };
 
-    public static previewTheme =  async() => {
-        const currentContext = getActiveContext();
-        try{
-           await open(`https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true&upgrade=true`);
-        }catch(err){
-            throw new CommandError(err.message, err.code);
+    public static copyFolderSync = (from, to) => {
+        fs.mkdirSync(to);
+        fs.readdirSync(from).forEach(element => {
+            if (element === 'temp-theme') {
+               return;
+            } else if (fs.lstatSync(path.join(from, element)).isFile()) {
+                fs.copyFileSync(path.join(from, element), path.join(to, element));
+            } else if (fs.lstatSync(path.join(from, element)).isDirectory()) {
+                Theme.copyFolderSync(path.join(from, element), path.join(to, element));
+            }
+        });
+    };
+
+    public static generateThemeZip = async () => {
+        let filepath = path.join(process.cwd(),'package.json');
+        let packageContent: any = readFile(filepath);
+        let content = JSON.parse(packageContent);
+        try {
+            if (!isAThemeDirectory()) {
+                throw new CommandError(
+                    ErrorCodes.INVALID_THEME_DIRECTORY.message,
+                    ErrorCodes.INVALID_THEME_DIRECTORY.code
+                );
+            }
+            Theme.copyFolderSync(path.join(process.cwd()), Theme.SRC_FOLDER);
+            rimraf.sync(path.join(process.cwd(), '.fdk', 'temp-theme', 'node_modules'));
+            rimraf.sync(path.join(process.cwd(), '.fdk', 'temp-theme', '.fdk'));
+            await archiveFolder({
+                srcFolder: path.join(process.cwd(),'.fdk','temp-theme'),
+                destFolder: path.join(process.cwd()),
+                zipFileName: `${content.name}_${content.version}.zip`,
+            });
+            rimraf.sync(path.join(process.cwd(),'.fdk','temp-theme'));
+        } catch (err) {
+            throw new CommandError(`Failed to generate .zip file of ${content.name} theme`, err.message);
         }
-    }
+    };
 }
