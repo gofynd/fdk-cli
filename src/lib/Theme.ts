@@ -307,18 +307,10 @@ export default class Theme {
                 available_sections
             );
             // extract page level settings schema
-            const availablePages = await Theme.getSystemPages({ newTheme, assetHash });
+            await Theme.updateAvailablePages({ newTheme, assetHash });
             Logger.warn('Updating theme...');
             await Promise.all([ThemeService.updateTheme(newTheme)]);
-            Logger.warn('Updating available pages...');
-            await asyncForEach(availablePages, async page => {
-                try {
-                    Logger.warn('Updating page: ', page.value);
-                    await ThemeService.updateAvailablePage(page);
-                } catch (error) {
-                    throw new CommandError(error.message, error.code);
-                }
-            });
+
             Logger.success('Theme syncing DONE...');
             var b5 = Box(
                 chalk.green.bold('Your Theme was pushed successfully\n') +
@@ -892,7 +884,7 @@ export default class Theme {
             throw new CommandError(`Failed to set theme data `);
         }
     };
-    private static getSystemPages = async ({ newTheme: theme, assetHash }) => {
+    private static updateAvailablePages = async ({ newTheme: theme, assetHash }) => {
         try {
             const allPages = (await ThemeService.getAllAvailablePage()).data.pages;
             const systemPagesDB = allPages.filter(x => x.type == 'system');
