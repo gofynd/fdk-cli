@@ -1,0 +1,26 @@
+name: Publish beta Package to npmjs
+on:
+  push:
+    tags:
+        - v[0-9]+.[0-9]+.[0-9]+-alpha.[0-9]+
+        - v[0-9]+.[0-9]+.[0-9]+-beta.[0-9]+
+
+jobs:
+  call-workflow:
+    uses: ./.github/workflows/call_test_cases.yml
+
+  publish-test-release:
+    needs: call-workflow
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      # Setup .npmrc file to publish to npm
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm install
+      - run: npm publish --tag beta --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}

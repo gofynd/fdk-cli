@@ -1,22 +1,30 @@
 import path from 'path';
 import fs from 'fs'
-import localtunnel from 'localtunnel'
 import Logger from '../lib/Logger';
 import axios from 'axios';
 import cheerio from 'cheerio';
 import express from 'express';
-import { SourceMapConsumer } from 'source-map'
+import _ from 'lodash';
+import { SourceMapConsumer } from 'source-map';
+import {
+    getActiveContext,
+} from './utils';
 import urlJoin from 'url-join';
 import { parse as stackTraceParser}  from 'stacktrace-parser';
-import proxy from 'express-http-proxy';
+import Theme from '../lib/Theme';
+import glob from 'glob';
 import detect from 'detect-port';
 import chalk from 'chalk';
+import UploadService from '../lib/api/services/upload.service';
+import Configstore, { CONFIG_KEYS } from '../lib/Config';
+import { createProxyMiddleware, fixRequestBody } from 'http-proxy-middleware';
+import { addSignatureFn }  from '../lib/api/helper/interceptors';
+const { transformRequest } = axios.defaults;
 
 const BUILD_FOLDER = './.fdk/dist';
 let port = 5001;
 let sockets = [];
 let publicCache = {};
-let tunnel
 
 export function reload() {
 	sockets.forEach((s) => {
@@ -24,58 +32,25 @@ export function reload() {
 	});
 }
 
-export function getLocalBaseUrl(host) {
-	return host.replace('api', 'localdev');
+export function getLocalBaseUrl() {
+	return "https://localhost";
 }
 
-export function getFullLocalUrl(host) {
-	return `${getLocalBaseUrl(host)}:${port}`;
+export function getFullLocalUrl(port) {
+	return `${getLocalBaseUrl()}:${port}`;
 }
 
-export async function createTunnel() {
-	tunnel = await localtunnel({ port, local_https: true, allow_invalid_cert: true });
-	Logger.success(`Tunnelled at -- ${tunnel.url}`);
-	reload()
-}
-
-function isTunnelRunning() {
-	return tunnel && !tunnel.closed
-}
-
-export async function checkTunnel() {
-	try {
-		if (isTunnelRunning()) {
-			const res = await axios.get(tunnel.url + '/_healthz')
-			if (res.data.ok === 'ok') {
-				return
-			}
-		}
-		await createTunnel()
-	} catch (e) {
-		await createTunnel()
-	}
-}
-
-function getPort(port) {
+export function getPort(port) {
 	return detect(port);
 }
 
-export async function startServer({ domain, host, isSSR, serverPort }) {
-
-	try {
-		port = await getPort(serverPort);
-		if(port !== serverPort) Logger.warn(chalk.bold.yellowBright(`PORT: ${serverPort} is busy, Switching to PORT: ${port}`));
-	} catch(e) {
-		Logger.error('Error occurred while detecting port.\n', e);
-	}
-
-	const app = require('https-localhost')(getLocalBaseUrl(host));
+export async function startServer({ domain, host, isSSR, port }) {
+	const currentContext = getActiveContext();
+	const currentDomain = `https://${currentContext.domain}`;
+	const app = require('https-localhost')(getLocalBaseUrl());
 	const certs = await app.getCerts();
 	const server = require('https').createServer(certs, app);
 	const io = require('socket.io')(server);
-	if (isSSR && !isTunnelRunning()) {
-		await createTunnel()
-	}
 
 	io.on('connection', function (socket) {
 		sockets.push(socket);
@@ -85,52 +60,96 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 	});
 
 	app.use('/public', async (req, res, done) => {
-		let { url } = req;
-		if (publicCache[url]) {
+		try {
+			const { url } = req;
+			if (publicCache[url]) {
+				res.set(publicCache[url].headers);
+				return res.send(publicCache[url].body);
+			}
+			const networkRes = await axios.get(urlJoin(domain, 'public', url));
+			publicCache[url] = publicCache[url] || {};
+			publicCache[url].body = networkRes.data;
+			publicCache[url].headers = networkRes.headers;
 			res.set(publicCache[url].headers);
 			return res.send(publicCache[url].body);
+		} catch(e) {
+			console.log("Error loading file ", url)
 		}
-		let networkRes = await axios.get(urlJoin(domain, 'public', req.url));
-		publicCache[url] = publicCache[url] || {};
-		publicCache[url].body = networkRes.data;
-		publicCache[url].headers = networkRes.headers;
-		res.set(publicCache[url].headers);
-		return res.send(publicCache[url].body);
 	});
 
 	app.get('/_healthz', (req, res) => {
 		res.json({ ok: 'ok' });
 	});
 
-	// app.use('/platform', proxy(`https://${host}`, {
-	//   proxyReqPathResolver: function (req) {
-	//     return `/platform${req.url}`;
-	//   }
-	// }));
-	app.use(`/api`, proxy(`${host}`));
-	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
+	// parse application/x-www-form-urlencoded
+	app.use(express.json());
+	  
+	const options = {
+		target: currentDomain, // target host
+		changeOrigin: true, // needed for virtual hosted sites
+		cookieDomainRewrite: 'localhost', // rewrite cookies to localhost
+		onProxyReq: fixRequestBody
+	  };
 
-	app.get('/*', async (req, res) => {
-		if (req.originalUrl == '/themeBundle.common.js') {
-			return res.sendFile(path.resolve(process.cwd(), `${BUILD_FOLDER}/themeBundle.common.js`))
+	  // proxy to solve CORS issue
+	  const corsProxy = createProxyMiddleware(options);
+	  app.use(['/service', '/ext'], async (req,res,next) => {
+		// generating new signature for proxy server
+		req.transformRequest = transformRequest;
+		req.originalUrl = req.originalUrl.startsWith('/service') ? req.originalUrl.replace('/service','/api/service'): req.originalUrl;
+		req.url = req.originalUrl;
+		// don't send body for GET request
+		if(!_.isEmpty(req.body)){
+			req.data = req.body;
 		}
+		req.baseURL = currentDomain;
+		delete req.headers['x-fp-signature'];
+		delete req.headers['x-fp-date'];
+		const url = new URL(currentDomain);
+		req.headers.host = url.host;
+		// regenerating signature as per proxy server
+		const config = await addSignatureFn(options)(req);
+		req.headers['x-fp-signature'] = config.headers['x-fp-signature'];
+		req.headers['x-fp-date'] = config.headers['x-fp-date'];
+		next();
+	  }, corsProxy);
+
+	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
+	app.get(['/__webpack_hmr', 'manifest.json'], async (req, res, next) => {
+		return res.end()
+	})
+	app.get('/*', async (req, res) => {
+
 		if (req.originalUrl == '/favicon.ico' || req.originalUrl == '/.webp') {
 			return res.status(404).send('Not found');
 		}
-		console.log(req.hostname, req.url)
+
 		const jetfireUrl = new URL(urlJoin(domain, req.originalUrl));
+		let themeUrl = "";
 		if (isSSR) {
-			if (!isTunnelRunning()) {
-				await createTunnel()
-			}
-			const { protocol, host: tnnelHost } = new URL(tunnel.url);
-			jetfireUrl.searchParams.set('__cli_protocol', protocol);
-			jetfireUrl.searchParams.set('__cli_url', tnnelHost);
+            const BUNDLE_PATH = path.join(process.cwd(), '/.fdk/dist/themeBundle.common.js');
+            const User = Configstore.get(CONFIG_KEYS.USER);
+            themeUrl = (await UploadService.uploadFile(BUNDLE_PATH, 'fdk-cli-dev-files', User._id))
+                .start.cdn.url;
 		} else {
 			jetfireUrl.searchParams.set('__csr', 'true');
 		}
 		try {
-			let { data: html } = await axios.get(jetfireUrl.toString());
+			
+			// Bundle directly passed on with POST request body.
+			const { data: html } = await axios({
+				method: 'POST',
+				url: jetfireUrl.toString(),
+				headers: {
+					'content-type': 'application/json',
+					'Accept': 'application/json'
+				},
+				data: {
+					theme_url: themeUrl,
+					port: port.toString()
+				}
+			});
+
 			let $ = cheerio.load(html);
 			$('head').prepend(`
 					<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
@@ -150,24 +169,25 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 						}
 					</script>
 				`);
-			$('#theme-umd-js').attr(
-				'src',
-				urlJoin(getFullLocalUrl(host), 'themeBundle.umd.js')
-			);
-			$('#theme-umd-js-link').attr(
-				'href',
-				urlJoin(getFullLocalUrl(host), 'themeBundle.umd.js')
-			);
-			$('#theme-css').attr(
-				'href',
-				urlJoin(getFullLocalUrl(host), 'themeBundle.css')
-			);
+
+			const umdJsInitial = $('link[data-umdjs-cli-source="initial"]');
+			umdJsInitial
+				.after(`<script type="text/javascript" src="${urlJoin(getFullLocalUrl(port), 'themeBundle.umd.js')}"></script>`);
+			const umdJsAssests = glob.sync(`${Theme.BUILD_FOLDER}/themeBundle.umd.**.js`).filter(x => !x.includes(".min."));
+			umdJsAssests.forEach((umdJsLink) => {
+				umdJsInitial
+					.after(`<script type="text/javascript" src="${urlJoin(getFullLocalUrl(port), umdJsLink.replace("./.fdk/dist/", ""))}"></script>`);
+			});
+
+			const cssAssests = glob.sync(`${Theme.BUILD_FOLDER}/**.css`);
+			const cssInitial = $('link[data-css-cli-source="initial"]');
+			cssAssests.forEach((cssLink) => {
+				cssInitial
+					.after(`<link rel="stylesheet" href="${urlJoin(getFullLocalUrl(port), cssLink.replace("./.fdk/dist/", ""))}"></link>`);
+			});
 			res.send($.html({ decodeEntities: false }));
 		} catch (e) {
 			if (e.response && e.response.status == 504) {
-				if (!isTunnelRunning()) {
-					await createTunnel()
-				}
 				res.redirect(req.originalUrl)
 			} else if (e.response && e.response.status == 500) {
 				try {
@@ -203,21 +223,12 @@ export async function startServer({ domain, host, isSSR, serverPort }) {
 	});
 
 	await new Promise((resolve, reject) => {
-		let interval;
 		server.listen(port, (err) => {
 			if (err) {
-				if (isSSR) {
-					if (interval) {
-						clearInterval(interval);
-					}
-					tunnel.close()
-				}
 				return reject(err);
 			}
-			Logger.success(`Starting server on port -- ${port}`);
-			if (isSSR) {
-				interval = setInterval(checkTunnel, 1000 * 30);
-			}
+			Logger.success(`Starting starter at port -- ${port} in ${isSSR? 'SSR': 'Non-SSR'} mode`);
+			Logger.success(`************* Using Debugging build`);
 			resolve(true);
 		});
 	});

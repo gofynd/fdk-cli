@@ -17,7 +17,7 @@ module.exports = {
     // disable eslint
     config.module.rules.delete('eslint');
     config.module.rules.delete('svg');
-
+  
     const imagesRule = config.module.rule('images');
     imagesRule.uses.clear();
     imagesRule

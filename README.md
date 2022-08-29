@@ -5,7 +5,7 @@
 [![NPM Downloads][downloads-image]][downloads-url]
 [![NPM License][license-image]][license-url]
 [![Build Status](https://travis-ci.org/gofynd/fdk-cli.svg?branch=master)](https://travis-ci.org/gofynd/fdk-cli)
-[![Coverage Status](https://coveralls.io/repos/github/gofynd/fdk-cli/badge.svg?branch=master)](https://coveralls.io/github/gofynd/fdk-cli?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/gofynd/fdk-cli/badge.svg?branch=master&&kill_cache=1)](https://coveralls.io/github/gofynd/fdk-cli?branch=master)
 Fynd development Kit (FDK CLI) is a cli tool developed by Fynd to create and update themes, extensions and various other components of the [Fynd Platform](https://platform.fynd.com/).
 ### Quick Links
 [Fynd Platform](https://platform.fynd.com/) | [Fynd Partners](https://partners.fynd.com/) | [Documentation](https://documentation.fynd.com/) | [Other Projects](#OtherProjects) | | [Contributing](#Contributing) | 
@@ -69,12 +69,14 @@ ___
 | [init](#theme-init)     | Initialize an existing theme |
 | [context](#theme-context)     | Add context of a theme |
 | [context-list](#theme-context-list)     | List all available contexts |
+| [active-context](theme-active-context)    | show currently active context |
 | [serve](#theme-serve)     | Start theme serving on localhost |
 | [sync](#theme-sync)     | Sync theme to application |
 | [pull](#theme-pull)     | Pull latest theme code |
 | [pull-config](#theme-pull-config)     | Pull latest theme config |
 | [publish](#theme-publish)     | Publish theme to library |
 | [unpublish](#theme-unpublish)     | Unpublish theme |
+| [open](#theme-open)    | preview theme |
 
 ### Extension Commands
 | Command        | Description           | 
@@ -263,8 +265,17 @@ This command is used to get a list of available context. You can also set active
 fdk theme context-list
 ```
 ___
+<div id="theme-active-context"></div>
 
+#### **active-context**
+This command is used to get currently active context.
+#### **Syntax**
+```sh
+fdk theme active-context
+```
+___
 <div id="theme-serve"></div>
+
 
 
 #### **serve**
@@ -337,6 +348,14 @@ This command is used to unpublish your theme.
 fdk theme unpublish
 ```
 ___
+<div id="theme-open"></div>
+
+#### **open**
+This command is used to preview the theme on browser.
+#### **Syntax**
+```sh
+fdk theme open 
+```
 ### Extension Commands
 Extensions are pluggable snippets of code that can be installed in your applications so improve the feature set of your application. To know more visit - [Fynd Partners](https://partners.fynd.com/)
 

@@ -25,7 +25,7 @@ function getTransformer(config) {
 function getCompanyId(path: string): number {
     const pathArr = path.split('/');
     const companyId = pathArr[pathArr.findIndex(p => p === 'company') + 1];
-    
+
     return Number(companyId);
 }
 function interceptorFn(options) {
@@ -39,7 +39,7 @@ function interceptorFn(options) {
                 url = combineURLs(config.baseURL, config.url);
             }
             const { host, pathname, search } = new URL(url);
-            if (pathname.startsWith('/service')) {
+            if (pathname.includes('/service') || pathname.startsWith('/ext')) {
                 const { data, headers, method, params } = config;
                 // set cookie
                 const cookie = ConfigStore.get(CONFIG_KEYS.COOKIE);
@@ -50,7 +50,7 @@ function interceptorFn(options) {
                     try {
                         data = (await AuthenticationService.getOauthToken(company_id)).data || {};
                     } catch (error) {
-                        Logger.error("Failed to fetch OAuth token")
+                        Logger.error('Failed to fetch OAuth token');
                         ConfigStore.delete(CONFIG_KEYS.USER);
                         ConfigStore.delete(CONFIG_KEYS.COOKIE);
                         throw new Error(error);
@@ -68,9 +68,11 @@ function interceptorFn(options) {
                         queryParam = `?${transformRequestOptions(params)}`;
                     }
                 }
-                const transformRequest = getTransformer(config);
-
-                const transformedData = transformRequest(data, headers);
+                let transformedData;
+                if (method != 'get') {
+                    const transformRequest = getTransformer(config);
+                    transformedData = transformRequest(data, headers);
+                }
 
                 // Remove all the default Axios headers
                 const {
@@ -83,7 +85,6 @@ function interceptorFn(options) {
                     patch,
                     ...headersToSign
                 } = headers;
-
                 const signingOptions = {
                     method: method && method.toUpperCase(),
                     host: host,
@@ -96,15 +97,12 @@ function interceptorFn(options) {
                 // config.headers = signingOptions.headers;
                 config.headers['x-fp-date'] = signingOptions.headers['x-fp-date'];
                 config.headers['x-fp-signature'] = signingOptions.headers['x-fp-signature'];
+                config.headers['x-debug'] = true;
             }
-
             return config;
         } catch (error) {
-          throw new Error(error);
+            throw new Error(error);
         }
     };
 }
-
-module.exports = {
-    addSignatureFn: interceptorFn,
-};
+export { interceptorFn as addSignatureFn };

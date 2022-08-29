@@ -1,0 +1,24 @@
+{
+    "success": true,
+    "tags": [],
+    "_id": "627deed4fbd6c92e1a70fba6",
+    "file_name": "emerge-desktop.jpeg",
+    "operation": "putObject",
+    "size": 82942,
+    "namespace": "application-theme-images",
+    "content_type": "image/jpeg",
+    "file_path": "/company/1/applications/622894659baaca3be88c9d65/theme/pictures/free/original/emerge-desktop.jpeg",
+    "upload": {
+      "url": "https://fynd-staging-assets.s3-accelerate.amazonaws.com/x0/company/1/applications/622894659baaca3be88c9d65/theme/pictures/free/original/emerge-desktop.jpeg?AWSAccessKeyId=AKIAJUADR2WMPQT6ZJ2Q&Content-Type=image%2Fjpeg&Expires=1652422105&Signature=%2BI%2FcmQxPNykYGp1%2FGLbNK8zNR%2BQ%3D&x-amz-acl=public-read",
+      "expiry": 1800
+    },
+    "cdn": {
+      "url": "https://hdn-1.addsale.com/x0/company/1/applications/622894659baaca3be88c9d65/theme/pictures/free/original/emerge-desktop.jpeg"
+    },
+    "created_by": {
+      "username": "917678880802_13922"
+    },
+    "company_id": 1,
+    "created_on": "2022-05-13T05:38:28.033Z",
+    "modified_on": "2022-05-13T05:38:28.033Z"
+  }

@@ -25,7 +25,7 @@ export default {
       throw new CommandError(error.message, error.code);
     }
   },
-  uploadFile: async (filepath, namespace) => {
+  uploadFile: async (filepath, namespace, file_name = null) => {
     const activeContext = getActiveContext();
     let stats;
     // start
@@ -41,7 +41,7 @@ export default {
       contentType = 'image/jpeg';
     }
     const startData = {
-      file_name: path.basename(filepath),
+      file_name: file_name || path.basename(filepath),
       content_type: contentType,
       size: stats.size,
     };
@@ -58,37 +58,40 @@ export default {
     );
     const startResponse = res1 ? res1.data : res1;
 
-    let s3Url = startResponse.upload.url;
-    // srcCdnUrl = startResponse.cdn.url;
+        let s3Url = startResponse.upload.url;
 
-    //upload file to s3
-    const res2 = await ApiClient.put(s3Url, {
-      data: fs.readFileSync(filepath),
-      headers: { 'Content-type': contentType },
-    });
-    let uploadResponse = res2 ? res2.data : res2;
+        //upload file to s3
+        const res2 = await ApiClient.put(s3Url, {
+            data: fs.readFileSync(filepath),
+            headers: { 'Content-type': contentType },
+        });
+        let uploadResponse = res2 ? res2.data : res2;
 
-    // complete
-    axiosOption = Object.assign(
-      {},
-      {
-        data: {
-          response: startResponse,
-          ...startData,
-        },
-      },
-      getCommonHeaderOptions()
-    );
-    const res3 = await ApiClient.post(
-      URLS.COMPLETE_UPLOAD_FILE(activeContext.application_id, activeContext.company_id, namespace),
-      axiosOption
-    );
-    let completeResponse = res3 ? res3.data : res3;
+        // complete
+        axiosOption = Object.assign(
+            {},
+            {
+                data: {
+                    response: startResponse,
+                    ...startData,
+                },
+            },
+            getCommonHeaderOptions()
+        );
+        const res3 = await ApiClient.post(
+            URLS.COMPLETE_UPLOAD_FILE(
+                activeContext.application_id,
+                activeContext.company_id,
+                namespace
+            ),
+            axiosOption
+        );
+        let completeResponse = res3 ? res3.data : res3;
 
-    return {
-      start: startResponse,
-      upload: uploadResponse,
-      complete: completeResponse,
-    };
-  },
+        return {
+            start: startResponse,
+            upload: uploadResponse,
+            complete: completeResponse,
+        };
+    },
 };

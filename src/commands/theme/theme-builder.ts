@@ -4,8 +4,8 @@ import ThemeContext from '../../lib/ThemeContext';
 export default function themeCommandBuilder() {
     const theme = new commander.Command('theme').description('Theme Commands');
     theme
-        .command('add')
-        .alias('new')
+        .command('new')
+        .alias('add')
         .description('Create Theme')
         .requiredOption('-t, --token [token]', 'Token')
         .requiredOption('-n, --name [name]', 'Theme name')
@@ -18,6 +18,8 @@ export default function themeCommandBuilder() {
         .asyncAction(Theme.initTheme); // todo
 
     theme.command('sync').description('Sync theme').asyncAction(Theme.syncThemeWrapper);
+
+    theme.command('open').description('preview theme').asyncAction(Theme.previewTheme);
 
     theme
         .command('serve')
@@ -46,5 +48,6 @@ export default function themeCommandBuilder() {
 
     theme.command('context-list').description('List all contexts').asyncAction(ThemeContext.listThemeContext);
 
+    theme.command('active-context').description('print active_context').asyncAction(ThemeContext.activeContext);
     return theme;
 }

@@ -1,0 +1,17 @@
+{
+  "path": "faq",
+  "type": "system",
+  "seo": {
+    "title": "",
+    "description": ""
+  },
+  "props": [],
+  "_id": "62848f070e4fbf74583d4a60",
+  "value": "faq",
+  "sections": [],
+  "sections_meta": [],
+  "text": "Faq",
+  "theme": "623b09faeb0b6e0f4ff9758f",
+  "__v": 0,
+  "application": "622894659baaca3be88c9d65"
+}
