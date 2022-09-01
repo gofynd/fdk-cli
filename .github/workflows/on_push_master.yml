@@ -2,7 +2,7 @@ name: Master merge
 
 on:
   push:
-    branches: [ bug-fpco-3525-windows-test-cases-fix-v1 ]
+    branches: [ master ]
 
 jobs:
   call-workflow:
