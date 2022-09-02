@@ -171,7 +171,7 @@ export function parseCommands(){
 }
 
 async function checkCliVersionAsync() {
-    return await latestVersion(packageJSON.name);
+    return await latestVersion(packageJSON.name, {version: '*'});
 }
 
 async function promptForFDKFolder() {
