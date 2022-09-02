@@ -13,6 +13,7 @@ import path from 'path';
 import execa from 'execa';
 import rimraf from 'rimraf';
 import terminalLink from 'terminal-link';
+import { simpleGit } from 'simple-git';
 import Box from 'boxen';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
@@ -109,10 +110,10 @@ export default class Theme {
                 available_sections,
             };
             const { data: theme } = await ThemeService.createTheme({ ...configObj, ...themeData });
-            
+            createDirectory(targetDirectory);
+            await Theme.templateDownload(options,targetDirectory);
             Logger.warn('Copying template files');
             shouldDelete = true;
-            await Theme.copyTemplateFiles(Theme.TEMPLATE_DIRECTORY, targetDirectory);
             let context: any = {
                 name: options.name,
                 application_id: appConfig._id,
@@ -1010,6 +1011,18 @@ export default class Theme {
             }
         } catch (err) {
             throw new CommandError(err.message, err.code);
+        }
+    };
+
+    public static templateDownload = async (options,targetDirectory) => {
+        const url = options.url || 'https://github.com/gofynd/Emerge';
+        try {
+            const git = simpleGit();
+            if (fs.existsSync(targetDirectory)) {
+                await git.clone(url, targetDirectory);
+            }
+        } catch (err) {
+            throw new CommandError(`failed to download repository`, err.message, err.code);
         }
     };
 
