@@ -535,7 +535,7 @@ export default class Theme {
             createDirectory(targetDirectory);
             await fs.copy(templateDirectory, targetDirectory);
             await execa('git', ['init'], { cwd: targetDirectory });
-            writeFile(targetDirectory + '/.gitignore', `.fdk\nnode_modules`);
+            writeFile(path.join(targetDirectory, '.gitignore'), `.fdk\nnode_modules`);
             return true;
         } catch (error) {
             return Promise.reject(error);
