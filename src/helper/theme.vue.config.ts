@@ -86,6 +86,14 @@ const chainWebpack = (config) => {
     .optimization.splitChunks({
       automaticNameDelimiter: "_"
     })
+    config.module
+    .rule("vue")
+    .use("vue-loader")
+    .loader("vue-loader")
+    .tap((options) => {
+      options.exposeFilename = true;
+      return options;
+    })   
 }
 
 vueConfig.chainWebpack = chainWebpack;

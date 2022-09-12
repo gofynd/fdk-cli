@@ -885,6 +885,7 @@ export default class Theme {
         }
     };
     private static updateAvailablePages = async ({ newTheme: theme, assetHash }) => {
+
         try {
             const allPages = (await ThemeService.getAllAvailablePage()).data.pages;
             const systemPagesDB = allPages.filter(x => x.type == 'system');
@@ -928,7 +929,7 @@ export default class Theme {
 
             // extract custom page level settings schema
             const bundleFiles = await fs.readFile(
-                path.join(Theme.BUILD_FOLDER, `${assetHash}-themeBundle.common.js`),
+                path.join(Theme.BUILD_FOLDER, `${assetHash}_themeBundle.common.js`),
                 'utf-8'
             );
             const themeBundle = evaluateModule(bundleFiles);
@@ -952,6 +953,7 @@ export default class Theme {
                     }
                 }
             };
+          
             customRoutes(customTemplates);
 
             // Delete custom pages removed from code
@@ -960,8 +962,7 @@ export default class Theme {
                 pagesToDelete.map(page => {
                     return ThemeService.deleteAvailablePage(page.value);
                 })
-            );
-
+            )
             for (let key in customFiles) {
                 const customPageConfig = customFiles[key];
                 let customPage = customPagesDB.find(p => p.value == key);
