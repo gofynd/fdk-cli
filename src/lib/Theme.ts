@@ -845,8 +845,13 @@ export default class Theme {
             theme.assets.umdJs = theme.assets.umdJs || {};
             theme.assets.umdJs.links = umdJsUrls;
             theme.assets.umdJs.link = "";
+            theme.assets.umd_js = theme.assets.umdJs || {};
+            theme.assets.umd_js.links = umdJsUrls;
+            theme.assets.umd_js.link = "";
             theme.assets.commonJs = theme.assets.commonJs || {};
             theme.assets.commonJs.link = commonJsUrl;
+            theme.assets.common_js = theme.assets.commonJs || {};
+            theme.assets.common_js.link = commonJsUrl;
             theme.assets.css = theme.assets.css || {};
             theme.assets.css.links = cssUrls;
             theme.assets.css.link = "";
@@ -932,7 +937,13 @@ export default class Theme {
                 path.join(Theme.BUILD_FOLDER, `${assetHash}_themeBundle.common.js`),
                 'utf-8'
             );
-            const themeBundle = evaluateModule(bundleFiles);
+            let getDirectories = function (src) {
+                return glob.sync(src + '/**/*').filter(item => item.endsWith(".vue"));
+              };
+              let rest = getDirectories(`${process.cwd()}/theme/custom-templates`);
+              console.log(rest)
+
+           const themeBundle = evaluateModule(bundleFiles);
             const customTemplates = themeBundle.getCustomTemplates();
             const customFiles = {};
             const customRoutes = (ctTemplates, parentKey = null) => {
@@ -1000,6 +1011,7 @@ export default class Theme {
 
             return pagesToSave;
         } catch (err) {
+            console.log(err)
             throw new CommandError(`Failed to fetch system pages`, err.code);
         }
     };
