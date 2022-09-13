@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 53 (72520) - https://sketchapp.com -->
+    <title>check</title>
+    <desc>Created with Sketch.</desc>
+    <g id="check" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="radio-regular" transform="translate(12.000000, 12.000000) scale(-1, 1) translate(-12.000000, -12.000000) ">
+            <rect id="Rectangle" x="0" y="0" width="24" height="24"></rect>
+            <circle id="Oval-16" stroke="var(--primaryColor);" fill="var(--primaryColor)" cx="12" cy="12" r="7.5"></circle>
+            <g id="Path-Copy-3-+-Path-Copy-4" transform="translate(11.920690, 12.012849) scale(-1, 1) translate(-11.920690, -12.012849) translate(8.420690, 9.562849)" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round">
+                <polygon id="Path-Copy-3" points="-3.85359409e-14 2.01983129 1.83795174 4.49435369"></polygon>
+                <path d="M1.92934621,4.53584084 L6.77306533,0.0841330174 L1.92934621,4.53584084 Z" id="Path-Copy-4"></path>
+            </g>
+        </g>
+    </g>
+</svg>

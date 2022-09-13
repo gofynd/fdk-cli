@@ -1,0 +1,238 @@
+{
+  "props": [
+    {
+      "type": "header",
+      "category": "Colors",
+      "value": "Header"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "header_bg_color",
+      "label": "Background ",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "header_text_color",
+      "label": "Text ",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "header_border_color",
+      "label": "Border ",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "header_icon_color",
+      "label": "Icons ",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "header_cart_notification_bg_color",
+      "label": "Notification background ",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "header_cart_notification_text_color",
+      "label": "Notification text ",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "header_nav_hover_color",
+      "label": "Navigation hover color",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "category": "Colors",
+      "value": "Buttons"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "button_primary_color",
+      "label": "Primary ",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "button_primary_label_color",
+      "label": "Primary label ",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "button_add_to_cart_color",
+      "label": "Add to cart  ",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "button_add_to_cart_label_color",
+      "label": "Add to cart label ",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "button_secondary_color",
+      "label": "Secondary  ",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "button_secondary_label_color",
+      "label": "Secondary label ",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "button_tertiary_color",
+      "label": "Tertiary  ",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "button_tertiary_label_color",
+      "label": "Tertiary label ",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "category": "Colors",
+      "value": "Text"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "text_heading_link_color",
+      "label": "Heading and link",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "text_body_color",
+      "label": "Body ",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "text_price_color",
+      "label": "Price ",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "text_sale_price_color",
+      "label": "Sale price ",
+      "default": "#fb406b"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "text_strikethrough_price_color",
+      "label": "Strikethrough price ",
+      "default": "#9b9b9b"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "text_discount_color",
+      "label": "Discount ",
+      "default": "#ee478d"
+    },
+    {
+      "type": "header",
+      "category": "Colors",
+      "value": "Footer"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "footer_bg_color",
+      "label": "Background ",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "footer_text_color",
+      "label": "Text ",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "footer_border_color",
+      "label": "Border ",
+      "default": "#e1e1e1"
+    },
+    {
+      "type": "color",
+      "category": "Colors",
+      "id": "footer_nav_hover_color",
+      "label": "Navigation hover color",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "category": "Colors",
+      "value": ""
+    },
+    {
+      "type": "header",
+      "category": "Colors",
+      "value": ""
+    },
+    {
+      "type": "header",
+      "category": "Colors",
+      "value": ""
+    },
+    {
+      "type": "select",
+      "id": "menu_position",
+      "default": "left",
+      "options": [
+        {
+          "text": "Left",
+          "value": "left"
+        },
+        {
+          "text": "Bottom",
+          "value": "bottom"
+        }
+      ],
+      "category": "Header",
+      "label": "Menu"
+    },
+    {
+      "type": "checkbox",
+      "id": "disable_cart",
+      "default": false,
+      "category": "Cart",
+      "label": "Disable Cart"
+    }
+  ]
+}
