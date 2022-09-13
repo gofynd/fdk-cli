@@ -47,7 +47,7 @@ export default class Theme {
         pull-config
     */
     static TEMPLATE_DIRECTORY = path.join(__dirname, '..', '..', 'template');
-    static BUILD_FOLDER = path.join('.fdk', 'dist');
+    static BUILD_FOLDER = './.fdk/dist';
     static SRC_FOLDER = path.join('.fdk', 'temp-theme');
     static VUE_CLI_CONFIG_PATH = path.join('.fdk', 'vue.config.js');
     static SRC_ARCHIVE_FOLDER = path.join('.fdk', 'archive');
@@ -423,7 +423,7 @@ export default class Theme {
             watcher.on('change', async () => {
                 console.log(chalk.bold.green(`building............`));
                 await devBuild({
-                    buildFolder: path.resolve(process.cwd(), Theme.BUILD_FOLDER),
+                    buildFolder: Theme.BUILD_FOLDER,
                     imageCdnUrl: urlJoin(getFullLocalUrl(port), 'assets/images'),
                     isProd: isSSR,
                 });
