@@ -35,7 +35,7 @@ import { downloadFile } from '../helper/download';
 import Env from './Env';
 import Debug from './Debug';
 import ora from 'ora';
-import { themeVueConfigTemplate } from '../helper/theme.vue.config';
+import { themeVueConfigTemplate,settingLoader } from '../helper/theme.vue.config';
 export default class Theme {
     /*
         new theme from default template -> create
@@ -51,6 +51,7 @@ export default class Theme {
     static BUILD_FOLDER = './.fdk/dist';
     static SRC_FOLDER = './.fdk/temp-theme';
     static VUE_CLI_CONFIG_PATH = './.fdk/vue.config.js';
+    static  SETTING_LOADER_FILE = './.fdk/setting-loader.js';
     static SRC_ARCHIVE_FOLDER = './.fdk/archive';
     static ZIP_FILE_NAME = `archive.zip`;
     public static getSettingsDataPath() {
@@ -643,6 +644,10 @@ export default class Theme {
         }
         rimraf.sync(path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH));
         fs.writeFileSync(path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH), themeVueConfigTemplate);
+        rimraf.sync(path.join(process.cwd(), Theme.SETTING_LOADER_FILE));
+        fs.writeFileSync(path.join(process.cwd(), Theme.SETTING_LOADER_FILE),  settingLoader);
+        
+        
     }
 
     private static assetsImageUploader = async () => {
@@ -937,11 +942,6 @@ export default class Theme {
                 path.join(Theme.BUILD_FOLDER, `${assetHash}_themeBundle.common.js`),
                 'utf-8'
             );
-            let getDirectories = function (src) {
-                return glob.sync(src + '/**/*').filter(item => item.endsWith(".vue"));
-              };
-              let rest = getDirectories(`${process.cwd()}/theme/custom-templates`);
-              console.log(rest)
 
            const themeBundle = evaluateModule(bundleFiles);
             const customTemplates = themeBundle.getCustomTemplates();
@@ -952,6 +952,7 @@ export default class Theme {
                     const value = routerPath.replace(/\//g, ':::');
                     customFiles[value] = {
                         fileName: ctTemplates[key].component.__file,
+                        fileSetting:ctTemplates[key].component.__settings,
                         value,
                         text: pageNameModifier(key),
                         path: routerPath,
@@ -992,15 +993,8 @@ export default class Theme {
                     };
                     customPage = (await ThemeService.createAvailabePage(pageData)).data;
                 }
-                customPage.props =
-                    (
-                        Theme.extractSettingsFromFile(
-                            `${process.cwd()}/theme/custom-templates/${customPageConfig.fileName}`
-                        ) || {}
-                    ).props || [];
-                customPage.sections_meta = Theme.extractSectionsFromFile(
-                    `${process.cwd()}/theme/custom-templates/${customPageConfig.fileName}`
-                );
+                customPage.props =customPageConfig.fileSetting 
+                customPage.sections_meta =[]
                 customPage.type = 'custom';
                 pagesToSave.push(customPage);
             }
