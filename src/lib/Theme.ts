@@ -946,17 +946,22 @@ export default class Theme {
            const themeBundle = evaluateModule(bundleFiles);
             const customTemplates = themeBundle.getCustomTemplates();
             const customFiles = {};
+            let settingProps;
             const customRoutes = (ctTemplates, parentKey = null) => {
                 for (let key in ctTemplates) {
                     const routerPath = (parentKey && `${parentKey}/${key}`) || `c/${key}`;
                     const value = routerPath.replace(/\//g, ':::');
+                    if(ctTemplates[key].component.__settings){
+                        settingProps = ctTemplates[key].component.__settings.props
+                    }
                     customFiles[value] = {
                         fileName: ctTemplates[key].component.__file,
-                        fileSetting:ctTemplates[key].component.__settings,
+                        fileSetting:settingProps,
                         value,
                         text: pageNameModifier(key),
                         path: routerPath,
                     };
+                   
                     if (
                         ctTemplates[key].children &&
                         Object.keys(ctTemplates[key].children).length
@@ -964,8 +969,7 @@ export default class Theme {
                         customRoutes(ctTemplates[key].children, routerPath);
                     }
                 }
-            };
-          
+            };   
             customRoutes(customTemplates);
 
             // Delete custom pages removed from code
@@ -993,7 +997,7 @@ export default class Theme {
                     };
                     customPage = (await ThemeService.createAvailabePage(pageData)).data;
                 }
-                customPage.props =customPageConfig.fileSetting 
+                customPage.props = customPageConfig.fileSetting || []
                 customPage.sections_meta =[]
                 customPage.type = 'custom';
                 pagesToSave.push(customPage);
@@ -1002,11 +1006,9 @@ export default class Theme {
             await ThemeService.updateTheme(theme);
             Logger.warn('Updating pages...');
             await ThemeService.updateAllAvailablePages({ pages: pagesToSave });
-
             return pagesToSave;
         } catch (err) {
-            console.log(err)
-            throw new CommandError(`Failed to fetch system pages`, err.code);
+            throw new CommandError(`Failed to fetch system and customn pages`, err.code);
         }
     };
     private static uploadThemeSrcZip = async () => {

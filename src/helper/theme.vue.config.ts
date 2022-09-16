@@ -108,7 +108,7 @@ module.exports = vueConfig;`
 export const settingLoader=`
 module.exports = function (source, map) {
   this.callback(null, 'module.exports = function(Component) {Component.options.__settings = ' +
-    source +
+  JSON.parse(JSON.stringify(source))  +
     '}', map)
 }
 `

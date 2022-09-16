@@ -23,7 +23,13 @@ export default {
   getThemeById: data => {
     try {
       const activeContext = data ? data : getActiveContext();
-      const axiosOption = Object.assign({}, getCommonHeaderOptions());
+      const axiosOption = Object.assign(
+        {},
+        {
+          data: data,
+        },
+        getCommonHeaderOptions()
+      );
       return ApiClient.get(
         URLS.THEME_BY_ID(
           activeContext.application_id,
