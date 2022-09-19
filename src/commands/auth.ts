@@ -19,6 +19,7 @@ const AuthenticationHandler = async (options, command) => {
             type: 'password',
             name: 'password',
             message: 'Enter password',
+            mask: '*'
           },
         ];
         await inquirer.prompt(questions).then(async answers => {
