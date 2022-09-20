@@ -309,7 +309,8 @@ describe('Theme Commands', () => {
         let packageContent: any = readFile(filepath);
         let content = JSON.parse(packageContent);
         let fileName = `${content.name}_${content.version}.zip`;
+        let file = path.join(process.cwd(),`${fileName}`)
         await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'package']);
-        expect(fs.existsSync(fileName)).toBe(true);
+        expect(fs.existsSync(file)).toBe(true);
     });
 });
