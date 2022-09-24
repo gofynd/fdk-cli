@@ -890,11 +890,18 @@ export default class Theme {
             theme.src = theme.src || {};
             theme.src.link = srcCdnUrl;
             theme.assets = theme.assets || {};
+            theme.assets.umd_js = theme.assets.umdJs || {};
+            theme.assets.umd_js.links = umdJsUrls;
+            theme.assets.umd_js.link = "";
+            theme.assets.common_js = theme.assets.commonJs || {};
+            theme.assets.common_js.link = commonJsUrl;
+            // - start for backward compatibility, will be removed
             theme.assets.umdJs = theme.assets.umdJs || {};
             theme.assets.umdJs.links = umdJsUrls;
             theme.assets.umdJs.link = "";
             theme.assets.commonJs = theme.assets.commonJs || {};
             theme.assets.commonJs.link = commonJsUrl;
+            // - end 
             theme.assets.css = theme.assets.css || {};
             theme.assets.css.links = cssUrls;
             theme.assets.css.link = "";
