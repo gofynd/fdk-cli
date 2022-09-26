@@ -26,8 +26,8 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
         run: npm install
         run: npm publish --access public
-          env:
-            NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}
 
       - name: Rollback Release
         if: steps.fetch-latest-release.outputs.tag_name != ''
