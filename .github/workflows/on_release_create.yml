@@ -18,7 +18,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-package-npm:
-    needs: create-new-release
+    needs: fetch-latest-release
     runs-on: ubuntu-latest
 
     - uses: actions/checkout@v3
