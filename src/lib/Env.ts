@@ -27,7 +27,7 @@ export const AVAILABLE_ENVS = {
   tirabeauty:'api.tirabeauty.com',
   sngz0: 'api.sngz0.de',
   sngz5: 'api.sngz5.de',
-  sng: 'api.sng.com',
+  sng: 'api.sngfynd.com',
   swadeshz0: 'api.swadeshz0.de'
 };
 
