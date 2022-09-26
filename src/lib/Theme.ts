@@ -582,11 +582,11 @@ export default class Theme {
             try {
                 return settingsText ? JSON.parse(settingsText) : {};
             } catch(err) {
-                const themeFilePath = path.split('sections')[1];
-                throw new Error(`Invalid JSON Object in /theme/sections${themeFilePath}. Validate JSON from https://jsonlint.com/`);
+                var themeFilePath = path.split('sections')[1];
+                throw new Error(`Invalid settings JSON object in /theme/sections${themeFilePath}. Validate JSON from https://jsonlint.com/`);
             }
         } catch(error) {
-            throw new Error(`Extracting settings element from section files failed.!`);
+            throw new Error(`Invalid settings JSON object in /theme/sections${themeFilePath}. Validate JSON from https://jsonlint.com/`);
         }
     }
     private static validateSections(available_sections) {
