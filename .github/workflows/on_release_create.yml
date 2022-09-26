@@ -1,20 +1,39 @@
-name: Publish Package to npmjs
 on:
   release:
     types: [created]
 
 jobs:
-  build:
+  call-workflow:
+    uses: ./.github/workflows/call_test_cases.yml
+
+  release-npm-package:
+    needs: call-workflow
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
-      # Setup .npmrc file to publish to npm
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '16.x'
-          registry-url: 'https://registry.npmjs.org'
-      - run: npm install
-      - run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}
+      - name: Fetch latest release version
+          id: fetch_latest_release
+          uses: thebritican/fetch-latest-release@v1
+          with:
+            github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Package to npmjs
+        - uses: actions/checkout@v3
+        # Setup .npmrc file to publish to npm
+        - uses: actions/setup-node@v3
+          with:
+            node-version: '16.x'
+            registry-url: 'https://registry.npmjs.org'
+        - run: npm install
+        - run: npm publish --access public
+          env:
+            NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}
+
+      - name: Rollback Release
+          if: steps.fetch_latest_release.outputs.tag_name != ''
+          uses: author/action-rollback@stable
+          with:
+            # Using a known release ID
+            id: ${{ steps.fetch_latest_release.outputs.tag_name }}
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
