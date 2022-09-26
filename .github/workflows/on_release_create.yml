@@ -28,10 +28,10 @@ jobs:
         with:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
-      - run: npm install
-      - run: npm publish --access public
-      - env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}
+      run: npm install
+      run: npm publish --access public
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}
 
   # rollback-release:
   #   - name: Rollback Release in case of pipeline failure
