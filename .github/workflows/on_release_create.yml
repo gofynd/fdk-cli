@@ -4,6 +4,9 @@ on:
     types: [created]
 
 jobs:
+  call-workflow:
+    uses: ./.github/workflows/call_test_cases.yml
+
   publish-package-npm:
     runs-on: ubuntu-latest
 
