@@ -6,19 +6,8 @@ jobs:
   call-workflow:
     uses: ./.github/workflows/call_test_cases.yml
 
-  fetch-latest-release:
-    needs: call-workflow
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Fetch latest release version
-        id: fetch-latest-release
-        uses: thebritican/fetch-latest-release@v1
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   publish-package-npm:
-    needs: fetch-latest-release
+    needs: call-workflow
     runs-on: ubuntu-latest
 
     steps:
