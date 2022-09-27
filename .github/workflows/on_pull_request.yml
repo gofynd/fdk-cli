@@ -1,0 +1,8 @@
+on:
+  pull_request:
+    branches:    
+      - master
+  
+jobs:
+  call-workflow:
+    uses: ./.github/workflows/call_test_cases.yml
