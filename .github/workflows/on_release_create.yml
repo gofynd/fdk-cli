@@ -8,6 +8,7 @@ jobs:
     uses: ./.github/workflows/call_test_cases.yml
 
   publish-package-npm:
+    needs: call-workflow
     runs-on: ubuntu-latest
 
     steps:
