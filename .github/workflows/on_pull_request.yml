@@ -2,6 +2,7 @@ on:
   pull_request:
     branches:    
       - master
+      - feature-fpco-4801-automation-fixes
   
 jobs:
   call-workflow:
