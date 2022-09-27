@@ -1,0 +1,9 @@
+on:
+  pull_request:
+    branches:    
+      - master
+      - feature-fpco-4801-automation-fixes
+
+jobs:
+  call-workflow:
+    uses: ./.github/workflows/call_test_cases.yml
