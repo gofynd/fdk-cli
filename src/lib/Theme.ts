@@ -35,6 +35,7 @@ import Env from './Env';
 import Debug from './Debug';
 import ora from 'ora';
 import { themeVueConfigTemplate } from '../helper/theme.vue.config';
+import { simpleGit } from 'simple-git';
 export default class Theme {
     /*
         new theme from default template -> create
@@ -52,13 +53,16 @@ export default class Theme {
     static VUE_CLI_CONFIG_PATH = path.join('.fdk', 'vue.config.js');
     static SRC_ARCHIVE_FOLDER = path.join('.fdk', 'archive');
     static ZIP_FILE_NAME = `archive.zip`;
+    static TEMPLATE_THEME_URL = 'https://github.com/gofynd/Emerge.git';
 
     public static getSettingsDataPath() {
         return path.join(process.cwd(), 'theme', 'config', 'settings_data.json');
     }
+
     public static getSettingsSchemaPath() {
         return path.join(process.cwd(), 'theme', 'config', 'settings_schema.json');
     }
+
     public static async writeSettingJson(path, jsonObject) {
         try {
             await fs.writeJSON(path, jsonObject, {
@@ -69,6 +73,7 @@ export default class Theme {
             throw new CommandError(`Error writing ${path} file.!!!`);
         }
     }
+
     public static async readSettingsJson(path) {
         try {
             const settingsJson = await fs.readJSON(path);
@@ -78,13 +83,14 @@ export default class Theme {
             throw new CommandError(`Error reading ${path} file.!!!`);
         }
     }
+
     public static async createTheme(options) {
         let shouldDelete = false;
         const targetDirectory = path.join(process.cwd(), options.name);
         try {
             if (fs.existsSync(targetDirectory)) {
                 shouldDelete = false;
-                throw new CommandError(`Folder ${options.name} already exists`);
+                throw new CommandError(`Folder ${options.name} already exists. Try a different theme name or change current directory.`);
             }
             
             Logger.warn('Validating token');
@@ -98,10 +104,16 @@ export default class Theme {
                 );
             }
             Debug(`Token expires in: ${configObj.expires_in}`);
+
+            Logger.warn('Fetching application details...');
             const { data: appConfig } = await ConfigurationService.getApplicationDetails(configObj);
             
-            Logger.warn('Creating Theme');
-            let available_sections = await Theme.getAvailableSections();
+            Logger.warn('Cloning template files...');
+            await Theme.cloneTemplate(options, targetDirectory);
+
+            Logger.warn('Getting sections for theme...');
+            let available_sections = await Theme.getNewThemeSections(options);
+
             const themeData = {
                 information: {
                     name: options.name,
@@ -109,10 +121,8 @@ export default class Theme {
                 available_sections,
             };
             const { data: theme } = await ThemeService.createTheme({ ...configObj, ...themeData });
-            
-            Logger.warn('Copying template files');
+
             shouldDelete = true;
-            await Theme.copyTemplateFiles(Theme.TEMPLATE_DIRECTORY, targetDirectory);
             let context: any = {
                 name: options.name,
                 application_id: appConfig._id,
@@ -128,9 +138,10 @@ export default class Theme {
             Logger.warn('Installing dependencies');
             await Theme.installNpmPackages();
 
-            let packageJSON = await fs.readJSON(path.join(process.cwd(), 'package.json'));
+            let packageJSONPath = path.join(process.cwd(), 'package.json')
+            let packageJSON = await fs.readJSON(packageJSONPath);
             packageJSON.name = Theme.sanitizeThemeName(options.name);
-            await fs.writeJSON(`${process.cwd()}/package.json`, packageJSON, {
+            await fs.writeJSON(packageJSONPath, packageJSON, {
                 spaces: 2,
             });
 
@@ -140,7 +151,7 @@ export default class Theme {
                 chalk.green.bold('DONE ') +
                     chalk.green.bold('Project ready\n') +
                     chalk.yellowBright.bold('NOTE ') +
-                    chalk.green.bold('cd ' + targetDirectory + ' to continue ...'),
+                    chalk.green.bold('cd ' + options.name + ' to continue ...'),
                 {
                     padding: 1,
                     margin: 1,
@@ -148,10 +159,11 @@ export default class Theme {
             );
             console.log(b5.toString());
         } catch (error) {
-            if (shouldDelete) await Theme.cleanUp(targetDirectory);
+            // if (shouldDelete) await Theme.cleanUp(targetDirectory);
             throw new CommandError(error.message, error.code);
         }
     }
+
     public static initTheme = async options => {
         let shouldDelete = false;
         let targetDirectory = '';
@@ -178,11 +190,12 @@ export default class Theme {
             targetDirectory = path.join(process.cwd(), themeName);
             if (fs.existsSync(targetDirectory)) {
                 shouldDelete = false;
-                throw new CommandError(`Folder ${themeName}  already exists`);
+                throw new CommandError(`Folder ${themeName} already exists`);
             }
 
             Logger.warn('Copying template files');
             shouldDelete = true;
+
             await Theme.copyTemplateFiles(Theme.TEMPLATE_DIRECTORY, targetDirectory);
             
             let context: any = {
@@ -256,9 +269,11 @@ export default class Theme {
             throw new CommandError(error.message, error.code);
         }
     };
+
     public static syncThemeWrapper = async () => {
         await Theme.syncTheme();
     };
+
     private static syncTheme = async (isNew = false) => {
         try {
             const currentContext = getActiveContext();
@@ -267,12 +282,12 @@ export default class Theme {
                 : Logger.warn('Please add domain to context');
             let { data: theme } = await ThemeService.getThemeById(currentContext);
             
-            //if any changes from platform in sections|pages|settings it will pull latest configuration
+            // Pull & merge latest theme configuration
             await Theme.matchWithLatestPlatformConfig(theme, (isNew = false));
             Theme.clearPreviousBuild();
             
             Logger.warn('Reading Files...');
-            let themeContent: any = readFile(`${process.cwd()}/config.json`);
+            let themeContent: any = readFile(path.join(process.cwd(), 'config.json'));
 
             try {
                 themeContent = JSON.parse(themeContent);
@@ -283,17 +298,16 @@ export default class Theme {
             let available_sections = await Theme.getAvailableSectionsForSync();
             await Theme.validateAvailableSections(available_sections);
             
-            // it will create index file for all sections inside /template/sections
+            // Create index.js file with section file imports.
             await Theme.createSectionsIndexFile(available_sections);
             
-            Logger.warn('Building Assets...');
             const imageCdnUrl = await Theme.getImageCdnBaseUrl();
-            const assetHash = shortid.generate();
-            // get asset cdn base url
             const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
-            Logger.warn('Building Assets...');
+            
+            Logger.warn('Building Theme Assets...');
             Theme.createVueConfig();
             // build js css
+            const assetHash = shortid.generate();
             await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl, assetHash });
 
             // check if build folder exists, as during build, vue fails with non-error code even when it errors out
@@ -374,6 +388,7 @@ export default class Theme {
             throw new CommandError(error.message, error.code);
         }
     };
+
     public static serveTheme = async options => {
         try {
             const isSSR =
@@ -433,6 +448,7 @@ export default class Theme {
             throw new CommandError(error.message, error.code);
         }
     };
+
     public static pullTheme = async () => {
         let spinner;
         try {
@@ -482,6 +498,7 @@ export default class Theme {
             throw new CommandError(error.message, error.code);
         }
     };
+
     public static publishTheme = async () => {
         let spinner;
         try {
@@ -495,6 +512,7 @@ export default class Theme {
             throw new CommandError(error.message, error.code);
         }
     };
+
     public static unPublishTheme = async () => {
         let spinner;
         try {
@@ -508,6 +526,7 @@ export default class Theme {
             throw new CommandError(error.message, error.code);
         }
     };
+
     public static pullThemeConfig = async () => {
         try {
             const { data: theme } = await ThemeService.getThemeById(null);
@@ -528,13 +547,23 @@ export default class Theme {
             throw new CommandError(error.message, error.code);
         }
     };
+
+    public static previewTheme =  async() => {
+        const currentContext = getActiveContext();
+        try{
+           await open(`https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true&upgrade=true`);
+        } catch(err){
+            throw new CommandError(err.message, err.code);
+        }
+    }
+
     // private methods
     private static async copyTemplateFiles(templateDirectory, targetDirectory) {
         try {
             createDirectory(targetDirectory);
             await fs.copy(templateDirectory, targetDirectory);
             await execa('git', ['init'], { cwd: targetDirectory });
-            writeFile(targetDirectory + '/.gitignore', `.fdk\nnode_modules`);
+            writeFile(path.join(targetDirectory, '.gitignore'), `.fdk\nnode_modules`);
             return true;
         } catch (error) {
             return Promise.reject(error);
@@ -553,32 +582,45 @@ export default class Theme {
             });
         });
     }
-    private static async getAvailableSections() {
-        let sectionsFiles = [];
+
+    // Fetch available sections for new theme creation.
+    private static async getNewThemeSections(options) {
         try {
-            sectionsFiles = fs
-                .readdirSync(path.join(Theme.TEMPLATE_DIRECTORY, '/sections'))
+            let sectionsFiles = fs
+                .readdirSync(path.join(process.cwd(), options.name, 'theme','sections'))
                 .filter(o => o != 'index.js');
-        } catch (err) {}
-        let settings = sectionsFiles.map(f => {
-            return Theme.extractSettingsFromFile(`${Theme.TEMPLATE_DIRECTORY}/theme/sections/${f}`);
-        });
-        return settings;
+
+            let settings = sectionsFiles.map(f => {
+                return Theme.extractSettingsFromFile(path.join(process.cwd(), options.name, 'theme', 'sections', f));
+            });
+            return settings;
+        } catch (error) {
+            throw new CommandError(`Error fetching sections for new theme. \n${error.message}`, error.code);
+        }
     }
+
+    // Fetch available sections of a theme to sync.
     private static async getAvailableSectionsForSync() {
-        let sectionsFiles = fs
-            .readdirSync(`${process.cwd()}/theme/sections`)
-            .filter(o => o != 'index.js');
-        let settings = sectionsFiles.map(f => {
-            return Theme.extractSettingsFromFile(`${process.cwd()}/theme/sections/${f}`);
-        });
-        return settings;
+        try {
+            let sectionsFiles = fs
+                .readdirSync(path.join(process.cwd(), 'theme', 'sections'))
+                .filter(o => o != 'index.js');
+            let settings = sectionsFiles.map(f => {
+                return Theme.extractSettingsFromFile(path.join(process.cwd(), 'theme', 'sections', f));
+            });
+            return settings;
+        } catch(error) {
+            throw new CommandError(`Error fetching available sections to sync. \n${error.message}`, error.code);
+        }
     }
+
+    // Extract <settings> tag JSON from components. 
     private static extractSettingsFromFile(path) {
         let $ = cheerio.load(readFile(path));
         let settingsText = $('settings').text();
         return settingsText ? JSON.parse(settingsText) : {};
     }
+
     private static validateSections(available_sections) {
         let fileNameRegex = /^[0-9a-zA-Z-_ ... ]+$/;
         let sectionNamesObject = {};
@@ -1020,12 +1062,13 @@ export default class Theme {
         }
     };
 
-    public static previewTheme =  async() => {
-        const currentContext = getActiveContext();
-        try{
-           await open(`https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true&upgrade=true`);
-        }catch(err){
-            throw new CommandError(err.message, err.code);
+    private static cloneTemplate = async (options, targetDirectory) => {
+        const url = options.url || Theme.TEMPLATE_THEME_URL;
+        try {
+            const git = simpleGit();
+            await git.clone(url, targetDirectory);
+        } catch (err) {
+            throw new CommandError(`Failed to clone template files.\n ${err.message}`, err.code);
         }
-    }
+    };
 }

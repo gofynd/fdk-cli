@@ -18,7 +18,7 @@
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build",
     "test": "jest --runInBand",
-    "debug": "cd /Users/vivekprajapati/Documents/fynd/jiomarket-theme && node /Users/vivekprajapati/Documents/fynd/fdk-cli/./bin/fdk theme serve"
+    "debug": "cd /Users/shivrajkoli/Documents/fynd/themes/temp && node /Users/shivrajkoli/Documents/fynd/gofynd/gofynd-fdk-cli/./bin/fdk theme new -t eyJhcHBsaWNhdGlvbl9pZCI6IjYxMjc4N2I3YzczNjMyNDJjNjQ5NmU0ZCIsInRva2VuIjoieG1FajZ5Wm4wIiwiY29tcGFueV9pZCI6MSwiZXhwaXJlc19pbiI6IjIwMjItMDktMjlUMTg6MTU6MzcuODA4WiJ9 -n test-new-theme"
   },
   "devDependencies": {
     "@types/async": "^3.2.6",
@@ -94,6 +94,7 @@
     "rimraf": "^3.0.2",
     "semver": "^6.3.0",
     "shortid": "^2.2.16",
+    "simple-git": "^3.14.1",
     "socket.io": "^2.3.0",
     "source-map": "^0.7.3",
     "stacktrace-parser": "^0.1.10",

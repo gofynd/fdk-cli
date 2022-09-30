@@ -1,5 +1,4 @@
 const path = require('path');
-const urlJoin = require('url-join');
 
 function addStyleResource(rule) {
   rule.use('style-resource')
