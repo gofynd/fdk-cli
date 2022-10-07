@@ -58,9 +58,11 @@ export default class Theme {
     public static getSettingsDataPath() {
         return path.join(process.cwd(), 'theme', 'config', 'settings_data.json');
     }
+
     public static getSettingsSchemaPath() {
         return path.join(process.cwd(), 'theme', 'config', 'settings_schema.json');
     }
+
     public static async writeSettingJson(path, jsonObject) {
         try {
             await fs.writeJSON(path, jsonObject, {
@@ -71,6 +73,7 @@ export default class Theme {
             throw new CommandError(`Error writing ${path} file.!!!`);
         }
     }
+
     public static async readSettingsJson(path) {
         try {
             const settingsJson = await fs.readJSON(path);
@@ -80,6 +83,7 @@ export default class Theme {
             throw new CommandError(`Error reading ${path} file.!!!`);
         }
     }
+
     public static async createTheme(options) {
         let shouldDelete = false;
         const targetDirectory = path.join(process.cwd(), options.name);
@@ -184,7 +188,7 @@ export default class Theme {
                 throw new CommandError(`Folder ${themeName}  already exists`);
             }
 
-            Logger.warn('Copying template files');
+            Logger.warn('Copying template config files');
             shouldDelete = true;
             await Theme.copyTemplateFiles(Theme.TEMPLATE_DIRECTORY, targetDirectory);
             
@@ -239,7 +243,7 @@ export default class Theme {
             Logger.warn('Saving context');
             await createContext(context);
 
-            Logger.warn('Installing dependencies');
+            Logger.warn('Installing dependencies..');
             if (fs.existsSync(path.join(process.cwd(), 'theme', 'package.json'))) {
                 writeFile(
                     path.join(process.cwd(), 'package.json'),
@@ -270,7 +274,7 @@ export default class Theme {
                 : Logger.warn('Please add domain to context');
             let { data: theme } = await ThemeService.getThemeById(currentContext);
             
-            //if any changes from platform in sections|pages|settings it will pull latest configuration
+            // Merge with latest platform config
             await Theme.matchWithLatestPlatformConfig(theme, (isNew = false));
             Theme.clearPreviousBuild();
             
@@ -286,20 +290,19 @@ export default class Theme {
             let available_sections = await Theme.getAvailableSectionsForSync();
             await Theme.validateAvailableSections(available_sections);
             
-            // it will create index file for all sections inside /template/sections
+            // Create index.js with section file imports
             await Theme.createSectionsIndexFile(available_sections);
             
             Logger.warn('Building Assets...');
             const imageCdnUrl = await Theme.getImageCdnBaseUrl();
-            const assetHash = shortid.generate();
-            // get asset cdn base url
             const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
-            Logger.warn('Building Assets...');
             Theme.createVueConfig();
-            // build js css
+            const assetHash = shortid.generate();
+
+            // Building .js & .css bundles using vue-cli
             await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl, assetHash });
 
-            // check if build folder exists, as during build, vue fails with non-error code even when it errors out
+            // Check if build folder exists, as during build, vue fails with non-error code even when it errors out
             if (!fs.existsSync(path.join(process.cwd(), Theme.BUILD_FOLDER))) {
                 throw new Error('Build Failed');
             }
@@ -317,7 +320,7 @@ export default class Theme {
             Logger.warn('Creating theme source code zip file...');
             await Theme.copyThemeSourceToFdkFolder();
             
-            //remove temp files
+            // Remove temp source folder
             rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
 
             Logger.warn('Uploading theme source code zip file...');
@@ -326,7 +329,8 @@ export default class Theme {
             Logger.warn('Uploading bundle files...');
             let pArr = await Theme.uploadThemeBundle({ assetHash });
             let [cssUrls, commonJsUrl, umdJsUrls] = await Promise.all(pArr);
-            // setting theme data
+            
+            // Set new theme data
             const newTheme = await Theme.setThemeData(
                 theme,
                 cssUrls,
@@ -340,7 +344,7 @@ export default class Theme {
                 available_sections
             );
 
-            // extract page level settings schema
+            // Extract page level settings schema
             const availablePages = await Theme.getSystemPages(newTheme);
             
             Logger.warn('Updating theme...');
