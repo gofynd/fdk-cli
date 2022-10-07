@@ -35,6 +35,7 @@ import Env from './Env';
 import Debug from './Debug';
 import ora from 'ora';
 import { themeVueConfigTemplate } from '../helper/theme.vue.config';
+import { simpleGit } from 'simple-git';
 export default class Theme {
     /*
         new theme from default template -> create
@@ -52,6 +53,7 @@ export default class Theme {
     static VUE_CLI_CONFIG_PATH = path.join('.fdk', 'vue.config.js');
     static SRC_ARCHIVE_FOLDER = path.join('.fdk', 'archive');
     static ZIP_FILE_NAME = `archive.zip`;
+    static TEMPLATE_THEME_URL = 'https://github.com/gofynd/Emerge.git';
 
     public static getSettingsDataPath() {
         return path.join(process.cwd(), 'theme', 'config', 'settings_data.json');
@@ -100,6 +102,10 @@ export default class Theme {
             Debug(`Token expires in: ${configObj.expires_in}`);
             const { data: appConfig } = await ConfigurationService.getApplicationDetails(configObj);
             
+            Logger.warn('Cloning template files...');
+            await Theme.cloneTemplate(options, targetDirectory);
+            shouldDelete = true;
+
             Logger.warn('Creating Theme');
             let available_sections = await Theme.getAvailableSections();
             const themeData = {
@@ -110,9 +116,6 @@ export default class Theme {
             };
             const { data: theme } = await ThemeService.createTheme({ ...configObj, ...themeData });
             
-            Logger.warn('Copying template files');
-            shouldDelete = true;
-            await Theme.copyTemplateFiles(Theme.TEMPLATE_DIRECTORY, targetDirectory);
             let context: any = {
                 name: options.name,
                 application_id: appConfig._id,
@@ -1028,4 +1031,14 @@ export default class Theme {
             throw new CommandError(err.message, err.code);
         }
     }
+
+    private static cloneTemplate = async (options, targetDirectory) => {
+        const url = options.url || Theme.TEMPLATE_THEME_URL;
+        try {
+            const git = simpleGit();
+            await git.clone(url, targetDirectory);
+        } catch (err) {
+            throw new CommandError(`Failed to clone template files.\n ${err.message}`, err.code);
+        }
+    };
 }
