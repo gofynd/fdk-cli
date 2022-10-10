@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Publish Package to npmjs
         - uses: actions/checkout@v3
         # Setup .npmrc file to publish to npm
         - uses: actions/setup-node@v3
