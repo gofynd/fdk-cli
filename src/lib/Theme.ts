@@ -11,6 +11,7 @@ import ConfigurationService from './api/services/configuration.service';
 import fs from 'fs-extra';
 import path from 'path';
 import execa from 'execa';
+import { AVAILABLE_ENVS } from './Env';
 import rimraf from 'rimraf';
 import terminalLink from 'terminal-link';
 import Box from 'boxen';
@@ -354,6 +355,10 @@ export default class Theme {
             });
 
             Logger.success('Theme syncing DONE...');
+            let domainURL = `https://${AVAILABLE_ENVS[currentContext.env]}`;
+            const url = new URL(domainURL);
+            const hostName = url.hostname;
+            let domain = hostName.replace('api.', '');
             var b5 = Box(
                 chalk.green.bold('Your Theme was pushed successfully\n') +
                     chalk.white('\n') +
@@ -362,7 +367,7 @@ export default class Theme {
                     chalk.white('\n') +
                     chalk.white('\n') +
                     chalk.white('Customize this theme in Theme Editor:\n') +
-                    chalk.green(terminalLink('',`https://platform.${currentContext.env}.de/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`)),
+                    chalk.green(terminalLink('',`https://platform.${domain}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`)),
                 {
                     padding: 1,
                     margin: 1,
