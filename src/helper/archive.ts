@@ -14,8 +14,8 @@ export function archiveFolder({ srcFolder, destFolder, zipFileName }) {
             fs.unlinkSync(filePath);
         }
 
-        if (!fs.existsSync(destFolder)) {
-            fs.mkdirSync(destFolder)
+        if (!fs.existsSync(path.resolve(process.cwd(), destFolder))) {
+            fs.mkdirSync(path.resolve(process.cwd(), destFolder));
         }
 
         const output = fs.createWriteStream(filePath);
@@ -45,7 +45,7 @@ export function archiveFolder({ srcFolder, destFolder, zipFileName }) {
         });
 
         archive.pipe(output);
-        archive.directory(srcFolder, false);
+        archive.directory(path.resolve(process.cwd(), srcFolder), false);
         archive.finalize();
     });
 }
