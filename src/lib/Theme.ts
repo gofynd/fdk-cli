@@ -269,7 +269,7 @@ export default class Theme {
             let { data: theme } = await ThemeService.getThemeById(currentContext);
             
             //if any changes from platform in sections|pages|settings it will pull latest configuration
-            await Theme.matchWithLatestPlatformConfig(theme, (isNew = false));
+            await Theme.matchWithLatestPlatformConfig(theme, (isNew));
             Theme.clearPreviousBuild();
             
             Logger.warn('Reading Files...');
