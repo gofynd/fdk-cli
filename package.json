@@ -93,6 +93,7 @@
     "rimraf": "^3.0.2",
     "semver": "^6.3.0",
     "shortid": "^2.2.16",
+    "simple-git": "^3.14.1",
     "socket.io": "^2.3.0",
     "source-map": "^0.7.3",
     "stacktrace-parser": "^0.1.10",
