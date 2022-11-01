@@ -1,6 +1,6 @@
 {
   "name": "@gofynd/fdk-cli",
-  "version": "2.3.14-alpha.2",
+  "version": "2.3.14",
   "main": "index.js",
   "license": "MIT",
   "bin": {
@@ -17,8 +17,7 @@
     "build": "npm run clean && tsc",
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build",
-    "test": "jest --runInBand",
-    "debug": "cd /Users/vivekprajapati/Documents/fynd/jiomarket-theme && node /Users/vivekprajapati/Documents/fynd/fdk-cli/./bin/fdk theme serve"
+    "test": "jest --runInBand"
   },
   "devDependencies": {
     "@types/async": "^3.2.6",

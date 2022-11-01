@@ -11,6 +11,7 @@ import ConfigurationService from './api/services/configuration.service';
 import fs from 'fs-extra';
 import path from 'path';
 import execa from 'execa';
+import { AVAILABLE_ENVS } from './Env';
 import rimraf from 'rimraf';
 import terminalLink from 'terminal-link';
 import Box from 'boxen';
@@ -275,7 +276,7 @@ export default class Theme {
             let { data: theme } = await ThemeService.getThemeById(currentContext);
             
             // Merge with latest platform config
-            await Theme.matchWithLatestPlatformConfig(theme, (isNew = false));
+            await Theme.matchWithLatestPlatformConfig(theme, (isNew));
             Theme.clearPreviousBuild();
             
             Logger.warn('Reading Files...');
@@ -361,15 +362,19 @@ export default class Theme {
             });
 
             Logger.success('Theme syncing DONE...');
+            let domainURL = `https://${AVAILABLE_ENVS[currentContext.env]}`;
+            const url = new URL(domainURL);
+            const hostName = url.hostname;
+            let domain = hostName.replace('api.', '');
             var b5 = Box(
                 chalk.green.bold('Your Theme was pushed successfully\n') +
                     chalk.white('\n') +
                     chalk.white('View your theme:\n') +
-                    chalk.green(terminalLink( '',`https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true`)) +
+                    chalk.green(terminalLink('',`https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true`)) +
                     chalk.white('\n') +
                     chalk.white('\n') +
                     chalk.white('Customize this theme in Theme Editor:\n') +
-                    chalk.green(terminalLink('',`https://platform.${currentContext.env}.de/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`)),
+                    chalk.green(terminalLink('',`https://platform.${domain}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`)),
                 {
                     padding: 1,
                     margin: 1,
@@ -852,7 +857,6 @@ export default class Theme {
             const commonJS = `${assetHash}_themeBundle.common.js`;
             const commonJsUrlRes = await UploadService.uploadFile(path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS), 'application-theme-assets');
             const commonJsUrl = commonJsUrlRes.start.cdn.url
-    
             Logger.warn('Uploading umdjs...');
             const umdMinAssets = glob.sync(path.join(process.cwd(), Theme.BUILD_FOLDER, `${assetHash}_themeBundle.umd.min.**.js`));
             umdMinAssets.push(path.join(process.cwd(), Theme.BUILD_FOLDER, `${assetHash}_themeBundle.umd.min.js`));
@@ -862,7 +866,6 @@ export default class Theme {
                 return res.start.cdn.url;
             });
             const umdJsUrls = await Promise.all(umdJSPromisesArr);
-    
             Logger.warn('Uploading css...');
             let cssAssests = glob.sync(path.join(process.cwd(), Theme.BUILD_FOLDER, '**.css'));
             let cssPromisesArr = cssAssests.map(async asset => {
@@ -870,7 +873,6 @@ export default class Theme {
                 return res.start.cdn.url;
             });    
             const cssUrls = await Promise.all(cssPromisesArr);
-
             return [cssUrls, commonJsUrl, umdJsUrls];
         } catch (err) {
             throw new CommandError(`Failed to upload theme bundle `, err.code);
