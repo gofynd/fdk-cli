@@ -16,7 +16,6 @@ export default {
       );
       return ApiClient.post(URLS.CREATE_THEME(data.application_id, data.company_id), axiosOption);
     } catch (error) {
-      console.log(error, 'ewrr');
       throw new CommandError(error.message, error.code);
     }
   },

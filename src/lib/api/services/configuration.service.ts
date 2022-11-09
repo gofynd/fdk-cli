@@ -8,7 +8,7 @@ export default {
   getApplications: async (data?, query?) => {
     try {
       const activeContext = data ?  data : getActiveContext();
-      const axiosOption = Object.assign({}, getCommonHeaderOptions(), {query: query});
+      const axiosOption = Object.assign({}, getCommonHeaderOptions(), {params: query});
       return ApiClient.get(
         URLS.GET_APPLICATIONS(activeContext.company_id),
         axiosOption
