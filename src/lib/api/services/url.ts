@@ -31,6 +31,9 @@ export const URLS = {
     },
 
     //CONFIGURATION
+    GET_APPLICATIONS: (company_id: number) => {
+        return urlJoin(CONFIGURATION_URL(), `/company/${company_id}/application/`);
+    },
     GET_APPLICATION_DETAILS: (application_id: string, company_id: number) => {
         return urlJoin(CONFIGURATION_URL(), `/company/${company_id}/application/${application_id}`);
     },

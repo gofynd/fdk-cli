@@ -105,6 +105,34 @@ export default class Theme {
                 );
             }
             Debug(`Token expires in: ${configObj.expires_in}`);
+            const {data: applications} = await ConfigurationService.getApplications(configObj,);
+            const applicationList = applications.items
+            let companyDetails = {};
+            applicationList.forEach(obj => {
+                companyDetails[`${obj.name}`] = {...obj};
+            });
+
+            const questions = [
+                {
+                    type: 'list',
+                    name: 'listApplications',
+                    message: 'Availabe applications. Select one to select application for which theme is to be built.',
+                    choices: Object.keys(companyDetails)
+                },
+            ];
+            await inquirer.prompt(questions).then(async answers => {
+                try {
+                    console.log(answers)
+                    process.exit(1);
+                    // contextObj.active_context = answers.listContext;
+                    // contextJSON.theme = contextObj;
+                    // await fs.writeJson(contextPath, contextJSON, {
+                    //     spaces: 2,
+                    // });
+                } catch (error) {
+                    throw new CommandError(error.message, error.code);
+                }
+            });
             const { data: appConfig } = await ConfigurationService.getApplicationDetails(configObj);
             
             Logger.warn('Cloning template files...');
