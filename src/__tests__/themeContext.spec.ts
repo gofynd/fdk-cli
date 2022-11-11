@@ -9,7 +9,7 @@ const appConfig = require('./fixtures/appConfig.json');
 const oauthData = require('./fixtures/oauthData.json');
 const data = require('./fixtures/email-login.json');
 import configStore from '../lib/Config';
-import { decodeBase64 } from '../helper/utils';
+import { decodeBase64, getActiveContext } from '../helper/utils';
 import fs from 'fs-extra';
 import path from 'path';
 import { init } from '../fdk';
@@ -92,4 +92,11 @@ describe('Theme Context Commands', () => {
         let contextObj = contextJSON.theme.active_context;
         expect(contextObj).toMatch('fyndx0');
     });
+
+    it('should successsfully show active context', async () => {
+        await login();
+        let context =  getActiveContext()
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'active-context']);
+        expect(context.name).toMatch('fyndx0');
+    })
 });
