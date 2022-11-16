@@ -1033,30 +1033,35 @@ export default class Theme {
 
     public static previewTheme =  async() => {
         const currentContext = getActiveContext();
-        try{
+        try {
            await open(`https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true&upgrade=true`);
-        }catch(err){
+        } catch(err) {
             throw new CommandError(err.message, err.code);
         }
     };
     public static copyFolderSync = (from, to) => {
-        fs.mkdirSync(to);
-        fs.readdirSync(from).forEach(element => {
-            if (element === 'temp-theme') {
-               return;
-            } else if (fs.lstatSync(path.join(from, element)).isFile()) {
-                fs.copyFileSync(path.join(from, element), path.join(to, element));
-            } else if (fs.lstatSync(path.join(from, element)).isDirectory()) {
-                Theme.copyFolderSync(path.join(from, element), path.join(to, element));
-            }
-        });
+        try {
+            fs.mkdirSync(to);
+            fs.readdirSync(from).forEach(element => {
+                if (element === 'temp-theme') {
+                return;
+                } else if (fs.lstatSync(path.join(from, element)).isFile()) {
+                    fs.copyFileSync(path.join(from, element), path.join(to, element));
+                } else if (fs.lstatSync(path.join(from, element)).isDirectory()) {
+                    Theme.copyFolderSync(path.join(from, element), path.join(to, element));
+                }
+            });
+        } catch(err) {
+            throw new CommandError(err.message, err.code);
+        }
     };
 
     public static generateThemeZip = async () => {
-        let filepath = path.join(process.cwd(),'package.json');
-        let packageContent: any = readFile(filepath);
-        let content = JSON.parse(packageContent);
+        let content = { name: ''};
         try {
+            let filepath = path.join(process.cwd(),'package.json');
+            let packageContent: any = readFile(filepath);
+            let content = JSON.parse(packageContent) || {};
             if (!isAThemeDirectory()) {
                 throw new CommandError(
                     ErrorCodes.INVALID_THEME_DIRECTORY.message,
@@ -1073,7 +1078,7 @@ export default class Theme {
             });
             rimraf.sync(path.join(process.cwd(),'.fdk','temp-theme'));
         } catch (err) {
-            throw new CommandError(`Failed to generate .zip file of ${content.name} theme`, err.message);
+            throw new CommandError(`Failed to generate .zip file of ${content?.name} theme`, err.code);
         }
     };
 
