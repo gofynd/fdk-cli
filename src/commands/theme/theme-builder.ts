@@ -20,8 +20,6 @@ export default function themeCommandBuilder() {
 
     theme.command('sync').description('Sync theme').asyncAction(Theme.syncThemeWrapper);
 
-    theme.command('package').description('generate zip file of theme').asyncAction(Theme.generateThemeZip);
-
     theme
         .command('serve')
         .description('Serve theme')
@@ -50,5 +48,10 @@ export default function themeCommandBuilder() {
     theme.command('context-list').description('List all contexts').asyncAction(ThemeContext.listThemeContext);
 
     theme.command('active-context').description('print active_context').asyncAction(ThemeContext.activeContext);
+    
+    theme.command('open').description('preview theme').asyncAction(Theme.previewTheme);
+
+    theme.command('package').description('generate zip file of theme').asyncAction(Theme.generateThemeZip);
+
     return theme;
 }
