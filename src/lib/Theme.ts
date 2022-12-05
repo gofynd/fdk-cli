@@ -588,9 +588,19 @@ export default class Theme {
         return settings;
     }
     private static extractSettingsFromFile(path) {
-        let $ = cheerio.load(readFile(path));
-        let settingsText = $('settings').text();
-        return settingsText ? JSON.parse(settingsText) : {};
+        try {
+            let $ = cheerio.load(readFile(path));
+            let settingsText = $('settings').text();
+
+            try {
+                return settingsText ? JSON.parse(settingsText) : {};
+            } catch(err) {
+                var themeFilePath = path.split('sections')[1];
+                throw new Error(`Invalid settings JSON object in /theme/sections${themeFilePath}. Validate JSON from https://jsonlint.com/`);
+            }
+        } catch(error) {
+            throw new Error(`Invalid settings JSON object in /theme/sections${themeFilePath}. Validate JSON from https://jsonlint.com/`);
+        }
     }
     private static validateSections(available_sections) {
         let fileNameRegex = /^[0-9a-zA-Z-_ ... ]+$/;
