@@ -29,7 +29,8 @@ export const AVAILABLE_ENVS = {
   sngz5: 'api.sngz5.de',
   sng: 'api.sngfynd.com',
   swadeshz0: 'api.swadeshz0.de',
-  swadeshz5: 'api.swadeshz5.de'
+  swadeshz5: 'api.swadeshz5.de',
+  jiogamesz0: 'api.jiogamesz0.de'
 };
 
 type EnvType = keyof typeof AVAILABLE_ENVS;
