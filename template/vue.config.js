@@ -1,5 +1,4 @@
 const path = require('path');
-const urlJoin = require('url-join');
 
 function addStyleResource(rule) {
   rule.use('style-resource')
@@ -14,14 +13,25 @@ function addStyleResource(rule) {
 
 module.exports = {
   chainWebpack: config => {
+    //vue-svg-loader
+    const svgRule = config.module.rule('svg');
+
+    svgRule.uses.clear();
+
+    svgRule
+      .use('babel-loader')
+      .loader('babel-loader')
+      .end()
+      .use('vue-svg-loader')
+      .loader('vue-svg-loader');
+
     // disable eslint
     config.module.rules.delete('eslint');
-    config.module.rules.delete('svg');
-  
+
     const imagesRule = config.module.rule('images');
     imagesRule.uses.clear();
     imagesRule
-      .test(/\.(jpe?g|png|gif|svg|webp)$/)
+      .test(/\.(jpe?g|png|gif|webp)$/)
       .use('file-loader')
       .loader('file-loader')
       .tap(options => {
