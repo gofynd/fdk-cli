@@ -4,6 +4,7 @@ import {
     decodeBase64,
     getActiveContext,
     pageNameModifier,
+    isAThemeDirectory,
 } from '../helper/utils';
 import CommandError, { ErrorCodes } from './CommandError';
 import Logger from './Logger';
@@ -857,6 +858,7 @@ export default class Theme {
             const commonJS = `${assetHash}_themeBundle.common.js`;
             const commonJsUrlRes = await UploadService.uploadFile(path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS), 'application-theme-assets');
             const commonJsUrl = commonJsUrlRes.start.cdn.url
+            
             Logger.warn('Uploading umdjs...');
             const umdMinAssets = glob.sync(path.join(process.cwd(), Theme.BUILD_FOLDER, `${assetHash}_themeBundle.umd.min.**.js`));
             umdMinAssets.push(path.join(process.cwd(), Theme.BUILD_FOLDER, `${assetHash}_themeBundle.umd.min.js`));
@@ -871,7 +873,7 @@ export default class Theme {
             let cssPromisesArr = cssAssests.map(async asset => {
                 let res = await UploadService.uploadFile(asset, 'application-theme-assets');
                 return res.start.cdn.url;
-            });    
+            });
             const cssUrls = await Promise.all(cssPromisesArr);
             return [cssUrls, commonJsUrl, umdJsUrls];
         } catch (err) {
@@ -1031,12 +1033,54 @@ export default class Theme {
 
     public static previewTheme =  async() => {
         const currentContext = getActiveContext();
-        try{
+        try {
            await open(`https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true&upgrade=true`);
-        }catch(err){
+        } catch(err) {
             throw new CommandError(err.message, err.code);
         }
-    }
+    };
+    public static copyFolderSync = (from, to) => {
+        try {
+            fs.mkdirSync(to);
+            fs.readdirSync(from).forEach(element => {
+                if (element === 'temp-theme') {
+                return;
+                } else if (fs.lstatSync(path.join(from, element)).isFile()) {
+                    fs.copyFileSync(path.join(from, element), path.join(to, element));
+                } else if (fs.lstatSync(path.join(from, element)).isDirectory()) {
+                    Theme.copyFolderSync(path.join(from, element), path.join(to, element));
+                }
+            });
+        } catch(err) {
+            throw new CommandError(err.message, err.code);
+        }
+    };
+
+    public static generateThemeZip = async () => {
+        let content = { name: ''};
+        try {
+            let filepath = path.join(process.cwd(),'package.json');
+            let packageContent: any = readFile(filepath);
+            let content = JSON.parse(packageContent) || {};
+            if (!isAThemeDirectory()) {
+                throw new CommandError(
+                    ErrorCodes.INVALID_THEME_DIRECTORY.message,
+                    ErrorCodes.INVALID_THEME_DIRECTORY.code
+                );
+            }
+            Theme.copyFolderSync(path.join(process.cwd()), Theme.SRC_FOLDER);
+            rimraf.sync(path.join(process.cwd(), '.fdk', 'temp-theme', 'node_modules'));
+            rimraf.sync(path.join(process.cwd(), '.fdk', 'temp-theme', '.fdk'));
+            await archiveFolder({
+                srcFolder: path.join(process.cwd(),'.fdk','temp-theme'),
+                destFolder: path.join(process.cwd()),
+                zipFileName: `${content.name}_${content.version}.zip`,
+            });
+            rimraf.sync(path.join(process.cwd(),'.fdk','temp-theme'));
+        } catch (err) {
+            throw new CommandError(`Failed to generate .zip file of ${content?.name} theme`, err.code);
+        }
+    };
 
     private static cloneTemplate = async (options, targetDirectory) => {
         const url = options.url || Theme.TEMPLATE_THEME_URL;
