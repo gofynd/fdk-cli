@@ -7,6 +7,7 @@ import chalk from 'chalk';
 export const AVAILABLE_ENVS = {
   fyndx0: 'api.fyndx0.de',
   fyndx1: 'api.fyndx1.de',
+  fyndx5:'api.fyndx5.de',
   fynd: 'api.fynd.com',
   jiox0: 'api.jiox0.de',
   jiox1: 'api.jiox1.de',
