@@ -7,6 +7,7 @@ import chalk from 'chalk';
 export const AVAILABLE_ENVS = {
   fyndx0: 'api.fyndx0.de',
   fyndx1: 'api.fyndx1.de',
+  fyndx5: 'api.fyndx5.de',
   fynd: 'api.fynd.com',
   jiox0: 'api.jiox0.de',
   jiox1: 'api.jiox1.de',
@@ -29,7 +30,9 @@ export const AVAILABLE_ENVS = {
   sngz5: 'api.sngz5.de',
   sng: 'api.sngfynd.com',
   swadeshz0: 'api.swadeshz0.de',
-  swadeshz5: 'api.swadeshz5.de'
+  swadeshz5: 'api.swadeshz5.de',
+  jiogamesz0: 'api.jiogamesz0.de',
+  jiogamesz5: 'api.jiogamesz5.de'
 };
 
 type EnvType = keyof typeof AVAILABLE_ENVS;

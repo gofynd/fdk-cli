@@ -139,7 +139,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 			// Bundle directly passed on with POST request body.
 			const { data: html } = await axios({
 				method: 'POST',
-				url: jetfireUrl.toString(),
+				url: `${jetfireUrl.toString()}?themeId=${currentContext.theme_id}`,
 				headers: {
 					'content-type': 'application/json',
 					'Accept': 'application/json'
