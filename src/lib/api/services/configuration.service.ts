@@ -14,7 +14,7 @@ export default {
         axiosOption
       );
     } catch (error) {
-      throw new CommandError(error.message, error.code);
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
     }
   },
   getApplicationDetails: async (data?) => {
