@@ -232,7 +232,7 @@ describe('Theme Commands', () => {
     });
 
     afterAll(() => {
-        rimraf.sync(path.join(__dirname, '..', '..', 'test-theme'));
+        fs.rmdirSync(path.join(__dirname, '..', '..', 'test-theme'), { recursive: true });
         process.chdir(path.join(__dirname, '..', '..'));
         configStore.clear();
     });
@@ -311,5 +311,16 @@ describe('Theme Commands', () => {
         const filePath = path.join(process.cwd(), '.fdk', 'pull-archive.zip');
         process.chdir(`../`);
         expect(fs.existsSync(filePath)).toBe(true);
+    });
+
+    it('should successfully generate .zip file of theme', async () => {
+        await createTheme();
+        let filepath = path.join(process.cwd(),'package.json');
+        let packageContent: any = readFile(filepath);
+        let content = JSON.parse(packageContent);
+        let fileName = `${content.name}_${content.version}.zip`;
+        let file = path.join(process.cwd(),`${fileName}`)
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'package']);
+        expect(fs.existsSync(file)).toBe(true);
     });
 });
