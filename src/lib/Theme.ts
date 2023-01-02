@@ -37,7 +37,7 @@ import { downloadFile } from '../helper/download';
 import Env from './Env';
 import Debug from './Debug';
 import ora from 'ora';
-import { themeVueConfigTemplate,settingLoader } from '../helper/theme.vue.config';
+import { themeVueConfigTemplate, settingLoader } from '../helper/theme.vue.config';
 import { simpleGit } from 'simple-git';
 export default class Theme {
     /*
@@ -1020,8 +1020,7 @@ export default class Theme {
                         settingProps = ctTemplates[key].component.__settings.props
                     }
                     customFiles[value] = {
-                        fileName: ctTemplates[key].component.__file,
-                        fileSetting:settingProps,
+                        fileSetting: settingProps,
                         value,
                         text: pageNameModifier(key),
                         path: routerPath,

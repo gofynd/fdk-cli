@@ -86,6 +86,10 @@ const chainWebpack = (config) => {
   if (typeof vueChainWebpack == "function") {
     vueChainWebpack(config)
   } 
+  config
+    .optimization.splitChunks({
+      automaticNameDelimiter: "_"
+    })
 }
 
 vueConfig.chainWebpack = chainWebpack;
