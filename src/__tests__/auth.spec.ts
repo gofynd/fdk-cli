@@ -46,7 +46,7 @@ describe('Auth Commands', () => {
     it('should successfully login user with mobile', async () => {
         const inquirerMock = mockFunction(inquirer.prompt);
         inquirerMock.mockResolvedValue({ otp: '123456' });
-        await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '-m', '7678880802']);
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '-m', '1234567890']);
         const cookies = configStore.get(CONFIG_KEYS.COOKIE);
         expect(cookies.Name).toMatch('Any One');
     });
