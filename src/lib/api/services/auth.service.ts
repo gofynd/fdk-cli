@@ -1,43 +1,64 @@
 import ApiClient from "../ApiClient";
 import { URLS } from './url'
 import { getCommonHeaderOptions } from "./utils";
+import { consolidateErrorMessage } from "../../../helper/error.utils";
 
 export default {
-    loginUserWithEmailAndPassword: (data) => {
-        const axiosOption = Object.assign(
-            {},
-            {
-                data: data
-            },
-            getCommonHeaderOptions()
-        );
-        return ApiClient.post(URLS.LOGIN_USER(), axiosOption);
+    loginUserWithEmailAndPassword: async (data) => {
+        try {
+            const axiosOption = Object.assign(
+                {},
+                {
+                    data: data
+                },
+                getCommonHeaderOptions()
+            );
+            const res = await ApiClient.post(URLS.LOGIN_USER(), axiosOption);
+            return res;
+        } catch(error) {
+            consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+        }
     },
-    sendMobileOtp: (data) => {
-        const axiosOption = Object.assign(
-            {},
-            {
-                data: data
-            },
-            getCommonHeaderOptions()
-        );
-        return ApiClient.post(URLS.SEND_OTP(), axiosOption);
+    sendMobileOtp: async (data) => {
+        try {
+            const axiosOption = Object.assign(
+                {},
+                {
+                    data: data
+                },
+                getCommonHeaderOptions()
+            );
+            const res = await ApiClient.post(URLS.SEND_OTP(), axiosOption);
+            return res;
+        } catch(error) {
+            consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+        }
     },
-    verifyMobileOtp: (data) => {
-        const axiosOption = Object.assign(
-            {},
-            {
-                data: data
-            },
-            getCommonHeaderOptions()
-        );
-        return ApiClient.post(URLS.VERIFY_OTP(), axiosOption);
+    verifyMobileOtp: async (data) => {
+        try {
+            const axiosOption = Object.assign(
+                {},
+                {
+                    data: data
+                },
+                getCommonHeaderOptions()
+            );
+            const res = await ApiClient.post(URLS.VERIFY_OTP(), axiosOption);
+            return res;
+        } catch(error) {
+            consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+        }
     },
-    getOauthToken: (company_id) => {
-        const axiosOption = Object.assign({}, getCommonHeaderOptions());
-        return ApiClient.get(
-            URLS.OAUTH_TOKEN(company_id),
-            axiosOption
-        );
+    getOauthToken: async (company_id) => {
+        try {
+            const axiosOption = Object.assign({}, getCommonHeaderOptions());
+            const res = await ApiClient.get(
+                URLS.OAUTH_TOKEN(company_id),
+                axiosOption
+            );
+            return res;
+        } catch(error) {
+            consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+        }
     }
 }
