@@ -1,5 +1,7 @@
 import path from 'path';
 import fs from 'fs-extra';
+import NativeModule from 'module';
+import vm from 'vm';
 import CommandError, { ErrorCodes } from '../lib/CommandError';
 import { COMMON_LOG_MESSAGES } from '../lib/Logger';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
@@ -104,3 +106,22 @@ export const pageNameModifier = (page) => {
   })
   return res.trim()
 }
+
+export const requireFile = path => {
+    return require(path);
+};
+
+export const evaluateModule = code => {
+    var script = new vm.Script(NativeModule.wrap(code), {
+        displayErrors: true,
+    });
+    var compiledWrapper = script.runInNewContext();
+    var m = { exports: {} } as any;
+
+    compiledWrapper.call(m.exports, m.exports, requireFile, m);
+
+    var res = Object.prototype.hasOwnProperty.call(m.exports, 'default')
+        ? m.exports.default
+        : m.exports;
+    return res;
+};
