@@ -1001,7 +1001,7 @@ export default class Theme {
             });
             return availablePages;
         } catch (err) {
-            throw new CommandError(`Failed to fetch system pages`, err.code);
+            throw new CommandError(err.message, err.code);
         }
     };
     private static uploadThemeSrcZip = async () => {
