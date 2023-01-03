@@ -595,11 +595,10 @@ export default class Theme {
             try {
                 return settingsText ? JSON.parse(settingsText) : {};
             } catch(err) {
-                var themeFilePath = path.split('sections')[1];
-                throw new Error(`Invalid settings JSON object in /theme/sections${themeFilePath}. Validate JSON from https://jsonlint.com/`);
+                throw new Error(`Invalid settings JSON object in ${path}. Validate JSON from https://jsonlint.com/`);
             }
         } catch(error) {
-            throw new Error(`Invalid settings JSON object in /theme/sections${themeFilePath}. Validate JSON from https://jsonlint.com/`);
+            throw new Error(`Invalid settings JSON object in ${path}. Validate JSON from https://jsonlint.com/`);
         }
     }
     private static validateSections(available_sections) {
