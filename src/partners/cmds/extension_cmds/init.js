@@ -215,9 +215,14 @@ const createProject = async answerObject => {
                 title: 'Registering Extension',
                 task: async ctx => {
                     const extension_data = await registerExtension(ctx.host, ctx.partner_access_token, answerObject.name, answerObject.type, answerObject.verbose);
-                    const envData=`EXTENSION_API_KEY="${extension_data.client_id}"\nEXTENSION_API_SECRET="${extension_data.secret}"\nEXTENSION_BASE_URL="${answerObject.launch_url}"\nEXTENSION_CLUSTER_URL="https://${ctx.host}"`;
-                    fs.writeFileSync(`${targetDir}/.env`, envData);
                     
+                    if ( answerObject.project_type === JAVA_VUE || answerObject.project_type === JAVA_REACT) {
+                        const ymlData = `\n\next :\n\tapi_key : ${extension_data.client_id}\n\tapi_secret : ${extension_data.secret}\n\tscopes : ""\n\tbase_url : ${answerObject.launch_url}\n\tcluster : 'https://${ctx.host}'`
+                        fs.writeFileSync(`${targetDir}/src/main/resources/application.yml`, ymlData, options={flag:'a+'})
+                    } else {
+                        const envData=`EXTENSION_API_KEY="${extension_data.client_id}"\nEXTENSION_API_SECRET="${extension_data.secret}"\nEXTENSION_BASE_URL="${answerObject.launch_url}"\nEXTENSION_CLUSTER_URL="https://${ctx.host}"`;
+                        fs.writeFileSync(`${targetDir}/.env`, envData);
+                    }
                     await replaceGrootWithExtensionName(targetDir, answerObject);
                 }
             },
