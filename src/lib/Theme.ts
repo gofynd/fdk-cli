@@ -1015,7 +1015,7 @@ export default class Theme {
                 for (let key in ctTemplates) {
                     const routerPath = (parentKey && `${parentKey}/${key}`) || `c/${key}`;
                     const value = routerPath.replace(/\//g, ':::');
-                    if(ctTemplates[key].component.__settings){
+                    if(ctTemplates[key].component && ctTemplates[key].component.__settings){
                         settingProps = ctTemplates[key].component.__settings.props
                     }
                     customFiles[value] = {
