@@ -17,7 +17,8 @@
     "build": "npm run clean && tsc",
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "debug": "cd /Users/vivekprajapati/Documents/fynd/jiomart-partner && fdk theme sync"
   },
   "devDependencies": {
     "@types/async": "^3.2.6",

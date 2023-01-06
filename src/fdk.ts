@@ -27,7 +27,7 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
     return this.action(async (...args: any[]) => {
 
         try {
-
+            console.log("Using Local version");
             let parent = args[1].parent;
             while (true) {
                 if (parent.parent) parent = parent.parent;
@@ -133,6 +133,8 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
 
 export async function init(programName: string) {
     //Setup commander instance
+    console.log("using local CLI");
+    
     program
         .name(programName)
         .version(packageJSON.version)
