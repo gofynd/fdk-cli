@@ -133,12 +133,13 @@ export async function startServer({ domain, host, isSSR, port }) {
 		} else {
 			jetfireUrl.searchParams.set('__csr', 'true');
 		}
+		jetfireUrl.searchParams.set('themeId', currentContext.theme_id);
 		try {
 			
 			// Bundle directly passed on with POST request body.
 			const { data: html } = await axios({
 				method: 'POST',
-				url: `${jetfireUrl.toString()}?themeId=${currentContext.theme_id}`,
+				url: `${jetfireUrl.toString()}`,
 				headers: {
 					'content-type': 'application/json',
 					'Accept': 'application/json'
