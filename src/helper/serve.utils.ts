@@ -33,7 +33,7 @@ export function reload() {
 }
 
 export function getLocalBaseUrl() {
-	return "https://localhost";
+	return "http://localhost";
 }
 
 export function getFullLocalUrl(port) {
@@ -46,10 +46,9 @@ export function getPort(port) {
 
 export async function startServer({ domain, host, isSSR, port }) {
 	const currentContext = getActiveContext();
-	const currentDomain = `https://${currentContext.domain}`;
-	const app = require('https-localhost')(getLocalBaseUrl());
-	const certs = await app.getCerts();
-	const server = require('https').createServer(certs, app);
+	const currentDomain = `${currentContext.domain}`;
+	const app = require('express')(getLocalBaseUrl());
+	const server = require('http').createServer(app);
 	const io = require('socket.io')(server);
 
 	io.on('connection', function (socket) {

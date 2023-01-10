@@ -3,8 +3,9 @@ export const themeVueConfigTemplate =
 const fs = require("fs");
 const path = require("path");
 const { chalk, error, loadModule } = require('@vue/cli-shared-utils')
-
+const set = require.resolve("./setting-loader.js");
 const FDK_CONFIG_PATH = "./fdk.config.js";
+
 let vueConfig = {};
 let fileConfigPath = null;
 const context = process.cwd();
@@ -55,8 +56,11 @@ vueConfig = mergeDeep(vueConfig, {
 });
 const vueChainWebpack = vueConfig.chainWebpack;
 const vueConfigureWebpack = vueConfig.configureWebpack;
-
 const configureWebpack = (config) => {
+  config.module.rules.push({
+    resourceQuery: /blockType=settings/,
+    loader:set
+  }) 
   const isCommonJs = config.output.libraryTarget === "commonjs2";
   let customConfig = {
     plugins: isCommonJs
@@ -81,7 +85,7 @@ const chainWebpack = (config) => {
 
   if (typeof vueChainWebpack == "function") {
     vueChainWebpack(config)
-  }
+  } 
   config
     .optimization.splitChunks({
       automaticNameDelimiter: "_"
@@ -92,3 +96,11 @@ vueConfig.chainWebpack = chainWebpack;
 vueConfig.configureWebpack = configureWebpack;
 
 module.exports = vueConfig;`
+
+export const settingLoader=`
+module.exports = function (source, map) {
+  this.callback(null, 'module.exports = function(Component) {Component.options.__settings = ' +
+  JSON.parse(JSON.stringify(source))  +
+    '}', map)
+}
+`

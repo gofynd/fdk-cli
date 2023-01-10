@@ -1,13 +1,13 @@
-{  
-  "path": "faq",
-  "type": "system",
+{
+  "path": "/c/faq",
+  "type": "custom",
   "seo": {
       "title": "",
       "description": ""
   },
   "props": [],
   "_id": "62848f070e4fbf74583d4a60",
-  "value": "faq",
+  "value": "c:::faq",
   "sections": [],
   "sections_meta": [],
   "text": "Faq",
