@@ -15,7 +15,7 @@ const oauthData = require('./fixtures/oauthData.json');
 const themeData = require('./fixtures/themeData.json');
 const assetsUploadData = require('./fixtures/assetsUploadData.json');
 const srcUploadData = require('./fixtures/srcUploadData.json');
-const getAvailablePageData = require('./fixtures/getAvailablePageData.json');
+const getAllAvailablePage = require('./fixtures/getAllAvailablePage.json');
 const completeUpload = require('./fixtures/completeUpload.json');
 const srcCompleteUpload = require('./fixtures/srcCompleteUpload.json');
 const assetsCompleteUpload = require('./fixtures/assetsCompleteUpload.json');
@@ -29,6 +29,8 @@ const initThemeData = require('./fixtures/initThemeData.json');
 const pullThemeData = require('./fixtures/pullThemeData.json');
 const initAppConfigData = require('./fixtures/initAppConfigData.json');
 const deleteData = require('./fixtures/deleteData.json');
+const deleteAvailablePage = require('./fixtures/deleteAvailablePage.json');
+const  updateAllAvailablePageData=require('./fixtures/updateAllAvailablePage.json');
 const data = require('./fixtures/email-login.json');
 const { themeToken, initToken } = require('./constants');
 import { decodeBase64 } from '../helper/utils';
@@ -116,7 +118,6 @@ describe('Theme Commands', () => {
                 'application-theme-images'
             )}`
         ).reply(200, completeUpload);
-
         mock.onPost(
             `${URLS.START_UPLOAD_FILE(
                 appConfig.application_id,
@@ -152,11 +153,18 @@ describe('Theme Commands', () => {
             `${URLS.AVAILABLE_PAGE(
                 appConfig.application_id,
                 appConfig.company_id,
-                appConfig.theme_id,
-                '*'
+                appConfig.theme_id,      
             )}`
         );
-        mock.onGet(availablePageUrl).reply(200, getAvailablePageData);
+        const availablePage = new RegExp(
+            `${URLS.AVAILABLE_PAGE(
+                appConfig.application_id,
+                appConfig.company_id,
+                appConfig.theme_id,  
+                "*"     
+            )}`
+        );   
+        mock.onGet(availablePageUrl).reply(200, getAllAvailablePage.data);  
         mock.onPost().reply(200, appConfig);
         mock.onPut(
             `${URLS.THEME_BY_ID(
@@ -166,6 +174,7 @@ describe('Theme Commands', () => {
             )}`
         ).reply(200, updateThemeData);
         mock.onPut(availablePageUrl).reply(200, updateAvailablePageData);
+        mock.onPut(availablePageUrl).reply(200, updateAllAvailablePageData);
         mock.onPut(
             `${URLS.THEME_BY_ID(
                 appConfig.application_id,
@@ -209,6 +218,7 @@ describe('Theme Commands', () => {
                 appConfig.theme_id
             )}`
         ).reply(200, deleteData);
+        mock.onDelete(availablePage).reply(200, deleteAvailablePage);
         await login();
     });
 

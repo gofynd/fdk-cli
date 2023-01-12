@@ -125,6 +125,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 		}
 
 		const jetfireUrl = new URL(urlJoin(domain, req.originalUrl));
+		jetfireUrl.searchParams.set('themeId', currentContext.theme_id);
 		let themeUrl = "";
 		if (isSSR) {
             const BUNDLE_PATH = path.join(process.cwd(), '/.fdk/dist/themeBundle.common.js');
@@ -139,7 +140,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 			// Bundle directly passed on with POST request body.
 			const { data: html } = await axios({
 				method: 'POST',
-				url: `${jetfireUrl.toString()}?themeId=${currentContext.theme_id}`,
+				url: jetfireUrl.toString(),
 				headers: {
 					'content-type': 'application/json',
 					'Accept': 'application/json'

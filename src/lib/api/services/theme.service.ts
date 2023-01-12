@@ -96,6 +96,22 @@ export default {
       consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
     }
   },
+  getAllAvailablePage: async() => {
+    try {
+      const activeContext = getActiveContext();
+      const axiosOption = Object.assign({}, getCommonHeaderOptions());
+      return ApiClient.get(
+        URLS.AVAILABLE_PAGE(
+          activeContext.application_id,
+          activeContext.company_id,
+          activeContext.theme_id
+        ),
+        axiosOption
+      );
+    } catch (error) {
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+    }
+  },
   createAvailabePage: async data => {
     try {
       const activeContext = getActiveContext();
@@ -115,6 +131,26 @@ export default {
         axiosOption
       );
       return res;
+    } catch (error) {
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+    }
+  },
+  deleteAvailablePage: async pageValue => {
+    try {
+      const activeContext = getActiveContext();
+      const axiosOption = Object.assign(
+        {},
+        getCommonHeaderOptions()
+      );
+      return ApiClient.del(
+        URLS.AVAILABLE_PAGE(
+          activeContext.application_id,
+          activeContext.company_id,
+          activeContext.theme_id,
+          pageValue
+        ),
+        axiosOption
+      );
     } catch (error) {
       consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
     }
@@ -139,6 +175,26 @@ export default {
         axiosOption
       );
       return res;
+    } catch (error) {
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+    }
+  },
+  updateAllAvailablePages: async data => {
+    try {
+      const activeContext = getActiveContext();
+      const axiosOption = Object.assign(
+        {},
+        { data },
+        getCommonHeaderOptions()
+      );
+      return ApiClient.put(
+        URLS.AVAILABLE_PAGE(
+          activeContext.application_id,
+          activeContext.company_id,
+          activeContext.theme_id
+        ),
+        axiosOption
+      );
     } catch (error) {
       consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
     }
