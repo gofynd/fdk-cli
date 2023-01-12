@@ -1068,16 +1068,12 @@ export default class Theme {
 
     public static generateThemeZip = async () => {
         let content = { name: ''};
+        let spinner;
         try {
+            spinner = ora('CLI has started creating zip file...').start();
             let filepath = path.join(process.cwd(),'package.json');
             let packageContent: any = readFile(filepath);
             let content = JSON.parse(packageContent) || {};
-            if (!isAThemeDirectory()) {
-                throw new CommandError(
-                    ErrorCodes.INVALID_THEME_DIRECTORY.message,
-                    ErrorCodes.INVALID_THEME_DIRECTORY.code
-                );
-            }
             Theme.copyFolderSync(path.join(process.cwd()), Theme.SRC_FOLDER);
             rimraf.sync(path.join(process.cwd(), '.fdk', 'temp-theme', 'node_modules'));
             rimraf.sync(path.join(process.cwd(), '.fdk', 'temp-theme', '.fdk'));
@@ -1087,7 +1083,11 @@ export default class Theme {
                 zipFileName: `${content.name}_${content.version}.zip`,
             });
             rimraf.sync(path.join(process.cwd(),'.fdk','temp-theme'));
+            spinner.succeed(`${content.name}_${content.version}.zip file created.`);
         } catch (err) {
+            if (spinner.isSpinning) {
+                spinner.fail();
+            }
             throw new CommandError(`Failed to generate .zip file of ${content?.name} theme`, err.code);
         }
     };
