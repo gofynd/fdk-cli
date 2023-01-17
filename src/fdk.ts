@@ -83,7 +83,8 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
             if (
                 !(AUTHENTICATION_COMMANDS.findIndex(c => authCommand.includes(c)) !== -1) &&
                 !(ENVIRONMENT_COMMANDS.findIndex(c => envCommand.includes(c)) !== -1) &&
-                !configStore.get(CONFIG_KEYS.COOKIE)
+                !configStore.get(CONFIG_KEYS.COOKIE)  && !(parent.args.includes('theme') &&
+                parent.args.includes('package'))
             ) {
                 throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
             }
