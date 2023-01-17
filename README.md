@@ -82,6 +82,7 @@ ___
 | Command        | Description           | 
 | ------------- |-------------| 
 | [init](#extension-init)     | Initialize extension |
+| [setup](#extension-setup)     | setup development environment
 | [launch-url](#extension-launch-url)     | Get/set lanuch url |
 
 ### Partner Commands
@@ -377,6 +378,25 @@ fdk extension init [options]
 #### **Example**
 ```sh
 fdk extension init --target-dir [your-directory] --host [your_host]
+```
+___
+#### **setup**
+This command is used to setup extension's development environment in local machine with required dependecies created on [partners.fynd.com](#https://partners.fynd.com/) panel.
+#### ****Syntax****
+```sh
+fdk extension setup [options]
+```
+
+#### **Command Options**
+| Option        | Description           | 
+| ------------- |-------------| 
+| --target-dir    | Target Directory |
+| --host    | Host |
+| --help    | Show help |
+
+#### **Example**
+```sh
+fdk extension setup --target-dir [your-directory] --host [your_host]
 ```
 ___
 <div id="extension-launch-url"></div>

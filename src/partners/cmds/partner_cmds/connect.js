@@ -1,6 +1,7 @@
 const chalk = require('chalk');
 const inquirer = require('inquirer');
 const Listr = require('listr');
+const { validateEmpty }  = require("../../utils/extension-utils")
 const {
     writeContextData,
     getActiveContext,
@@ -17,11 +18,6 @@ const questions = [
         validate: validateEmpty
     }
 ]
-
-function validateEmpty(input) {
-    return input !== '';
-}
-
 
 
 exports.command = 'connect';

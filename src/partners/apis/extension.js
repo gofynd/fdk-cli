@@ -135,5 +135,36 @@ const getOrganizationInfo = async (host, token, verbose = false) => {
   return response.data;
 };
 
+const getExtensionData = async (host, api_key, api_secret, verbose=false) => {
+  const mixmaster = getMixmasterUrl(host);
 
-module.exports = { registerExtension, getOrganizationInfo, updateLaunchUrl, getLaunchUrl };
+  const url = `${mixmaster}/v1.0/extensions/details/${api_key}`;
+  const authorizationToken = Buffer.from(`${api_key}:${api_secret}`, "utf8").toString("base64")
+
+  if (verbose) {
+    logger(`API URL for fot get extension details: ${url}`, true);
+  }
+
+  let response = {};
+  try {
+    response = await axios.get(url, {
+      headers: {
+        'Authorization': `Bearer ${authorizationToken}`
+      }
+    });
+  }
+  catch (err) {
+    if (verbose) {
+      logger('Error: ' + JSON.stringify(normalizeError(err)), true);
+    };
+    let errorMsg = err.message || 'Failed to validate API Keys';
+    if (err.response && err.response.status < 500) {
+      errorMsg = err.response.data && err.response.data.message || errorMsg;
+    };
+    throw Error(errorMsg);
+  };
+  return response.data;
+}
+
+
+module.exports = { registerExtension, getOrganizationInfo, updateLaunchUrl, getLaunchUrl, getExtensionData };
