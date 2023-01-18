@@ -33,7 +33,7 @@ export function reload() {
 }
 
 export function getLocalBaseUrl() {
-	return "http://localhost";
+	return "https://localhost";
 }
 
 export function getFullLocalUrl(port) {
@@ -46,9 +46,10 @@ export function getPort(port) {
 
 export async function startServer({ domain, host, isSSR, port }) {
 	const currentContext = getActiveContext();
-	const currentDomain = `${currentContext.domain}`;
-	const app = require('express')(getLocalBaseUrl());
-	const server = require('http').createServer(app);
+	const currentDomain = `https://${currentContext.domain}`;
+	const app = require('https-localhost')(getLocalBaseUrl());
+	const certs = await app.getCerts();
+	const server = require('https').createServer(certs, app);
 	const io = require('socket.io')(server);
 
 	io.on('connection', function (socket) {
@@ -125,6 +126,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 		}
 
 		const jetfireUrl = new URL(urlJoin(domain, req.originalUrl));
+		jetfireUrl.searchParams.set('themeId', currentContext.theme_id);
 		let themeUrl = "";
 		if (isSSR) {
             const BUNDLE_PATH = path.join(process.cwd(), '/.fdk/dist/themeBundle.common.js');
@@ -139,7 +141,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 			// Bundle directly passed on with POST request body.
 			const { data: html } = await axios({
 				method: 'POST',
-				url: `${jetfireUrl.toString()}?themeId=${currentContext.theme_id}`,
+				url: jetfireUrl.toString(),
 				headers: {
 					'content-type': 'application/json',
 					'Accept': 'application/json'
