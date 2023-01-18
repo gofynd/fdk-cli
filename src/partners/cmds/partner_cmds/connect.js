@@ -53,7 +53,7 @@ exports.handler = async args => {
         await tasks.run();
         if (!organizationInfo) {
             console.log(chalk.red('Invalid or expired token. Please add valid token'));
-            process.exit(0);
+            process.exit(1);
         }
         if (!args.readOnly) {
             writeContextData(context.name, context, `${args.targetDir}/.fdk/context.json`, true);

@@ -167,7 +167,7 @@ const createProject = async answerObject => {
                 process.exit(1);
             });
 
-        process.exit(0);
+        process.exit(1);
     } catch (error) {
         console.log(chalk.red(error.message));
         process.exit(1);
@@ -194,19 +194,19 @@ exports.handler = async args => {
         answers.targetDir = args['target-dir']
         if (answers.targetDir != '.' && fs.existsSync(answers.targetDir)) {
             console.log(chalk.red(`Directory "${answers.targetDir}" already exists. Please choose another`));
-            process.exit(0);
+            process.exit(1);
         }
     } else {
         answers.targetDir = answers.name
         if (fs.existsSync(answers.targetDir)) {
             console.log(chalk.red(`Folder with the same name as "${answers.targetDir}" already exists. Please choose another name or directory.`));
-            process.exit(0);
+            process.exit(1);
         }
     }
     
     if (fs.existsSync(path.join(answers.targetDir, '/.git'))) {
         console.log(chalk.red(`Cannot initialize extension at '${path.resolve(answers.targetDir)}', as it already contains Git repository.`));
-        process.exit(0);
+        process.exit(1);
     }
     prompt_answers = await inquirer.prompt(extensionTypeQuestions);
     if (!contextData.partner_access_token) {

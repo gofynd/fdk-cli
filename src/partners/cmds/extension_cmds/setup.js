@@ -93,7 +93,7 @@ exports.handler = async (args) => {
     ]).run()
     if (!extension_data) {
         console.log(chalk.red('Invalid API Key or API Secret. Please use valid keys.'));
-        process.exit(0);
+        process.exit(1);
     }
 
     answers.base_url = extension_data.base_url
@@ -103,13 +103,13 @@ exports.handler = async (args) => {
         answers.targetDir = args['target-dir']
         if (answers.targetDir != '.' && fs.existsSync(answers.targetDir)) {
             console.log(chalk.red(`Directory "${answers.targetDir}" already exists. Please choose another`));
-            process.exit(0);
+            process.exit(1);
         }
     } else {
         answers.targetDir = answers.extension_name
         if (fs.existsSync(answers.targetDir)) {
             console.log(chalk.red(`Folder with the same name as "${answers.targetDir}" already exists. Please choose another name or directory.`));
-            process.exit(0);
+            process.exit(1);
         }
     }
 
@@ -192,7 +192,7 @@ exports.handler = async (args) => {
                 process.exit(1);
             }
         )
-        process.exit(0);
+        process.exit(1);
     } catch(error) {
         console.log(chalk.red(error.message));
         process.exit(1);

@@ -381,7 +381,7 @@ fdk extension init --target-dir [your-directory] --host [your_host]
 ```
 ___
 #### **setup**
-This command is used to setup extension's development environment in local machine with required dependecies created on [partners.fynd.com](#https://partners.fynd.com/) panel.
+This command is used to setup extension's development environment in local machine with required dependecies created on [Fynd Partners](https://partners.fynd.com/) panel.
 #### ****Syntax****
 ```sh
 fdk extension setup [options]
