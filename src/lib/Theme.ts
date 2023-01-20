@@ -1006,12 +1006,19 @@ export default class Theme {
                 path.join(Theme.BUILD_FOLDER, `${assetHash}_themeBundle.common.js`),
                 'utf-8'
             );
-            let customTemplates;
+            let customTemplates={
+                "testpage": {          //default value of CustomTemplates
+                  component: {
+                    data: "data",
+                    methods: "methods",
+                  },
+                }
+              }
             const themeBundle = evaluateModule(bundleFiles);
             if(themeBundle && themeBundle.getCustomTemplates())
-            {
-                customTemplates = themeBundle.getCustomTemplates();
-            }
+                {
+                    customTemplates = themeBundle.getCustomTemplates();
+                }
             const customFiles = {};
             let settingProps;
             const customRoutes = (ctTemplates, parentKey = null) => {
