@@ -97,7 +97,7 @@ exports.handler = async (args) => {
     }
 
     answers.base_url = extension_data.base_url
-    answers.extension_name = extension_data.name
+    answers.name = extension_data.name
 
     if (args['target-dir']) {
         answers.targetDir = args['target-dir']
@@ -106,14 +106,14 @@ exports.handler = async (args) => {
             process.exit(1);
         }
     } else {
-        answers.targetDir = answers.extension_name
+        answers.targetDir = answers.name
         if (fs.existsSync(answers.targetDir)) {
             console.log(chalk.red(`Folder with the same name as "${answers.targetDir}" already exists. Please choose another name or directory.`));
             process.exit(1);
         }
     }
 
-    tasks = new Listr([
+    const tasks = new Listr([
         {
             title: 'Fetching Template Files',
             task: async ctx => {
@@ -192,7 +192,6 @@ exports.handler = async (args) => {
                 process.exit(1);
             }
         )
-        process.exit(1);
     } catch(error) {
         console.log(chalk.red(error.message));
         process.exit(1);
