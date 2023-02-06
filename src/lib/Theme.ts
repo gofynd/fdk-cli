@@ -1142,13 +1142,21 @@ export default class Theme {
             if(fs.existsSync(Theme.SRC_FOLDER)){
                 rimraf.sync(Theme.SRC_FOLDER);
             }
-            spinner = ora('CLI has started creating zip file...').start();
+            spinner = ora({text: 'CLI has started creating zip file...',
+            color:'yellow'}).start();
             let filepath = path.join(process.cwd(),'package.json');
             let packageContent: any = readFile(filepath);
             let content = JSON.parse(packageContent) || {};
             Theme.copyFolderSync(path.join(process.cwd()), Theme.SRC_FOLDER);
             rimraf.sync(path.join(process.cwd(), '.fdk', 'temp-theme', 'node_modules'));
             rimraf.sync(path.join(process.cwd(), '.fdk', 'temp-theme', '.fdk'));
+            process.on("SIGINT", () => {
+                console.log("\n Caught SIGINT. Exiting in 5 seconds.");
+                rimraf.sync(path.join(process.cwd(),'.fdk','temp-theme'));
+                rimraf.sync(path.join(process.cwd(),`${content.name}_${content.version}.zip`));
+                spinner.fail("CLI has stopped creating zip file...");
+                process.exit(0);
+            });
             await archiveFolder({
                 srcFolder: path.join(process.cwd(),'.fdk','temp-theme'),
                 destFolder: path.join(process.cwd()),
