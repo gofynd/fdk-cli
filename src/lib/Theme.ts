@@ -1120,16 +1120,17 @@ export default class Theme {
             throw new CommandError(err.message, err.code);
         }
     };
-    public static copyFolderSync = (from, to) => {
+    public static copyFolders = async(from, to) => {
         try {
-            fs.mkdirSync(to);
-            fs.readdirSync(from).forEach(element => {
+            fs.mkdir(to);
+           const files = await fs.readdir(from)
+           files.forEach((element) => {
                 if (element === 'temp-theme') {
                 return;
-                } else if (fs.lstatSync(path.join(from, element)).isFile()) {
-                    fs.copyFileSync(path.join(from, element), path.join(to, element));
-                } else if (fs.lstatSync(path.join(from, element)).isDirectory()) {
-                    Theme.copyFolderSync(path.join(from, element), path.join(to, element));
+                }else if (fs.lstatSync(path.join(from, element)).isFile() && element != 'node_modules' && element != '.fdk') {
+                    fs.copyFile(path.join(from, element), path.join(to, element));
+                } else if (fs.lstatSync(path.join(from, element)).isDirectory() && element != 'node_modules' && element != '.fdk') {
+                    Theme.copyFolders(path.join(from, element), path.join(to, element));
                 }
             });
         } catch(err) {
@@ -1149,16 +1150,13 @@ export default class Theme {
             let filepath = path.join(process.cwd(),'package.json');
             let packageContent: any = readFile(filepath);
             let content = JSON.parse(packageContent) || {};
-            Theme.copyFolderSync(path.join(process.cwd()), Theme.SRC_FOLDER);
-            rimraf.sync(path.join(process.cwd(), '.fdk', 'temp-theme', 'node_modules'));
-            rimraf.sync(path.join(process.cwd(), '.fdk', 'temp-theme', '.fdk'));
             process.on("SIGINT", () => {
-                console.log("\n Caught SIGINT. Exiting in 5 seconds.");
                 rimraf.sync(path.join(process.cwd(),'.fdk','temp-theme'));
                 rimraf.sync(path.join(process.cwd(),`${content.name}_${content.version}.zip`));
                 spinner.fail("CLI has stopped creating zip file...");
                 process.exit(0);
             });
+            await Theme.copyFolders(path.join(process.cwd()), Theme.SRC_FOLDER);
             await archiveFolder({
                 srcFolder: path.join(process.cwd(),'.fdk','temp-theme'),
                 destFolder: path.join(process.cwd()),
