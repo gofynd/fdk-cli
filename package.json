@@ -1,6 +1,6 @@
 {
   "name": "@gofynd/fdk-cli",
-  "version": "2.4.8-alpha.7",
+  "version": "2.4.9",
   "main": "index.js",
   "license": "MIT",
   "bin": {
@@ -102,6 +102,6 @@
     "validator": "^13.6.0",
     "vue-template-compiler": "^2.6.13",
     "winston": "^3.3.3",
-    "yargs": "^15.0.2"
+    "yargs": "^17.6.2"
   }
 }
