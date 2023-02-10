@@ -89,7 +89,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 		changeOrigin: true, // needed for virtual hosted sites
 		cookieDomainRewrite: 'localhost', // rewrite cookies to localhost
 		onProxyReq: fixRequestBody,
-		onError: error => Logger.error(error)
+		// onError: error => Logger.error(error)
 	  };
 
 	  // proxy to solve CORS issue
