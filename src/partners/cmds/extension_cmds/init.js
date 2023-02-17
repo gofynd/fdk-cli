@@ -21,7 +21,8 @@ const copy = promisify(ncp);
 const partner_token_cmd = require('../partner_cmds/connect').handler;
 const { registerExtension } = require('../../apis/extension');
 const { 
-    validateEmpty, 
+    validateEmpty,
+    checkForVue,
     copyTemplateFiles, 
     installDependencies, 
     replaceGrootWithExtensionName,
@@ -57,6 +58,18 @@ const extensionTypeQuestions = [
         message: 'Development Language :',
         validate: validateEmpty
     },
+    {
+        type: 'list',
+        choices: [
+            {name: "Vue 2", value: "vue2"}, 
+            {name: "Vue 3", value: "vue3"}
+        ],
+        default: "vue2",
+        name: 'vue_version',
+        message: 'Vue Version: ',
+        when: checkForVue,
+        validate: validateEmpty
+    }
 ];
 exports.command = 'init';
 exports.desc = 'Initialize extension';
@@ -86,7 +99,7 @@ const createProject = async answerObject => {
             {
                 title: 'Fetching Template Files',
                 task: async ctx => {
-                    await copyTemplateFiles(targetDir, answerObject.project_url);
+                    await copyTemplateFiles(targetDir, answerObject);
                     ctx.partner_access_token = answerObject.partner_access_token;
                     ctx.host = answerObject.host;
                     ctx.extensionData = {

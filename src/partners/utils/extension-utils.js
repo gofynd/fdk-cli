@@ -12,14 +12,29 @@ function validateEmpty(input) {
     return input !== '';
 }
 
-async function copyTemplateFiles(targetDirectory, projectUrl) {
+function checkForVue(answers) {
+    if (
+        answers.project_type === NODE_VUE 
+        || answers.project_type === JAVA_VUE 
+        || answers.project_type === PYTHON_VUE
+    ) {
+        return true
+    }
+    return false
+}
+
+async function copyTemplateFiles(targetDirectory, answers) {
     try {
         if (!fs.existsSync(targetDirectory)) {
             createDirectory(targetDirectory);
         }
         await execa('git', ['init'], { cwd: targetDirectory });
-        await execa('git', ['remote', 'add', 'origin', projectUrl], { cwd: targetDirectory });
-        await execa('git', ['pull', 'origin', 'main:main'], { cwd: targetDirectory });
+        await execa('git', ['remote', 'add', 'origin', answers.project_url], { cwd: targetDirectory });
+        if (answers.vue_version === 'vue3') {
+            await execa('git', ['pull', 'origin', 'main-vue3:main-vue3'], { cwd: targetDirectory });
+        } else {
+            await execa('git', ['pull', 'origin', 'main:main'], { cwd: targetDirectory });
+        }
         rimraf.sync(`${targetDirectory}/.git`); // unmark as git repo
         return true;
     } catch (error) {
@@ -95,6 +110,7 @@ const PROJECT_REPOS = {
 
 module.exports = {
     validateEmpty,
+    checkForVue,
     copyTemplateFiles,
     installDependencies,
     replaceGrootWithExtensionName,
