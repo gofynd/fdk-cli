@@ -95,7 +95,8 @@ async function replaceGrootWithExtensionName(targetDir, answerObject) {
     }
 
     let packageJson = readFile(`${targetDir}/package.json`);
-    writeFile(`${targetDir}/package.json`, replaceContent(packageJson, 'groot', answerObject.name));
+    let packageName = answerObject.name.toLowerCase().replace(/\s/g, "");
+    writeFile(`${targetDir}/package.json`, replaceContent(packageJson, 'groot', packageName));
 }
 
 const PROJECT_REPOS = {
