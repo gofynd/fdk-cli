@@ -349,6 +349,15 @@ This command is used to unpublish your theme.
 fdk theme unpublish
 ```
 ___
+<div id="theme-package"></div>
+
+#### **package**
+This command is used to create a zip file of theme.
+#### **Syntax**
+```sh
+fdk theme package
+```
+___
 <div id="theme-open"></div>
 
 #### **open**
