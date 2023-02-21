@@ -120,7 +120,8 @@ export async function startServer({ domain, host, isSSR, port }) {
 		return res.end()
 	})
 	app.get('/*', async (req, res) => {
-
+		const BUNDLE_PATH = path.join(process.cwd(), path.join('.fdk', 'dist', 'themeBundle.common.js'));
+		if(!fs.existsSync(BUNDLE_PATH)) return res.sendFile(path.join(__dirname,'../../','/dist/helper','/loader.html'));
 		if (req.originalUrl == '/favicon.ico' || req.originalUrl == '/.webp') {
 			return res.status(404).send('Not found');
 		}
