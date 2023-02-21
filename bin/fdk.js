@@ -55,8 +55,5 @@ else {
     })
     .version()
     .help().argv;
-  if (yargs._.length === 0) {
-    require('yargs').showHelp();
-  }
 }
 exports.bootstrap = bootstrap;

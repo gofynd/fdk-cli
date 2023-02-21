@@ -1,63 +1,46 @@
 const chalk = require('chalk');
 var Box = require('cli-box');
-const mongoose = require('mongoose');
 const _ = require('lodash');
 const fs = require('fs');
 const rimraf = require('rimraf');
 const ncp = require('ncp');
 const path = require('path');
-const execa = require('execa');
 const { promisify } = require('util');
 const inquirer = require('inquirer');
 const Listr = require('listr');
 const yargs = require('yargs');
-const os = require('os')
 const { logger } = require('./../../utils/logger');
-const { validatObjectId } = require('./../../utils/validation-utils');
-const { normalizeError } = require('./../../utils/error.util');
 const {
-    generateConfigJSON,
-    loginUserWithEmail,
     writeContextData,
     getActiveContext,
     getDefaultContextData,
-    replaceContent
 } = require('../../utils/utils');
-const { writeFile, createDirectory, readFile } = require('../../utils/file-utlis');
-const { downloadFile } = require('../../utils/download');
-const { extractArchive } = require('../../utils/archive');
+const { writeFile, createDirectory } = require('../../utils/file-utlis');
 
 const copy = promisify(ncp);
 const partner_token_cmd = require('../partner_cmds/connect').handler;
 const { registerExtension } = require('../../apis/extension');
+const { 
+    validateEmpty, 
+    copyTemplateFiles, 
+    installDependencies, 
+    replaceGrootWithExtensionName,
+    PROJECT_REPOS 
+} = require('../../utils/extension-utils')
+const { 
+    NODE_VUE, NODE_REACT, PYTHON_REACT, PYTHON_VUE, JAVA_REACT, JAVA_VUE 
+} = require('../../utils/extension-constant')
 
-function validateEmpty(input) {
-    return input !== '';
-}
-
-const NODE_VUE = 'Node + Vue.js'
-const NODE_REACT = 'Node + React.js'
-const PYTHON_VUE = 'Python + Vue.js'
-const PYTHON_REACT = 'Python + React.js'
-const JAVA_VUE = 'Java + Vue.js'
-const JAVA_REACT = 'Java + React.js'
-
-const PROJECT_REPOS = {
-    [NODE_VUE]: "https://github.com/gofynd/example-extension-javascript.git",
-    [NODE_REACT]: "https://github.com/gofynd/example-extension-javascript-react.git",
-    [PYTHON_VUE]: "https://github.com/gofynd/example-extension-python-vue.git",
-    [PYTHON_REACT]: "https://github.com/gofynd/example-extension-python-react.git",
-    [JAVA_VUE]: "https://github.com/gofynd/example-extension-java-vue.git",
-    [JAVA_REACT]: "https://github.com/gofynd/example-extension-java-react.git",
-}
-
-const questions = [
+const extensionNameQuestion = [
     {
         type: 'input',
         name: 'name',
         message: 'Enter Extension name :',
         validate: validateEmpty
-    },
+    }
+];
+
+const extensionTypeQuestions = [
     {
         type: 'list',
         choices: ['Private', 'Public'],
@@ -93,80 +76,11 @@ exports.builder = function (yargs) {
         });
 };
 
-async function copyTemplateFiles(targetDirectory, projectUrl) {
-    try {
-        if (!fs.existsSync(targetDirectory)) {
-            createDirectory(targetDirectory);
-        }
-        await execa('git', ['init'], { cwd: targetDirectory });
-        await execa('git', ['remote', 'add', 'origin', projectUrl], { cwd: targetDirectory });
-        await execa('git', ['pull', 'origin', 'main:main'], { cwd: targetDirectory });
-        rimraf.sync(`${targetDirectory}/.git`); // unmark as git repo
-        return true;
-    } catch (error) {
-        return Promise.reject(error);
-    }
-}
 
-async function installNpmPackages(targetDir) {
-    await execa('npm', ['i'], { cwd: targetDir });
-    await execa('npm', ['run', 'build'], { cwd: targetDir });
-}
-
-async function installPythonDependencies(targetDir) {
-    const os_platform = os.platform()
-    if (os_platform === 'darwin' || os_platform === 'linux') {
-        await execa('python3', ['-m', 'venv', 'venv'], {cwd: targetDir});
-        await execa('./venv/bin/pip', ["install", '-r', 'requirements.txt'], {cwd: targetDir});
-    } else if (os_platform === 'win32') {
-        await execa('python', ['-m', 'venv', 'venv'], {cwd:targetDir});
-        await execa('venv\\Scripts\\pip', ['install', '-r', 'requirements.txt'], {cwd: targetDir});
-    }
-}
-
-async function installJavaPackages(targetDir) {
-    await execa('mvn', ['clean'], {cwd: targetDir});
-    await execa('mvn', ['package'], {cwd: targetDir});
-}
-
-async function installDependencies(answerObject) {
-    project_type = answerObject.project_type
-    if (project_type === NODE_VUE || project_type === NODE_REACT) {
-        // installing dependencies for Node projects
-        await installNpmPackages(answerObject.targetDir);
-        } 
-    
-    else if (project_type === PYTHON_VUE || project_type === PYTHON_REACT ) {
-        // installing dependencies for Python projects
-        await installNpmPackages(answerObject.targetDir);
-        await installPythonDependencies(answerObject.targetDir);
-        }
-
-    else if (project_type === JAVA_VUE || project_type === JAVA_REACT) {
-        // installing dependencies for java projects
-        await installNpmPackages(`${answerObject.targetDir}/app`);
-        await installJavaPackages(answerObject.targetDir);
-    }
-}
-
-async function replaceGrootWithExtensionName(targetDir, answerObject) {
-    let readMe = readFile(`${targetDir}/README.md`);
-    writeFile(`${targetDir}/README.md`, replaceContent(readMe, 'groot', answerObject.name));
-
-    if (answerObject.project_type === JAVA_VUE || answerObject.project_type === JAVA_REACT) {
-        let pomXml = readFile(`${targetDir}/pom.xml`)
-        writeFile(`${targetDir}/pom.xml`, replaceContent(pomXml, 'groot', answerObject.name))
-        
-        targetDir = `${targetDir}/app`
-    }
-
-    let packageJson = readFile(`${targetDir}/package.json`);
-    writeFile(`${targetDir}/package.json`, replaceContent(packageJson, 'groot', answerObject.name));
-}
 
 const createProject = async answerObject => {
     try {
-        let targetDir = answerObject.targetDir || process.cwd();
+        let targetDir = answerObject.targetDir
 
         const tasks = new Listr([
             {
@@ -253,7 +167,7 @@ const createProject = async answerObject => {
                 process.exit(1);
             });
 
-        process.exit(0);
+        process.exit(1);
     } catch (error) {
         console.log(chalk.red(error.message));
         process.exit(1);
@@ -271,17 +185,30 @@ exports.handler = async args => {
     let answers = {
         host: args.host || contextData.host,
         verbose: args.verbose,
-        targetDir: args['target-dir'] || '.'
     };
-    if (answers.targetDir != '.' && fs.existsSync(answers.targetDir)) {
-        console.log(chalk.red(`Directory "${answers.targetDir}" already exists. Please choose another`));
-        process.exit(0);
+    await inquirer.prompt(extensionNameQuestion).then((value) => {
+        answers.name =  value.name
+    })
+
+    if (args['target-dir']) {
+        answers.targetDir = args['target-dir']
+        if (answers.targetDir != '.' && fs.existsSync(answers.targetDir)) {
+            console.log(chalk.red(`Directory "${answers.targetDir}" already exists. Please choose another`));
+            process.exit(1);
+        }
+    } else {
+        answers.targetDir = answers.name
+        if (fs.existsSync(answers.targetDir)) {
+            console.log(chalk.red(`Folder with the same name as "${answers.targetDir}" already exists. Please choose another name or directory.`));
+            process.exit(1);
+        }
     }
+    
     if (fs.existsSync(path.join(answers.targetDir, '/.git'))) {
         console.log(chalk.red(`Cannot initialize extension at '${path.resolve(answers.targetDir)}', as it already contains Git repository.`));
-        process.exit(0);
+        process.exit(1);
     }
-    prompt_answers = await inquirer.prompt(questions);
+    prompt_answers = await inquirer.prompt(extensionTypeQuestions);
     if (!contextData.partner_access_token) {
         contextData.partner_access_token = await partner_token_cmd({readOnly: true, ...args});
     }
