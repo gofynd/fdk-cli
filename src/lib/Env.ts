@@ -16,6 +16,7 @@ export const AVAILABLE_ENVS = {
   // Jio games
   jiogamesz0: 'api.jiogamesz0.de',
   jiogamesz5: 'api.jiogamesz5.de',
+  jiogames: 'api.jiogamesstore.com',
 
   // Jio market
   jiomarketx0: 'api.jiomarketx0.de',
