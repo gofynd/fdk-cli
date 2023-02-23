@@ -5,6 +5,18 @@ import { URLS } from './url';
 import { getCommonHeaderOptions } from './utils';
 
 export default {
+  getApplications: async (data?, query?) => {
+    try {
+      const activeContext = data ?  data : getActiveContext();
+      const axiosOption = Object.assign({}, getCommonHeaderOptions(), {params: query});
+      return ApiClient.get(
+        URLS.GET_APPLICATIONS(activeContext.company_id),
+        axiosOption
+      );
+    } catch (error) {
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+    }
+  },
   getApplicationDetails: async (data?) => {
     try {
       const activeContext = data ?  data : getActiveContext();

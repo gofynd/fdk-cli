@@ -27,7 +27,6 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
     return this.action(async (...args: any[]) => {
 
         try {
-
             let parent = args[1].parent;
             while (true) {
                 if (parent.parent) parent = parent.parent;

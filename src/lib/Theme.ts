@@ -109,6 +109,38 @@ export default class Theme {
             }
             Debug(`Token expires in: ${configObj.expires_in}`);
             const { data: appConfig } = await ConfigurationService.getApplicationDetails(configObj);
+
+            const queryParam = {
+                'company_id': appConfig.company_id,
+                'page_no': 1,
+                'page_size': 100,
+                'query': {
+                    'is_active': true
+                }
+            }
+            const {data: applications} = await ConfigurationService.getApplications(configObj, queryParam);
+            const applicationList = applications.items
+            let companyDetails = {};
+            let applicationId = '';
+            applicationList.forEach(obj => {
+                companyDetails[`${obj.name}`] = {...obj};
+            });
+
+            const questions = [
+                {
+                    type: 'list',
+                    name: 'listApplications',
+                    message: 'Availabe applications. Select an application for which theme is to be built.',
+                    choices: Object.keys(companyDetails)
+                },
+            ];
+            await inquirer.prompt(questions).then(async answers => {
+                try {
+                    applicationId = companyDetails[answers.listApplications]._id;
+                } catch (error) {
+                    throw new CommandError(error.message, error.code);
+                }
+            });
             
             Logger.warn('Cloning template files...');
             await Theme.cloneTemplate(options, targetDirectory);
@@ -126,11 +158,12 @@ export default class Theme {
             
             let context: any = {
                 name: options.name,
-                application_id: appConfig._id,
+                application_id: applicationId,
                 domain: appConfig.domain.name,
                 company_id: appConfig.company_id,
                 theme_id: theme._id,
             };
+
             process.chdir(path.join('.', options.name));
 
             Logger.warn('Saving context');
