@@ -1,99 +1,100 @@
+import qs from 'query-string';
+import { AxiosRequestConfig } from 'axios';
+import combineURLs from 'axios/lib/helpers/combineURLs';
+import isAbsoluteURL from 'axios/lib/helpers/isAbsoluteURL';
+
 export default class CurlHelper {
-	request;
-  constructor(config = {}) {
-    this.request = config;
-  }
-
-  getHeaders() {
-    let headers = this.request.headers,
-      curlHeaders = "";
-
-    // get the headers concerning the appropriate method (defined in the global axios instance)
-    if (headers.hasOwnProperty("common")) {
-      headers = this.request.headers[this.request?.method];
+    reqConfig: AxiosRequestConfig;
+    constructor(config: AxiosRequestConfig) {
+        this.reqConfig = config;
     }
 
-    // add any custom headers (defined upon calling methods like .get(), .post(), etc.)
-    for(let property in this.request.headers) {
-      if (
-        !["common", "delete", "get", "head", "patch", "post", "put"].includes(
-          property
-        )
-      ) {
-        headers[property] = this.request.headers[property];
-      }
+    getUrl(): string {
+        let url = this.reqConfig.url;
+
+        if (this.reqConfig.baseURL && !isAbsoluteURL(url)) {
+            url = combineURLs(this.reqConfig.baseURL, url).trim();
+        }
+
+        let queryParamString = '';
+
+        if (this.reqConfig.paramsSerializer) {
+            let queryParams = this.reqConfig.paramsSerializer(this.reqConfig.params);
+            if (queryParams && queryParams.length) {
+                queryParamString = `?${queryParams.trim()}`;
+            }
+        } else {
+            if (
+                this.reqConfig.params &&
+                Object.keys(this.reqConfig.params).length &&
+                qs.stringify(this.reqConfig.params).trim() !== ''
+            ) {
+                queryParamString = `?${qs.stringify(this.reqConfig.params).trim()}`;
+            }
+        }
+
+        return `'${url}${queryParamString}'`;
     }
 
-    for(let property in headers) {
-      if({}.hasOwnProperty.call(headers, property)) {
-        let header = `${property}:${headers[property]}`;
-        curlHeaders = `${curlHeaders} -H "${header}"`;
-      }
+    getBody(): string {
+        if (
+            this.reqConfig.method.toUpperCase() !== 'GET' &&
+            this.reqConfig.data !== null &&
+            this.reqConfig.data !== '' &&
+            this.reqConfig.data
+        ) {
+            return `--data-raw '${JSON.stringify(this.reqConfig.data).trim()}'`;
+        } else {
+            return '';
+        }
     }
 
-    return curlHeaders.trim();
-  }
+    getHeaders(): string {
+        const axiosHeaders = ['common', 'delete', 'get', 'head', 'post', 'put', 'patch'];
+        let headers = {};
 
-  getMethod() {
-    return `-X ${this.request?.method?.toUpperCase()}`;
-  }
+        // Logger.info(JSON.stringify(this.reqConfig.headers));
 
-  getBody() {
-    if (
-      typeof this.request.data !== "undefined" &&
-      this.request.data !== "" &&
-      this.request.data !== null &&
-      this.request?.method?.toUpperCase() !== "GET"
-    ) {
-      let data =
-        typeof this.request.data === "object" ||
-        Object.prototype.toString.call(this.request.data) === "[object Array]"
-          ? JSON.stringify(this.request.data)
-          : this.request.data;
-      return `--data '${data}'`.trim();
-    } else {
-      return "";
-    }
-  }
+        // add axios default headers
+        if (this.reqConfig.headers[this.reqConfig.method]) {
+            headers = this.reqConfig.headers[this.reqConfig.method];
+        }
+        headers = Object.keys(headers).reduce(
+            (acc, key) => ((acc[key.toLowerCase()] = headers[key]), acc),
+            {}
+        );
 
-  getUrl() {
-    if (this.request.baseURL) {
-      return this.request.baseURL + "/" + this.request.url;
-    }
-    return this.request.url;
-  }
+        // add custom headers
+        for (let headerName in this.reqConfig.headers) {
+            if (
+                !axiosHeaders.includes(headerName) &&
+                this.reqConfig.headers[headerName] &&
+                this.reqConfig.headers[headerName] !== ''
+            ) {
+                if (this.reqConfig.headers[headerName] instanceof Object) {
+                    headers[headerName.toLowerCase()] = JSON.stringify(
+                        this.reqConfig.headers[headerName]
+                    );
+                } else {
+                    headers[headerName.toLowerCase()] = this.reqConfig.headers[headerName];
+                }
+            }
+        }
 
-  getQueryString() {
-    let params = "",
-      i = 0;
+        // convert header object to curl string
+        let headerString = '';
+        for (let header in headers) {
+            headerString = headerString + ` --header '${header}: ${headers[header]}'`;
+        }
 
-    for(let param in this.request.params) {
-      if({}.hasOwnProperty.call(this.request.params, param)) {
-        params +=
-        i !== 0
-          ? `&${param}=${this.request.params[param]}`
-          : `?${param}=${this.request.params[param]}`;
-        i++;
-      }
+        return headerString.trim();
     }
 
-    return params;
-  }
-
-  getBuiltURL() {
-    let url = this.getUrl();
-
-    if (this.getQueryString() !== "") {
-      url = url.charAt(url.length - 1) === "/" ? url.substr(0, url.length - 1) : url;
-      url += this.getQueryString();
+    getMethod(): string {
+        return `--request ${this.reqConfig.method.toUpperCase()}`;
     }
 
-    return url.trim();
-  }
-
-  generateCommand() {
-    return `curl ${this.getMethod()} ${this.getHeaders()} ${this.getBody()} "${this.getBuiltURL()}"`
-      .trim()
-      .replace(/\s{2,}/g, " ");
-  }
+    generateCommand(): string {
+        return `curl --include ${this.getMethod()} ${this.getUrl()} ${this.getHeaders()} ${this.getBody()}`.trim();
+    }
 }
