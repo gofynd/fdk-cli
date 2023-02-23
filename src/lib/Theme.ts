@@ -2,6 +2,7 @@ import {
     asyncForEach,
     createContext,
     decodeBase64,
+    evaluateModule,
     getActiveContext,
     pageNameModifier,
     isAThemeDirectory,
@@ -36,7 +37,7 @@ import { downloadFile } from '../helper/download';
 import Env from './Env';
 import Debug from './Debug';
 import ora from 'ora';
-import { themeVueConfigTemplate } from '../helper/theme.vue.config';
+import { themeVueConfigTemplate, settingLoader } from '../helper/theme.vue.config';
 import { simpleGit } from 'simple-git';
 export default class Theme {
     /*
@@ -54,6 +55,7 @@ export default class Theme {
     static SRC_FOLDER = path.join('.fdk', 'temp-theme');
     static VUE_CLI_CONFIG_PATH = path.join('.fdk', 'vue.config.js');
     static SRC_ARCHIVE_FOLDER = path.join('.fdk', 'archive');
+    static  SETTING_LOADER_FILE = path.join('.fdk', 'setting-loader.js');
     static ZIP_FILE_NAME = `archive.zip`;
     static TEMPLATE_THEME_URL = 'https://github.com/gofynd/Emerge.git';
 
@@ -379,21 +381,10 @@ export default class Theme {
                 available_sections
             );
 
-            // Extract page level settings schema
-            const availablePages = await Theme.getSystemPages(newTheme);
-            
+            // extract page level settings schema
+            await Theme.updateAvailablePages({ newTheme, assetHash });
             Logger.warn('Updating theme...');
             await Promise.all([ThemeService.updateTheme(newTheme)]);
-            
-            Logger.warn('Updating available pages...');
-            await asyncForEach(availablePages, async page => {
-                try {
-                    Logger.warn('Updating page: ', page.value);
-                    await ThemeService.updateAvailablePage(page);
-                } catch (error) {
-                    throw new CommandError(error.message, error.code);
-                }
-            });
 
             Logger.success('Theme syncing DONE...');
             let domainURL = `https://${AVAILABLE_ENVS[currentContext.env]}`;
@@ -628,11 +619,10 @@ export default class Theme {
             try {
                 return settingsText ? JSON.parse(settingsText) : {};
             } catch(err) {
-                var themeFilePath = path.split('sections')[1];
-                throw new Error(`Invalid settings JSON object in /theme/sections${themeFilePath}. Validate JSON from https://jsonlint.com/`);
+                throw new Error(`Invalid settings JSON object in ${path}. Validate JSON from https://jsonlint.com/`);
             }
         } catch(error) {
-            throw new Error(`Invalid settings JSON object in /theme/sections${themeFilePath}. Validate JSON from https://jsonlint.com/`);
+            throw new Error(`Invalid settings JSON object in ${path}. Validate JSON from https://jsonlint.com/`);
         }
     }
     private static validateSections(available_sections) {
@@ -741,6 +731,10 @@ export default class Theme {
         }
         rimraf.sync(path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH));
         fs.writeFileSync(path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH), themeVueConfigTemplate);
+        rimraf.sync(path.join(process.cwd(), Theme.SETTING_LOADER_FILE));
+        fs.writeFileSync(path.join(process.cwd(), Theme.SETTING_LOADER_FILE),  settingLoader);
+        
+        
     }
 
     private static assetsImageUploader = async () => {
@@ -953,9 +947,13 @@ export default class Theme {
             theme.assets.umdJs = theme.assets.umdJs || {};
             theme.assets.umdJs.links = umdJsUrls;
             theme.assets.umdJs.link = "";
+            theme.assets.umd_js = theme.assets.umdJs || {};
+            theme.assets.umd_js.links = umdJsUrls;
+            theme.assets.umd_js.link = "";
             theme.assets.commonJs = theme.assets.commonJs || {};
             theme.assets.commonJs.link = commonJsUrl;
-            // - end 
+            theme.assets.common_js = theme.assets.commonJs || {};
+            theme.assets.common_js.link = commonJsUrl;
             theme.assets.css = theme.assets.css || {};
             theme.assets.css.links = cssUrls;
             theme.assets.css.link = "";
@@ -993,23 +991,26 @@ export default class Theme {
             throw new CommandError(`Failed to set theme data `);
         }
     };
-    private static getSystemPages = async theme => {
+    private static updateAvailablePages = async ({ newTheme: theme, assetHash }) => {
+
         try {
-            let pageTemplateFiles = fs
+            const allPages = (await ThemeService.getAllAvailablePage()).data.pages;
+            const systemPagesDB = allPages.filter(x => x.type == 'system');
+            const customPagesDB = allPages.filter(x => x.type == 'custom');
+            const pagesToSave = [];
+
+            // extract system page level settings schema
+            let systemPages = fs
                 .readdirSync(path.join(process.cwd(), 'theme', 'templates', 'pages'))
                 .filter(o => o != 'index.js');
-            theme.config = theme.config || {};
-            let availablePages = [];
-            await asyncForEach(pageTemplateFiles, async fileName => {
+            await asyncForEach(systemPages, async fileName => {
                 let pageName = fileName.replace('.vue', '');
                 // SYSTEM Pages
-                let available_page;
-                try {
-                    available_page = (await ThemeService.getAvailablePage(pageName)).data;
-                } catch (error) {
-                    Logger.log('Creating Page:', pageName);
-                }
-                if (!available_page) {
+                let systemPage = systemPagesDB.find(p => p.value == pageName);
+                if (systemPage) {
+                    delete systemPage.sections;
+                } else {
+                    Logger.log('Creating Page: ', pageName);
                     const pageData = {
                         value: pageName,
                         props: [],
@@ -1018,24 +1019,94 @@ export default class Theme {
                         type: 'system',
                         text: pageNameModifier(pageName),
                     };
-                    available_page = (await ThemeService.createAvailabePage(pageData)).data;
+                    systemPage = (await ThemeService.createAvailabePage(pageData)).data;
                 }
-                available_page.props =
+                systemPage.props =
                     (
                         Theme.extractSettingsFromFile(
                             path.join(process.cwd(), 'theme', 'templates', 'pages', fileName)
                         ) || {}
                     ).props || [];
-                available_page.sections_meta = Theme.extractSectionsFromFile(
+                systemPage.sections_meta = Theme.extractSectionsFromFile(
                     path.join(process.cwd(), 'theme', 'templates', 'pages', fileName)
                 );
-                available_page.type = 'system';
-                delete available_page.sections;
-                availablePages.push(available_page);
+                systemPage.type = 'system';
+                pagesToSave.push(systemPage);
             });
-            return availablePages;
+
+            // extract custom page level settings schema
+            const bundleFiles = await fs.readFile(
+                path.join(Theme.BUILD_FOLDER, `${assetHash}_themeBundle.common.js`),
+                'utf-8'
+            );
+            let customTemplates = [];
+            const themeBundle = evaluateModule(bundleFiles);
+            if(themeBundle && themeBundle.getCustomTemplates){
+                customTemplates = themeBundle.getCustomTemplates();
+            }   
+            const customFiles = {};
+            let settingProps;
+            const customRoutes = (ctTemplates, parentKey = null) => {
+                for (let key in ctTemplates) {
+                    const routerPath = (parentKey && `${parentKey}/${key}`) || `c/${key}`;
+                    const value = routerPath.replace(/\//g, ':::');
+                    if(ctTemplates[key].component && ctTemplates[key].component.__settings){
+                        settingProps = ctTemplates[key].component.__settings.props
+                    }
+                    customFiles[value] = {
+                        fileSetting: settingProps,
+                        value,
+                        text: pageNameModifier(key),
+                        path: routerPath,
+                    };
+                   
+                    if (
+                        ctTemplates[key].children &&
+                        Object.keys(ctTemplates[key].children).length
+                    ) {
+                        customRoutes(ctTemplates[key].children, routerPath);
+                    }
+                }
+            };   
+            customRoutes(customTemplates);
+
+            // Delete custom pages removed from code
+            const pagesToDelete = customPagesDB.filter(x => !customFiles[x.value]);
+            await Promise.all(
+                pagesToDelete.map(page => {
+                    return ThemeService.deleteAvailablePage(page.value);
+                })
+            )
+            for (let key in customFiles) {
+                const customPageConfig = customFiles[key];
+                let customPage = customPagesDB.find(p => p.value == key);
+                if (customPage) {
+                    delete customPage.sections;
+                } else {
+                    Logger.log('Creating Custom Page: ', key);
+                    const pageData = {
+                        value: customPageConfig.value,
+                        text: customPageConfig.text,
+                        path: customPageConfig.path,
+                        props: [],
+                        sections: [],
+                        sections_meta: [],
+                        type: 'custom',
+                    };
+                    customPage = (await ThemeService.createAvailabePage(pageData)).data;
+                }
+                customPage.props = customPageConfig.fileSetting || []
+                customPage.sections_meta =[]
+                customPage.type = 'custom';
+                pagesToSave.push(customPage);
+            }
+            Logger.warn('Updating theme...');
+            await ThemeService.updateTheme(theme);
+            Logger.warn('Updating pages...');
+            await ThemeService.updateAllAvailablePages({ pages: pagesToSave });
+            return pagesToSave;
         } catch (err) {
-            throw new CommandError(`Failed to fetch system pages`, err.code);
+            throw new CommandError(err.message, err.code);
         }
     };
     private static uploadThemeSrcZip = async () => {

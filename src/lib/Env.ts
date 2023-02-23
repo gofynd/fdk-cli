@@ -1,38 +1,59 @@
 import configStore, { CONFIG_KEYS } from './Config';
-import inquirer from 'inquirer';
 import CommandError from './CommandError';
 import Logger, { COMMON_LOG_MESSAGES } from './Logger';
 import chalk from 'chalk';
 
 export const AVAILABLE_ENVS = {
+  // Fynd
   fyndx0: 'api.fyndx0.de',
   fyndx1: 'api.fyndx1.de',
   fyndx5: 'api.fyndx5.de',
   fynd: 'api.fynd.com',
+
+  // Jio e-commerce
+  jioecomm: 'api.jioecomm.com',
+
+  // Jio games
+  jiogamesz0: 'api.jiogamesz0.de',
+  jiogamesz5: 'api.jiogamesz5.de',
+
+  // Jio market
+  jiomarketx0: 'api.jiomarketx0.de',
+  jiomarketz5: 'api.jiomarketz5.de',
+  jiomarket: 'api.jiomarket.com',
+
+  // Jio retail
+  jioretailer: 'api.jioretailer.com',
+
+  // Jio mart Digital B2B
   jiox0: 'api.jiox0.de',
   jiox1: 'api.jiox1.de',
   jiox2: 'api.jiox2.de',
   jiox3: 'api.jiox3.de',
   jiox5: 'api.jiox5.de',
-  jioretailer: 'api.jioretailer.com',
-  jioecomm: 'api.jioecomm.com',
-  jiomarketx0: 'api.jiomarketx0.de',
-  jiomarketz5: 'api.jiomarketz5.de',
-  jiomarket: 'api.jiomarket.com',
+
+  // Jio mart partners
   jmpx2: 'api.jmpx2.de',
   jmpx3: 'api.jmpx3.de',
   jiomartpartners: 'api.jiomartpartners.com',
-  tirax2:'api.tirax2.de',
-  tiraz5: 'api.tiraz5.de',
-  tiraz0: 'api.tiraz0.de',
-  tirabeauty:'api.tirabeauty.com',
+
+  // Product business group
+  pbgz0: 'api.pbgz0.de',
+
+  // Scan and Go
   sngz0: 'api.sngz0.de',
   sngz5: 'api.sngz5.de',
   sng: 'api.sngfynd.com',
+
+  // Swadesh
   swadeshz0: 'api.swadeshz0.de',
   swadeshz5: 'api.swadeshz5.de',
-  jiogamesz0: 'api.jiogamesz0.de',
-  jiogamesz5: 'api.jiogamesz5.de'
+
+  // Tira beauty
+  tirax2:'api.tirax2.de',
+  tiraz0: 'api.tiraz0.de',
+  tiraz5: 'api.tiraz5.de',
+  tirabeauty:'api.tirabeauty.com',
 };
 
 type EnvType = keyof typeof AVAILABLE_ENVS;

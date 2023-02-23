@@ -1,49 +1,47 @@
 const chalk = require('chalk');
 var Box = require('cli-box');
-const mongoose = require('mongoose');
 const _ = require('lodash');
 const fs = require('fs');
 const rimraf = require('rimraf');
 const ncp = require('ncp');
 const path = require('path');
-const execa = require('execa');
 const { promisify } = require('util');
 const inquirer = require('inquirer');
 const Listr = require('listr');
 const yargs = require('yargs');
 const { logger } = require('./../../utils/logger');
-const { validatObjectId } = require('./../../utils/validation-utils');
-const { normalizeError } = require('./../../utils/error.util');
 const {
-    generateConfigJSON,
-    loginUserWithEmail,
     writeContextData,
     getActiveContext,
     getDefaultContextData,
-    replaceContent
 } = require('../../utils/utils');
-const { writeFile, createDirectory, readFile } = require('../../utils/file-utlis');
-const { downloadFile } = require('../../utils/download');
-const { extractArchive } = require('../../utils/archive');
+const { writeFile, createDirectory } = require('../../utils/file-utlis');
 
 const copy = promisify(ncp);
 const partner_token_cmd = require('../partner_cmds/connect').handler;
 const { registerExtension } = require('../../apis/extension');
+const { 
+    validateEmpty,
+    checkForVue,
+    copyTemplateFiles, 
+    installDependencies, 
+    replaceGrootWithExtensionName,
+    PROJECT_REPOS 
+} = require('../../utils/extension-utils')
+const { 
+    NODE_VUE, NODE_REACT, PYTHON_REACT, PYTHON_VUE, JAVA_REACT, JAVA_VUE 
+} = require('../../utils/extension-constant')
 
-function validateEmpty(input) {
-    return input !== '';
-}
-
-// TODO: add public repo name from github
-const INIT_PROJECT_URL = "https://github.com/gofynd/example-extension-javascript.git";//"https://gitlab.com/fynd/regrowth/fynd-platform/extensions/groot.git";
-
-const questions = [
+const extensionNameQuestion = [
     {
         type: 'input',
         name: 'name',
         message: 'Enter Extension name :',
         validate: validateEmpty
-    },
+    }
+];
+
+const extensionTypeQuestions = [
     {
         type: 'list',
         choices: ['Private', 'Public'],
@@ -54,20 +52,29 @@ const questions = [
     },
     {
         type: 'list',
-        choices: ['Node + Vue.js'],
-        default: 'Node + Vue.js',
+        choices: [NODE_VUE, NODE_REACT, PYTHON_VUE, PYTHON_REACT, JAVA_VUE, JAVA_REACT],
+        default: NODE_VUE,
         name: 'project_type',
         message: 'Development Language :',
         validate: validateEmpty
     },
+    {
+        type: 'list',
+        choices: [
+            {name: "Vue 2", value: "vue2"}, 
+            {name: "Vue 3", value: "vue3"}
+        ],
+        default: "vue2",
+        name: 'vue_version',
+        message: 'Vue Version: ',
+        when: checkForVue,
+        validate: validateEmpty
+    }
 ];
 exports.command = 'init';
 exports.desc = 'Initialize extension';
 exports.builder = function (yargs) {
     return yargs
-        .options('template', {
-            describe: 'Language'
-        })
         .options('target-dir', {
             describe: 'Target directory for creating extension repository'
         })
@@ -82,30 +89,11 @@ exports.builder = function (yargs) {
         });
 };
 
-async function copyTemplateFiles(targetDirectory) {
-    try {
-        if (!fs.existsSync(targetDirectory)) {
-            createDirectory(targetDirectory);
-        }
-        await execa('git', ['init'], { cwd: targetDirectory });
-        await execa('git', ['remote', 'add', 'origin', INIT_PROJECT_URL], { cwd: targetDirectory });
-        await execa('git', ['pull', 'origin', 'main:main'], { cwd: targetDirectory });
-        writeFile(targetDirectory + '/.gitignore', `\n.fdk\\node_modules`, 'a+' );
-        await rimraf.sync(`${targetDirectory}/.git`) // unmark as git repo
-        return true;
-    } catch (error) {
-        return Promise.reject(error);
-    }
-}
 
-async function installNpmPackages(targetDir) {
-    await execa('npm', ['i'], { cwd: targetDir });
-    await execa('npm', ['run', 'build'], { cwd: targetDir });
-}
 
 const createProject = async answerObject => {
     try {
-        let targetDir = answerObject.targetDir || process.cwd();
+        let targetDir = answerObject.targetDir
 
         const tasks = new Listr([
             {
@@ -154,18 +142,21 @@ const createProject = async answerObject => {
                 title: 'Registering Extension',
                 task: async ctx => {
                     const extension_data = await registerExtension(ctx.host, ctx.partner_access_token, answerObject.name, answerObject.type, answerObject.verbose);
-                    const envData=`EXTENSION_API_KEY="${extension_data.client_id}"\nEXTENSION_API_SECRET="${extension_data.secret}"\nEXTENSION_BASE_URL="${answerObject.launch_url}"\nEXTENSION_CLUSTER_URL="https://${ctx.host}"`;
-                    fs.writeFileSync(`${targetDir}/.env`, envData);
-                    let packageJson = readFile(`${targetDir}/package.json`);
-                    writeFile(`${targetDir}/package.json`, replaceContent(packageJson, 'groot', answerObject.name));
-                    let readMe = readFile(`${targetDir}/README.md`);
-                    writeFile(`${targetDir}/README.md`, replaceContent(readMe, 'groot', answerObject.name));
+                    
+                    if ( answerObject.project_type === JAVA_VUE || answerObject.project_type === JAVA_REACT) {
+                        const ymlData = `\n\next :\n  api_key : "${extension_data.client_id}"\n  api_secret : "${extension_data.secret}"\n  scopes : ""\n  base_url : "${answerObject.launch_url}"\n  cluster : "https://${ctx.host}"`
+                        fs.writeFileSync(`${targetDir}/src/main/resources/application.yml`, ymlData, options={flag:'a+'})
+                    } else {
+                        const envData=`EXTENSION_API_KEY="${extension_data.client_id}"\nEXTENSION_API_SECRET="${extension_data.secret}"\nEXTENSION_BASE_URL="${answerObject.launch_url}"\nEXTENSION_CLUSTER_URL="https://${ctx.host}"`;
+                        fs.writeFileSync(`${targetDir}/.env`, envData);
+                    }
+                    await replaceGrootWithExtensionName(targetDir, answerObject);
                 }
             },
             {
                 title: 'Installing Dependencies',
                 task: async ctx => {
-                    await installNpmPackages(targetDir);
+                    await installDependencies(answerObject);
                 }
             }
         ]);
@@ -189,7 +180,7 @@ const createProject = async answerObject => {
                 process.exit(1);
             });
 
-        process.exit(0);
+        process.exit(1);
     } catch (error) {
         console.log(chalk.red(error.message));
         process.exit(1);
@@ -205,30 +196,38 @@ exports.handler = async args => {
     catch(err) { }
 
     let answers = {
-        template: args.template || 'javascript',
         host: args.host || contextData.host,
         verbose: args.verbose,
-        targetDir: args['target-dir'] || '.'
     };
+    await inquirer.prompt(extensionNameQuestion).then((value) => {
+        answers.name =  value.name
+    })
 
-    if (answers.template !== 'javascript') {
-        console.log('template not present. allowed value: javascript'); // add more later
-        process.exit(0);
+    if (args['target-dir']) {
+        answers.targetDir = args['target-dir']
+        if (answers.targetDir != '.' && fs.existsSync(answers.targetDir)) {
+            console.log(chalk.red(`Directory "${answers.targetDir}" already exists. Please choose another`));
+            process.exit(1);
+        }
+    } else {
+        answers.targetDir = answers.name
+        if (fs.existsSync(answers.targetDir)) {
+            console.log(chalk.red(`Folder with the same name as "${answers.targetDir}" already exists. Please choose another name or directory.`));
+            process.exit(1);
+        }
     }
-    if (answers.targetDir != '.' && fs.existsSync(answers.targetDir)) {
-        console.log(chalk.red(`Directory "${answers.targetDir}" already exists. Please choose another`));
-        process.exit(0);
-    }
+    
     if (fs.existsSync(path.join(answers.targetDir, '/.git'))) {
         console.log(chalk.red(`Cannot initialize extension at '${path.resolve(answers.targetDir)}', as it already contains Git repository.`));
-        process.exit(0);
+        process.exit(1);
     }
-    prompt_answers = await inquirer.prompt(questions);
+    prompt_answers = await inquirer.prompt(extensionTypeQuestions);
     if (!contextData.partner_access_token) {
         contextData.partner_access_token = await partner_token_cmd({readOnly: true, ...args});
     }
     answers.launch_url = "http://localdev.fyndx0.de"
     answers.partner_access_token = contextData.partner_access_token;
+    answers.project_url = PROJECT_REPOS[prompt_answers.project_type];
     answers = {
         ...answers,
         ...prompt_answers
