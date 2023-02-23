@@ -6,6 +6,10 @@
   "bin": {
     "fdk": "./bin/fdk.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gofynd/fdk-cli.git"
+  },
   "files": [
     "bin",
     "dist",
