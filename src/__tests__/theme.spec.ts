@@ -284,7 +284,7 @@ describe('Theme Commands', () => {
     it('should successfully sync theme', async () => {
         await createTheme();
         const inquirerMock = mockFunction(inquirer.prompt);
-        inquirerMock.mockResolvedValue({ pullConfig: 'Yes' });
+        inquirerMock.mockResolvedValue({ pullConfig: 'Yes', themeSync: 'YES' });
         await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'sync']);
         const currentContext = getActiveContext();
         process.chdir(`../`);

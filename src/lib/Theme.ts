@@ -273,6 +273,22 @@ export default class Theme {
     private static syncTheme = async (isNew = false) => {
         try {
             const currentContext = getActiveContext();
+            const questions = [
+                {
+                    type: 'text',
+                    name: 'themeSync',
+                    message: `Do you wish to sync theme on ${chalk.blue(currentContext.domain)} of ${chalk.blue(currentContext.env)} it will be affected with the new changes type YES to move forward?`,
+                },
+            ]; {
+                await inquirer.prompt(questions).then(async answers => {
+                    if (answers.themeSync === 'YES') {
+                        Logger.success('theme syncing started');
+                    } else {
+                        Logger.warn('theme sync stopped');
+                        process.exit(1);
+                    }
+                });
+            }
             currentContext.domain
                 ? Logger.success('Syncing Theme to: ' + currentContext.domain)
                 : Logger.warn('Please add domain to context');
@@ -380,12 +396,31 @@ export default class Theme {
     };
     public static serveTheme = async options => {
         try {
+            const currentContext = getActiveContext();
             const isSSR =
                 typeof options['ssr'] === 'boolean'
                     ? options['ssr']
                     : options['ssr'] == 'true'
                     ? true
                     : false;
+            if(!isSSR){
+                const questions = [
+                    {
+                        type: 'text',
+                        name: 'themeServe',
+                        message: `Do you wish to serve theme on ${chalk.blue(currentContext.domain)} of ${chalk.blue(currentContext.env)} env it will be affected with the new changes type YES to move forward?`,
+                    },
+                ]; {
+                    await inquirer.prompt(questions).then(async answers => {
+                        if (answers.themeServe === 'YES') {
+                            Logger.success('theme serving started');
+                        } else {
+                            Logger.warn('theme serving stopped');
+                            process.exit(1);
+                        }
+                    });
+                }
+            }
             const DEFAULT_PORT = 5001;
             const serverPort =
                 typeof options['port'] === 'string'
