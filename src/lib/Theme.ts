@@ -273,21 +273,23 @@ export default class Theme {
     private static syncTheme = async (isNew = false) => {
         try {
             const currentContext = getActiveContext();
-            const questions = [
-                {
-                    type: 'text',
-                    name: 'themeSync',
-                    message: `Do you wish to sync theme on ${chalk.blue(currentContext.domain)} of ${chalk.blue(currentContext.env)} it will be affected with the new changes type YES to move forward?`,
-                },
-            ]; {
-                await inquirer.prompt(questions).then(async answers => {
-                    if (answers.themeSync === 'YES') {
-                        Logger.success('theme syncing started');
-                    } else {
-                        Logger.warn('theme sync stopped');
-                        process.exit(1);
-                    }
-                });
+            if(!isNew){
+                const questions = [
+                    {
+                        type: 'text',
+                        name: 'themeSync',
+                        message: `Do you wish to sync theme on ${chalk.blue(currentContext.domain)} of ${chalk.blue(currentContext.env)} it will be affected with the new changes type YES to move forward?`,
+                    },
+                ]; {
+                    await inquirer.prompt(questions).then(async answers => {
+                        if (answers.themeSync === 'YES') {
+                            Logger.success('theme syncing started');
+                        } else {
+                            Logger.warn('theme sync stopped');
+                            process.exit(1);
+                        }
+                    });
+                }
             }
             currentContext.domain
                 ? Logger.success('Syncing Theme to: ' + currentContext.domain)
