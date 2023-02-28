@@ -410,7 +410,7 @@ export default class Theme {
                     {
                         type: 'text',
                         name: 'themeServe',
-                        message: `Do you wish to serve theme on ${chalk.blue(currentContext.domain)} of ${chalk.blue(currentContext.env)} env it will be affected with the new changes type YES to move forward?`,
+                        message: `"fdk serve theme" with ${chalk.blue("-ssr false")} flag is not recommended. Remove this flag and try again or Type "YES" to proceed if you are really sure about it.`,
                     },
                 ]; {
                     await inquirer.prompt(questions).then(async answers => {
