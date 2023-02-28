@@ -417,7 +417,6 @@ export default class Theme {
                         if (answers.themeServe === 'YES') {
                             Logger.success('theme serving started');
                         } else {
-                            Logger.warn('theme serving stopped');
                             process.exit(1);
                         }
                     });
