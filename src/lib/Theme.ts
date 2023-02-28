@@ -285,7 +285,7 @@ export default class Theme {
                         if (answers.themeSync === 'YES') {
                             Logger.warn('Theme sync started');
                         } else {
-                            Logger.warn('theme sync stopped');
+                            Logger.warn('Theme sync terminated');
                             process.exit(1);
                         }
                     });
