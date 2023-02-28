@@ -283,7 +283,7 @@ export default class Theme {
                 ]; {
                     await inquirer.prompt(questions).then(async answers => {
                         if (answers.themeSync === 'YES') {
-                            Logger.success('theme syncing started');
+                            Logger.warn('Theme sync started');
                         } else {
                             Logger.warn('theme sync stopped');
                             process.exit(1);
