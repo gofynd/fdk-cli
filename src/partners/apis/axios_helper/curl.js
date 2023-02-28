@@ -9,7 +9,9 @@ function curlInterceptorHelper() {
             const curl = new CurlHelper(request);
 
             console.log(chalk.blue('************** CURL **************'));
-            console.log(chalk.blue(`METHOD: ${request?.method.toUpperCase()} | PATH: ${request?.url}`));
+            if (request.method && request.url) {     
+                console.log(chalk.blue(`METHOD: ${request.method.toUpperCase()} | PATH: ${request.url}`));
+            }
             console.log(chalk.blue(curl.generateCommand()));
             console.log(chalk.blue('************** END OF CURL **************'));
             console.log('\n');
