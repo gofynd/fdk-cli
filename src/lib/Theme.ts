@@ -278,7 +278,7 @@ export default class Theme {
                     {
                         type: 'text',
                         name: 'themeSync',
-                        message: `Do you wish to sync theme on ${chalk.blue(currentContext.domain)} of ${chalk.blue(currentContext.env)} it will be affected with the new changes type YES to move forward?`,
+                        message: `Are you sure? Your local changes will be pushed on ${chalk.blue(currentContext.domain)} of ${chalk.blue(currentContext.env)} environment. Please type "YES" to proceed.`,
                     },
                 ]; {
                     await inquirer.prompt(questions).then(async answers => {
