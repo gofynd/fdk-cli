@@ -436,7 +436,6 @@ export default class Theme {
                         `PORT: ${serverPort} is busy, Switching to PORT: ${port}`
                     )
                 );
-            !isSSR ? Logger.warn('Disabling SSR') : null;
             let { data: appInfo } = await ConfigurationService.getApplicationDetails();
             let domain = Array.isArray(appInfo.domains)
                 ? `https://${appInfo.domains.filter(d => d.is_primary)[0].name}`
