@@ -410,7 +410,7 @@ export default class Theme {
                     {
                         type: 'text',
                         name: 'themeServe',
-                        message: `"fdk serve theme" with ${chalk.blue("-ssr false")} flag is not recommended. Remove this flag and try again or Type "YES" to proceed if you are really sure about it.`,
+                        message: `"fdk theme serve" with ${chalk.blue("-ssr false")} flag is not recommended. Remove this flag and try again or Type "YES" to proceed if you are really sure about it.`,
                     },
                 ]; {
                     await inquirer.prompt(questions).then(async answers => {
