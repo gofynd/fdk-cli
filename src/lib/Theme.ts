@@ -415,7 +415,7 @@ export default class Theme {
                 ]; {
                     await inquirer.prompt(questions).then(async answers => {
                         if (answers.themeServe === 'YES') {
-                            Logger.success('theme serving started');
+                            Logger.success('[Not recommended] SSR is disabled.');
                         } else {
                             process.exit(1);
                         }
