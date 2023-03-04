@@ -1,14 +1,10 @@
-import path from 'path';
-import {  readFile } from '../../../helper/file.utils';
+const packageJSON = require('../../../../package.json');
 
-let filepath = path.join(process.cwd(), 'package.json');
 export const getCommonHeaderOptions = () => {
-    let packageContent: any = readFile(filepath);
-    let content = JSON.parse(packageContent) || {};
     return {
         headers: {
             'Content-Type': 'application/json',
-            'x-fp-cli': `${content.version}`,
+            'x-fp-cli': `${packageJSON.version}`,
         }
     };
 };
