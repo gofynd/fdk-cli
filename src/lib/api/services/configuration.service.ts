@@ -3,6 +3,7 @@ import { consolidateErrorMessage } from '../../../helper/error.utils';
 import ApiClient from '../ApiClient';
 import { URLS } from './url';
 import { getCommonHeaderOptions } from './utils';
+import CommandError from '../../CommandError';
 
 export default {
   getApplicationDetails: async (data?) => {
@@ -16,6 +17,7 @@ export default {
       return res;
     } catch (error) {
       consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw new CommandError(error?.response?.data?.message, error?.code);
     }
   },
 };
