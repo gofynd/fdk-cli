@@ -6,6 +6,8 @@ import configStore, { CONFIG_KEYS } from '../lib/Config';
 import mockFunction from './helper';
 import { setEnv } from './helper';
 import { init } from '../fdk';
+import { getCommonHeaderOptions } from "../lib/api/services/utils";
+const packageJSON = require('../../package.json');
 const data = require('./fixtures/email-login.json');
 const mobileData = require('./fixtures/mobile-login.json');
 
@@ -28,6 +30,11 @@ describe('Auth Commands', () => {
 
     afterAll(() => {
         configStore.clear();
+    });
+    it('should successfuly get headers', async () => {
+        const res = getCommonHeaderOptions();
+        const headers = { 'Content-Type': 'application/json', 'x-fp-cli': `${packageJSON.version}`, }
+        expect(res.headers).toMatchObject(headers);
     });
     it('should successfully login user with email', async () => {
         const inquirerMock = mockFunction(inquirer.prompt);
