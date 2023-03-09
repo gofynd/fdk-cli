@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import Debug from '../Debug';
 import { ErrorCodes } from '../CommandError';
 import { transformRequestOptions } from './../../helper/utils';
@@ -8,30 +8,25 @@ axios.defaults.withCredentials = true;
 axios.defaults.timeout = 300000; // 5 minute
 
 // Axios Interceptors
-axios.interceptors.request.use(addSignatureFn({}));
-axios.interceptors.response.use(
-  function (response) {
-    Debug('************** CURL **************');
-    Debug(
-      `METHOD: ${response?.config?.method} | PATH: ${response?.request?.path} | CODE: ${response?.status}`
-    );
-    //log curl request incase of debug
-    const curl = new Curl(response.config);
-    Debug(curl.generateCommand());
-    Debug('************** END OF CURL **************');
-    Debug('\n')
-    return response;
+axios.interceptors.request.use(
+  function (request: AxiosRequestConfig) {
+    try {
+      //log curl request incase of debug
+      const curl = new Curl(request);
+
+      Debug('************** CURL **************');
+      Debug(`METHOD: ${request?.method.toUpperCase()} | PATH: ${request?.url}`);
+      Debug(curl.generateCommand());
+      Debug('************** END OF CURL **************');
+      Debug('\n')
+
+    } catch (error) {
+      Debug(`Error Generating Curl: ${error}`);
+    } finally {
+      return request;
+    }
   },
-  function (error) {
-    Debug('************** CURL **************');
-    Debug(
-        `METHOD: ${error?.config?.method} | PATH: ${error?.request?.path} | CODE: ${error?.response?.status}`
-    );
-    //log curl request incase of debug
-    const curl = new Curl(error.config);
-    Debug(curl.generateCommand());
-    Debug('************** END OF CURL **************');
-    Debug('\n')
+  function (error: AxiosError) {
     if (error.response?.data?.error) {
       error.message = error.response.data.error;
     } else if (error.response?.data?.message) {
@@ -41,6 +36,7 @@ axios.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+axios.interceptors.request.use(addSignatureFn({}));
 
 let axiosMisc = axios.create({
   withCredentials: false,
