@@ -121,7 +121,7 @@ export default class Extension {
   }
 
   // wrapper function for installing dependencies in extension
-  private static async installDependencies(answers: Object): Promise<void> {
+  static async installDependencies(answers: Object): Promise<void> {
     let project_type = answers.project_type
     if (project_type === NODE_VUE || project_type === NODE_REACT) {
         // installing dependencies for Node projects

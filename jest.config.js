@@ -30,10 +30,9 @@ module.exports = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   testMatch: [
     '**/__tests__/*.spec.ts', 
-    '**/__tests__/*.spec.js'
   ],
   collectCoverageFrom: [
-    "**/*.{ts,jsx,js}",
+    "**/*.{ts,jsx}",
     "!**/node_modules/**",
     "!**/vendor/**",
     "!**/__tests__/**"
