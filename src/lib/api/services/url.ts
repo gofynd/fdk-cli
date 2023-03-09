@@ -14,6 +14,7 @@ const AUTH_URL = () => getBaseURL() + '/service/panel/authentication/v' + apiVer
 const CONFIGURATION_URL = () => getBaseURL() + '/service/platform/configuration/v' + apiVersion;
 const ASSET_URL = () => getBaseURL() + '/service/platform/assets/v' + apiVersion;
 const MIXMASTER_PLTM_URL = () => getBaseURL() + '/service/platform/partners/v' + apiVersion;
+const MIXMASTER_PANEL_URL = () => getBaseURL() + '/service/panel/partners/v' + apiVersion;
 
 export const URLS = {
     // AUTHENTICATION
@@ -98,4 +99,19 @@ export const URLS = {
     SETUP_COMPANY: (company_id: number) => {
         return urlJoin(MIXMASTER_PLTM_URL(), `/company/${company_id}/setup`);
     },
+
+
+    // Extension
+    REGISTER_EXTENSION: (): string => {
+        return urlJoin(MIXMASTER_PANEL_URL(), `/extensions/`)
+    },
+    GET_EXTENSION_DETAILS: (extension_api_key: string): string => {
+        return urlJoin(MIXMASTER_PANEL_URL(), `/extensions/details/${extension_api_key}`);
+    },
+    UPDATE_EXTENSION_DETAILS: (extension_api_key: string): string => {
+        return urlJoin(MIXMASTER_PANEL_URL(), `/extensions/${extension_api_key}`);
+    },
+    GET_ORGANIZATION_DATA: (partner_access_token: string): string => {
+        return urlJoin(MIXMASTER_PANEL_URL(), `/accesstoken/${partner_access_token}/organization`);
+    }
 };
