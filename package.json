@@ -96,7 +96,7 @@
     "password-validator": "^5.1.1",
     "query-string": "^7.1.0",
     "require-from-string": "^2.0.2",
-    "rimraf": "^4.3.1",
+    "rimraf": "^3.0.2",
     "semver": "^6.3.0",
     "shortid": "^2.2.16",
     "simple-git": "^3.15.0",
