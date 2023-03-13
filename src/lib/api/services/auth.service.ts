@@ -13,7 +13,6 @@ export default {
                 },
                 getCommonHeaderOptions()
             );
-            console.log("headers",getCommonHeaderOptions())
             const res = await ApiClient.post(URLS.LOGIN_USER(), axiosOption);
             return res;
         } catch(error) {
