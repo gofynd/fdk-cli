@@ -3,6 +3,11 @@ const { getMixmasterUrl } = require('./apiUrl');
 const chalk = require('chalk');
 const { logger } = require('./../utils/logger');
 const { normalizeError } = require('../utils/error.util');
+const { curlInterceptorHelper } = require('./axios_helper/curl');
+
+if (process.argv.includes("--verbose")) {
+  axios.interceptors.response.use(curlInterceptorHelper());
+}
 
 const registerExtension = async (host, token, extension_name, extension_type, verbose = false) => {
   const mixmaster = getMixmasterUrl(host);
