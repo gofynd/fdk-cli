@@ -366,6 +366,12 @@ fdk theme open
 ### Extension Commands
 Extensions are pluggable snippets of code that can be installed in your applications so improve the feature set of your application. To know more visit - [Fynd Partners](https://partners.fynd.com/)
 
+Set the active environment before running extension commands
+```sh
+fdk env set -n fynd
+```
+
+
 <div id="extension-init"></div>
 
 #### **init**
@@ -378,16 +384,16 @@ fdk extension init [options]
 | Option        | Description           | 
 | ------------- |-------------| 
 | --target-dir    | Target Directory |
-| --host    | Host |
 | --help    | Show help |
 | --verbose | enable debug mode |
 
 #### **Example**
 ```sh
-fdk extension init --target-dir [your-directory] --host [your_host]
+fdk extension init --target-dir [your-directory]
 ```
 ___
 <div id="extension-setup"></div>
+
 #### **setup**
 This command is used to setup extension's development environment in local machine with required dependecies created on [Fynd Partners](https://partners.fynd.com/) panel.
 #### ****Syntax****
@@ -399,13 +405,12 @@ fdk extension setup [options]
 | Option        | Description           | 
 | ------------- |-------------| 
 | --target-dir    | Target Directory |
-| --host    | Host |
 | --help    | Show help |
 | --verbose | enable debug mode |
 
 #### **Example**
 ```sh
-fdk extension setup --target-dir [your-directory] --host [your_host]
+fdk extension setup --target-dir [your-directory]
 ```
 ___
 <div id="extension-launch-url"></div>
@@ -421,18 +426,17 @@ fdk extension launch-url get/set [options]
 | ------------- |-------------| 
 | --url | URL to be set |
 | --api_key    | Extension ID |
-| --host    | Host |
 | --help    | Show help |
 | --verbose | enable debug mode |
 
 #### **Set Launch URL Example**
 ```sh
-fdk extension launch-url set --url [url] --api_key [extension ID] --host [your_host]
+fdk extension launch-url set --url [url] --api_key [extension ID]
 ```
 
 #### **Get Launch URL Example**
 ```sh
-fdk extension launch-url get --api_key [extension id] --host [your_host]
+fdk extension launch-url get --api_key [extension id]
 ```
 ___
 ### Partner Commands
@@ -448,13 +452,12 @@ fdk partner connect [options]
 #### **Command Options**
 | Option        | Description           | 
 | ------------- |-------------| 
-| --host    | Host |
 | --help    | Show help |
 | --verbose, -v | enable debug mode |
 
 #### **Example**
 ```sh
-fdk partner connect --host [your_host]
+fdk partner connect
 ```
 ___
 
