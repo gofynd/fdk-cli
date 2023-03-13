@@ -6,6 +6,8 @@ import { getCommonHeaderOptions } from './utils';
 import fs from 'fs-extra';
 import path from 'path';
 import mime from 'mime';
+import CommandError from '../../CommandError';
+
 export default {
   startUpload: async (data, namespace) => {
     try {
@@ -24,6 +26,7 @@ export default {
       return res;
     } catch (error) {
       consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw new CommandError(error?.response?.data?.message, error?.code);
     }
   },
   uploadFile: async (filepath, namespace, file_name = null) => {
@@ -97,6 +100,7 @@ export default {
       };
     } catch(error) {
       consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw new CommandError(error?.response?.data?.message, error?.code);
     }
   }
 };

@@ -3,6 +3,7 @@ import { consolidateErrorMessage } from '../../../helper/error.utils';
 import ApiClient from '../ApiClient';
 import { URLS } from './url';
 import { getCommonHeaderOptions } from './utils';
+import CommandError from '../../CommandError';
 
 export default {
   createTheme: async data => {
@@ -18,6 +19,7 @@ export default {
       return res;
     } catch (error) {
       consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw new CommandError(error?.response?.data?.message, error?.code);
     }
   },
   getThemeById: async data => {
@@ -35,6 +37,7 @@ export default {
       return res;
     } catch (error) {
       consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw new CommandError(error?.response?.data?.message, error?.code);
     }
   },
   updateTheme: async data => {
@@ -58,6 +61,7 @@ export default {
       return res;
     } catch (error) {
       consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw new CommandError(error?.response?.data?.message, error?.code);
     }
   },
   deleteThemeById: async data => {
@@ -75,6 +79,7 @@ export default {
       return res;
     } catch (error) {
       consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw new CommandError(error?.response?.data?.message, error?.code);
     }
   },
 
@@ -94,6 +99,7 @@ export default {
       return res;
     } catch (error) {
       consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw new CommandError(error?.response?.data?.message, error?.code);
     }
   },
   getAllAvailablePage: async() => {
@@ -110,6 +116,7 @@ export default {
       );
     } catch (error) {
       consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw new CommandError(error?.response?.data?.message, error?.code);
     }
   },
   createAvailabePage: async data => {
@@ -133,6 +140,7 @@ export default {
       return res;
     } catch (error) {
       consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw new CommandError(error?.response?.data?.message, error?.code);
     }
   },
   deleteAvailablePage: async pageValue => {
@@ -153,6 +161,7 @@ export default {
       );
     } catch (error) {
       consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw new CommandError(error?.response?.data?.message, error?.code);
     }
   },
   updateAvailablePage: async data => {
@@ -177,6 +186,7 @@ export default {
       return res;
     } catch (error) {
       consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw new CommandError(error?.response?.data?.message, error?.code);
     }
   },
   updateAllAvailablePages: async data => {
@@ -197,6 +207,7 @@ export default {
       );
     } catch (error) {
       consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw new CommandError(error?.response?.data?.message, error?.code);
     }
   },
   publishTheme: async () => {
@@ -217,6 +228,7 @@ export default {
       return res;
     } catch (error) {
       consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw new CommandError(error?.response?.data?.message, error?.code);
     }
   },
   unPublishTheme: async () => {
@@ -237,6 +249,7 @@ export default {
       return res;
     } catch (error) {
       consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw new CommandError(error?.response?.data?.message, error?.code);
     }
   },
 };

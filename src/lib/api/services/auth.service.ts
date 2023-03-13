@@ -2,6 +2,7 @@ import ApiClient from "../ApiClient";
 import { URLS } from './url'
 import { getCommonHeaderOptions } from "./utils";
 import { consolidateErrorMessage } from "../../../helper/error.utils";
+import CommandError from "../../CommandError";
 
 export default {
     loginUserWithEmailAndPassword: async (data) => {
@@ -13,10 +14,12 @@ export default {
                 },
                 getCommonHeaderOptions()
             );
+            console.log("headers",getCommonHeaderOptions())
             const res = await ApiClient.post(URLS.LOGIN_USER(), axiosOption);
             return res;
         } catch(error) {
             consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+            throw new CommandError(error?.response?.data?.message, error?.code);
         }
     },
     sendMobileOtp: async (data) => {
@@ -32,6 +35,7 @@ export default {
             return res;
         } catch(error) {
             consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+            throw new CommandError(error?.response?.data?.message, error?.code);
         }
     },
     verifyMobileOtp: async (data) => {
@@ -47,6 +51,7 @@ export default {
             return res;
         } catch(error) {
             consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+            throw new CommandError(error?.response?.data?.message, error?.code);
         }
     },
     getOauthToken: async (company_id) => {
@@ -59,6 +64,7 @@ export default {
             return res;
         } catch(error) {
             consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+            throw new CommandError(error?.response?.data?.message, error?.code);
         }
     }
 }
