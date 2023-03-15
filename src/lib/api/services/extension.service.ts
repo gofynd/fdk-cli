@@ -25,6 +25,7 @@ export default {
           data: data
         },
         {
+          timeout: 3000,
           headers: headers
         }
       )
@@ -32,7 +33,7 @@ export default {
       return response.data;
 
     } catch(error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path, false);
     }
   },
 
@@ -44,11 +45,11 @@ export default {
       let headers = getCommonHeaderOptions().headers;
       headers['Authorization'] = `Bearer ${authorizationToken}`;
     
-      let response = await ApiClient.get(URLS.GET_EXTENSION_DETAILS(extension_api_key), {headers: headers});
+      let response = await ApiClient.get(URLS.GET_EXTENSION_DETAILS(extension_api_key), {headers: headers, timeout: 3000});
       return response.data;
 
     } catch(error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path, false);
     }
   },
 
@@ -58,11 +59,11 @@ export default {
       let headers = getCommonHeaderOptions().headers;
       headers['x-partner-token'] = partner_access_token;
 
-      let response = await ApiClient.get(URLS.GET_EXTENSION_DETAILS(extension_api_key), {headers: headers});
+      let response = await ApiClient.get(URLS.GET_EXTENSION_DETAILS(extension_api_key), {headers: headers, timeout: 3000});
       return response.data;
       
     } catch(error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path, false);
     }
   },
 
@@ -78,6 +79,7 @@ export default {
           data: data
         },
         {
+          timeout: 3000,
           headers: headers
         }
       )
@@ -86,7 +88,7 @@ export default {
       return response.data;
 
     } catch(error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path, false);
     }
 
   },
@@ -97,11 +99,11 @@ export default {
       let headers = getCommonHeaderOptions().headers;
       headers['x-partner-token'] = partner_access_token;
       
-      let response = await ApiClient.get(URLS.GET_ORGANIZATION_DATA(partner_access_token), {headers: headers});
+      let response = await ApiClient.get(URLS.GET_ORGANIZATION_DATA(partner_access_token), {headers: headers, timeout: 3000});
       return response.data;
 
     } catch(error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path, false);
     }
   }
 }

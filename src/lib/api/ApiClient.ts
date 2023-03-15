@@ -57,6 +57,7 @@ let engine: ApiEngine = {
     return axios.head(url, {
       headers: opt.headers,
       params: opt.params,
+      timeout: opt.timeout || 0,
       paramsSerializer: params => {
         return transformRequestOptions(params);
       },
@@ -66,6 +67,7 @@ let engine: ApiEngine = {
     return axios.get(url, {
       params: opt.params,
       headers: opt.headers,
+      timeout: opt.timeout || 0,
       paramsSerializer: params => {
         return transformRequestOptions(params);
       },
@@ -74,24 +76,28 @@ let engine: ApiEngine = {
   },
   post: function (url, opt = {}) {
     return axios.post(url, opt.data, {
+      timeout : opt.timeout || 0,
       headers: opt.headers,
       params: opt.params,
     });
   },
   put: function (url, opt = {}) {
     return axios.put(url, opt.data, {
+      timeout: opt.timeout || 0,
       headers: opt.headers,
       params: opt.params,
     });
   },
   patch: function (url, opt = {}) {
     return axios.patch(url, opt.data, {
+      timeout: opt.timeout || 0,
       headers: opt.headers,
       params: opt.params,
     });
   },
   del: function (url, opt = {}) {
     return axios.delete(url, {
+      timeout: opt.timeout || 0,
       data: opt.data,
       headers: opt.headers,
       params: opt.params,
@@ -99,6 +105,7 @@ let engine: ApiEngine = {
   },
   getMisc: function (url, opt = {}) {
     return axiosMisc.get(url, {
+      timeout: opt.timeout || 0,
       params: opt.params,
       headers: opt.headers,
       paramsSerializer: params => {
@@ -107,7 +114,7 @@ let engine: ApiEngine = {
     });
   },
   postMisc: function (url, opt = {}) {
-    return axiosMisc.post(url, opt.data, { headers: opt.headers });
+    return axiosMisc.post(url, opt.data, { headers: opt.headers, timeout: opt.timeout || 0 });
   },
 };
 
