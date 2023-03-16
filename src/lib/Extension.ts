@@ -331,7 +331,7 @@ export default class Extension {
     let prompt_answers: Object = await inquirer.prompt(extensionTypeQuestions);
 
     if (!contextData.partner_access_token) {
-      contextData.partner_access_token = await Partner.connectHandler({readOnly: true, ...options});
+      contextData.partner_access_token = (await Partner.connectHandler({readOnly: true, ...options})).partner_access_token;
     }
 
     answers.launch_url = "http://localdev.fyndx0.de"

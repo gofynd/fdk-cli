@@ -1,6 +1,7 @@
 import { Command } from "commander";
 import Extension from "../../lib/Extension";
 import ExtensionLaunchURL from "../../lib/ExtensionLaunchURL";
+import ExtensionPreviewURL from "../../lib/ExtensionPreviewURL";
 
 
 export default function extensionCommandBuilder() {
@@ -19,6 +20,14 @@ export default function extensionCommandBuilder() {
         .option('--target-dir <path>', 'Target directory for creating extension repository')
         .option('--context-name <name>', 'Context name')
         .asyncAction(Extension.setupExtensionHandler);
+
+    extension
+        .command('preview-url')
+        .description('Get extension preview url to launch the extension')
+        .requiredOption('--port <port>', 'port on which extension is running')
+        .option('--company-id <id>', 'Company ID')
+        .option('--update-authtoken', 'Update Ngrok Authtoken')
+        .asyncAction(ExtensionPreviewURL.previewUrlExtensionHandler);
 
 
     const launch_url = new Command('launch-url').description('launch url commands');

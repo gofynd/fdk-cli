@@ -22,7 +22,7 @@ export default class ExtensionLaunchURL {
     } catch(err) {}
 
     if (!contextData.partner_access_token) {
-      contextData.partner_access_token = await Partner.connectHandler({readOnly: true, ...options});
+      contextData.partner_access_token = (await Partner.connectHandler({readOnly: true, ...options})).partner_access_token;
     }
 
     let ctx = {
@@ -33,33 +33,44 @@ export default class ExtensionLaunchURL {
       verbose: options.verbose
     }
 
-    let manualUpdateRequired = false;
+    ExtensionLaunchURL.updateLaunchURL(ctx.extension_id, ctx.token, ctx.launch_url);
+  }
+
+  public static async updateLaunchURL(extension_api_key: string, partner_access_token: string, launch_url: string): Promise<void> {
     try {
+      let manualUpdateRequired = false;
+      await new Listr([{
+        title: 'Updating Launch URL',
+        task: async () => {
+          await ExtensionService.updateLaunchURL(
+            extension_api_key,
+            partner_access_token,
+            { base_url: launch_url }
+          )
 
-      await new Listr([
-        {
-          title: 'Updating Launch URL',
-          task: async () => {
-            await ExtensionService.updateLaunchURL(
-              ctx.extension_id,
-              ctx.token,
-              { base_url: ctx.launch_url }
-            )
+          if (fs.existsSync('./.env')) {
+            // update launch url in .env file for python/node projects
+            let envData = readFile('./.env');
+            envData = replaceContent(envData, `EXTENSION_BASE_URL=.*[\n]`, `EXTENSION_BASE_URL="${launch_url}"\n`);
+            writeFile('./.env', envData);
 
-            if (fs.existsSync('./.env')) {
-              let envData = readFile('./.env');
-              envData = replaceContent(envData, `EXTENSION_BASE_URL=.*[\n]`, `EXTENSION_BASE_URL="${ctx.launch_url}"\n`);
-              writeFile('./.env', envData);
-            } else {
-              manualUpdateRequired = true;
-            }
+          } else if (fs.existsSync('./src/main/resources/application.yml')) {
+            // update launch url in application.yml file for java projects
+            let ymlData = readFile('./src/main/resources/application.yml');
+            ymlData = replaceContent(ymlData, `base_url :.*[\n]`, `base_url : "${launch_url}"\n`);
+            writeFile('./src/main/resources/application.yml', ymlData);
+
+          } else {
+            manualUpdateRequired = true;
           }
         }
-      ]).run();
-      console.log(chalk.greenBright(`Launch url set successfully ${manualUpdateRequired? '. Please update launch url in your code.': ''}`));
-      
+      }]).run()
+
+      console.log(chalk.greenBright(`Launch url set successfully${manualUpdateRequired? '. Please update launch url in your code.': ''}`));
+
     } catch(error) {
       console.log(chalk.red(error.message));
+      process.exit(1);
     }
   }
 
@@ -72,7 +83,7 @@ export default class ExtensionLaunchURL {
     } catch(err) {}
 
     if (!contextData.partner_access_token) {
-      contextData.partner_access_token = await Partner.connectHandler({readOnly: true, ...options});
+      contextData.partner_access_token = (await Partner.connectHandler({readOnly: true, ...options})).partner_access_token;
     }
 
     

@@ -3,6 +3,7 @@ const packageJSON = require('../../package.json');
 
 export const CONFIG_KEYS = {
     CURRENT_ENV: 'current_env',
+    NGROK_AUTHTOKEN: 'ngrok_authtoken',
     CURRENT_ENV_VALUE: 'current_env.value',
     USER:'current_env.user',
     API_VERSION: 'api_version',

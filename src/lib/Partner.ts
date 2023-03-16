@@ -21,7 +21,7 @@ export default class Partner {
     catch (err) { }
 
     let answers: Object;
-    let organizationInfo: Object;
+    let organizationInfo: any;
 
     try {
       answers = await inquirer.prompt([{
@@ -40,6 +40,7 @@ export default class Partner {
           title: 'Verifying Access Token',
           task: async ctx => {            
             organizationInfo = await ExtensionService.getOrganizationData(answers.partner_access_token);
+            organizationInfo.partner_access_token = answers.partner_access_token
           }
         }
       ]).run();
@@ -57,6 +58,6 @@ export default class Partner {
       console.log(chalk.red(error.message));
       process.exit(1);
     }
-    return contextData.partner_access_token;
+    return organizationInfo;
   }
 }
