@@ -13,12 +13,10 @@ import Partner from "./Partner";
 import ExtensionService from "./api/services/extension.service"
 
 import { 
-  getActiveContext, 
-  getDefaultContextData, 
   Object,
   validateEmpty,
-  writeContextData,
-  replaceContent
+  replaceContent,
+  getPartnerAccessToken
 } from '../helper/extension_utils';
 
 import { 
@@ -26,6 +24,7 @@ import {
   writeFile, 
   readFile 
 } from "../helper/file.utils";
+import configStore, { CONFIG_KEYS } from "./Config";
 
 export const NODE_VUE = 'Node + Vue.js'
 export const NODE_REACT = 'Node + React.js'
@@ -154,38 +153,16 @@ export default class Extension {
           task: async (ctx) => {
             await Extension.copyTemplateFiles(targetDir, answers);
             ctx.partner_access_token = answers.partner_access_token;
-            ctx.host = answers.host;
             ctx.extensionData = {
               name: answers.name,
               targetDir: targetDir,
-              host: answers.host
             }
           }
         },
         {
-          title: "Storing context",
+          title: "Storing Partner Access Token",
           task: async (ctx) => {
-            let contextData = getDefaultContextData();
-            if(!fs.existsSync(path.join(targetDir, '.fdk'))) {
-              createDirectory(path.join(targetDir, '.fdk'));
-              writeFile(
-                path.join(targetDir, '.fdk', 'context.json'),
-                JSON.stringify(contextData, undefined, 2)
-              );
-            }
-
-            answers.contextName = answers.contextName || 'default';
-            const contextObj = {
-              partner_access_token: ctx.partner_access_token,
-              host: answers.host,
-            }
-
-            writeContextData(
-              answers.contextName, 
-              contextObj, 
-              path.join(targetDir, '.fdk', 'context.json'), 
-              true
-            );
+            configStore.set(CONFIG_KEYS.PARTNER_ACCESS_TOKEN, ctx.partner_access_token);
           }
         }
       )
@@ -249,17 +226,9 @@ export default class Extension {
 
   // command handler for "extension init"
   public static async initExtensionHandler(options: Object) {
-    let contextData = getDefaultContextData().partners.contexts.default;
+    let partner_access_token = getPartnerAccessToken();
 
-    try {
-      contextData = getActiveContext(true);
-    }
-    catch(err) {}
-
-    let answers: Object = {
-      host: options.host || contextData.host,
-      verbose: options.verbose
-    }
+    let answers: Object = {};
 
     await inquirer.prompt([{
         type: 'input',
@@ -326,16 +295,16 @@ export default class Extension {
         when: Extension.checkForVue,
         validate: validateEmpty
       }
-  ];
+    ];
 
     let prompt_answers: Object = await inquirer.prompt(extensionTypeQuestions);
 
-    if (!contextData.partner_access_token) {
-      contextData.partner_access_token = (await Partner.connectHandler({readOnly: true, ...options})).partner_access_token;
+    if (!partner_access_token) {
+      partner_access_token = (await Partner.connectHandler({readOnly: true, ...options})).partner_access_token;
     }
 
     answers.launch_url = "http://localdev.fyndx0.de"
-    answers.partner_access_token = contextData.partner_access_token;
+    answers.partner_access_token = partner_access_token;
     answers.project_url = PROJECT_REPOS[prompt_answers.project_type];
     answers = {
       ...answers,
@@ -348,17 +317,7 @@ export default class Extension {
 
   // command handler for "extension setup"
   public static async setupExtensionHandler(options) {
-    let contextData = getDefaultContextData().partners.contexts.default;
-
-    try {
-      contextData = getActiveContext(true);
-    } catch(err) {}
-
-    let answers: Object = {
-      host: options.host || contextData.host,
-      verbose: options.verbose
-    }
-
+    let answers: Object;
 
     let questions = [
       {

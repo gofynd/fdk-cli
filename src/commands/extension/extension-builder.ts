@@ -24,7 +24,8 @@ export default function extensionCommandBuilder() {
     extension
         .command('preview-url')
         .description('Get extension preview url to launch the extension')
-        .requiredOption('--port <port>', 'port on which extension is running')
+        .requiredOption('-p, --port <port>', 'port on which extension is running')
+        .option('--api-key <api-key>', 'Extension API Key')
         .option('--company-id <id>', 'Company ID')
         .option('--update-authtoken', 'Update Ngrok Authtoken')
         .asyncAction(ExtensionPreviewURL.previewUrlExtensionHandler);

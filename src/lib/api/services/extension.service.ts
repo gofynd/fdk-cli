@@ -100,6 +100,7 @@ export default {
       headers['x-partner-token'] = partner_access_token;
       
       let response = await ApiClient.get(URLS.GET_ORGANIZATION_DATA(partner_access_token), {headers: headers, timeout: 3000});
+      response.data.partner_access_token = partner_access_token
       return response.data;
 
     } catch(error) {

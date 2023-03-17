@@ -1,8 +1,13 @@
 import { readFile, writeFile } from './file.utils';
 import _ from 'lodash';
+import configStore, { CONFIG_KEYS } from '../lib/Config';
 
 export interface Object   {
   [key: string]: any;
+}
+
+export const getPartnerAccessToken = (): string => {
+  return configStore.get(CONFIG_KEYS.PARTNER_ACCESS_TOKEN);
 }
 
 export const getDefaultContextData = (): Object => {

@@ -2,24 +2,16 @@ import chalk from 'chalk';
 import inquirer from 'inquirer';
 import Listr from 'listr';
 
+import configStore, { CONFIG_KEYS } from './Config'; 
 import ExtensionService from './api/services/extension.service';
 import { 
-  getActiveContext, 
-  getDefaultContextData, 
   Object,
   validateEmpty,
-  writeContextData
 } from '../helper/extension_utils'
 
 export default class Partner {
 
   public static async connectHandler(options: Object) {
-    let contextData = getDefaultContextData().partners.contexts.default;
-    try {
-      contextData = getActiveContext(true);
-    }
-    catch (err) { }
-
     let answers: Object;
     let organizationInfo: any;
 
@@ -31,16 +23,11 @@ export default class Partner {
         validate: validateEmpty
       }])
 
-      contextData.partner_access_token = answers.partner_access_token;
-      let host = options.host || contextData.host;
-      contextData.host = host;
-
       await new Listr([
         {
           title: 'Verifying Access Token',
-          task: async ctx => {            
+          task: async () => {            
             organizationInfo = await ExtensionService.getOrganizationData(answers.partner_access_token);
-            organizationInfo.partner_access_token = answers.partner_access_token
           }
         }
       ]).run();
@@ -50,7 +37,7 @@ export default class Partner {
         process.exit(1);
       }
       if (!options.readOnly) {
-        writeContextData(contextData.name, contextData, `./.fdk/context.json`, true);
+        configStore.set(CONFIG_KEYS.PARTNER_ACCESS_TOKEN, answers.partner_access_token);
         console.log(chalk.green('Updated partner token'));
       }
 

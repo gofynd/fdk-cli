@@ -12,16 +12,17 @@ import configStore, { CONFIG_KEYS } from "./Config";
 import ExtensionLaunchURL from "./ExtensionLaunchURL";
 import ExtensionService from "./api/services/extension.service";
 import {
+  getPartnerAccessToken,
   Object,
   validateEmpty,
 } from '../helper/extension_utils'
 import Listr from "listr";
 
 export default class ExtensionPreviewURL {
-  extension_api_key: string;
   organizationInfo: Object;
   publicNgrokURL: string;
   options: Object;
+  firstTunnelConnection: boolean = true;
 
   // command handler for "extension preview-url"
   public static async previewUrlExtensionHandler(options) {
@@ -32,12 +33,15 @@ export default class ExtensionPreviewURL {
     extension.options = options;
 
     // get the companyId
+    extension.organizationInfo = await extension.getOrganizationInfo();
     if (!extension.options.companyId) {
       extension.options.companyId = await extension.getCompanyId();
     }
 
     // get the extension api key
-    extension.extension_api_key = await extension.promptExtensionApiKey();
+    if (!extension.options.apiKey) {
+      extension.options.apiKey = await extension.promptExtensionApiKey();
+    }
     
 
     // start Ngrok tunnel
@@ -52,7 +56,7 @@ export default class ExtensionPreviewURL {
 
     // update launch url on partners panel
     await ExtensionLaunchURL.updateLaunchURL(
-      extension.extension_api_key, 
+      extension.options.apiKey,
       extension.organizationInfo.partner_access_token,
       extension.publicNgrokURL
     )  
@@ -80,12 +84,20 @@ export default class ExtensionPreviewURL {
 
   private getPreviewURL() {
     let baseURL = getBaseURL().replace('api', 'platform');
-    return urljoin(baseURL, `/company/${this.options.companyId}`, `/extensions/${this.extension_api_key}`);
+    return urljoin(baseURL, `/company/${this.options.companyId}`, `/extensions/${this.options.apiKey}`);
+  }
+
+  private async getOrganizationInfo() {
+    let partner_access_token = getPartnerAccessToken();
+    if (partner_access_token) {
+      return await ExtensionService.getOrganizationData(partner_access_token);
+    } else {
+      return await Partner.connectHandler({readOnly: true, ...this.options});
+    }
   }
 
 
   private async getCompanyId() {
-    this.organizationInfo = await Partner.connectHandler({readOnly: true, ...this.options});
     let developmentCompanyData = await ExtensionService.getDevelopmentAccounts(this.organizationInfo.id, 1, 9999);
 
     let choices = [];
@@ -126,11 +138,15 @@ export default class ExtensionPreviewURL {
   }
   
   private async connectedTunnelHandler() {
-    Debug("Ngrok tunnel Connected");
+    if (this.firstTunnelConnection) {
+      this.firstTunnelConnection = false;
+      return;
+    }
+    console.log(chalk.gray("Ngrok tunnel Reconnected"));
   }
   
   private async closedTunnelHandler() {
-    Debug("Ngrok tunnel Closed");
+    console.log(chalk.red("Ngrok tunnel Closed"));
   }
 
   private async promptExtensionApiKey(): Promise<string> {

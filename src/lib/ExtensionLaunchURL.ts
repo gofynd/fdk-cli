@@ -1,10 +1,9 @@
 import Listr from "listr";
 import fs from 'fs';
 import { 
-  getDefaultContextData, 
-  getActiveContext, 
   replaceContent,
-  Object
+  Object,
+  getPartnerAccessToken
 } from "../helper/extension_utils";
 import Partner from "./Partner";
 import { readFile, writeFile } from "../helper/file.utils";
@@ -15,25 +14,13 @@ import ExtensionService from "./api/services/extension.service"
 export default class ExtensionLaunchURL {
 
   public static async setLaunchURLHandler(options) {
-    let contextData = getDefaultContextData().partners.contexts.default;
+    let partner_access_token = getPartnerAccessToken();
 
-    try {
-      contextData = getActiveContext(true);
-    } catch(err) {}
-
-    if (!contextData.partner_access_token) {
-      contextData.partner_access_token = (await Partner.connectHandler({readOnly: true, ...options})).partner_access_token;
+    if (!partner_access_token) {
+      partner_access_token = (await Partner.connectHandler({readOnly: true, ...options})).partner_access_token;
     }
 
-    let ctx = {
-      host: options.host || contextData.host,
-      launch_url: options.url,
-      token: contextData.partner_access_token,
-      extension_id: options.apiKey,
-      verbose: options.verbose
-    }
-
-    ExtensionLaunchURL.updateLaunchURL(ctx.extension_id, ctx.token, ctx.launch_url);
+    ExtensionLaunchURL.updateLaunchURL(options.apiKey, partner_access_token, options.url);
   }
 
   public static async updateLaunchURL(extension_api_key: string, partner_access_token: string, launch_url: string): Promise<void> {
@@ -76,23 +63,10 @@ export default class ExtensionLaunchURL {
 
 
   public static async getLaunchURLHandler(options: Object) {
-    let contextData = getDefaultContextData().partners.contexts.default;
-    
-    try {
-      contextData = getActiveContext(true);
-    } catch(err) {}
+    let partner_access_token = getPartnerAccessToken();
 
-    if (!contextData.partner_access_token) {
-      contextData.partner_access_token = (await Partner.connectHandler({readOnly: true, ...options})).partner_access_token;
-    }
-
-    
-    let ctx = {
-      host: options.host || contextData.host,
-      launch_url: options.url,
-      token: contextData.partner_access_token,
-      extension_id: options.apiKey,
-      verbose: options.verbose
+    if (!partner_access_token) {
+      partner_access_token = (await Partner.connectHandler({readOnly: true, ...options})).partner_access_token;
     }
 
     try {
@@ -102,7 +76,7 @@ export default class ExtensionLaunchURL {
           title: "Fetching Launch URL",
           task: async () => {
             
-            let extension_data = await ExtensionService.getExtensionDataUsingToken(ctx.extension_id, ctx.token);            
+            let extension_data = await ExtensionService.getExtensionDataUsingToken(options.apiKey, partner_access_token);
             launchURL = extension_data.base_url;
           }
         }
