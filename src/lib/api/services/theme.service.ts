@@ -1,5 +1,4 @@
 import { getActiveContext } from '../../../helper/utils';
-import { consolidateErrorMessage } from '../../../helper/error.utils';
 import ApiClient from '../ApiClient';
 import { URLS } from './url';
 import { getCommonHeaderOptions } from './utils';
@@ -17,7 +16,7 @@ export default {
       const res = await ApiClient.post(URLS.CREATE_THEME(data.application_id, data.company_id), axiosOption);
       return res;
     } catch (error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw error;
     }
   },
   getThemeById: async data => {
@@ -34,7 +33,7 @@ export default {
       );
       return res;
     } catch (error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw error;
     }
   },
   updateTheme: async data => {
@@ -57,7 +56,7 @@ export default {
       );
       return res;
     } catch (error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw error;
     }
   },
   deleteThemeById: async data => {
@@ -74,7 +73,7 @@ export default {
       );
       return res;
     } catch (error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw error;
     }
   },
 
@@ -93,7 +92,7 @@ export default {
       );
       return res;
     } catch (error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw error;
     }
   },
   getAllAvailablePage: async() => {
@@ -109,7 +108,7 @@ export default {
         axiosOption
       );
     } catch (error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw error;
     }
   },
   createAvailabePage: async data => {
@@ -132,7 +131,7 @@ export default {
       );
       return res;
     } catch (error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw error;
     }
   },
   deleteAvailablePage: async pageValue => {
@@ -152,7 +151,7 @@ export default {
         axiosOption
       );
     } catch (error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw error;
     }
   },
   updateAvailablePage: async data => {
@@ -176,7 +175,7 @@ export default {
       );
       return res;
     } catch (error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw error;
     }
   },
   updateAllAvailablePages: async data => {
@@ -196,7 +195,7 @@ export default {
         axiosOption
       );
     } catch (error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw error;
     }
   },
   publishTheme: async () => {
@@ -216,7 +215,7 @@ export default {
       );
       return res;
     } catch (error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw error;
     }
   },
   unPublishTheme: async () => {
@@ -236,7 +235,7 @@ export default {
       );
       return res;
     } catch (error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw error;
     }
   },
 };
