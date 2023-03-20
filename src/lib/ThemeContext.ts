@@ -12,7 +12,7 @@ export default class ThemeContext {
 
     public static async addThemeContext(options) {
         try {
-            Logger.warn('Validating token');
+            Logger.info('Validating token');
             const configObj = JSON.parse(decodeBase64(options.token) || '{}');
             if (!configObj || !configObj.theme_id)
                 throw new CommandError('Invalid token', ErrorCodes.INVALID_INPUT.code);
@@ -29,9 +29,9 @@ export default class ThemeContext {
                 company_id: appConfig.company_id,
                 theme_id: themeConfig._id,
             };
-            Logger.warn('Saving context');
+            Logger.info('Saving context');
             await createContext(context);
-            Logger.warn('Setting as current context');
+            Logger.info('Setting as current context');
             Logger.success('DONE');
         } catch (error) {
             throw new CommandError(error.message, error.code);

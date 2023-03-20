@@ -1,5 +1,4 @@
 import { getActiveContext } from '../../../helper/utils';
-import { consolidateErrorMessage } from '../../../helper/error.utils';
 import ApiClient from '../ApiClient';
 import { URLS } from './url';
 import { getCommonHeaderOptions } from './utils';
@@ -15,7 +14,7 @@ export default {
       );
       return res;
     } catch (error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw error;
     }
   },
 };

@@ -4,11 +4,6 @@ const { transformRequestOptions } = require('../../../helper/utils');
 const { sign } = require('./signature');
 import AuthenticationService from '../services/auth.service';
 import ConfigStore, { CONFIG_KEYS } from '../../Config';
-import Curl from '../../../helper/curl';
-import Logger from '../../Logger';
-import Debug from '../../Debug';
-import Auth from '../../Auth';
-import { consolidateErrorMessage } from '../../../helper/error.utils';
 
 function getTransformer(config) {
     const { transformRequest } = config;
@@ -52,10 +47,9 @@ function interceptorFn(options) {
                     try {
                         data = (await AuthenticationService.getOauthToken(company_id)).data || {};
                     } catch (error) {
-                        consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
                         ConfigStore.delete(CONFIG_KEYS.USER);
                         ConfigStore.delete(CONFIG_KEYS.COOKIE);
-                        throw new Error(error);
+                        throw error;
                     }
 
                     if (data.access_token) {

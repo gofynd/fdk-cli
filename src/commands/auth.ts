@@ -38,7 +38,6 @@ const AuthenticationHandler = async (options, command) => {
     }
     else command.help()
   } catch (error) {
-    Debug(error.message);
     throw new CommandError(error.message, error?.code);
   }
 };
