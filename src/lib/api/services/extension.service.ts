@@ -1,4 +1,3 @@
-import { consolidateErrorMessage } from "../../../helper/error.utils"
 import { URLS } from "./url";
 import { getCommonHeaderOptions } from "./utils";
 import ApiClient from '../ApiClient'
@@ -33,7 +32,7 @@ export default {
       return response.data;
 
     } catch(error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path, false);
+      throw error;
     }
   },
 
@@ -49,7 +48,7 @@ export default {
       return response.data;
 
     } catch(error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path, false);
+      throw error;
     }
   },
 
@@ -63,7 +62,7 @@ export default {
       return response.data;
       
     } catch(error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path, false);
+      throw error;
     }
   },
 
@@ -88,7 +87,7 @@ export default {
       return response.data;
 
     } catch(error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path, false);
+      throw error;
     }
 
   },
@@ -103,7 +102,7 @@ export default {
       return response.data;
 
     } catch(error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path, false);
+      throw error;
     }
   }
 }
