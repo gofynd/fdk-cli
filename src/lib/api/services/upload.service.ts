@@ -5,7 +5,7 @@ import { getCommonHeaderOptions } from './utils';
 import fs from 'fs-extra';
 import path from 'path';
 import mime from 'mime';
-import Spinner from '../helper/spinner';
+import Spinner from '../../../helper/spinner';
 export default {
     startUpload: async (data, namespace) => {
         try {

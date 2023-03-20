@@ -1,13 +1,24 @@
 import chalk from 'chalk';
 import { createLogger, format, transports } from 'winston';
-const { combine, timestamp, label, printf } = format;
+import configSore, { CONFIG_KEYS } from './Config';
+const { printf } = format;
+const packageJSON = require('../../package.json')
+
+const extraLoggerFields = format(info => {
+  info.OS = process.platform; // returns 'darwin', 'linux', 'win32', 'aix', 'freebsd', 'openbsd', 'sunos'
+  info.cli = `v${packageJSON.version}`;
+  info.Node = process.version;
+  info.Env = configSore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+  info.Command = process.argv.slice(2).join(" ");
+  return info;
+})
+
 const FDKCustomLevels = {
   levels: {
     error: 0,
     warn: 1,
     info: 2,
     debug: 3,
-    success: 4,
   },
 };
 const consoleFormat = printf(({ level, message }) => {
@@ -15,9 +26,6 @@ const consoleFormat = printf(({ level, message }) => {
   switch (levelUpper) {
     case 'INFO':
       message = chalk.blue(message);
-      break;
-    case 'SUCCESS':
-      message = chalk.green(message);
       break;
     case 'WARN':
       message = chalk.yellow(message);
@@ -45,6 +53,7 @@ export const initializeLogger = () => {
       filename: 'debug.log',
       level: 'debug',
       format: format.combine(
+        extraLoggerFields(),
         format.timestamp({
           format: 'YYYY-MM-DD HH:mm:ss'
         }),
@@ -64,9 +73,6 @@ export const initializeLogger = () => {
 export default class Logger {
   public static log(...args: any[]) {
     logger.info(args.join(''));
-  }
-  public static success(...args: any[]) {
-    logger.log('success', args.join(''));
   }
   public static warn(...args: any[]) {
     logger.log('warn', args.join(''));

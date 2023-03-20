@@ -5,11 +5,12 @@ import fs from 'fs';
 import path from 'path';
 import execa from "execa";
 import rimraf from 'rimraf';
-import Listr, { ListrTask } from "listr";
 import os from 'os';
 
 
 import Partner from "./Partner";
+import Spinner from "../helper/spinner";
+import CommandError, { ErrorCodes } from "./CommandError";
 import ExtensionService from "./api/services/extension.service"
 
 import { 
@@ -145,301 +146,298 @@ export default class Extension {
   // main function for creating extension
   private static async createExtension(answers: Object, isRegisterExtension: boolean): Promise<void> {
     try {
+    
       let targetDir = answers.targetDir;
 
-      let tasks: ListrTask<any>[] = [];
-      tasks.push(
-        {
-          title: 'Fetching Template Files',
-          task: async (ctx) => {
-            await Extension.copyTemplateFiles(targetDir, answers);
-            ctx.partner_access_token = answers.partner_access_token;
-            ctx.host = answers.host;
-            ctx.extensionData = {
-              name: answers.name,
-              targetDir: targetDir,
-              host: answers.host
-            }
-          }
-        },
-        {
-          title: "Storing context",
-          task: async (ctx) => {
-            let contextData = getDefaultContextData();
-            if(!fs.existsSync(path.join(targetDir, '.fdk'))) {
-              createDirectory(path.join(targetDir, '.fdk'));
-              writeFile(
-                path.join(targetDir, '.fdk', 'context.json'),
-                JSON.stringify(contextData, undefined, 2)
-              );
-            }
-
-            answers.contextName = answers.contextName || 'default';
-            const contextObj = {
-              partner_access_token: ctx.partner_access_token,
-              host: answers.host,
-            }
-
-            writeContextData(
-              answers.contextName, 
-              contextObj, 
-              path.join(targetDir, '.fdk', 'context.json'), 
-              true
-            );
-          }
-        }
-      )
-
-      if (isRegisterExtension) {
-        tasks.push({
-          title: 'Registering Extension', 
-          task: async (ctx) => {
-            let extension_data: Object = await ExtensionService.registerExtension(
-              ctx.partner_access_token,
-              {
-                name: answers.name,
-                base_url: 'http://localdev.fynd.com',
-                extension_type: answers.type
-              }
-            )
-            answers.extension_api_key = extension_data.client_id;
-            answers.extension_api_secret = extension_data.secret;
-            answers.base_url = extension_data.launch_url;
-          }
-        })
+      let spinner = new Spinner('Fetching Template Files');
+      try {
+        spinner.start();
+        await Extension.copyTemplateFiles(targetDir, answers);
+        spinner.succeed();
+      } catch(error) {
+        spinner.fail();
+        throw new CommandError(error.message);
       }
 
-      tasks.push({
-        title: "Installing Dependencies",
-        task: async (ctx) => {
-          if ( answers.project_type === JAVA_VUE || answers.project_type === JAVA_REACT) {
-            const ymlData = `\n\next :\n  api_key : "${answers.extension_api_key}"\n  api_secret : "${answers.extension_api_secret}"\n  scopes : ""\n  base_url : "${answers.base_url}"\n  cluster : "https://${answers.host}"`;
-            fs.writeFileSync(`${answers.targetDir}/src/main/resources/application.yml`, ymlData, {flag:'a+'});
-          } else {
-            const envData=`EXTENSION_API_KEY="${answers.extension_api_key}"\nEXTENSION_API_SECRET="${answers.extension_api_secret}"\nEXTENSION_BASE_URL="${answers.base_url}"\nEXTENSION_CLUSTER_URL="https://${answers.host}"`;
-            fs.writeFileSync(`${answers.targetDir}/.env`, envData);
-          }
-          await Extension.replaceGrootWithExtensionName(answers.targetDir, answers);
-          await Extension.installDependencies(answers);
+      spinner = new Spinner('Storing context');
+      try {
+        spinner.start();
+        let contextData = getDefaultContextData();
+        if(!fs.existsSync(path.join(targetDir, '.fdk'))) {
+          createDirectory(path.join(targetDir, '.fdk'));
+          writeFile(
+            path.join(targetDir, '.fdk', 'context.json'),
+            JSON.stringify(contextData, undefined, 2)
+          );
         }
-      })
-      
-      // run the define tasks
-      await new Listr(tasks).run().then((ctx) => {
-        let text = chalk.green.bold('DONE ') 
-          + chalk.green.bold('Project ready\n')
-          + chalk.yellowBright.bold('NOTE: ')
-          + chalk.green.bold(`cd ${targetDir} to continue...`)
-        console.log(boxen(text, {padding: 1, borderColor: "greenBright"}));
 
-      }).catch((error) => {
-        console.log(chalk.red(error.message));
-        if (fs.existsSync(targetDir)) {
-          rimraf.sync(targetDir);
+        answers.contextName = answers.contextName || 'default';
+        const contextObj = {
+          partner_access_token: answers.partner_access_token,
+          host: answers.host,
         }
-        process.exit(1);
-      })
 
+        writeContextData(
+          answers.contextName, 
+          contextObj, 
+          path.join(targetDir, '.fdk', 'context.json'), 
+          true
+        );
+        spinner.succeed();
+      } catch(error) {
+        spinner.fail();
+        throw new CommandError(error.message);
+      }
+
+
+      if (isRegisterExtension) {
+        spinner = new Spinner('Registering Extension');
+        try {
+          spinner.start();
+          let extension_data: Object = await ExtensionService.registerExtension(
+            answers.partner_access_token,
+            {
+              name: answers.name,
+              base_url: 'http://localdev.fynd.com',
+              extension_type: answers.type
+            }
+          )
+          answers.extension_api_key = extension_data.client_id;
+          answers.extension_api_secret = extension_data.secret;
+          answers.base_url = extension_data.launch_url;
+          spinner.succeed();
+        } catch(error) {
+          spinner.fail();
+          throw new CommandError(error.message);
+        }
+      }
+
+      spinner = new Spinner('Installing Dependencies');
+      try {
+        spinner.start();
+        if ( answers.project_type === JAVA_VUE || answers.project_type === JAVA_REACT) {
+          const ymlData = `\n\next :\n  api_key : "${answers.extension_api_key}"\n  api_secret : "${answers.extension_api_secret}"\n  scopes : ""\n  base_url : "${answers.base_url}"\n  cluster : "https://${answers.host}"`;
+          fs.writeFileSync(`${answers.targetDir}/src/main/resources/application.yml`, ymlData, {flag:'a+'});
+        } else {
+          const envData=`EXTENSION_API_KEY="${answers.extension_api_key}"\nEXTENSION_API_SECRET="${answers.extension_api_secret}"\nEXTENSION_BASE_URL="${answers.base_url}"\nEXTENSION_CLUSTER_URL="https://${answers.host}"`;
+          fs.writeFileSync(`${answers.targetDir}/.env`, envData);
+        }
+        await Extension.replaceGrootWithExtensionName(answers.targetDir, answers);
+        await Extension.installDependencies(answers);
+        spinner.succeed();
+      } catch(error) {
+        spinner.fail();
+      }
+        
+      let text = chalk.green.bold('DONE ') 
+        + chalk.green.bold('Project ready\n')
+        + chalk.yellowBright.bold('NOTE: ')
+        + chalk.green.bold(`cd ${targetDir} to continue...`)
+
+      console.log(boxen(text, {padding: 1, borderColor: "greenBright"}));
+    
     } catch(error) {
-      console.log(chalk.red(error.message));
-      process.exit(1);
+      throw new CommandError(error.message, error.code);
     }
   }
 
 
   // command handler for "extension init"
   public static async initExtensionHandler(options: Object) {
-    let contextData = getDefaultContextData().partners.contexts.default;
-
     try {
-      contextData = getActiveContext(true);
-    }
-    catch(err) {}
+      let contextData = getDefaultContextData().partners.contexts.default;
 
-    let answers: Object = {
-      host: options.host || contextData.host,
-      verbose: options.verbose
-    }
-
-    await inquirer.prompt([{
-        type: 'input',
-        name: 'name',
-        message: 'Enter Extension name :',
-        validate: validateEmpty
+      try {
+        contextData = getActiveContext(true);
       }
-    ]).then((value) => {
-      answers.name = value.name
-    })
+      catch(err) {}
 
-    if (options['targetDir']) {
-      answers.targetDir = options['targetDir']
-      if (answers.targetDir != '.' && fs.existsSync(answers.targetDir)) {
-        console.log(chalk.red(`Directory "${answers.targetDir}" already exists. Please choose another`));
-        process.exit(1);
+      let answers: Object = {
+        host: options.host || contextData.host,
+        verbose: options.verbose
       }
-    } else {
-      answers.targetDir = answers.name
-      if (fs.existsSync(answers.targetDir)) {
-        console.log(chalk.red(`Folder with the same name as "${answers.targetDir}" already exists. Please choose another name or directory.`));
-        process.exit(1);
+
+      await inquirer.prompt([{
+          type: 'input',
+          name: 'name',
+          message: 'Enter Extension name :',
+          validate: validateEmpty
+        }
+      ]).then((value) => {
+        answers.name = value.name
+      })
+
+      if (options['targetDir']) {
+        answers.targetDir = options['targetDir']
+        if (answers.targetDir != '.' && fs.existsSync(answers.targetDir)) {
+          throw new CommandError(`Directory "${answers.targetDir}" already exists. Please choose another`);
+        }
+      } else {
+        answers.targetDir = answers.name
+        if (fs.existsSync(answers.targetDir)) {
+          throw new CommandError(`Folder with the same name as "${answers.targetDir}" already exists. Please choose another name or directory.`);
+        }
       }
-    }
 
-    if (fs.existsSync(path.join(answers.targetDir, '/.git'))) {
-      console.log(chalk.red(`Cannot initialize extension at '${path.resolve(answers.targetDir)}', as it already contains Git repository.`));
-      process.exit(1);
-    }
-
-    const extensionTypeQuestions = [
-      {
-        type: 'list',
-        choices: ['Private', 'Public'],
-        default: 'Private',
-        name: 'type',
-        message: 'Extension type :',
-        validate: validateEmpty
-      },
-      {
-        type: 'list',
-        choices: [
-          NODE_VUE, 
-          NODE_REACT, 
-          PYTHON_VUE, 
-          PYTHON_REACT, 
-          JAVA_VUE, 
-          JAVA_REACT
-        ],
-        default: NODE_VUE,
-        name: 'project_type',
-        message: 'Development Language :',
-        validate: validateEmpty
-      },
-      {
-        type: 'list',
-        choices: [
-          {name: "Vue 2", value: "vue2"}, 
-          {name: "Vue 3", value: "vue3"}
-        ],
-        default: "vue2",
-        name: 'vue_version',
-        message: 'Vue Version: ',
-        when: Extension.checkForVue,
-        validate: validateEmpty
+      if (fs.existsSync(path.join(answers.targetDir, '/.git'))) {
+        throw new CommandError(`Cannot initialize extension at '${path.resolve(answers.targetDir)}', as it already contains Git repository.`);
       }
-  ];
 
-    let prompt_answers: Object = await inquirer.prompt(extensionTypeQuestions);
+      const extensionTypeQuestions = [
+        {
+          type: 'list',
+          choices: ['Private', 'Public'],
+          default: 'Private',
+          name: 'type',
+          message: 'Extension type :',
+          validate: validateEmpty
+        },
+        {
+          type: 'list',
+          choices: [
+            NODE_VUE, 
+            NODE_REACT, 
+            PYTHON_VUE, 
+            PYTHON_REACT, 
+            JAVA_VUE, 
+            JAVA_REACT
+          ],
+          default: NODE_VUE,
+          name: 'project_type',
+          message: 'Development Language :',
+          validate: validateEmpty
+        },
+        {
+          type: 'list',
+          choices: [
+            {name: "Vue 2", value: "vue2"}, 
+            {name: "Vue 3", value: "vue3"}
+          ],
+          default: "vue2",
+          name: 'vue_version',
+          message: 'Vue Version: ',
+          when: Extension.checkForVue,
+          validate: validateEmpty
+        }
+      ];
 
-    if (!contextData.partner_access_token) {
-      contextData.partner_access_token = await Partner.connectHandler({readOnly: true, ...options});
+      let prompt_answers: Object = await inquirer.prompt(extensionTypeQuestions);
+
+      if (!contextData.partner_access_token) {
+        contextData.partner_access_token = await Partner.connectHandler({readOnly: true, ...options});
+      }
+
+      answers.launch_url = "http://localdev.fyndx0.de"
+      answers.partner_access_token = contextData.partner_access_token;
+      answers.project_url = PROJECT_REPOS[prompt_answers.project_type];
+      answers = {
+        ...answers,
+        ...prompt_answers
+      }
+
+      await Extension.createExtension(answers, true);
+    } catch(error) {
+      throw new CommandError(error.message, error.code);
     }
-
-    answers.launch_url = "http://localdev.fyndx0.de"
-    answers.partner_access_token = contextData.partner_access_token;
-    answers.project_url = PROJECT_REPOS[prompt_answers.project_type];
-    answers = {
-      ...answers,
-      ...prompt_answers
-    }
-
-    await Extension.createExtension(answers, true);
   }
 
 
   // command handler for "extension setup"
   public static async setupExtensionHandler(options) {
-    let contextData = getDefaultContextData().partners.contexts.default;
-
     try {
-      contextData = getActiveContext(true);
-    } catch(err) {}
+      let contextData = getDefaultContextData().partners.contexts.default;
 
-    let answers: Object = {
-      host: options.host || contextData.host,
-      verbose: options.verbose
-    }
+      try {
+        contextData = getActiveContext(true);
+      } catch(err) {}
 
-
-    let questions = [
-      {
-        type: 'input',
-        name: 'extension_api_key',
-        message: 'Enter Extension API Key :',
-        validate: validateEmpty
-      },
-      {
-        type: 'input',
-        name: 'extension_api_secret',
-        message: "Enter Extension API Secret :",
-        validate: validateEmpty
-      },
-      {
-        type: 'list',
-        choices: [
-          NODE_VUE, 
-          NODE_REACT, 
-          PYTHON_VUE, 
-          PYTHON_REACT, 
-          JAVA_VUE, 
-          JAVA_REACT
-        ],
-        default: NODE_VUE,
-        name: 'project_type',
-        message: 'Development Language :',
-        validate: validateEmpty
-      },
-      {
-        type: 'list',
-        choices: [
-          {name: "Vue 2", value: "vue2"}, 
-          {name: "Vue 3", value: "vue3"}
-        ],
-        default: "vue2",
-        name: 'vue_version',
-        message: 'Vue Version: ',
-        when: Extension.checkForVue,
-        validate: validateEmpty
+      let answers: Object = {
+        host: options.host || contextData.host,
+        verbose: options.verbose
       }
-    ]
-    
 
-    answers = {...answers, ...await inquirer.prompt(questions)}
-    answers.project_url = PROJECT_REPOS[answers.project_type]
 
-    let extension_data: Object;
-    await new Listr([
-      {
-        title: "Verifying API Keys",
-        task: async (ctx) => {
-          extension_data = await ExtensionService.getExtensionData(
-            answers.extension_api_key, 
-            answers.extension_api_secret
-          );
+      let questions = [
+        {
+          type: 'input',
+          name: 'extension_api_key',
+          message: 'Enter Extension API Key :',
+          validate: validateEmpty
+        },
+        {
+          type: 'input',
+          name: 'extension_api_secret',
+          message: "Enter Extension API Secret :",
+          validate: validateEmpty
+        },
+        {
+          type: 'list',
+          choices: [
+            NODE_VUE, 
+            NODE_REACT, 
+            PYTHON_VUE, 
+            PYTHON_REACT, 
+            JAVA_VUE, 
+            JAVA_REACT
+          ],
+          default: NODE_VUE,
+          name: 'project_type',
+          message: 'Development Language :',
+          validate: validateEmpty
+        },
+        {
+          type: 'list',
+          choices: [
+            {name: "Vue 2", value: "vue2"}, 
+            {name: "Vue 3", value: "vue3"}
+          ],
+          default: "vue2",
+          name: 'vue_version',
+          message: 'Vue Version: ',
+          when: Extension.checkForVue,
+          validate: validateEmpty
+        }
+      ]
+      
+
+      answers = {...answers, ...await inquirer.prompt(questions)}
+      answers.project_url = PROJECT_REPOS[answers.project_type]
+
+      let extension_data: Object;
+      let spinner = new Spinner('Verifying API Keys');
+      try {
+        spinner.start();
+        extension_data = await ExtensionService.getExtensionData(
+          answers.extension_api_key, 
+          answers.extension_api_secret
+        );
+        if (!extension_data) {
+          throw new Error;
+        }
+        spinner.succeed();
+      } catch(error) {
+        spinner.fail();
+        throw new CommandError(ErrorCodes.INVALID_KEYS.message, ErrorCodes.INVALID_KEYS.code);
+      }
+
+      answers.base_url = extension_data.base_url;
+      answers.name = extension_data.name;
+
+      if (options['targetDir']) {
+        answers.targetDir = options['targetDir']
+        if (answers.targetDir != '.' && fs.existsSync(answers.targetDir)) {
+          throw new CommandError(`Directory "${answers.targetDir}" already exists. Please choose another`);
+        }
+      } else {
+        answers.targetDir = answers.name
+        if (fs.existsSync(answers.targetDir)) {
+          throw new CommandError(`Folder with the same name as "${answers.targetDir}" already exists. Please choose another name or directory.`)
         }
       }
-    ]).run();
-    if (!extension_data) {
-      console.log(chalk.red('Invalid API Key or API Secret. Please use valid keys.'));
-      process.exit(1);
+
+      await Extension.createExtension(answers, false);
+    } catch(error) {
+      throw new CommandError(error.message, error.code);
     }
-
-    answers.base_url = extension_data.base_url;
-    answers.name = extension_data.name;
-
-    if (options['targetDir']) {
-      answers.targetDir = options['targetDir']
-      if (answers.targetDir != '.' && fs.existsSync(answers.targetDir)) {
-        console.log(chalk.red(`Directory "${answers.targetDir}" already exists. Please choose another`));
-        process.exit(1);
-      }
-    } else {
-      answers.targetDir = answers.name
-      if (fs.existsSync(answers.targetDir)) {
-        console.log(chalk.red(`Folder with the same name as "${answers.targetDir}" already exists. Please choose another name or directory.`));
-        process.exit(1);
-      }
-    }
-
-    await Extension.createExtension(answers, false);
   }
 }

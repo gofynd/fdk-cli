@@ -75,7 +75,7 @@ export default class Env {
     if(!ctx) {
       throw new CommandError(COMMON_LOG_MESSAGES.EnvNotSet);
     }
-    Logger.success(`Active Environment: ${chalk.bold(ctx)}`);
+    Logger.info(`Active Environment: ${chalk.bold(ctx)}`);
   }
   public static async listEnvs() {
     try {
@@ -98,7 +98,7 @@ export default class Env {
       if(options.name) {
         if(Object.keys(AVAILABLE_ENVS).includes(options.name)) {
           Env.setEnv(options.name);
-          Logger.success(`Env set to: ${chalk.bold(options.name)}`);
+          Logger.info(`Env set to: ${chalk.bold(options.name)}`);
         } else {
           Logger.error(`*${chalk.bold(options.name)}* environment is not supported.\n`);
           Env.listEnvs();

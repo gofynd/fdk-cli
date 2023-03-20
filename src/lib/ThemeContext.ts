@@ -32,7 +32,7 @@ export default class ThemeContext {
             Logger.info('Saving context');
             await createContext(context);
             Logger.info('Setting as current context');
-            Logger.success('DONE');
+            Logger.info('DONE');
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
@@ -47,13 +47,13 @@ export default class ThemeContext {
             }
             if (!hasContext()) {
                 Logger.warn('No theme contexts available');
-                Logger.success('Add a theme context using fdk theme context -t [your-theme-token] -n [context-name]');
+                Logger.info('Add a theme context using fdk theme context -t [your-theme-token] -n [context-name]');
                 return;
             }
             const contextPath = path.join(process.cwd(), '.fdk','context.json');
             let contextJSON = await fs.readJSON(contextPath);
             let contextObj = contextJSON.theme;
-            Logger.success(`Active context: ${contextObj.active_context}`);
+            Logger.info(`Active context: ${contextObj.active_context}`);
             const questions = [
                 {
                     type: 'list',
@@ -81,7 +81,7 @@ export default class ThemeContext {
     public static  activeContext() {
         try {
            let context =  getActiveContext()
-            Logger.success(`Active context: ${context.name}`);
+            Logger.info(`Active context: ${context.name}`);
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }}

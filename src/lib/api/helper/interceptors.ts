@@ -93,7 +93,6 @@ function interceptorFn(options) {
                 // config.headers = signingOptions.headers;
                 config.headers['x-fp-date'] = signingOptions.headers['x-fp-date'];
                 config.headers['x-fp-signature'] = signingOptions.headers['x-fp-signature'];
-                config.headers['x-debug'] = true;
             }
             return config;
         } catch (error) {

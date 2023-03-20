@@ -36,7 +36,7 @@ import chokidar from 'chokidar';
 import { downloadFile } from '../helper/download';
 import Env from './Env';
 import Debug from './Debug';
-import Spinner from './api/helper/spinner';
+import Spinner from '../helper/spinner';
 import { themeVueConfigTemplate, settingLoader } from '../helper/theme.vue.config';
 import { simpleGit } from 'simple-git';
 export default class Theme {
@@ -352,7 +352,7 @@ export default class Theme {
             Logger.info('Updating theme');
             await ThemeService.updateTheme(newTheme);
 
-            Logger.success('Theme syncing DONE');
+            Logger.info('Theme syncing DONE');
             let domainURL = `https://${AVAILABLE_ENVS[currentContext.env]}`;
             const url = new URL(domainURL);
             const hostName = url.hostname;
@@ -406,7 +406,7 @@ export default class Theme {
                 : `https://${appInfo.domain.name}`;
             let host = getBaseURL();
             // initial build
-            Logger.success(`Locally building`);
+            Logger.info(`Locally building`);
             Theme.createVueConfig();
             await devBuild({
                 buildFolder: Theme.BUILD_FOLDER,
@@ -520,7 +520,7 @@ export default class Theme {
             }
             await Theme.writeSettingJson(Theme.getSettingsDataPath(), newConfig);
             Theme.createVueConfig();
-            Logger.success('Config updated successfully');
+            Logger.info('Config updated successfully');
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
@@ -694,7 +694,7 @@ export default class Theme {
                 throw new CommandError(`vue.config.js is not supported, move its file content to fdk.config.js`, ErrorCodes.NOT_KNOWN.code);
             } else {
                 fs.renameSync(oldVueConfigPath, fdkConfigPath);
-                Logger.success('Renamed file from vue.config.js to fdk.config.js');
+                Logger.info('Renamed file from vue.config.js to fdk.config.js');
             }
         }
         rimraf.sync(path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH));
@@ -1098,7 +1098,7 @@ export default class Theme {
                 await inquirer.prompt(questions).then(async answers => {
                     if (answers.pullConfig) {
                         await Theme.writeSettingJson(Theme.getSettingsDataPath(), newConfig);
-                        Logger.success('Config updated successfully');
+                        Logger.info('Config updated successfully');
                     } else {
                         Logger.warn('Using local config to sync');
                     }

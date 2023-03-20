@@ -1,7 +1,7 @@
 import { exec } from 'child_process'
 import path from 'path'
 import Theme from '../lib/Theme';
-import Spinner from '../lib/api/helper/spinner';
+import Spinner from './spinner';
 
 export function build({ buildFolder, imageCdnUrl, assetCdnUrl, assetHash = '' }) {
     const VUE_CLI_PATH = path.join('.', 'node_modules', '@vue', 'cli-service', 'bin', 'vue-cli-service.js');
