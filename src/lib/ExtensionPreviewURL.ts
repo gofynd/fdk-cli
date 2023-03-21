@@ -17,7 +17,6 @@ import {
   validateEmpty,
 } from '../helper/extension_utils'
 import Spinner from "../helper/spinner";
-import { CommandCursor } from "mongodb";
 import CommandError from "./CommandError";
 
 export default class ExtensionPreviewURL {
