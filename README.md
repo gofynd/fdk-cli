@@ -431,6 +431,7 @@ fdk extension preview-url [options]
 | -p, --port    | Port on which Extension is running |
 | --company-id | specify company id |
 | --update-authtoken | update Ngrok authtoken |
+| --api-key | Extension API key |
 | --help    | Show help |
 | --verbose | enable debug mode |
 

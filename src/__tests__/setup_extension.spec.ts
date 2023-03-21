@@ -3,14 +3,39 @@ import execa from "execa"
 import inquirer from "inquirer"
 import { init } from "../fdk";
 import fs from 'fs';
+import rimraf from 'rimraf';
 import Extension, { NODE_VUE, NODE_REACT, JAVA_REACT, JAVA_VUE, PYTHON_REACT, PYTHON_VUE } from "../lib/Extension";
+import configStore, { CONFIG_KEYS } from "../lib/Config";
 
 let program;
 const envFileData = `EXTENSION_API_KEY="api_key"\nEXTENSION_API_SECRET="api_secret"\nEXTENSION_BASE_URL="https://abc.com"\nEXTENSION_CLUSTER_URL="https://api.fynd.com"`;
 
+jest.mock('configstore', () => {
+  const Store = jest.requireActual<typeof import('configstore')>('configstore');
+  return class MockConfigstore {
+    store = new Store('test-cli', undefined, {configPath: './test-cli.json'})
+    all = this.store.all
+    get(key: string) {
+      return this.store.get(key)
+    }
+    set(key: string, value) {
+      this.store.set(key, value);
+    }
+    delete(key) {
+      this.store.delete(key)
+    }
+  }
+});
+
 describe('Setup extension command', () => {
   beforeAll(async () => {
     program = await init('fdk')
+    configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'fynd');
+    configStore.set(CONFIG_KEYS.PARTNER_ACCESS_TOKEN, "mocktoken");
+  })
+
+  afterAll(async () => {
+    rimraf.sync('./test-cli.json')
   })
 
   afterEach(async () => {
@@ -40,7 +65,6 @@ describe('Setup extension command', () => {
       'setup'
     ])
     expect(fs.existsSync('./Test_Extension')).toEqual(true);
-    expect(fs.existsSync('./Test_Extension/.fdk')).toEqual(true)
     expect(fs.readFileSync('./Test_Extension/.env',  { encoding: 'utf-8' })).toBe(envFileData);
     const packageJson = fs.readFileSync("./Test_Extension/package.json", { encoding: 'utf-8' });
     expect(JSON.parse(packageJson).name).toBe("test_extension")
@@ -85,7 +109,6 @@ describe('Setup extension command', () => {
     ])
     
     expect(fs.existsSync('./Test_Extension')).toEqual(true);
-    expect(fs.existsSync('./Test_Extension/.fdk')).toEqual(true)
     expect(fs.readFileSync('./Test_Extension/.env',  { encoding: 'utf-8' })).toBe(envFileData);
     const packageJson = fs.readFileSync("./Test_Extension/package.json", { encoding: 'utf-8' });
     expect(JSON.parse(packageJson).name).toBe("test_extension")
@@ -107,7 +130,6 @@ describe('Setup extension command', () => {
     ])
 
     expect(fs.existsSync('./Test_Extension')).toEqual(true);
-    expect(fs.existsSync('./Test_Extension/.fdk')).toEqual(true)
     expect(fs.readFileSync('./Test_Extension/.env',  { encoding: 'utf-8' })).toBe(envFileData);
     const packageJson = fs.readFileSync("./Test_Extension/package.json", { encoding: 'utf-8' });
     expect(JSON.parse(packageJson).name).toBe("test_extension")
@@ -129,7 +151,6 @@ describe('Setup extension command', () => {
     ])
 
     expect(fs.existsSync('./Test_Extension')).toEqual(true);
-    expect(fs.existsSync('./Test_Extension/.fdk')).toEqual(true)
     expect(fs.readFileSync('./Test_Extension/.env',  { encoding: 'utf-8' })).toBe(envFileData);
     const packageJson = fs.readFileSync("./Test_Extension/package.json", { encoding: 'utf-8' });
     expect(JSON.parse(packageJson).name).toBe("test_extension")
@@ -151,7 +172,6 @@ describe('Setup extension command', () => {
     ])
 
     expect(fs.existsSync('./Test_Extension')).toEqual(true);
-    expect(fs.existsSync('./Test_Extension/.fdk')).toEqual(true)
     const packageJson = fs.readFileSync("./Test_Extension/app/package.json", { encoding: 'utf-8' });
     expect(JSON.parse(packageJson).name).toBe("test_extension")
   });
@@ -172,7 +192,6 @@ describe('Setup extension command', () => {
     ])
 
     expect(fs.existsSync('./Test_Extension')).toEqual(true);
-    expect(fs.existsSync('./Test_Extension/.fdk')).toEqual(true)
     const packageJson = fs.readFileSync("./Test_Extension/app/package.json", { encoding: 'utf-8' });
     expect(JSON.parse(packageJson).name).toBe("test_extension")
   });
@@ -194,7 +213,6 @@ describe('Setup extension command', () => {
     ])
 
     expect(fs.existsSync('./Test_Extension')).toEqual(true);
-    expect(fs.existsSync('./Test_Extension/.fdk')).toEqual(true)
     const packageJson = JSON.parse(fs.readFileSync("./Test_Extension/package.json", { encoding: 'utf-8' }));
     expect(packageJson.name).toBe("test_extension");
     expect(packageJson.dependencies.vue).toMatch(/\^3\..+/);

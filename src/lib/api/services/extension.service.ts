@@ -37,12 +37,13 @@ export default {
   },
 
 
-  getExtensionData: async (extension_api_key: string, extension_api_secret: string) => {
+  getExtensionData: async (extension_api_key: string, extension_api_secret: string, partner_access_token: string) => {
     try {
       const authorizationToken = Buffer.from(`${extension_api_key}:${extension_api_secret}`, 'utf-8').toString("base64");
       
       let headers = getCommonHeaderOptions().headers;
       headers['Authorization'] = `Bearer ${authorizationToken}`;
+      headers['x-partner-token'] = partner_access_token;
     
       let response = await ApiClient.get(URLS.GET_EXTENSION_DETAILS(extension_api_key), {headers: headers, timeout: 3000});
       return response.data;
@@ -119,7 +120,7 @@ export default {
       return response.data;
 
     } catch(error) {
-      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+      throw error;
     }
   },
 }

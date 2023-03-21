@@ -15,7 +15,7 @@ export default class Partner {
   public static async connectHandler(options: Object) {
     try {
       let answers: Object;
-      let organizationInfo: Object;
+      let organizationInfo;
 
       answers = await inquirer.prompt([{
         type: 'input',

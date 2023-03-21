@@ -26,6 +26,7 @@ import {
   readFile 
 } from "../helper/file.utils";
 import configStore, { CONFIG_KEYS } from "./Config";
+import { getBaseURL } from "./api/services/url";
 
 export const NODE_VUE = 'Node + Vue.js'
 export const NODE_REACT = 'Node + React.js'
@@ -195,10 +196,10 @@ export default class Extension {
       try {
         spinner.start();
         if ( answers.project_type === JAVA_VUE || answers.project_type === JAVA_REACT) {
-          const ymlData = `\n\next :\n  api_key : "${answers.extension_api_key}"\n  api_secret : "${answers.extension_api_secret}"\n  scopes : ""\n  base_url : "${answers.base_url}"\n  cluster : "https://${answers.host}"`;
+          const ymlData = `\n\next :\n  api_key : "${answers.extension_api_key}"\n  api_secret : "${answers.extension_api_secret}"\n  scopes : ""\n  base_url : "${answers.base_url}"\n  cluster : "${getBaseURL()}"`;
           fs.writeFileSync(`${answers.targetDir}/src/main/resources/application.yml`, ymlData, {flag:'a+'});
         } else {
-          const envData=`EXTENSION_API_KEY="${answers.extension_api_key}"\nEXTENSION_API_SECRET="${answers.extension_api_secret}"\nEXTENSION_BASE_URL="${answers.base_url}"\nEXTENSION_CLUSTER_URL="https://${answers.host}"`;
+          const envData=`EXTENSION_API_KEY="${answers.extension_api_key}"\nEXTENSION_API_SECRET="${answers.extension_api_secret}"\nEXTENSION_BASE_URL="${answers.base_url}"\nEXTENSION_CLUSTER_URL="${getBaseURL()}"`;
           fs.writeFileSync(`${answers.targetDir}/.env`, envData);
         }
         await Extension.replaceGrootWithExtensionName(answers.targetDir, answers);
@@ -316,6 +317,7 @@ export default class Extension {
   // command handler for "extension setup"
   public static async setupExtensionHandler(options) {
     try {
+      let partner_access_token = getPartnerAccessToken();
       let answers: Object;
 
       let questions = [
@@ -364,13 +366,18 @@ export default class Extension {
       answers = {...answers, ...await inquirer.prompt(questions)}
       answers.project_url = PROJECT_REPOS[answers.project_type]
 
+      if (!partner_access_token) {
+        partner_access_token = (await Partner.connectHandler({readOnly: true, ...options})).partner_access_token;
+      }
+
       let extension_data: Object;
       let spinner = new Spinner('Verifying API Keys');
       try {
         spinner.start();
         extension_data = await ExtensionService.getExtensionData(
           answers.extension_api_key, 
-          answers.extension_api_secret
+          answers.extension_api_secret,
+          partner_access_token
         );
         if (!extension_data) {
           throw new Error;

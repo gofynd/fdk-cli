@@ -16,7 +16,9 @@ import {
   Object,
   validateEmpty,
 } from '../helper/extension_utils'
-import Listr from "listr";
+import Spinner from "../helper/spinner";
+import { CommandCursor } from "mongodb";
+import CommandError from "./CommandError";
 
 export default class ExtensionPreviewURL {
   organizationInfo: Object;
@@ -26,60 +28,67 @@ export default class ExtensionPreviewURL {
 
   // command handler for "extension preview-url"
   public static async previewUrlExtensionHandler(options) {
-    Debug(`Ngrok version: ${await ngrok.getVersion()}`);
+    try {
+      Debug(`Ngrok version: ${await ngrok.getVersion()}`);
 
-    // initialize class instance
-    const extension = new ExtensionPreviewURL();
-    extension.options = options;
+      // initialize class instance
+      const extension = new ExtensionPreviewURL();
+      extension.options = options;
 
-    // get the companyId
-    extension.organizationInfo = await extension.getOrganizationInfo();
-    if (!extension.options.companyId) {
-      extension.options.companyId = await extension.getCompanyId();
-    }
+      // get the companyId
+      extension.organizationInfo = await extension.getOrganizationInfo();
+      if (!extension.options.companyId) {
+        extension.options.companyId = await extension.getCompanyId();
+      }
 
-    // get the extension api key
-    if (!extension.options.apiKey) {
-      extension.options.apiKey = await extension.promptExtensionApiKey();
-    }
-    
+      // get the extension api key
+      if (!extension.options.apiKey) {
+        extension.options.apiKey = await extension.promptExtensionApiKey();
+      }
+      
 
-    // start Ngrok tunnel
-    await new Listr([{
-      title: "Starting Ngrok tunnel",
-      task: async () => {
-        let authtoken = await extension.getAuthtoken();
+      // start Ngrok tunnel
+      let authtoken = await extension.getAuthtoken();
+      let spinner = new Spinner("Starting Ngrok tunnel");
+      try {
+        spinner.start();
         extension.publicNgrokURL = await extension.startTunnel(authtoken);
+        spinner.succeed();
+      } catch(error) {
+        spinner.fail();
+        throw new CommandError(error.message)
       }
-    }]).run();
 
 
-    // update launch url on partners panel
-    await ExtensionLaunchURL.updateLaunchURL(
-      extension.options.apiKey,
-      extension.organizationInfo.partner_access_token,
-      extension.publicNgrokURL
-    )  
-    
-    // get preview URL
-    const previewURL = extension.getPreviewURL();
+      // update launch url on partners panel
+      await ExtensionLaunchURL.updateLaunchURL(
+        extension.options.apiKey,
+        extension.organizationInfo.partner_access_token,
+        extension.publicNgrokURL
+      )  
+      
+      // get preview URL
+      const previewURL = extension.getPreviewURL();
 
-    console.log(boxen(
-      chalk.bold.black(`NGROK URL: ${extension.publicNgrokURL}\nPREVIEW URL: ${previewURL}`),
-      {
-        borderStyle: {
-          topLeft: ' ',
-          topRight: ' ',
-          bottomLeft: ' ',
-          bottomRight: ' ',
-          horizontal: ' ',
-          vertical: ' ',
-        },
-        padding: 2,
-        backgroundColor: 'greenBright',
-        textAlignment: 'center',
-      }
-    ));
+      console.log(boxen(
+        chalk.bold.black(`NGROK URL: ${extension.publicNgrokURL}\nPREVIEW URL: ${previewURL}`),
+        {
+          borderStyle: {
+            topLeft: ' ',
+            topRight: ' ',
+            bottomLeft: ' ',
+            bottomRight: ' ',
+            horizontal: ' ',
+            vertical: ' ',
+          },
+          padding: 2,
+          backgroundColor: 'greenBright',
+          textAlignment: 'center',
+        }
+      ));
+    } catch(error) {
+      throw new CommandError(error.message, error.code);
+    }
   }
 
   private getPreviewURL() {
@@ -160,8 +169,7 @@ export default class ExtensionPreviewURL {
       }])
       extension_api_key = answers.extension_api_key
     } catch(error) {
-      console.log(chalk.red(error.message));
-      process.exit(1);
+      throw new CommandError(error.message);
     }
     return extension_api_key;
   }
@@ -179,8 +187,7 @@ export default class ExtensionPreviewURL {
       }]);
       companyId = answers.company_id
     } catch(error) {
-      console.log(chalk.red(error.message));
-      process.exit(1);
+      throw new CommandError(error.message);
     }
     return companyId;
   }
@@ -196,8 +203,7 @@ export default class ExtensionPreviewURL {
       }])
       authtoken = answers.ngrok_authtoken;
     } catch(error) {
-      console.log(chalk.red(error.message));
-      process.exit(1);
+      throw new CommandError(error.message);
     }
     return authtoken;
   }
