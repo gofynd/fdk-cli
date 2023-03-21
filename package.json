@@ -1,6 +1,6 @@
 {
   "name": "@gofynd/fdk-cli",
-  "version": "2.4.16-alpha.3",
+  "version": "2.5.0-alpha.1",
   "main": "index.js",
   "license": "MIT",
   "bin": {
@@ -89,6 +89,7 @@
     "mongodb": "^3.5.4",
     "mongoose": "^5.8.0",
     "ncp": "^2.0.0",
+    "ngrok": "^4.3.3",
     "open": "^8.2.1",
     "ora": "^5.4.0",
     "password-validator": "^5.1.1",

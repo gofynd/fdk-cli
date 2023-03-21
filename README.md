@@ -83,6 +83,7 @@ ___
 | ------------- |-------------| 
 | [init](#extension-init)     | Initialize extension |
 | [setup](#extension-setup)     | setup development environment
+| [preview-url](#extension-preview-url)   | Get extension preview url
 | [launch-url](#extension-launch-url)     | Get/set lanuch url |
 
 ### Partner Commands
@@ -395,7 +396,7 @@ ___
 <div id="extension-setup"></div>
 
 #### **setup**
-This command is used to setup extension's development environment in local machine with required dependecies created on [Fynd Partners](https://partners.fynd.com/) panel.
+This command is used to setup extension's development environment in local machine with required dependencies created on [Fynd Partners](https://partners.fynd.com/) panel.
 #### ****Syntax****
 ```sh
 fdk extension setup [options]
@@ -413,6 +414,38 @@ fdk extension setup [options]
 fdk extension setup --target-dir [your-directory]
 ```
 ___
+
+<div id="extension-preview-url"></div>
+
+#### **preview-url**
+This command will return the preview URL, which the user can use to launch or install the extension.
+
+#### ****Syntax****
+```sh
+fdk extension preview-url [options]
+```
+
+#### **Command Options**
+| Option    | Description   |
+| ----------|---------------|
+| -p, --port    | Port on which Extension is running |
+| --company-id | specify company id |
+| --update-authtoken | update Ngrok authtoken |
+| --help    | Show help |
+| --verbose | enable debug mode |
+
+#### **Example**
+```sh
+fdk extension preview-url --port 3000
+```
+```sh
+fdk extension preview-url -p 3000 --update-authtoken
+```
+```sh
+fdk extension preview-url -p 3000 --company-id 999 --update-authtoken
+```
+
+___
 <div id="extension-launch-url"></div>
 
 #### **launch-url**
@@ -425,18 +458,18 @@ fdk extension launch-url get/set [options]
 | Option        | Description  | 
 | ------------- |-------------| 
 | --url | URL to be set |
-| --api_key    | Extension ID |
+| --api-key    | Extension ID |
 | --help    | Show help |
 | --verbose | enable debug mode |
 
 #### **Set Launch URL Example**
 ```sh
-fdk extension launch-url set --url [url] --api_key [extension ID]
+fdk extension launch-url set --url [url] --api-key [Extension API Key]
 ```
 
 #### **Get Launch URL Example**
 ```sh
-fdk extension launch-url get --api_key [extension id]
+fdk extension launch-url get --api-key [Extension API Key]
 ```
 ___
 ### Partner Commands

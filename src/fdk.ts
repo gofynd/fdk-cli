@@ -20,7 +20,7 @@ import {
     THEME_COMMANDS, 
     AUTHENTICATION_COMMANDS, 
     ENVIRONMENT_COMMANDS, 
-    EXTENSIOIN_COMMANDS, 
+    EXTENSION_COMMANDS, 
     PARTNER_COMMANDS 
 } from './helper/constants';
 const packageJSON = require('../package.json');
@@ -91,7 +91,7 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
             if (
                 !(AUTHENTICATION_COMMANDS.findIndex(c => authCommand.includes(c)) !== -1) &&
                 !(ENVIRONMENT_COMMANDS.findIndex(c => envCommand.includes(c)) !== -1) &&
-                !(EXTENSIOIN_COMMANDS.findIndex(c => extensionCommand.includes(c)) !== -1) &&
+                !(EXTENSION_COMMANDS.findIndex(c => extensionCommand.includes(c)) !== -1) &&
                 !(PARTNER_COMMANDS.findIndex(c => partnerCommand.includes(c)) !== -1) &&
                 !configStore.get(CONFIG_KEYS.COOKIE)
             ) {

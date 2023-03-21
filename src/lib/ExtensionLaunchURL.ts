@@ -1,9 +1,8 @@
 import fs from 'fs';
 import { 
-  getDefaultContextData, 
-  getActiveContext, 
   replaceContent,
-  Object
+  Object,
+  getPartnerAccessToken
 } from "../helper/extension_utils";
 import Partner from "./Partner";
 import { readFile, writeFile } from "../helper/file.utils";
@@ -17,37 +16,33 @@ export default class ExtensionLaunchURL {
 
   public static async setLaunchURLHandler(options) {
     try {
-      let contextData = getDefaultContextData().partners.contexts.default;
+      let partner_access_token = getPartnerAccessToken();
 
-      try {
-        contextData = getActiveContext(true);
-      } catch(err) {}
-
-      if (!contextData.partner_access_token) {
-        contextData.partner_access_token = await Partner.connectHandler({readOnly: true, ...options});
+      if (!partner_access_token) {
+        partner_access_token = (await Partner.connectHandler({readOnly: true, ...options})).partner_access_token;
       }
 
-      let ctx = {
-        host: options.host || contextData.host,
-        launch_url: options.url,
-        token: contextData.partner_access_token,
-        extension_id: options.apiKey,
-        verbose: options.verbose
-      }
+      ExtensionLaunchURL.updateLaunchURL(options.apiKey, partner_access_token, options.url);
+    } catch(error) {
+      throw new CommandError(error.message, error.code)
+    }
+  }
 
+  public static async updateLaunchURL(extension_api_key: string, partner_access_token: string, launch_url: string): Promise<void> {
+    try {
       let spinner = new Spinner('Updating Launch URL');
       try {
         spinner.start();
         let manualUpdateRequired = false;
         await ExtensionService.updateLaunchURL(
-          ctx.extension_id,
-          ctx.token,
-          {base_url: ctx.launch_url}
+          extension_api_key,
+          partner_access_token,
+          {base_url: launch_url}
         )
 
         if (fs.existsSync('./.env')) {
           let envData = readFile('./.env');
-          envData = replaceContent(envData, `EXTENSION_BASE_URL=.*[\n]`, `EXTENSION_BASE_URL="${ctx.launch_url}"\n`);
+          envData = replaceContent(envData, `EXTENSION_BASE_URL=.*[\n]`, `EXTENSION_BASE_URL="${launch_url}"\n`);
           writeFile('./.env', envData);
         } else {
           manualUpdateRequired = true;
@@ -59,37 +54,24 @@ export default class ExtensionLaunchURL {
         spinner.fail();
         throw new CommandError('Error while updating Launch URL');
       }
-
     } catch(error) {
       throw new CommandError(error.message, error.code);
     }
-  }
+  } 
 
 
   public static async getLaunchURLHandler(options: Object) {
     try {
-      let contextData = getDefaultContextData().partners.contexts.default;
-      
-      try {
-        contextData = getActiveContext(true);
-      } catch(err) {}
+      let partner_access_token = getPartnerAccessToken();
 
-      if (!contextData.partner_access_token) {
-        contextData.partner_access_token = await Partner.connectHandler({readOnly: true, ...options});
-      }
-
-      let ctx = {
-        host: options.host || contextData.host,
-        launch_url: options.url,
-        token: contextData.partner_access_token,
-        extension_id: options.apiKey,
-        verbose: options.verbose
+      if (!partner_access_token) {
+        partner_access_token = (await Partner.connectHandler({readOnly: true, ...options})).partner_access_token;
       }
 
       let spinner = new Spinner('Fetching Launch URL');
       try {
         spinner.start();
-        let extension_data = await ExtensionService.getExtensionDataUsingToken(ctx.extension_id, ctx.token);
+        let extension_data = await ExtensionService.getExtensionDataUsingToken(options.apiKey, partner_access_token);
         let launchURL: string = extension_data.base_url;
 
         spinner.succeed();

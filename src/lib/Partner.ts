@@ -1,13 +1,11 @@
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 
+import configStore, { CONFIG_KEYS } from './Config'; 
 import ExtensionService from './api/services/extension.service';
 import { 
-  getActiveContext, 
-  getDefaultContextData, 
   Object,
   validateEmpty,
-  writeContextData
 } from '../helper/extension_utils'
 import CommandError, { ErrorCodes } from './CommandError';
 import Spinner from '../helper/spinner';
@@ -16,12 +14,6 @@ export default class Partner {
 
   public static async connectHandler(options: Object) {
     try {
-      let contextData = getDefaultContextData().partners.contexts.default;
-      try {
-        contextData = getActiveContext(true);
-      }
-      catch (err) { }
-
       let answers: Object;
       let organizationInfo: Object;
 
@@ -31,10 +23,6 @@ export default class Partner {
         message: 'Enter partner access token :',
         validate: validateEmpty
       }])
-
-      contextData.partner_access_token = answers.partner_access_token;
-      let host = options.host || contextData.host;
-      contextData.host = host;
 
       let spinner = new Spinner('Verifying Access Token');
       try {
@@ -48,7 +36,7 @@ export default class Partner {
           )
         }
         if (!options.readOnly) {
-          writeContextData(contextData.name, contextData, `./.fdk/context.json`, true);
+          configStore.set(CONFIG_KEYS.PARTNER_ACCESS_TOKEN, answers.partner_access_token);
           console.log(chalk.green('Updated partner token'));
         }
         spinner.succeed();
@@ -56,7 +44,9 @@ export default class Partner {
         spinner.fail();
         throw new CommandError(error.message, error.code);
       }
-      return contextData.partner_access_token;
+
+      return organizationInfo;
+      
     } catch(error) {
       throw new CommandError(error.message, error.code);
     }

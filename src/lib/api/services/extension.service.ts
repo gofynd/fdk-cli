@@ -99,10 +99,27 @@ export default {
       headers['x-partner-token'] = partner_access_token;
       
       let response = await ApiClient.get(URLS.GET_ORGANIZATION_DATA(partner_access_token), {headers: headers, timeout: 3000});
+      response.data.partner_access_token = partner_access_token
       return response.data;
 
     } catch(error) {
       throw error;
     }
-  }
+  },
+
+
+  // Preview URL
+  getDevelopmentAccounts: async (organization_id: string, page_no: number, page_size: number) => {
+    try {
+      let axiosOptions = Object.assign(
+        {},
+        getCommonHeaderOptions()
+      )
+      let response = await ApiClient.get(URLS.GET_DEVELOPMENT_ACCOUNTS(organization_id, page_no, page_size), axiosOptions);
+      return response.data;
+
+    } catch(error) {
+      consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
+    }
+  },
 }
