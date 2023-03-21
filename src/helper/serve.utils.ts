@@ -144,7 +144,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 				method: 'POST',
 				url: jetfireUrl.toString(),
 				headers: {
-					'content-type': 'application/json',
+					'Content-Yype': 'application/json',
 					'Accept': 'application/json'
 				},
 				data: {

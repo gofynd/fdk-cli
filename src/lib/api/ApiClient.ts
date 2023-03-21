@@ -11,12 +11,14 @@ axios.defaults.timeout = 300000; // 5 minute
 axios.interceptors.request.use(
     function (request: AxiosRequestConfig) {
         try {
-            //log curl request incase of debug
-            const curl = new Curl(request);
-            Debug('************** CURL **************');
-            Debug(`METHOD: ${request?.method.toUpperCase()} | PATH: ${request?.url}`);
-            Debug(curl.generateCommand());
-            Debug('************** END OF CURL **************');
+            if (request.headers['Content-Type'] === 'application/json') {
+                // log curl request incase of debug
+                const curl = new Curl(request);
+                Debug('************** CURL **************');
+                Debug(`METHOD: ${request?.method.toUpperCase()} | PATH: ${request?.url}`);
+                Debug(curl.generateCommand());
+                Debug('************** END OF CURL **************');
+            }
         } catch (error) {
             Debug(`Error Generating Curl: ${error}`);
         } finally {

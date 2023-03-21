@@ -69,7 +69,7 @@ export default {
             //upload file to s3
             const res2 = await ApiClient.put(s3Url, {
                 data: fs.readFileSync(filepath),
-                headers: { 'Content-type': contentType },
+                headers: { 'Content-Type': contentType },
             });
             let uploadResponse = res2 ? res2.data : res2;
 
