@@ -6,6 +6,7 @@ import {
     getActiveContext,
     pageNameModifier,
     isAThemeDirectory,
+    installNpmPackages,
 } from '../helper/utils';
 import CommandError, { ErrorCodes } from './CommandError';
 import Logger from './Logger';
@@ -137,7 +138,15 @@ export default class Theme {
             await createContext(context);
 
             Logger.info('Installing dependencies');
-            await Theme.installNpmPackages();
+            let spinner = new Spinner("Installing npm packages")
+            try {
+                spinner.start();
+                await installNpmPackages()
+                spinner.succeed();
+            } catch(error) {
+                spinner.fail();
+                throw new CommandError(error.message);
+            } 
 
             let packageJSON = await fs.readJSON(path.join(process.cwd(), 'package.json'));
             packageJSON.name = Theme.sanitizeThemeName(options.name);
@@ -254,8 +263,16 @@ export default class Theme {
                 );
                 rimraf.sync(path.join(process.cwd(), 'theme', 'package.json'));
             }
-
-            await Theme.installNpmPackages();
+            
+            let spinner = new Spinner("Installing npm packages");
+            try {
+                spinner.start();
+                await installNpmPackages();
+                spinner.succeed();
+            } catch(error) {
+                spinner.fail();
+                throw new CommandError(error.message);
+            } 
             let packageJSON = await fs.readJSON(path.join(process.cwd(), 'package.json'));
             packageJSON.name = Theme.sanitizeThemeName(themeName);
             await fs.writeJSON(path.join(process.cwd(), 'package.json'), packageJSON, {
@@ -536,23 +553,6 @@ export default class Theme {
         } catch (error) {
             return Promise.reject(error);
         }
-    }
-    private static async installNpmPackages() {
-        const spinner = new Spinner("Installing npm packages")
-        return new Promise((resolve, reject) => {
-            spinner.start();
-            let exec = execa('npm', ['i'], { cwd: process.cwd() });
-            exec.stdout.pipe(process.stdout);
-            exec.stderr.pipe(process.stderr);
-            exec.on('exit', function (code) {
-                if (!code) {
-                    spinner.succeed();
-                    return resolve(code);
-                }
-                spinner.fail();
-                reject({ message: 'Node Modules Installation Failed' });
-            });
-        });
     }
     private static async getAvailableSections() {
         let sectionsFiles = [];

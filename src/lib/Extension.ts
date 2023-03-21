@@ -5,7 +5,6 @@ import fs from 'fs';
 import path from 'path';
 import execa from "execa";
 import rimraf from 'rimraf';
-import os from 'os';
 
 
 import Partner from "./Partner";
@@ -27,6 +26,7 @@ import {
 } from "../helper/file.utils";
 import configStore, { CONFIG_KEYS } from "./Config";
 import { getBaseURL } from "./api/services/url";
+import { installNpmPackages, installJavaPackages, installPythonDependencies } from "../helper/utils";
 
 export const NODE_VUE = 'Node + Vue.js'
 export const NODE_REACT = 'Node + React.js'
@@ -96,49 +96,25 @@ export default class Extension {
     writeFile(`${targetDir}/package.json`, replaceContent(packageJson, 'groot', packageName));
   }
 
-
-  // installing NPM packages
-  private static async installNpmPackages(targetDir: string): Promise<void> {
-    await execa('npm', ['i'], { cwd: targetDir });
-    await execa('npm', ['run', 'build'], { cwd: targetDir });
-  }
-
-  // installing Python libraries
-  private static async installPythonDependencies(targetDir: string): Promise<void> {
-    const os_platform = os.platform()
-    if (os_platform === 'darwin' || os_platform === 'linux') {
-      await execa('python3', ['-m', 'venv', 'venv'], {cwd: targetDir});
-      await execa('./venv/bin/pip', ["install", '-r', 'requirements.txt'], {cwd: targetDir});
-    } else if (os_platform === 'win32') {
-      await execa('python', ['-m', 'venv', 'venv'], {cwd:targetDir});
-      await execa('venv\\Scripts\\pip', ['install', '-r', 'requirements.txt'], {cwd: targetDir});
-    }
-  }
-
-  // installing Java packages
-  private static async installJavaPackages(targetDir: string): Promise<void> {
-    await execa('mvn', ['clean'], {cwd: targetDir});
-    await execa('mvn', ['package'], {cwd: targetDir});
-  }
-
   // wrapper function for installing dependencies in extension
   static async installDependencies(answers: Object): Promise<void> {
     let project_type = answers.project_type
     if (project_type === NODE_VUE || project_type === NODE_REACT) {
         // installing dependencies for Node projects
-        await Extension.installNpmPackages(answers.targetDir);
+        await installNpmPackages(answers.targetDir);
+        await installNpmPackages(answers.targetDir);
         } 
     
     else if (project_type === PYTHON_VUE || project_type === PYTHON_REACT ) {
         // installing dependencies for Python projects
-        await Extension.installNpmPackages(answers.targetDir);
-        await Extension.installPythonDependencies(answers.targetDir);
+        await installNpmPackages(answers.targetDir);
+        await installPythonDependencies(answers.targetDir);
         }
 
     else if (project_type === JAVA_VUE || project_type === JAVA_REACT) {
         // installing dependencies for java projects
-        await Extension.installNpmPackages(`${answers.targetDir}/app`);
-        await Extension.installJavaPackages(answers.targetDir);
+        // await Extension.installNpmPackages(`${answers.targetDir}/app`);
+        await installJavaPackages(answers.targetDir);
     }
   }
 

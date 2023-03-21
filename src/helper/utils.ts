@@ -6,6 +6,8 @@ import CommandError, { ErrorCodes } from '../lib/CommandError';
 import { COMMON_LOG_MESSAGES } from '../lib/Logger';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
 import { createDirectory } from './file.utils';
+import execa from 'execa';
+import Debug from '../lib/Debug';
 
 const FDK_PATH = () => path.join(process.cwd(), '.fdk');
 const CONTEXT_PATH = () => path.join(FDK_PATH(), 'context.json');
@@ -125,3 +127,69 @@ export const evaluateModule = code => {
         : m.exports;
     return res;
 };
+
+export const installPythonDependencies = async (targetDir: string = process.cwd()) => {
+    return new Promise(async (resolve, reject) => {
+        const os_platform = process.platform
+        let exec;
+        if (os_platform === 'darwin' || os_platform === 'linux') {
+            await execa('python3', ['-m', 'venv', 'venv'], {cwd: targetDir});
+            exec = execa('./venv/bin/pip', ["install", '-r', 'requirements.txt'], {cwd: targetDir});
+            
+        } else if (os_platform === 'win32') {
+            await execa('python', ['-m', 'venv', 'venv'], {cwd:targetDir});
+            exec = execa('venv\\Scripts\\pip', ['install', '-r', 'requirements.txt'], {cwd: targetDir});
+        }
+        exec.stdout.on('data', (data) => {
+            Debug(data);
+        })
+        exec.stderr.on('data', (data) => {
+            Debug(data);
+        })
+        exec.on('exit', (code) => {
+            if(!code) {
+                return resolve(code);
+            }
+            reject({ message: 'Node Modules Installation Failed' });
+        })
+    })
+}
+
+
+export const installJavaPackages = async (targetDir: string = process.cwd()) => {
+    return new Promise(async (resolve, reject) => {
+        await execa('mvn', ['clean'], {cwd: targetDir});
+        let exec = execa('mvn', ['package'], {cwd: targetDir});
+        exec.stdout.on('data', (data) => {
+            Debug(data);
+        })
+        exec.stderr.on('data', (data) => {
+            Debug(data);
+        })
+        exec.on('exit', (code) => {
+            if(!code) {
+                return resolve(code);
+            }
+            reject({ message: 'Node Modules Installation Failed' });
+        })
+    })
+}
+
+
+export const installNpmPackages = async (targetDir: string = process.cwd()) => {
+    return new Promise(async (resolve, reject) => {
+        let exec = execa('npm', ['i'], { cwd: targetDir });
+        exec.stdout.on('data', (data) => {
+            Debug(data);
+        })
+        exec.stderr.on('data', (data) => {
+            Debug(data);
+        })
+        exec.on('exit', (code) => {
+            if(!code) {
+                return resolve(code);
+            }
+            reject({ message: 'Node Modules Installation Failed' });
+        })
+    })
+}

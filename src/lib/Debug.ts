@@ -1,4 +1,3 @@
-import debugLib from 'debug'
 import Logger from './Logger'
 
 export default function(args){

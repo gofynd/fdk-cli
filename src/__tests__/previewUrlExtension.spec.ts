@@ -20,8 +20,8 @@ const PORT = "3000"
 const COOKIE = "mockcookies"
 const AUTH_TOKEN = "mockngrokauthtoken"
 
-const EXPECTED_PREVIEW_URL = "PREVIEW URL: https://platform.fynd.com/company/1/extensions/mockextensionapikey"
-const EXPECTED_NGROK_URL = "NGROK URL: https://test_url.ngrok.io"
+const EXPECTED_PREVIEW_URL = "https://platform.fynd.com/company/1/extensions/mockextensionapikey"
+const EXPECTED_NGROK_URL = "https://test_url.ngrok.io"
 
 let program: CommanderStatic;
 let logSpy: jest.SpyInstance<any>;

@@ -1,5 +1,6 @@
 import chalk from 'chalk';
 import { createLogger, format, transports } from 'winston';
+import winston from 'winston';
 import configSore, { CONFIG_KEYS } from './Config';
 const { printf } = format;
 const packageJSON = require('../../package.json')
@@ -43,10 +44,10 @@ const consoleFormat = printf(({ level, message }) => {
 });
 const transportsArr: any = [
   new transports.Console({
-    level: 'info',
+    level: 'debug',
   }),
 ];
-let logger;
+let logger: winston.Logger;
 export const initializeLogger = () => {
   if (process.env.DEBUG === 'fdk') {
     const fileTransporter = new transports.File({
