@@ -1,5 +1,6 @@
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
+import { uninterceptedApiClient } from '../lib/api/ApiClient'
 import inquirer from 'inquirer';
 import { URLS } from '../lib/api/services/url';
 import mockFunction from './helper';
@@ -71,6 +72,7 @@ describe('Theme Commands', () => {
         process.chdir(`./test-theme/`);
         program = await init('fdk');
         const mock = new MockAdapter(axios);
+        const mockInstance = new MockAdapter(uninterceptedApiClient.axiosInstance);
         mock.onPost(`${URLS.LOGIN_USER()}`).reply(200, data, {
             'set-cookie': [{ Name: 'Any One' }],
         });
@@ -111,6 +113,7 @@ describe('Theme Commands', () => {
             )}`
         ).reply(200, startUpload);
         mock.onPut(`${imageS3Url}`).reply(200, '');
+        mockInstance.onPut(`${imageS3Url}`).reply(200, '');
         mock.onPost(
             `${URLS.COMPLETE_UPLOAD_FILE(
                 appConfig.application_id,
@@ -126,6 +129,7 @@ describe('Theme Commands', () => {
             )}`
         ).reply(200, srcUploadData);
         mock.onPut(`${srcS3Url}`).reply(200, '');
+        mockInstance.onPut(`${srcS3Url}`).reply(200, '');
         mock.onPost(
             `${URLS.COMPLETE_UPLOAD_FILE(
                 appConfig.application_id,
@@ -142,6 +146,7 @@ describe('Theme Commands', () => {
             )}`
         ).reply(200, assetsUploadData);
         mock.onPut(`${assetS3Url}`).reply(200, '');
+        mockInstance.onPut(`${assetS3Url}`).reply(200, '');
         mock.onPost(
             `${URLS.COMPLETE_UPLOAD_FILE(
                 appConfig.application_id,

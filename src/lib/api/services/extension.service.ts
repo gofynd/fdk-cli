@@ -24,7 +24,6 @@ export default {
           data: data
         },
         {
-          timeout: 3000,
           headers: headers
         }
       )
@@ -45,7 +44,7 @@ export default {
       headers['Authorization'] = `Bearer ${authorizationToken}`;
       headers['x-partner-token'] = partner_access_token;
     
-      let response = await ApiClient.get(URLS.GET_EXTENSION_DETAILS(extension_api_key), {headers: headers, timeout: 3000});
+      let response = await ApiClient.get(URLS.GET_EXTENSION_DETAILS(extension_api_key), {headers: headers});
       return response.data;
 
     } catch(error) {
@@ -59,7 +58,7 @@ export default {
       let headers = getCommonHeaderOptions().headers;
       headers['x-partner-token'] = partner_access_token;
 
-      let response = await ApiClient.get(URLS.GET_EXTENSION_DETAILS(extension_api_key), {headers: headers, timeout: 3000});
+      let response = await ApiClient.get(URLS.GET_EXTENSION_DETAILS(extension_api_key), {headers: headers});
       return response.data;
       
     } catch(error) {
@@ -79,7 +78,6 @@ export default {
           data: data
         },
         {
-          timeout: 3000,
           headers: headers
         }
       )
@@ -99,7 +97,7 @@ export default {
       let headers = getCommonHeaderOptions().headers;
       headers['x-partner-token'] = partner_access_token;
       
-      let response = await ApiClient.get(URLS.GET_ORGANIZATION_DATA(partner_access_token), {headers: headers, timeout: 3000});
+      let response = await ApiClient.get(URLS.GET_ORGANIZATION_DATA(partner_access_token), {headers: headers});
       response.data.partner_access_token = partner_access_token
       return response.data;
 

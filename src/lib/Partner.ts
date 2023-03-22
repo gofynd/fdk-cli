@@ -35,14 +35,15 @@ export default class Partner {
             ErrorCodes.INVALID_PARTNER_TOKEN.code
           )
         }
-        if (!options.readOnly) {
-          configStore.set(CONFIG_KEYS.PARTNER_ACCESS_TOKEN, answers.partner_access_token);
-          console.log(chalk.green('Updated partner token'));
-        }
         spinner.succeed();
       } catch(error) {
         spinner.fail();
         throw new CommandError(error.message, error.code);
+      }
+      
+      if (!options.readOnly) {
+        configStore.set(CONFIG_KEYS.PARTNER_ACCESS_TOKEN, answers.partner_access_token);
+        console.log(chalk.green('Updated partner token'));
       }
 
       return organizationInfo;

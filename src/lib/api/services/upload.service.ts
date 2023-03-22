@@ -1,5 +1,5 @@
 import { getActiveContext } from '../../../helper/utils';
-import ApiClient from '../ApiClient';
+import ApiClient, { uninterceptedApiClient } from '../ApiClient';
 import { URLS } from './url';
 import { getCommonHeaderOptions } from './utils';
 import fs from 'fs-extra';
@@ -66,8 +66,9 @@ export default {
 
             let s3Url = startResponse.upload.url;
 
-            //upload file to s3
-            const res2 = await ApiClient.put(s3Url, {
+            // upload file to s3
+            // using uninterceptedApiClient to skip curl
+            const res2 = await uninterceptedApiClient.put(s3Url, {
                 data: fs.readFileSync(filepath),
                 headers: { 'Content-Type': contentType },
             });

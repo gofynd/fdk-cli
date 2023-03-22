@@ -24,7 +24,7 @@ export default class ExtensionLaunchURL {
 
       ExtensionLaunchURL.updateLaunchURL(options.apiKey, partner_access_token, options.url);
     } catch(error) {
-      throw new CommandError(error.message, error.code)
+      throw new CommandError(error.message, error.code);
     }
   }
 
@@ -48,11 +48,11 @@ export default class ExtensionLaunchURL {
           manualUpdateRequired = true;
         }
         spinner.succeed();
-        console.log(chalk.greenBright(`Launch url set successfully ${manualUpdateRequired? '. Please update launch url in your code.': ''}`));
+        console.log(chalk.greenBright(`Launch url set successfully${manualUpdateRequired? '. Please update launch url in your code.': ''}`));
         
       } catch(error) {
         spinner.fail();
-        throw new CommandError('Error while updating Launch URL');
+        throw new CommandError(error.message);
       }
     } catch(error) {
       throw new CommandError(error.message, error.code);
@@ -79,7 +79,7 @@ export default class ExtensionLaunchURL {
       
       } catch(error) {
         spinner.fail();
-        throw new CommandError('Error while Fetching Launch URL')
+        throw new CommandError(error.message);
       }
 
     } catch(error) {
