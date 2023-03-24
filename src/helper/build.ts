@@ -1,13 +1,22 @@
-import { exec } from 'child_process'
-import path from 'path'
+import { exec } from 'child_process';
+import path from 'path';
 import Theme from '../lib/Theme';
+import chalk from 'chalk';
 
 export function build({ buildFolder, imageCdnUrl, assetCdnUrl, assetHash = '' }) {
-    const VUE_CLI_PATH = path.join('.', 'node_modules', '@vue', 'cli-service', 'bin', 'vue-cli-service.js');
+    const VUE_CLI_PATH = path.join(
+        '.',
+        'node_modules',
+        '@vue',
+        'cli-service',
+        'bin',
+        'vue-cli-service.js'
+    );
     const THEME_ENTRY_FILE = path.join('theme', 'index.js');
 
     return new Promise((resolve, reject) => {
-        let b = exec(`node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle --filename ${assetHash}_themeBundle ${THEME_ENTRY_FILE}`,
+        let b = exec(
+            `node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle --filename ${assetHash}_themeBundle ${THEME_ENTRY_FILE}`,
             {
                 cwd: process.cwd(),
                 env: {
@@ -15,10 +24,17 @@ export function build({ buildFolder, imageCdnUrl, assetCdnUrl, assetHash = '' })
                     IMAGE_CDN_URL: imageCdnUrl,
                     ASSET_CDN_URL: assetCdnUrl,
                     ASSET_HASH: assetHash,
-                    NODE_ENV: "production",
-                    VUE_CLI_SERVICE_CONFIG_PATH: path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH)
-                }
-            });
+                    NODE_ENV: 'production',
+                    VUE_CLI_SERVICE_CONFIG_PATH: path.join(
+                        process.cwd(),
+                        Theme.VUE_CLI_CONFIG_PATH
+                    ),
+                },
+            },
+            (error: any, stdout: string, stderr: string) => {
+                console.log('In the callback', 'error', error, 'stdout', stdout, 'stderr', stderr);
+            }
+        );
 
         b.stdout.pipe(process.stdout);
         b.stderr.pipe(process.stderr);
@@ -26,30 +42,60 @@ export function build({ buildFolder, imageCdnUrl, assetCdnUrl, assetHash = '' })
             if (!code) {
                 return resolve(true);
             }
+            console.log('build exit code', code);
             reject({ message: 'Vue.js Build Failed' });
         });
     });
 }
 interface DevBuild {
-    buildFolder: string,
-    imageCdnUrl: string,
-    isProd: boolean
+    buildFolder: string;
+    imageCdnUrl: string;
+    isProd: boolean;
 }
-export function devBuild({ buildFolder, imageCdnUrl, isProd } : DevBuild) {
-    const VUE_CLI_PATH = path.join('.', 'node_modules', '@vue', 'cli-service', 'bin', 'vue-cli-service.js');
+export function devBuild({ buildFolder, imageCdnUrl, isProd }: DevBuild) {
+    const VUE_CLI_PATH = path.join(
+        '.',
+        'node_modules',
+        '@vue',
+        'cli-service',
+        'bin',
+        'vue-cli-service.js'
+    );
     const THEME_ENTRY_FILE = path.join('theme', 'index.js');
 
     return new Promise((resolve, reject) => {
-        let b = exec(`node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle ${THEME_ENTRY_FILE}`,
+        console.log(
+            chalk.green(
+                `Man: node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle ${THEME_ENTRY_FILE}`
+            )
+        );
+
+        let b = exec(
+            `node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle ${THEME_ENTRY_FILE}`,
             {
                 cwd: process.cwd(),
                 env: {
                     ...process.env,
                     IMAGE_CDN_URL: imageCdnUrl,
-                    NODE_ENV: (isProd && "production") || "development",
-                    VUE_CLI_SERVICE_CONFIG_PATH: path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH)
-                }
-            });
+                    NODE_ENV: (isProd && 'production') || 'development',
+                    VUE_CLI_SERVICE_CONFIG_PATH: path.join(
+                        process.cwd(),
+                        Theme.VUE_CLI_CONFIG_PATH
+                    ),
+                },
+            },
+            (error: any, stdout: string, stderr: string) => {
+                console.log(
+                    chalk.red('Error while exec'),
+                    chalk.bold('Error'),
+                    error,
+                    chalk.bold('stdout'),
+                    stdout,
+                    chalk.bold('stderr'),
+                    stderr
+                );
+            }
+        );
 
         b.stdout.pipe(process.stdout);
         b.stderr.pipe(process.stderr);
@@ -58,6 +104,7 @@ export function devBuild({ buildFolder, imageCdnUrl, isProd } : DevBuild) {
             if (!code) {
                 return resolve(true);
             }
+            console.log(chalk.red('Man: devBuild exit code'), code);
             reject({ message: 'Build Failed' });
         });
     });
