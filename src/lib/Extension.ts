@@ -135,17 +135,6 @@ export default class Extension {
         throw new CommandError(error.message);
       }
 
-      spinner = new Spinner('Storing context');
-      try {
-        spinner.start();
-        configStore.set(CONFIG_KEYS.PARTNER_ACCESS_TOKEN, answers.partner_access_token);
-        spinner.succeed();
-      } catch(error) {
-        spinner.fail();
-        throw new CommandError(error.message);
-      }
-
-
       if (isRegisterExtension) {
         spinner = new Spinner('Registering Extension');
         try {

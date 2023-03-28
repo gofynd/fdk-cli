@@ -10,7 +10,6 @@ export default function extensionCommandBuilder() {
         .command('init')
         .description('Initialize extension')
         .option('--target-dir <path>', 'Target directory for creating extension repository')
-        .option('--context-name <name>', 'Context name')
         .asyncAction(Extension.initExtensionHandler);
 
 
@@ -18,7 +17,6 @@ export default function extensionCommandBuilder() {
         .command('setup')
         .description('Setup development environment for extension')
         .option('--target-dir <path>', 'Target directory for creating extension repository')
-        .option('--context-name <name>', 'Context name')
         .asyncAction(Extension.setupExtensionHandler);
 
     extension

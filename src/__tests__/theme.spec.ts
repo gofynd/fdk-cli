@@ -201,6 +201,9 @@ describe('Theme Commands', () => {
             `${URLS.THEME_BY_ID(appConfig.application_id, appConfig.company_id, initThemeData._id)}`
         ).reply(200, initThemeData);
         let filePath = path.join(__dirname, 'fixtures', 'archive.zip');
+        mockInstance.onGet(initThemeData.src.link).reply(function () {
+            return [200, fs.createReadStream(filePath)];
+        });
         mock.onGet(initThemeData.src.link).reply(function () {
             return [200, fs.createReadStream(filePath)];
         });
@@ -214,6 +217,9 @@ describe('Theme Commands', () => {
         ).reply(200, pullThemeData);
         let zipfilePath = path.join(__dirname, 'fixtures', 'pull-archive.zip');
         mock.onGet(pullThemeData.src.link).reply(function () {
+            return [200, fs.createReadStream(zipfilePath)];
+        });
+        mockInstance.onGet(pullThemeData.src.link).reply(function () {
             return [200, fs.createReadStream(zipfilePath)];
         });
         mock.onDelete(

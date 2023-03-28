@@ -1,4 +1,4 @@
-const Configstore = require('configstore');
+import Configstore from "configstore";
 const packageJSON = require('../../package.json');
 
 export const CONFIG_KEYS = {

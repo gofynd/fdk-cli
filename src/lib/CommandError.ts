@@ -30,6 +30,10 @@ export const ErrorCodes = {
   INVALID_PARTNER_TOKEN: {
     message: 'Invalid of Expired Partner access token',
     code: 'FDK-0007'
+  },
+  NO_DEVELOPMENT_COMPANY: {
+    message: "Development account not found",
+    code: 'FDK-0008'
   }
 };
 

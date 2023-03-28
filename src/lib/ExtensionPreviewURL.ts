@@ -17,7 +17,7 @@ import {
   validateEmpty,
 } from '../helper/extension_utils'
 import Spinner from "../helper/spinner";
-import CommandError from "./CommandError";
+import CommandError, { ErrorCodes } from "./CommandError";
 
 export default class ExtensionPreviewURL {
   organizationInfo: Object;
@@ -113,6 +113,21 @@ export default class ExtensionPreviewURL {
       choices.push({name: data.company.name, value: data.company.uid})
     });
 
+    if (choices.length === 0) {
+      console.log(chalk.yellowBright(
+        `You haven't created any development account in "${this.organizationInfo.name}" organization.`
+      ))
+
+      console.log(chalk.yellowBright(
+        `Please create a development account from ${getBaseURL().replace('api', 'partners')} and try again`
+      ))
+
+      throw new CommandError(
+        ErrorCodes.NO_DEVELOPMENT_COMPANY.message, 
+        ErrorCodes.NO_DEVELOPMENT_COMPANY.code
+      )
+    }
+
     return await this.promptDevelopmentCompany(choices);
   }
   
@@ -121,7 +136,6 @@ export default class ExtensionPreviewURL {
     return await ngrok.connect({
       proto: 'http',
       addr: this.options.port,
-      region: 'in',
       authtoken: authtoken,
       onStatusChange: async (status) => {
         if (status === 'connected') {
@@ -181,7 +195,7 @@ export default class ExtensionPreviewURL {
         choices: choices,
         name: 'company_id',
         message: 'Development Company :',
-        pageSize: 5,
+        pageSize: 6,
         validate: validateEmpty
       }]);
       companyId = answers.company_id
@@ -194,6 +208,9 @@ export default class ExtensionPreviewURL {
   private async promptNgrokAuthtoken(): Promise<string> {
     let authtoken: string;
     try {
+      console.log(chalk.grey(
+        `Visit https://dashboard.ngrok.com/get-started/your-authtoken to get Authtoken`
+      ))
       let answers = await inquirer.prompt([{
         type: 'input',
         name: 'ngrok_authtoken',

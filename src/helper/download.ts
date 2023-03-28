@@ -1,14 +1,13 @@
 import fs from 'fs-extra'
-import axios from 'axios'
+import { uninterceptedApiClient } from '../lib/api/ApiClient';
 export async function downloadFile(url: string, filePath: string) {
     fs.ensureFileSync(filePath);
     const writer = fs.createWriteStream(filePath)
 
-    const response = await axios({
+    const response = await uninterceptedApiClient.get(
         url,
-        method: 'GET',
-        responseType: 'stream'
-    })
+        {responseType: 'stream'}
+    )
 
     response.data.pipe(writer)
 

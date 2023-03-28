@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse, AxiosInstance } from 'axios';
+import axios, { AxiosError, AxiosRequestConfig, AxiosResponse, AxiosInstance, ResponseType } from 'axios';
 import Debug from '../Debug';
 import { transformRequestOptions } from './../../helper/utils';
 import { addSignatureFn, responseErrorInterceptor, responseInterceptor } from './helper/interceptors';
@@ -8,7 +8,14 @@ axios.defaults.timeout = 300000; // 5 minute
 
 let uninterceptedAxiosInstance = axios.create()
 uninterceptedAxiosInstance.interceptors.request.use(addSignatureFn({}));
-uninterceptedAxiosInstance.interceptors.response.use(responseInterceptor(), responseErrorInterceptor());
+uninterceptedAxiosInstance.interceptors.response.use(
+    (response) => {
+        Debug(`Response status: ${response.status}`);
+        Debug(`Response Headers: ${JSON.stringify(response.headers)}`);
+        return response; // IF 2XX then return response.data only
+    }, 
+    responseErrorInterceptor()
+);
 
 // Axios Interceptors
 axios.interceptors.request.use(
@@ -41,6 +48,7 @@ interface Options {
     headers?: object
     params?: object
     data?: object
+    responseType?: ResponseType
 }
 
 class ApiEngine {
@@ -54,6 +62,7 @@ class ApiEngine {
         return this.axiosInstance.head(url, {
             headers: opt.headers,
             params: opt.params,
+            responseType: opt.responseType,
             paramsSerializer: params => {
                 return transformRequestOptions(params);
             },
@@ -64,6 +73,7 @@ class ApiEngine {
         return this.axiosInstance.get(url, {
             params: opt.params,
             headers: opt.headers,
+            responseType: opt.responseType,
             paramsSerializer: params => {
                 return transformRequestOptions(params);
             },
@@ -75,6 +85,7 @@ class ApiEngine {
         return this.axiosInstance.post(url, opt.data, {
             headers: opt.headers,
             params: opt.params,
+            responseType: opt.responseType,
         });
     }
 
@@ -82,6 +93,7 @@ class ApiEngine {
         return this.axiosInstance.put(url, opt.data, {
             headers: opt.headers,
             params: opt.params,
+            responseType: opt.responseType,
         });
     }
 
@@ -89,6 +101,7 @@ class ApiEngine {
         return this.axiosInstance.patch(url, opt.data, {
             headers: opt.headers,
             params: opt.params,
+            responseType: opt.responseType,
         });
     }
 
@@ -97,6 +110,7 @@ class ApiEngine {
             data: opt.data,
             headers: opt.headers,
             params: opt.params,
+            responseType: opt.responseType,
         });
     }
 
@@ -104,6 +118,7 @@ class ApiEngine {
         return axiosMisc.get(url, {
             params: opt.params,
             headers: opt.headers,
+            responseType: opt.responseType,
             paramsSerializer: params => {
                 return transformRequestOptions(params);
             },
