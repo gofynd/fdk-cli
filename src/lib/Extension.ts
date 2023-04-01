@@ -144,7 +144,7 @@ export default class Extension {
             {
               name: answers.name,
               base_url: 'http://localdev.fynd.com',
-              extension_type: answers.type
+              extention_type: answers.type.toLowerCase()
             }
           )
           answers.extension_api_key = extension_data.client_id;

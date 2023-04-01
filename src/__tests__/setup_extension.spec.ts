@@ -13,7 +13,7 @@ const envFileData = `EXTENSION_API_KEY="api_key"\nEXTENSION_API_SECRET="api_secr
 jest.mock('configstore', () => {
   const Store = jest.requireActual<typeof import('configstore')>('configstore');
   return class MockConfigstore {
-    store = new Store('test-cli', undefined, {configPath: './test-cli.json'})
+    store = new Store('test-cli', undefined, {configPath: './setupExt-test-cli.json'})
     all = this.store.all
     get(key: string) {
       return this.store.get(key)
@@ -35,7 +35,7 @@ describe('Setup extension command', () => {
   })
 
   afterAll(async () => {
-    rimraf.sync('./test-cli.json')
+    rimraf.sync('./setupExt-test-cli.json')
   })
 
   afterEach(async () => {

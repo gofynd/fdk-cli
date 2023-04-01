@@ -29,7 +29,7 @@ let logSpy: jest.SpyInstance<any>;
 jest.mock('configstore', () => {
   const Store = jest.requireActual<typeof import('configstore')>('configstore');
   return class MockConfigstore {
-    store = new Store('test-cli', undefined, {configPath: './test-cli.json'})
+    store = new Store('test-cli', undefined, {configPath: './previewUrl-test-cli.json'})
     all = this.store.all
     get(key: string) {
       return this.store.get(key)
@@ -80,7 +80,7 @@ describe('Extension preview-url command', () => {
   
   afterEach(async () => {
     // remove test config store
-    rimraf.sync('./test-cli.json')
+    rimraf.sync('./previewUrl-test-cli.json')
   })
 
   it("should throw port error", async () => {

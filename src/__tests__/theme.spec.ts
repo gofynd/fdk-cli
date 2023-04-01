@@ -38,10 +38,38 @@ import { decodeBase64 } from '../helper/utils';
 import { getActiveContext } from '../helper/utils';
 import { createDirectory } from '../helper/file.utils';
 import { init } from '../fdk';
-import configStore from '../lib/Config';
+import configStore, { CONFIG_KEYS } from '../lib/Config';
 
 jest.mock('inquirer');
 let program;
+
+jest.mock('configstore', () => {
+    const Store = jest.requireActual<typeof import('configstore')>('configstore');
+    const path = jest.requireActual<typeof import('path')>('path');
+    return class MockConfigstore {
+
+        store = new Store('@gofynd/fdk-cli', undefined, {configPath: path.join(__dirname, "theme-test-cli.json")})
+        all = this.store.all
+        size = this.store.size
+        path = this.store.path
+        get(key: string) {
+            return this.store.get(key)
+        }
+        set(key: string, value: any) {
+            this.store.set(key, value);
+        }   
+        delete(key: string) {
+            this.store.delete(key)
+        }
+        clear() {
+            this.store.clear();
+        }
+        has(key: string) {
+            return this.store.has(key)
+        }
+    }
+});
+
 
 async function login() {
     const inquirerMock = mockFunction(inquirer.prompt);
@@ -230,7 +258,9 @@ describe('Theme Commands', () => {
             )}`
         ).reply(200, deleteData);
         mock.onDelete(availablePage).reply(200, deleteAvailablePage);
-        await login();
+        // user login
+        configStore.set(CONFIG_KEYS.COOKIE, "mockcookies");
+        configStore.set(CONFIG_KEYS.USER, data.user)
     });
 
     afterEach(() => {
@@ -245,7 +275,7 @@ describe('Theme Commands', () => {
     afterAll(() => {
         fs.rmdirSync(path.join(__dirname, '..', '..', 'test-theme'), { recursive: true });
         process.chdir(path.join(__dirname, '..', '..'));
-        configStore.clear();
+        rimraf.sync(path.join(__dirname, 'theme-test-cli.json')) // remove configstore
     });
 
     it('should successfully create new theme', async () => {

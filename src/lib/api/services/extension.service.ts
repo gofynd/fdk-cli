@@ -4,7 +4,7 @@ import ApiClient from '../ApiClient'
 
 type RegisterExtensionPaylaod = {
   name: string,
-  extension_type: "private" | "public",
+  extention_type: "private" | "public",
   base_url: string
 }
 
