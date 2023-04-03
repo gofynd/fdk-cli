@@ -77,6 +77,7 @@ ___
 | [publish](#theme-publish)     | Publish theme to library |
 | [unpublish](#theme-unpublish)     | Unpublish theme |
 | [open](#theme-open)    | preview theme |
+| [package](#theme-package)    | Create a zip file of theme |
 
 ### Extension Commands
 | Command        | Description           | 
