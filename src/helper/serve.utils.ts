@@ -44,8 +44,8 @@ export function getPort(port) {
 
 export async function startServer({ domain, host, isSSR, port }) {
     const currentContext = getActiveContext();
-    // const currentDomain = `https://${currentContext.domain}`;
-    const currentDomain = 'http://localdev.jiox0.de:8087';
+    const currentDomain = `https://${currentContext.domain}`;
+    // const currentDomain = 'http://localdev.jiox0.de:8087';
     const app = require('https-localhost')(getLocalBaseUrl());
     const certs = await app.getCerts();
     const server = require('https').createServer(certs, app);
@@ -55,6 +55,40 @@ export async function startServer({ domain, host, isSSR, port }) {
         sockets.push(socket);
         socket.on('disconnect', function () {
             sockets = sockets.filter(s => s !== socket);
+        });
+
+        // When error occurs on browser after app has been served
+        // We will send socket event to CLI and find file location
+        socket.on('explain-error', async function (err) {
+            const stack = stackTraceParser(err);
+
+            if (stack[0]) {
+                // Check in which bundle file error occuring and get map file
+                const bundleFile = stack[0].file.split('/').pop() + '.map';
+
+                // Get bundle file from local machine
+                const mapContent = JSON.parse(
+                    fs.readFileSync(`${BUILD_FOLDER}/${bundleFile}`, {
+                        encoding: 'utf8',
+                        flag: 'r',
+                    })
+                );
+
+                const smc = await new SourceMapConsumer(mapContent);
+
+                // Get position in original file
+                const pos = smc.originalPositionFor({
+                    line: stack[0].lineNumber,
+                    column: stack[0].column,
+                });
+
+                const pathToFile =
+                    pos.source.split('themeBundle/')[1] + ':' + pos.line + ':' + pos.column;
+
+                // Log in CLI
+                if (pos)
+                    console.log(chalk.bgRed('\nError at ' + pathToFile + ' @' + pos.name + '\n'));
+            }
         });
     });
 
@@ -131,23 +165,22 @@ export async function startServer({ domain, host, isSSR, port }) {
             process.cwd(),
             path.join('.fdk', 'dist', 'themeBundle.common.js')
         );
+
         if (!fs.existsSync(BUNDLE_PATH))
             return res.sendFile(path.join(__dirname, '../../', '/dist/helper', '/loader.html'));
         if (req.originalUrl == '/favicon.ico' || req.originalUrl == '/.webp') {
             return res.status(404).send('Not found');
         }
-        // console.log(
-        //     'Man: domain, req.originalUrl currentDomain',
-        //     chalk.bgGreen(domain, req.originalUrl, currentDomain)
-        // );
-        const localJetfireDomain = 'http://localdev.jiox0.de:8087';
+
         const jetfireUrl = new URL(urlJoin(domain, req.originalUrl));
-        // const jetfireUrl = new URL(urlJoin(localJetfireDomain, req.originalUrl));
+
         jetfireUrl.searchParams.set('themeId', currentContext.theme_id);
         let themeUrl = '';
         if (isSSR) {
             const BUNDLE_PATH = path.join(process.cwd(), '/.fdk/dist/themeBundle.common.js');
+
             const User = Configstore.get(CONFIG_KEYS.USER);
+
             themeUrl = (await UploadService.uploadFile(BUNDLE_PATH, 'fdk-cli-dev-files', User._id))
                 .start.cdn.url;
         } else {
@@ -157,6 +190,8 @@ export async function startServer({ domain, host, isSSR, port }) {
 
         try {
             // Bundle directly passed on with POST request body.
+            // console.log(chalk.red('================Jetfire call start=================='));
+
             const { data: html } = await axios({
                 method: 'POST',
                 url: jetfireUrl.toString(),
@@ -169,8 +204,6 @@ export async function startServer({ domain, host, isSSR, port }) {
                     port: port.toString(),
                 },
             });
-
-            // console.log('Man: Jetfire html', html);
 
             let $ = cheerio.load(html);
             $('head').prepend(`
@@ -223,7 +256,40 @@ export async function startServer({ domain, host, isSSR, port }) {
             });
             res.send($.html({ decodeEntities: false }));
         } catch (e) {
-            // console.log(chalk.red('Man: Jetfire error'), chalk.bgGreenBright(e));
+            // Check if error contains "all_server_components" string
+            // if yes, then it means error is from jetfire
+            const all_server_components = e.response.data.includes('all_server_components');
+            let pathToFile = null;
+
+            // Showing in CLI whether it's from Jetfire or Theme
+            console.log(all_server_components ? 'Error in Jetfire' : 'Error in theme');
+
+            // If it's from theme side
+            // then find original location from .map file
+            if (!all_server_components) {
+                const stack = stackTraceParser(e.response.data);
+                if (stack[0]) {
+                    const mapContent = JSON.parse(
+                        fs.readFileSync(`${BUILD_FOLDER}/themeBundle.common.js.map`, {
+                            encoding: 'utf8',
+                            flag: 'r',
+                        })
+                    );
+
+                    const smc = await new SourceMapConsumer(mapContent);
+
+                    const pos = smc.originalPositionFor({
+                        line: stack[0].lineNumber,
+                        column: stack[0].column,
+                    });
+
+                    if (pos) {
+                        pathToFile =
+                            pos.source.split('themeBundle/')[1] + ':' + pos.line + ':' + pos.column;
+                        console.log(chalk.bgRed('\nError at ' + pathToFile + ' @' + pos.name));
+                    }
+                }
+            }
 
             if (e.response && e.response.status == 504) {
                 res.redirect(req.originalUrl);
@@ -240,7 +306,9 @@ export async function startServer({ domain, host, isSSR, port }) {
                             flag: 'r',
                         })
                     );
+
                     const smc = await new SourceMapConsumer(mapContent);
+
                     const stack = stackTraceParser(e.response.data);
                     stack?.forEach(({ methodName, lineNumber, column }) => {
                         try {
@@ -261,7 +329,11 @@ export async function startServer({ domain, host, isSSR, port }) {
                         }
                     });
                     res.send(
-                        `<div style="padding: 10px;background: #efe2e0;color: #af2626;">${errorString}</div>`
+                        `<div style="padding: 10px;background: #efe2e0;color: #af2626;">${errorString}${
+                            pathToFile
+                                ? `<a style="background: #0078d7; color: white; text-decoration: none; padding: 8px 16px; margin-top: 16px; display: block; width: max-content; border-radius: 2px; font-family: arial;" href="vscode://file${process.cwd()}/${pathToFile}">Open in VS Code</a>`
+                                : ''
+                        }</div>`
                     );
                 } catch (e) {
                     console.log(e);
