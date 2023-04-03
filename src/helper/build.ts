@@ -64,12 +64,6 @@ export function devBuild({ buildFolder, imageCdnUrl, isProd }: DevBuild) {
     const THEME_ENTRY_FILE = path.join('theme', 'index.js');
 
     return new Promise((resolve, reject) => {
-        console.log(
-            chalk.green(
-                `Man: node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle ${THEME_ENTRY_FILE}`
-            )
-        );
-
         let b = exec(
             `node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle ${THEME_ENTRY_FILE}`,
             {
@@ -83,17 +77,6 @@ export function devBuild({ buildFolder, imageCdnUrl, isProd }: DevBuild) {
                         Theme.VUE_CLI_CONFIG_PATH
                     ),
                 },
-            },
-            (error: any, stdout: string, stderr: string) => {
-                console.log(
-                    chalk.red('Error while exec'),
-                    chalk.bold('Error'),
-                    error,
-                    chalk.bold('stdout'),
-                    stdout,
-                    chalk.bold('stderr'),
-                    stderr
-                );
             }
         );
 
@@ -104,7 +87,7 @@ export function devBuild({ buildFolder, imageCdnUrl, isProd }: DevBuild) {
             if (!code) {
                 return resolve(true);
             }
-            console.log(chalk.red('Man: devBuild exit code'), code);
+            console.log(chalk.red('exit code'), code);
             reject({ message: 'Build Failed' });
         });
     });
