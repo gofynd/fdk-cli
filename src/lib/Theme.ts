@@ -1117,16 +1117,17 @@ export default class Theme {
             throw new CommandError(err.message, err.code);
         }
     };
-    public static copyFolderSync = (from, to) => {
+    public static copyFolders = async(from, to) => {
         try {
-            fs.mkdirSync(to);
-            fs.readdirSync(from).forEach(element => {
+            fs.mkdir(to);
+           const files = await fs.readdir(from)
+           files.forEach((element) => {
                 if (element === 'temp-theme') {
                 return;
-                } else if (fs.lstatSync(path.join(from, element)).isFile()) {
-                    fs.copyFileSync(path.join(from, element), path.join(to, element));
-                } else if (fs.lstatSync(path.join(from, element)).isDirectory()) {
-                    Theme.copyFolderSync(path.join(from, element), path.join(to, element));
+                }else if (fs.lstatSync(path.join(from, element)).isFile() && element != 'node_modules' && element != '.fdk') {
+                    fs.copyFile(path.join(from, element), path.join(to, element));
+                } else if (fs.lstatSync(path.join(from, element)).isDirectory() && element != 'node_modules' && element != '.fdk') {
+                    Theme.copyFolders(path.join(from, element), path.join(to, element));
                 }
             });
         } catch(err) {
@@ -1136,26 +1137,34 @@ export default class Theme {
 
     public static generateThemeZip = async () => {
         let content = { name: ''};
+        let spinner;
         try {
+            if(fs.existsSync(Theme.SRC_FOLDER)){
+                rimraf.sync(Theme.SRC_FOLDER);
+            }
+            spinner = ora({text: 'CLI has started creating zip file...',
+            color:'yellow'}).start();
             let filepath = path.join(process.cwd(),'package.json');
             let packageContent: any = readFile(filepath);
             let content = JSON.parse(packageContent) || {};
-            if (!isAThemeDirectory()) {
-                throw new CommandError(
-                    ErrorCodes.INVALID_THEME_DIRECTORY.message,
-                    ErrorCodes.INVALID_THEME_DIRECTORY.code
-                );
-            }
-            Theme.copyFolderSync(path.join(process.cwd()), Theme.SRC_FOLDER);
-            rimraf.sync(path.join(process.cwd(), '.fdk', 'temp-theme', 'node_modules'));
-            rimraf.sync(path.join(process.cwd(), '.fdk', 'temp-theme', '.fdk'));
+            process.on("SIGINT", () => {
+                rimraf.sync(path.join(process.cwd(),'.fdk','temp-theme'));
+                rimraf.sync(path.join(process.cwd(),`${content.name}_${content.version}.zip`));
+                spinner.fail("CLI has stopped creating zip file...");
+                process.exit(0);
+            });
+            await Theme.copyFolders(path.join(process.cwd()), Theme.SRC_FOLDER);
             await archiveFolder({
                 srcFolder: path.join(process.cwd(),'.fdk','temp-theme'),
                 destFolder: path.join(process.cwd()),
                 zipFileName: `${content.name}_${content.version}.zip`,
             });
             rimraf.sync(path.join(process.cwd(),'.fdk','temp-theme'));
+            spinner.succeed(`${content.name}_${content.version}.zip file created.`);
         } catch (err) {
+            if (spinner.isSpinning) {
+                spinner.fail();
+            }
             throw new CommandError(`Failed to generate .zip file of ${content?.name} theme`, err.code);
         }
     };
