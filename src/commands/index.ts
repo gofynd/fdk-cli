@@ -1,9 +1,15 @@
 import { CommanderStatic } from 'commander';
 
-const COMMANDS = [require('./environment'), require('./auth'), require('./theme'), require('./populate')];
+const COMMANDS = [
+    require('./environment'),
+    require('./auth'),
+    require('./theme'),
+    require('./status'),
+    require('./populate'),
+];
 
 export function registerCommands(program: CommanderStatic) {
-  COMMANDS.forEach(commandModule => {
-    commandModule.default(program);
-  });
+    COMMANDS.forEach(commandModule => {
+        commandModule.default(program);
+    });
 }

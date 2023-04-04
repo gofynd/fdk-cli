@@ -2,6 +2,7 @@ const { readFile, writeFile } = require('../utils/file-utlis');
 const fs = require('fs');
 const rimraf = require('rimraf');
 const urlJoin = require('url-join');
+const { SERVICE_URL } = require('../../helper/constants')
 let url = '';
 
 const getAPIUrl = host => {
@@ -28,7 +29,7 @@ const getGrimlockUrl = host => {
 
 const getSkywarpUrl = host => {
   const baseURl = getAPIUrl(host);
-  const skywarp = urlJoin(baseURl, '/service/panel/authentication');
+  const skywarp = urlJoin(baseURl, SERVICE_URL.authentication);
   return skywarp;
 };
 
@@ -39,20 +40,20 @@ const getFreewayUrl = host => {
 };
 const getGrindorUrl = host => {
   const baseURl = getAPIUrl(host);
-  const grindor = urlJoin(baseURl, '/service/platform/assets');
+  const grindor = urlJoin(baseURl, SERVICE_URL.assets);
   return grindor
 };
 
 
 const getBlitzkriegUrl = host => {
   const baseURl = getAPIUrl(host);
-  const blitzkrieg = urlJoin(baseURl, '/service/platform/theme');
+  const blitzkrieg = urlJoin(baseURl, SERVICE_URL.theme);
   return blitzkrieg
 };
 
 const getMixmasterUrl = host => {
   const baseURl = getAPIUrl(host);
-  const mixmaster = urlJoin(baseURl, '/service/panel/partners');
+  const mixmaster = urlJoin(baseURl, SERVICE_URL.partners);
   return mixmaster
 };
 module.exports = {

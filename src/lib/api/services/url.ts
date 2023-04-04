@@ -1,6 +1,7 @@
 import configStore, { CONFIG_KEYS } from '../../Config';
 import urlJoin from 'url-join';
 import { AVAILABLE_ENVS } from '../../Env';
+import { SERVICE_URL } from '../../../helper/constants';
 
 const apiVersion = configStore.get(CONFIG_KEYS.API_VERSION) || '1.0';
 
@@ -9,11 +10,11 @@ export const getBaseURL = () => {
     return `https://${AVAILABLE_ENVS[currentEnv]}`;
 };
 
-const THEME_URL = () => getBaseURL() + '/service/platform/theme/v' + apiVersion;
-const AUTH_URL = () => getBaseURL() + '/service/panel/authentication/v' + apiVersion;
-const CONFIGURATION_URL = () => getBaseURL() + '/service/platform/configuration/v' + apiVersion;
-const ASSET_URL = () => getBaseURL() + '/service/platform/assets/v' + apiVersion;
-const MIXMASTER_PLTM_URL = () => getBaseURL() + '/service/platform/partners/v' + apiVersion;
+const THEME_URL = () => getBaseURL() + `${SERVICE_URL.theme}/v` + apiVersion;
+const AUTH_URL = () => getBaseURL() + `${SERVICE_URL.authentication}/v` + apiVersion;
+const CONFIGURATION_URL = () => getBaseURL() + `${SERVICE_URL.configuration}/v` + apiVersion;
+const ASSET_URL = () => getBaseURL() + `${SERVICE_URL.assets}/v` + apiVersion;
+const MIXMASTER_PLTM_URL = () => getBaseURL() + `${SERVICE_URL.partners}/v` + apiVersion;
 
 export const URLS = {
     // AUTHENTICATION
