@@ -2,13 +2,10 @@ const combineURLs = require('axios/lib/helpers/combineURLs');
 const isAbsoluteURL = require('axios/lib/helpers/isAbsoluteURL');
 const { transformRequestOptions } = require('../../../helper/utils');
 const { sign } = require('./signature');
+import Debug from '../../Debug';
+import CommandError, { ErrorCodes } from '../../CommandError';
 import AuthenticationService from '../services/auth.service';
 import ConfigStore, { CONFIG_KEYS } from '../../Config';
-import Curl from '../../../helper/curl';
-import Logger from '../../Logger';
-import Debug from '../../Debug';
-import Auth from '../../Auth';
-import { consolidateErrorMessage } from '../../../helper/error.utils';
 
 function getTransformer(config) {
     const { transformRequest } = config;
@@ -52,10 +49,9 @@ function interceptorFn(options) {
                     try {
                         data = (await AuthenticationService.getOauthToken(company_id)).data || {};
                     } catch (error) {
-                        consolidateErrorMessage(error?.response?.status, error?.response?.statusText, error?.request?.method, error?.response?.data?.message, error?.request?.path);
                         ConfigStore.delete(CONFIG_KEYS.USER);
                         ConfigStore.delete(CONFIG_KEYS.COOKIE);
-                        throw new Error(error);
+                        throw error;
                     }
 
                     if (data.access_token) {
@@ -99,7 +95,6 @@ function interceptorFn(options) {
                 // config.headers = signingOptions.headers;
                 config.headers['x-fp-date'] = signingOptions.headers['x-fp-date'];
                 config.headers['x-fp-signature'] = signingOptions.headers['x-fp-signature'];
-                config.headers['x-debug'] = true;
             }
             return config;
         } catch (error) {
@@ -107,4 +102,31 @@ function interceptorFn(options) {
         }
     };
 }
+
+export function responseInterceptor() {
+    return response => {
+        Debug(`Response status: ${response.status}`);
+        Debug(`Response: ${JSON.stringify(response.data)}`);
+        Debug(`Response Headers: ${JSON.stringify(response.headers)}`);
+        return response; // IF 2XX then return response.data only
+    }
+}
+
+export function responseErrorInterceptor() {
+    return error => {
+        // Request made and server responded
+        if (error.response) {
+            Debug(`Error Response  :  ${JSON.stringify(error.response.data)}`);
+            throw new CommandError(`${error.response.data.message}`, ErrorCodes.API_ERROR.code);
+        } else if (error.request) {
+            // The request was made but no error.response was received
+            throw new Error(
+                'Not received response from the server, possibly some network issue, please retry!!'
+            );
+        } else {
+            throw new Error('There was an issue in setting up the request, Please raise issue');
+        }
+    } 
+}
+
 export { interceptorFn as addSignatureFn };

@@ -18,7 +18,7 @@ export default class Auth {
             const cookie = headers['set-cookie'][0];
             ConfigStore.set(CONFIG_KEYS.COOKIE, cookie);
             ConfigStore.set(CONFIG_KEYS.USER, data.user);
-            Logger.success('User logged in successfully');
+            Logger.info('User logged in successfully');
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
@@ -48,7 +48,7 @@ export default class Auth {
                 const cookie = headers['set-cookie'][0];
                 ConfigStore.set(CONFIG_KEYS.COOKIE, cookie);
                 ConfigStore.set(CONFIG_KEYS.USER, data.user);
-                Logger.success('User logged in successfully');
+                Logger.info('User logged in successfully');
             });
         } catch (error) {
             throw new CommandError(error.message, error.code);
@@ -67,7 +67,7 @@ export default class Auth {
             await inquirer.prompt(questions).then(answers => {
                 if (answers.confirmLogout === 'Yes') {
                     ConfigStore.clear();
-                    Logger.success(`User logged out successfully`);
+                    Logger.info(`User logged out successfully`);
                 }
             });
         } catch (error) {
@@ -79,8 +79,8 @@ export default class Auth {
             const user = ConfigStore.get(CONFIG_KEYS.USER);
             const activeEmail =
                 user.emails.find(e => e.active && e.primary)?.email || 'Not primary email set';
-            Logger.success(`Name: ${user.first_name} ${user.last_name}`);
-            Logger.success(`Email: ${activeEmail}`);
+            Logger.info(`Name: ${user.first_name} ${user.last_name}`);
+            Logger.info(`Email: ${activeEmail}`);
         } catch (error) {
             throw new CommandError(error.message);
         }

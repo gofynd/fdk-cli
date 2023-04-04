@@ -1,24 +1,32 @@
 import chalk from 'chalk';
 import { createLogger, format, transports } from 'winston';
-import { Transports } from 'winston/lib/winston/transports';
-const { combine, timestamp, label, printf } = format;
+import winston from 'winston';
+import configSore, { CONFIG_KEYS } from './Config';
+const { printf } = format;
+const packageJSON = require('../../package.json')
+
+const extraLoggerFields = format(info => {
+  info.OS = process.platform; // returns 'darwin', 'linux', 'win32', 'aix', 'freebsd', 'openbsd', 'sunos'
+  info.cli = `v${packageJSON.version}`;
+  info.Node = process.version;
+  info.Env = configSore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+  info.Command = process.argv.slice(2).join(" ");
+  return info;
+})
+
 const FDKCustomLevels = {
   levels: {
     error: 0,
     warn: 1,
     info: 2,
     debug: 3,
-    success: 4,
   },
 };
-const consoleFormat = printf(({ level, message, label, timestamp }) => {
+const consoleFormat = printf(({ level, message }) => {
   const levelUpper = level?.toUpperCase();
   switch (levelUpper) {
     case 'INFO':
       message = chalk.blue(message);
-      break;
-    case 'SUCCESS':
-      message = chalk.green(message);
       break;
     case 'WARN':
       message = chalk.yellow(message);
@@ -34,57 +42,50 @@ const consoleFormat = printf(({ level, message, label, timestamp }) => {
   }
   return `${message}`;
 });
-const fileFormat = printf(({ level, message, label, timestamp }) => {
-  return `${timestamp} : ${message}`;
-});
 const transportsArr: any = [
   new transports.Console({
-    level: 'success',
+    level: 'debug',
   }),
 ];
-let logger;
+let logger: winston.Logger;
 export const initializeLogger = () => {
   if (process.env.DEBUG === 'fdk') {
     const fileTransporter = new transports.File({
       filename: 'debug.log',
-      level: 'success',
-      format: combine(label({ label: '' }), timestamp(), format.splat(), fileFormat),
-    });
+      level: 'debug',
+      format: format.combine(
+        extraLoggerFields(),
+        format.timestamp({
+          format: 'YYYY-MM-DD HH:mm:ss'
+        }),
+        format.errors({ stack: true }),
+        format.splat(),
+        format.json()
+      ),
+    })
     transportsArr.push(fileTransporter);
   }
   logger = createLogger({
     levels: FDKCustomLevels.levels,
-    format: combine(label({ label: '' }), timestamp(), format.splat(), consoleFormat),
-    transports: transportsArr,
+    format: consoleFormat,
+    transports: transportsArr
   });
 };
 export default class Logger {
   public static log(...args: any[]) {
-    // console.log(...args);
     logger.info(args.join(''));
   }
-  public static success(...args: any[]) {
-    // console.log(chalk.green(...args));
-    logger.log('success', args.join(''));
-  }
   public static warn(...args: any[]) {
-    // console.log(chalk.yellow(...args));
     logger.log('warn', args.join(''));
   }
   public static error(...args: any[]) {
-    // console.log(chalk.red(...args));
     logger.log('error', args.join(''));
   }
   public static info(...args: any[]) {
-    // console.log(chalk.blue(...args));
     logger.log('info', args.join(''));
   }
   public static debug(...args: any[]) {
-    // console.log(`${chalk.cyan(...args)}`);
     logger.log('debug', args.join(''));
-  }
-  public static newLine() {
-    console.log();
   }
 }
 

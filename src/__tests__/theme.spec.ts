@@ -1,5 +1,6 @@
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
+import { uninterceptedApiClient } from '../lib/api/ApiClient'
 import inquirer from 'inquirer';
 import { URLS } from '../lib/api/services/url';
 import mockFunction from './helper';
@@ -37,10 +38,38 @@ import { decodeBase64 } from '../helper/utils';
 import { getActiveContext } from '../helper/utils';
 import { createDirectory } from '../helper/file.utils';
 import { init } from '../fdk';
-import configStore from '../lib/Config';
+import configStore, { CONFIG_KEYS } from '../lib/Config';
 
 jest.mock('inquirer');
 let program;
+
+jest.mock('configstore', () => {
+    const Store = jest.requireActual<typeof import('configstore')>('configstore');
+    const path = jest.requireActual<typeof import('path')>('path');
+    return class MockConfigstore {
+
+        store = new Store('@gofynd/fdk-cli', undefined, {configPath: path.join(__dirname, "theme-test-cli.json")})
+        all = this.store.all
+        size = this.store.size
+        path = this.store.path
+        get(key: string) {
+            return this.store.get(key)
+        }
+        set(key: string, value: any) {
+            this.store.set(key, value);
+        }   
+        delete(key: string) {
+            this.store.delete(key)
+        }
+        clear() {
+            this.store.clear();
+        }
+        has(key: string) {
+            return this.store.has(key)
+        }
+    }
+});
+
 
 async function login() {
     const inquirerMock = mockFunction(inquirer.prompt);
@@ -71,6 +100,7 @@ describe('Theme Commands', () => {
         process.chdir(`./test-theme/`);
         program = await init('fdk');
         const mock = new MockAdapter(axios);
+        const mockInstance = new MockAdapter(uninterceptedApiClient.axiosInstance);
         mock.onPost(`${URLS.LOGIN_USER()}`).reply(200, data, {
             'set-cookie': [{ Name: 'Any One' }],
         });
@@ -111,6 +141,7 @@ describe('Theme Commands', () => {
             )}`
         ).reply(200, startUpload);
         mock.onPut(`${imageS3Url}`).reply(200, '');
+        mockInstance.onPut(`${imageS3Url}`).reply(200, '');
         mock.onPost(
             `${URLS.COMPLETE_UPLOAD_FILE(
                 appConfig.application_id,
@@ -126,6 +157,7 @@ describe('Theme Commands', () => {
             )}`
         ).reply(200, srcUploadData);
         mock.onPut(`${srcS3Url}`).reply(200, '');
+        mockInstance.onPut(`${srcS3Url}`).reply(200, '');
         mock.onPost(
             `${URLS.COMPLETE_UPLOAD_FILE(
                 appConfig.application_id,
@@ -142,6 +174,7 @@ describe('Theme Commands', () => {
             )}`
         ).reply(200, assetsUploadData);
         mock.onPut(`${assetS3Url}`).reply(200, '');
+        mockInstance.onPut(`${assetS3Url}`).reply(200, '');
         mock.onPost(
             `${URLS.COMPLETE_UPLOAD_FILE(
                 appConfig.application_id,
@@ -196,6 +229,9 @@ describe('Theme Commands', () => {
             `${URLS.THEME_BY_ID(appConfig.application_id, appConfig.company_id, initThemeData._id)}`
         ).reply(200, initThemeData);
         let filePath = path.join(__dirname, 'fixtures', 'archive.zip');
+        mockInstance.onGet(initThemeData.src.link).reply(function () {
+            return [200, fs.createReadStream(filePath)];
+        });
         mock.onGet(initThemeData.src.link).reply(function () {
             return [200, fs.createReadStream(filePath)];
         });
@@ -211,6 +247,9 @@ describe('Theme Commands', () => {
         mock.onGet(pullThemeData.src.link).reply(function () {
             return [200, fs.createReadStream(zipfilePath)];
         });
+        mockInstance.onGet(pullThemeData.src.link).reply(function () {
+            return [200, fs.createReadStream(zipfilePath)];
+        });
         mock.onDelete(
             `${URLS.THEME_BY_ID(
                 appConfig.application_id,
@@ -219,7 +258,9 @@ describe('Theme Commands', () => {
             )}`
         ).reply(200, deleteData);
         mock.onDelete(availablePage).reply(200, deleteAvailablePage);
-        await login();
+        // user login
+        configStore.set(CONFIG_KEYS.COOKIE, "mockcookies");
+        configStore.set(CONFIG_KEYS.USER, data.user)
     });
 
     afterEach(() => {
@@ -234,7 +275,7 @@ describe('Theme Commands', () => {
     afterAll(() => {
         fs.rmdirSync(path.join(__dirname, '..', '..', 'test-theme'), { recursive: true });
         process.chdir(path.join(__dirname, '..', '..'));
-        configStore.clear();
+        rimraf.sync(path.join(__dirname, 'theme-test-cli.json')) // remove configstore
     });
 
     it('should successfully create new theme', async () => {

@@ -84,6 +84,7 @@ ___
 | ------------- |-------------| 
 | [init](#extension-init)     | Initialize extension |
 | [setup](#extension-setup)     | setup development environment
+| [preview-url](#extension-preview-url)   | Get extension preview url
 | [launch-url](#extension-launch-url)     | Get/set lanuch url |
 
 ### Partner Commands
@@ -376,6 +377,12 @@ fdk theme open
 ### Extension Commands
 Extensions are pluggable snippets of code that can be installed in your applications so improve the feature set of your application. To know more visit - [Fynd Partners](https://partners.fynd.com/)
 
+Set the active environment before running extension commands
+```sh
+fdk env set -n fynd
+```
+
+
 <div id="extension-init"></div>
 
 #### **init**
@@ -388,18 +395,18 @@ fdk extension init [options]
 | Option        | Description           | 
 | ------------- |-------------| 
 | --target-dir    | Target Directory |
-| --host    | Host |
 | --help    | Show help |
 | --verbose | enable debug mode |
 
 #### **Example**
 ```sh
-fdk extension init --target-dir [your-directory] --host [your_host]
+fdk extension init --target-dir [your-directory]
 ```
 ___
 <div id="extension-setup"></div>
+
 #### **setup**
-This command is used to setup extension's development environment in local machine with required dependecies created on [Fynd Partners](https://partners.fynd.com/) panel.
+This command is used to setup extension's development environment in local machine with required dependencies created on [Fynd Partners](https://partners.fynd.com/) panel.
 #### ****Syntax****
 ```sh
 fdk extension setup [options]
@@ -409,14 +416,46 @@ fdk extension setup [options]
 | Option        | Description           | 
 | ------------- |-------------| 
 | --target-dir    | Target Directory |
-| --host    | Host |
 | --help    | Show help |
 | --verbose | enable debug mode |
 
 #### **Example**
 ```sh
-fdk extension setup --target-dir [your-directory] --host [your_host]
+fdk extension setup --target-dir [your-directory]
 ```
+___
+
+<div id="extension-preview-url"></div>
+
+#### **preview-url**
+This command will return the preview URL, which the user can use to launch or install the extension.
+
+#### ****Syntax****
+```sh
+fdk extension preview-url [options]
+```
+
+#### **Command Options**
+| Option    | Description   |
+| ----------|---------------|
+| -p, --port    | Port on which Extension is running |
+| --company-id | specify company id |
+| --update-authtoken | update Ngrok authtoken |
+| --api-key | Extension API key |
+| --help    | Show help |
+| --verbose | enable debug mode |
+
+#### **Example**
+```sh
+fdk extension preview-url --port 3000
+```
+```sh
+fdk extension preview-url -p 3000 --update-authtoken
+```
+```sh
+fdk extension preview-url -p 3000 --company-id 999 --update-authtoken
+```
+
 ___
 <div id="extension-launch-url"></div>
 
@@ -430,19 +469,18 @@ fdk extension launch-url get/set [options]
 | Option        | Description  | 
 | ------------- |-------------| 
 | --url | URL to be set |
-| --api_key    | Extension ID |
-| --host    | Host |
+| --api-key    | Extension ID |
 | --help    | Show help |
 | --verbose | enable debug mode |
 
 #### **Set Launch URL Example**
 ```sh
-fdk extension launch-url set --url [url] --api_key [extension ID] --host [your_host]
+fdk extension launch-url set --url [url] --api-key [Extension API Key]
 ```
 
 #### **Get Launch URL Example**
 ```sh
-fdk extension launch-url get --api_key [extension id] --host [your_host]
+fdk extension launch-url get --api-key [Extension API Key]
 ```
 ___
 ### Partner Commands
@@ -458,13 +496,12 @@ fdk partner connect [options]
 #### **Command Options**
 | Option        | Description           | 
 | ------------- |-------------| 
-| --host    | Host |
 | --help    | Show help |
 | --verbose, -v | enable debug mode |
 
 #### **Example**
 ```sh
-fdk partner connect --host [your_host]
+fdk partner connect
 ```
 ___
 

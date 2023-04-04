@@ -1,7 +1,29 @@
+import rimraf from 'rimraf';
 import { init } from '../fdk';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
 
 let program;
+
+jest.mock('configstore', () => {
+    const Store = jest.requireActual<typeof import('configstore')>('configstore');
+    return class MockConfigstore {
+        store = new Store('test-cli', undefined, {configPath: './env-test-cli.json'})
+        all = this.store.all
+        size = this.store.size
+        get(key: string) {
+            return this.store.get(key)
+        }
+        set(key: string, value) {
+            this.store.set(key, value);
+        }
+        delete(key) {
+            this.store.delete(key)
+        }
+        clear() {
+            this.store.clear();
+        }
+    }
+});
 
 describe('Env Commands', () => {
 
@@ -10,7 +32,7 @@ describe('Env Commands', () => {
     });
 
     afterEach(() => {
-        configStore.clear();
+        rimraf.sync('./env-test-cli.json')
     });
     
     it('should console current set env', async () => {

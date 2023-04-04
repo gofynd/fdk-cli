@@ -1,4 +1,5 @@
 import axios from 'axios';
+import rimraf from 'rimraf';
 import inquirer from 'inquirer';
 import MockAdapter from 'axios-mock-adapter';
 import { URLS } from '../lib/api/services/url';
@@ -13,6 +14,28 @@ const mobileData = require('./fixtures/mobile-login.json');
 
 jest.mock('inquirer');
 let program;
+
+jest.mock('configstore', () => {
+    const Store = jest.requireActual<typeof import('configstore')>('configstore');
+    return class MockConfigstore {
+        store = new Store('test-cli', undefined, {configPath: './auth-test-cli.json'})
+        all = this.store.all
+        size = this.store.size
+        get(key: string) {
+            return this.store.get(key)
+        }
+        set(key: string, value) {
+            this.store.set(key, value);
+        }   
+        delete(key) {
+            this.store.delete(key)
+        }
+        clear() {
+            this.store.clear();
+        }
+    }
+});
+
 
 describe('Auth Commands', () => {
     beforeAll(async () => {
@@ -29,7 +52,7 @@ describe('Auth Commands', () => {
     });
 
     afterAll(() => {
-        configStore.clear();
+        rimraf.sync('./auth-test-cli.json')
     });
     it('should successfuly get headers', async () => {
         const res = getCommonHeaderOptions();

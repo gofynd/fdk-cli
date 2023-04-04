@@ -29,7 +29,7 @@ export default class CompanySetup {
     private static async setupComponent(company_id, request_id, prompt_message){
         Logger.info(prompt_message)
         const { data, headers } = await CompanySetupService.setupCompany(company_id, request_id);
-        Logger.success(data.message)
+        Logger.info(data.message)
         if(data.next_step){
             setTimeout(async() => {
                 return await CompanySetup.setupComponent(company_id, data.request_id, data.prompt_message)

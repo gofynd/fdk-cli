@@ -20,11 +20,32 @@ import CommandError from '../lib/CommandError';
 jest.mock('inquirer');
 let program;
 
+jest.mock('configstore', () => {
+    const Store = jest.requireActual<typeof import('configstore')>('configstore');
+    return class MockConfigstore {
+        store = new Store('test-cli', undefined, {configPath: './themeCtx-test-cli.json'})
+        all = this.store.all
+        size = this.store.size
+        get(key: string) {
+            return this.store.get(key)
+        }
+        set(key: string, value) {
+            this.store.set(key, value);
+        }
+        delete(key) {
+            this.store.delete(key)
+        }
+        clear() {
+            this.store.clear();
+        }
+    }
+});
+
 let configObj = JSON.parse(decodeBase64(`${contextToken}`));
 let addContextToken = generateToken(configObj);
 
 afterAll(() => {
-    configStore.clear();
+    rimraf.sync('./themeCtx-test-cli.json');
     let filePath = path.join(process.cwd(), '.fdk', 'context.json');
     try {
         rimraf.sync(filePath);

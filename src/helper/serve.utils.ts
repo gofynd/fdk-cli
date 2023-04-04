@@ -144,7 +144,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 				method: 'POST',
 				url: jetfireUrl.toString(),
 				headers: {
-					'content-type': 'application/json',
+					'Content-Yype': 'application/json',
 					'Accept': 'application/json'
 				},
 				data: {
@@ -230,8 +230,8 @@ export async function startServer({ domain, host, isSSR, port }) {
 			if (err) {
 				return reject(err);
 			}
-			Logger.success(`Starting starter at port -- ${port} in ${isSSR? 'SSR': 'Non-SSR'} mode`);
-			Logger.success(`************* Using Debugging build`);
+			Logger.info(`Starting starter at port -- ${port} in ${isSSR? 'SSR': 'Non-SSR'} mode`);
+			Logger.info(`************* Using Debugging build`);
 			resolve(true);
 		});
 	});

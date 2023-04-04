@@ -21,6 +21,20 @@ export const ErrorCodes = {
     message: 'Invalid options passed',
     code: 'FDK-0005',
   },
+  
+  // Extension
+  INVALID_KEYS: {
+    message: 'Invalid API Key/API Secret passed',
+    code: 'FDK-0006'
+  },
+  INVALID_PARTNER_TOKEN: {
+    message: 'Invalid of Expired Partner access token',
+    code: 'FDK-0007'
+  },
+  NO_DEVELOPMENT_COMPANY: {
+    message: "Development account not found",
+    code: 'FDK-0008'
+  }
 };
 
 export default class CommandError extends Error {

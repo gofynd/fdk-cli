@@ -13,7 +13,7 @@ const THEME_URL = () => getBaseURL() + '/service/platform/theme/v' + apiVersion;
 const AUTH_URL = () => getBaseURL() + '/service/panel/authentication/v' + apiVersion;
 const CONFIGURATION_URL = () => getBaseURL() + '/service/platform/configuration/v' + apiVersion;
 const ASSET_URL = () => getBaseURL() + '/service/platform/assets/v' + apiVersion;
-const MIXMASTER_PLTM_URL = () => getBaseURL() + '/service/platform/partners/v' + apiVersion;
+const MIXMASTER_URL = (serverType: string) => getBaseURL() + `/service/${serverType}/partners/v` + apiVersion;
 
 export const URLS = {
     // AUTHENTICATION
@@ -96,6 +96,27 @@ export const URLS = {
     },
 
     SETUP_COMPANY: (company_id: number) => {
-        return urlJoin(MIXMASTER_PLTM_URL(), `/company/${company_id}/setup`);
+        return urlJoin(MIXMASTER_URL('platform'), `/company/${company_id}/setup`);
     },
+
+
+    // Extension
+    REGISTER_EXTENSION: (): string => {
+        return urlJoin(MIXMASTER_URL('panel'), `/extensions/`)
+    },
+    GET_EXTENSION_DETAILS: (extension_api_key: string): string => {
+        return urlJoin(MIXMASTER_URL('panel'), `/extensions/details/${extension_api_key}`);
+    },
+    UPDATE_EXTENSION_DETAILS: (extension_api_key: string): string => {
+        return urlJoin(MIXMASTER_URL('panel'), `/extensions/${extension_api_key}`);
+    },
+    GET_ORGANIZATION_DATA: (partner_access_token: string): string => {
+        return urlJoin(MIXMASTER_URL('panel'), `/accesstoken/${partner_access_token}/organization`);
+    },
+
+
+    // Preview URL
+    GET_DEVELOPMENT_ACCOUNTS: (organization_id: string, page_no: number, page_size: number): string => {
+        return urlJoin(MIXMASTER_URL('partner'), `/organization/${organization_id}/accounts?page_size=${page_size}&page_no=${page_no}`);
+    }
 };
