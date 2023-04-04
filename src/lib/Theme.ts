@@ -1142,8 +1142,8 @@ export default class Theme {
             if(fs.existsSync(Theme.SRC_FOLDER)){
                 rimraf.sync(Theme.SRC_FOLDER);
             }
-            spinner = ora({text: 'CLI has started creating zip file...',
-            color:'yellow'}).start();
+            spinner = new Spinner(chalk.yellow("CLI has started creating zip file..."))
+            spinner.start();
             let filepath = path.join(process.cwd(),'package.json');
             let packageContent: any = readFile(filepath);
             let content = JSON.parse(packageContent) || {};
