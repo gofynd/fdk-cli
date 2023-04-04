@@ -36,7 +36,7 @@ describe('Setup Extension Command', () => {
         expect(fs.existsSync('./Test_Extension/.fdk')).toEqual(true)
         expect(fs.readFileSync('./Test_Extension/.env',  { encoding: 'utf-8' })).toBe(envFileData);
         const packageJson = fs.readFileSync("./Test_Extension/package.json", { encoding: 'utf-8' });
-        expect(JSON.parse(packageJson).name).toBe("Test_Extension")
+        expect(JSON.parse(packageJson).name).toBe("test_extension")
     });
     
     it('should throw directory already exists error', async () => {
@@ -68,7 +68,7 @@ describe('Setup Extension Command', () => {
         expect(fs.existsSync('./Test_Extension/.fdk')).toEqual(true)
         expect(fs.readFileSync('./Test_Extension/.env',  { encoding: 'utf-8' })).toBe(envFileData);
         const packageJson = fs.readFileSync("./Test_Extension/package.json", { encoding: 'utf-8' });
-        expect(JSON.parse(packageJson).name).toBe("Test_Extension")
+        expect(JSON.parse(packageJson).name).toBe("test_extension")
     })
 
     it('should clone python vue template files', async () => {
@@ -83,7 +83,7 @@ describe('Setup Extension Command', () => {
         expect(fs.existsSync('./Test_Extension/.fdk')).toEqual(true)
         expect(fs.readFileSync('./Test_Extension/.env',  { encoding: 'utf-8' })).toBe(envFileData);
         const packageJson = fs.readFileSync("./Test_Extension/package.json", { encoding: 'utf-8' });
-        expect(JSON.parse(packageJson).name).toBe("Test_Extension")
+        expect(JSON.parse(packageJson).name).toBe("test_extension")
     })
 
     it('should clone python react template files', async () => {
@@ -98,7 +98,7 @@ describe('Setup Extension Command', () => {
         expect(fs.existsSync('./Test_Extension/.fdk')).toEqual(true)
         expect(fs.readFileSync('./Test_Extension/.env',  { encoding: 'utf-8' })).toBe(envFileData);
         const packageJson = fs.readFileSync("./Test_Extension/package.json", { encoding: 'utf-8' });
-        expect(JSON.parse(packageJson).name).toBe("Test_Extension")
+        expect(JSON.parse(packageJson).name).toBe("test_extension")
     })
 
     it('should clone java vue tempalte files', async () => {
@@ -112,7 +112,7 @@ describe('Setup Extension Command', () => {
         expect(fs.existsSync('./Test_Extension')).toEqual(true);
         expect(fs.existsSync('./Test_Extension/.fdk')).toEqual(true)
         const packageJson = fs.readFileSync("./Test_Extension/app/package.json", { encoding: 'utf-8' });
-        expect(JSON.parse(packageJson).name).toBe("Test_Extension")
+        expect(JSON.parse(packageJson).name).toBe("test_extension")
     })
 
     it('should clone java react tempalte files', async () => {
@@ -126,6 +126,22 @@ describe('Setup Extension Command', () => {
         expect(fs.existsSync('./Test_Extension')).toEqual(true);
         expect(fs.existsSync('./Test_Extension/.fdk')).toEqual(true)
         const packageJson = fs.readFileSync("./Test_Extension/app/package.json", { encoding: 'utf-8' });
-        expect(JSON.parse(packageJson).name).toBe("Test_Extension")
+        expect(JSON.parse(packageJson).name).toBe("test_extension")
+    })
+
+    it('should clone vue3 verison', async () => {
+        jest.spyOn(inquirer, 'prompt').mockResolvedValue({
+            extension_api_key: 'api_key',
+            extension_api_secret: 'api_secret',
+            project_type: NODE_VUE,
+            vue_version: 'vue3'
+        })
+
+        await yargs().wrap(null).commandDir('../partners/cmds').parseAsync('extension setup');
+        expect(fs.existsSync('./Test_Extension')).toEqual(true);
+        expect(fs.existsSync('./Test_Extension/.fdk')).toEqual(true)
+        const packageJson = JSON.parse(fs.readFileSync("./Test_Extension/package.json", { encoding: 'utf-8' }));
+        expect(packageJson.name).toBe("test_extension");
+        expect(packageJson.dependencies.vue).toMatch(/\^3\..+/);
     })
 });

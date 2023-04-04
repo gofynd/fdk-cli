@@ -126,6 +126,7 @@ fdk env set -n fynd
 | ------------- |-------------|----------|
 | --name, -n   | Environment name | Yes |
 | --help    | Show help | No |
+| --verbose, -v | enable debug mode | No |
 
 <div id="env-get"></div>
 
@@ -154,6 +155,7 @@ fdk login
 | --email, -e   | Email |
 | --mobile, -m    | Mobile |
 | --help    | Show help |
+| --verbose, -v | enable debug mode |
 
 #### **Example**
 ```sh
@@ -201,6 +203,7 @@ fdk theme new [options]
 | --token, -t    | Theme token |
 | --name, -n    | Theme name |
 | --help    | Show help |
+| --verbose, -v | enable debug mode |
 
 You can find the theme token under the themes panel of Fynd Platform. [Reference](https://hdn-1.addsale.com/x0/company/1/applications/000000000000000000000001/theme/pictures/free/original/theme-image-1628752638519.png)
 
@@ -225,6 +228,7 @@ fdk theme init [options]
 | ------------- |-------------| 
 | --token, -t   | Theme token |
 | --help    | Show help |
+| --verbose, -v | enable debug mode |
 
 You can find the theme token under the themes panel of Fynd Platform. [Reference](https://hdn-1.addsale.com/x0/company/1/applications/000000000000000000000001/theme/pictures/free/original/theme-image-1628752713854.png)
 
@@ -250,6 +254,7 @@ fdk theme context [options]
 | --token, -t    | Theme token |
 | --name, -n    | Context name |
 | --help    | Show help |
+| --verbose, -v | enable debug mode |
 
 You can find the theme token under the theme panel of Fynd Platform. [Reference](https://hdn-1.addsale.com/x0/company/1/applications/000000000000000000000001/theme/pictures/free/original/theme-image-1628752713854.png)
 
@@ -292,6 +297,7 @@ fdk theme serve [options]
 | --ssr    | Enable/disable Server-side rendering |
 | --port   | Pass custom port number to serve theme. `Default: 5001` |
 | --help   | Show help |
+| --verbose, -v | enable debug mode |
 
 By default Server-side rendering is enable. To disable it use `--ssr false` with the serve command
 #### **Example**
@@ -384,12 +390,14 @@ fdk extension init [options]
 | --target-dir    | Target Directory |
 | --host    | Host |
 | --help    | Show help |
+| --verbose | enable debug mode |
 
 #### **Example**
 ```sh
 fdk extension init --target-dir [your-directory] --host [your_host]
 ```
 ___
+<div id="extension-setup"></div>
 #### **setup**
 This command is used to setup extension's development environment in local machine with required dependecies created on [Fynd Partners](https://partners.fynd.com/) panel.
 #### ****Syntax****
@@ -403,6 +411,7 @@ fdk extension setup [options]
 | --target-dir    | Target Directory |
 | --host    | Host |
 | --help    | Show help |
+| --verbose | enable debug mode |
 
 #### **Example**
 ```sh
@@ -424,6 +433,7 @@ fdk extension launch-url get/set [options]
 | --api_key    | Extension ID |
 | --host    | Host |
 | --help    | Show help |
+| --verbose | enable debug mode |
 
 #### **Set Launch URL Example**
 ```sh
@@ -450,11 +460,37 @@ fdk partner connect [options]
 | ------------- |-------------| 
 | --host    | Host |
 | --help    | Show help |
+| --verbose, -v | enable debug mode |
 
 #### **Example**
 ```sh
 fdk partner connect --host [your_host]
 ```
+___
+
+<div id="debugMode"></div>
+
+#### Log Curl
+
+To print the curl command in the console for all network calls,
+run the cli commands in debug mode using `--verbose` flag.
+
+#### **Example**
+```sh
+fdk login -e <your_email> --verbose
+```
+
+above command will log the curl command in the console
+```sh
+************** CURL **************
+METHOD: POST | PATH: https://api.fynd.com/service/panel/authentication/v1.0/auth/login/password
+curl --include --request POST 'https://api.fynd.com/service/panel/authentication/v1.0/auth/login/password' --header 'content-type: application/json' --header 'x-fp-cli: 1.0.144' --header 'x-fp-date: 20230227T174059Z' --header 'x-fp-signature: v1.1:ab4fa30b4f12e2d968110ed809863f6f404621e03eb8a98c8a4fe228c8262684' --header 'x-debug: true' --data-raw '{"username":"email@fynd.com","password":"password@123","g-recaptcha-response":"_skip_"}'
+************** END OF CURL **************
+
+
+User logged in successfully
+```
+
 ___
 
 <div id="OtherProjects"></div>

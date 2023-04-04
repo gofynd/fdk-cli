@@ -6,7 +6,8 @@ const path = require('path');
 const Box = require('cli-box')
 
 const { 
-    validateEmpty, 
+    validateEmpty,
+    checkForVue,
     copyTemplateFiles,
     installDependencies,
     replaceGrootWithExtensionName, 
@@ -63,6 +64,18 @@ const QUESTIONS = [
         name: 'project_type',
         message: 'Development Language :',
         validate: validateEmpty
+    },
+    {
+        type: 'list',
+        choices: [
+            {name: "Vue 2", value: "vue2"}, 
+            {name: "Vue 3", value: "vue3"}
+        ],
+        default: "vue2",
+        name: 'vue_version',
+        message: 'Vue Version: ',
+        when: checkForVue,
+        validate: validateEmpty
     }
 ]
 
@@ -117,7 +130,7 @@ exports.handler = async (args) => {
         {
             title: 'Fetching Template Files',
             task: async ctx => {
-                await copyTemplateFiles(answers.targetDir, answers.project_url);
+                await copyTemplateFiles(answers.targetDir, answers);
             }
         },
         {
