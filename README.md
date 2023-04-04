@@ -77,6 +77,7 @@ ___
 | [publish](#theme-publish)     | Publish theme to library |
 | [unpublish](#theme-unpublish)     | Unpublish theme |
 | [open](#theme-open)    | preview theme |
+| [package](#theme-package)    | Create a zip file of theme |
 
 ### Extension Commands
 | Command        | Description           | 
@@ -353,6 +354,15 @@ This command is used to unpublish your theme.
 #### **Syntax**
 ```sh
 fdk theme unpublish
+```
+___
+<div id="theme-package"></div>
+
+#### **package**
+This command is used to create a zip file of theme.
+#### **Syntax**
+```sh
+fdk theme package
 ```
 ___
 <div id="theme-open"></div>

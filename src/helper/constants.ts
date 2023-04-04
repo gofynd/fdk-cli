@@ -1,4 +1,4 @@
-export const ALL_THEME_COMMANDS = ['context', 'context-list', 'init', 'new', 'publish', 'pull', 'pull-config', 'sync', 'serve', 'unpublish']
-export const THEME_COMMANDS = [ 'package', 'publish', 'pull', 'pull-config', 'serve', 'sync', 'unpublish'];
+export const ALL_THEME_COMMANDS = ['context', 'context-list', 'init', 'new', 'publish', 'package', 'pull', 'pull-config', 'sync', 'serve', 'unpublish']
+export const THEME_COMMANDS = [ 'publish', 'pull', 'pull-config', 'serve', 'sync', 'unpublish'];
 export const ENVIRONMENT_COMMANDS = ['env'];
 export const AUTHENTICATION_COMMANDS = ['auth', 'login', 'logout'];
