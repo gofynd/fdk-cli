@@ -59,10 +59,11 @@ export async function startServer({ domain, host, isSSR, port }) {
 
         // When error occurs on browser after app has been served
         // We will send socket event to CLI and find file location
-        socket.on('explain-error', async function (err) {
-            const stack = stackTraceParser(err);
-
+        socket.on('explain-error', async function ({ stack: errorStack, name, message, info }) {
+            const stack = stackTraceParser(errorStack);
             if (stack[0]) {
+                // To show error in CLI
+                // ======================
                 // Check in which bundle file error occuring and get map file
                 const bundleFile = stack[0].file.split('/').pop() + '.map';
 
@@ -88,6 +89,62 @@ export async function startServer({ domain, host, isSSR, port }) {
                 // Log in CLI
                 if (pos)
                     console.log(chalk.bgRed('\nError at ' + pathToFile + ' @' + pos.name + '\n'));
+
+                // ========================
+
+                // Generate HTML to show overlay error
+                let errorString = errorStack.split('\n').find(line => line.trim().length > 0);
+                errorString = `<h3 style="font-size: 18px; margin-bottom: 8px;"><b>${errorString}</b></h3>`;
+
+                stack?.forEach(({ methodName, lineNumber, column }) => {
+                    try {
+                        if (lineNumber == null || lineNumber < 1) {
+                            errorString += `<p style="color: #dda2aa">      at  <strong>${
+                                methodName || ''
+                            }</strong></p>`;
+                        } else {
+                            const pos = smc.originalPositionFor({ line: lineNumber, column });
+                            if (pos && pos.line != null) {
+                                errorString += `<p style="color: #dda2aa">      at  <strong>${
+                                    methodName || pos.name || ''
+                                }</strong> (${pos.source}:${pos.line}:${pos.column})</p>`;
+                            }
+                        }
+                    } catch (err) {
+                        console.log(`    at FAILED_TO_PARSE_LINE`);
+                    }
+                });
+                const finalHTML = `
+                <div
+                    class="overlay"
+                    style="
+                    position: absolute;
+                    inset: 0;
+                    background: #454545;
+                    color: white;
+                    padding: 50px 32px;
+                    z-index: 10000;
+                    font-family: monospace;
+                    "
+                >
+                    <div class="header-wrapper" style="margin-bottom: 16px">
+                        <h1 style="color: #f45556; font-size: 24px;">${message}</h1>
+                    </div>
+                    <div class="location" style="margin-bottom: 16px">
+                        <a href="vscode://file${process.cwd()}/${pathToFile}" style="color: #878888; font-size: 20px; line-height: 23px; text-decoration: none;border: none; text-align: left;">
+                            <span style="color: #fff;">${name} ${info}</span>
+                            <br />
+                            <span style="font-size: 16px; line-height: 19px;">
+                            ${pathToFile}
+                            </span>
+                        </a>
+                    </div>
+                    <a href="vscode://file${process.cwd()}/${pathToFile}"  style="padding: 10px; background: #564143; display: block; font-size: 16px; line-height: 19px;">${errorString}</a>
+                    <a style="background: #0078d7; color: white; text-decoration: none; padding: 8px 16px; margin-top: 16px; display: block; width: max-content; border-radius: 2px; font-family: arial; border: none;" href="vscode://file${process.cwd()}/${pathToFile}">Open in VS Code</a>
+                </div>`;
+
+                // Emit "show-error-overlay" event to browser with innerHTML
+                socket.emit('show-error-overlay', finalHTML);
             }
         });
     });
@@ -214,6 +271,23 @@ export async function startServer({ domain, host, isSSR, port }) {
 					socket.on('reload',function(){
 						location.reload();
 					});
+                    // CLI will emit "show-error-overlay" event with dynamic error html
+                    socket.on("show-error-overlay", function(htmlString){
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = "error-boundry-dynamic";
+                        errorDiv.innerHTML = htmlString;
+                        document?.body?.appendChild(errorDiv)
+                        const closeButton = document.createElement('button');
+                        closeButton.innerText = "close";
+                        closeButton.style.position= "absolute";
+                        closeButton.style.top= "16px";
+                        closeButton.style.right= "16px";
+                        closeButton.style.zIndex= 100000;
+                        closeButton.onclick = () => {
+                            errorDiv.remove();
+                        }
+                        errorDiv.append(closeButton);
+                    })
 					</script>
 				`);
             $('head').append(`
