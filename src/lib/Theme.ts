@@ -7,6 +7,8 @@ import {
     pageNameModifier,
     isAThemeDirectory,
     installNpmPackages,
+    ThemeContextInterface,
+    parseFileName,
 } from '../helper/utils';
 import CommandError, { ErrorCodes } from './CommandError';
 import Logger from './Logger';
@@ -53,6 +55,7 @@ export default class Theme {
     */
     static TEMPLATE_DIRECTORY = path.join(__dirname, '..', '..', 'template');
     static BUILD_FOLDER = './.fdk/dist';
+    static REACT_BUILD_FOLDER = './dist';
     static SRC_FOLDER = path.join('.fdk', 'temp-theme');
     static VUE_CLI_CONFIG_PATH = path.join('.fdk', 'vue.config.js');
     static SRC_ARCHIVE_FOLDER = path.join('.fdk', 'archive');
@@ -153,8 +156,8 @@ export default class Theme {
             await fs.writeJSON(`${process.cwd()}/package.json`, packageJSON, {
                 spaces: 2,
             });
-
-            await Theme.syncTheme(true);
+            const currentContext = getActiveContext();
+            await Theme.syncTheme(currentContext, true);
             var b5 = Box(
                 chalk.green.bold('DONE ') +
                     chalk.green.bold('Project ready\n') +
@@ -189,7 +192,7 @@ export default class Theme {
             }
             
             const { data: appConfig } = await ConfigurationService.getApplicationDetails(configObj);
-            
+
             Logger.info('Fetching Template Files');
             const { data: themeData } = await ThemeService.getThemeById(configObj);
             const themeName = themeData?.information?.name || 'default';
@@ -284,11 +287,82 @@ export default class Theme {
         }
     };
     public static syncThemeWrapper = async () => {
-        await Theme.syncTheme();
+        const currentContext = getActiveContext();
+        switch (currentContext.themeType) {
+            case 'React':
+                await Theme.syncReactTheme(currentContext);
+                break;
+            case 'Vue': 
+                await Theme.syncTheme(currentContext);
+                break;
+            default:
+                await Theme.syncTheme(currentContext);
+                break;
+        }
+        
     };
-    private static syncTheme = async (isNew = false) => {
+    private static syncReactTheme = async (currentContext: ThemeContextInterface, isNew = false) => {
         try {
-            const currentContext = getActiveContext();
+            currentContext.domain
+                ? Logger.warn('Syncing Theme to: ' + currentContext.domain)
+                : Logger.warn('Please add domain to context');
+            let { data: theme } = await ThemeService.getThemeById(currentContext);
+            
+            const buildPath = path.join(process.cwd(), Theme.REACT_BUILD_FOLDER);
+            if (!fs.existsSync(buildPath)) {
+                throw new Error('Build Failed');
+            }
+
+            Logger.info('Uploading bundle files');
+            let pArr = await Theme.uploadReactThemeBundle({ buildPath  });
+            let [cssUrls, umdJsUrls] = await Promise.all(pArr);
+            
+            // Set new theme data
+            const newTheme = await Theme.setThemeData(
+                theme,
+                cssUrls,
+                //! TODO: Remove after fixing validation from API
+                umdJsUrls[0],
+                umdJsUrls,
+                 //! TODO: Remove after fixing validation from API
+                umdJsUrls[0],
+                '',
+                '',
+                '',
+                '',
+                {}
+            );
+
+            Logger.info('Updating theme');
+            await ThemeService.updateTheme(newTheme);
+
+            Logger.info('Theme syncing DONE');
+            let domainURL = `https://${AVAILABLE_ENVS[currentContext.env]}`;
+            const url = new URL(domainURL);
+            const hostName = url.hostname;
+            let domain = hostName.replace('api.', '');
+            var b5 = Box(
+                chalk.green.bold('Your Theme was pushed successfully\n') +
+                    chalk.white('\n') +
+                    chalk.white('View your theme:\n') +
+                    chalk.green(terminalLink('',`https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true`)) +
+                    chalk.white('\n') +
+                    chalk.white('\n') +
+                    chalk.white('Customize this theme in Theme Editor:\n') +
+                    chalk.green(terminalLink('',`https://platform.${domain}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`)),
+                {
+                    padding: 1,
+                    margin: 1,
+                    borderColor: 'green',
+                }
+            );
+            console.log(b5.toString());
+        } catch (error) {
+            throw new CommandError(error.message, error.code);
+        }
+    };
+    private static syncTheme = async (currentContext: ThemeContextInterface, isNew = false) => {
+        try {
             currentContext.domain
                 ? Logger.warn('Syncing Theme to: ' + currentContext.domain)
                 : Logger.warn('Please add domain to context');
@@ -855,6 +929,46 @@ export default class Theme {
             available_sections = await Theme.validateSections(available_sections);
         } catch (err) {
             throw new CommandError(err.message, err.code);
+        }
+    };
+    private static uploadReactThemeBundle = async ({ buildPath }) => {
+        try {
+            const buildFiles = fs.readdirSync(buildPath);
+            const cdnFiles = await Promise.all(
+                buildFiles.reduce((promises, fileName) => {
+                    const filepath = path.join(buildPath, fileName);
+                    const { extension, componentName } = parseFileName(fileName);
+                    if (!['js', 'css'].includes(extension)) {
+                        return promises;
+                    }
+                    const promise = UploadService.uploadFile(
+                        filepath, 
+                        'application-theme-assets',
+                        )
+                        .then((response) => ({
+                            fileName,
+                            extension,
+                            componentName,
+                            cdnURL: response.complete.cdn.absolute_url,
+                        }));
+                    return [...promises, promise];
+                }, []),
+            );
+               
+            // update theme
+            const cssLinks = [];
+            const jsLinks = [];
+            cdnFiles.forEach((current) => {
+                const { extension, cdnURL } = current;
+                if (extension === 'css') {
+                    cssLinks.push(cdnURL);
+                } else if (extension === 'js') {
+                    jsLinks.push(cdnURL);
+                }
+            });
+            return [cssLinks, jsLinks];
+        } catch (err) {
+            throw new CommandError(err.message || `Failed to upload theme bundle `, err.code);
         }
     };
     private static uploadThemeBundle = async ({ assetHash }) => {

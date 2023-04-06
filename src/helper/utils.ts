@@ -12,6 +12,15 @@ import Debug from '../lib/Debug';
 const FDK_PATH = () => path.join(process.cwd(), '.fdk');
 const CONTEXT_PATH = () => path.join(FDK_PATH(), 'context.json');
 const DEFAULT_CONTEXT = { theme: {active_context: '', contexts: {}}, partners: {} };
+
+export type ThemeType = 'React' | 'Vue' | null ;
+
+export type ParsedFile = {
+  contentType: 'text/javascript' | 'text/css';
+  extension: string;
+  componentName: string;
+};
+
 export interface ThemeContextInterface {
   name?: string;
   application_id?: string;
@@ -20,6 +29,7 @@ export interface ThemeContextInterface {
   company_id?: number;
   domain?: string;
   env?: string;
+  themeType: ThemeType;
 }
 
 export const transformRequestOptions = params => {
@@ -192,4 +202,27 @@ export const installNpmPackages = async (targetDir: string = process.cwd()) => {
             reject({ message: 'Node Modules Installation Failed' });
         })
     })
+}
+
+/**
+ * Parses a react-theme bundled file to extract information like component name, content-type, etc.
+ *
+ * @param fileName FIle name to be parsed
+ * @returns {ParsedFile} Object containing file meta details like extension, contentType, etc
+ */
+export function parseFileName(fileName: string): ParsedFile {
+	const splitVal = fileName.split('.');
+	const componentName = splitVal.at(0);
+	const extension = splitVal.at(-1);
+
+	const contentTypes = {
+		js: 'text/javascript',
+		css: 'text/css',
+	};
+
+	return { 
+    contentType: contentTypes[extension] || '', 
+    extension, 
+    componentName 
+  };
 }
