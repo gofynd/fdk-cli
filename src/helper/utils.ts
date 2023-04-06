@@ -212,8 +212,8 @@ export const installNpmPackages = async (targetDir: string = process.cwd()) => {
  */
 export function parseFileName(fileName: string): ParsedFile {
 	const splitVal = fileName.split('.');
-	const componentName = splitVal.at(0);
-	const extension = splitVal.at(-1);
+	const componentName = splitVal[0];
+	const extension = splitVal[splitVal.length -1];
 
 	const contentTypes = {
 		js: 'text/javascript',
