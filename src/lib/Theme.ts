@@ -56,7 +56,7 @@ export default class Theme {
     static SRC_FOLDER = path.join('.fdk', 'temp-theme');
     static VUE_CLI_CONFIG_PATH = path.join('.fdk', 'vue.config.js');
     static SRC_ARCHIVE_FOLDER = path.join('.fdk', 'archive');
-    static  SETTING_LOADER_FILE = path.join('.fdk', 'setting-loader.js');
+    static SETTING_LOADER_FILE = path.join('.fdk', 'setting-loader.js');
     static ZIP_FILE_NAME = `archive.zip`;
     static TEMPLATE_THEME_URL = 'https://github.com/gofynd/Emerge.git';
 
@@ -124,7 +124,7 @@ export default class Theme {
                 available_sections,
             };
             const { data: theme } = await ThemeService.createTheme({ ...configObj, ...themeData });
-            
+
             let context: any = {
                 name: options.name,
                 application_id: appConfig._id,
@@ -180,20 +180,20 @@ export default class Theme {
             Debug(`Token Data: ${JSON.stringify(configObj)}`);
             if (!configObj || !configObj.theme_id)
                 throw new CommandError('Invalid token', ErrorCodes.INVALID_INPUT.code);
-            
+
             if (new Date(Date.now()) > new Date(configObj.expires_in)) {
                 throw new CommandError(
                     'Token expired. Generate a new token',
                     ErrorCodes.INVALID_INPUT.code
                 );
             }
-            
+
             const { data: appConfig } = await ConfigurationService.getApplicationDetails(configObj);
             
             Logger.info('Fetching Template Files');
             const { data: themeData } = await ThemeService.getThemeById(configObj);
             const themeName = themeData?.information?.name || 'default';
-            
+
             targetDirectory = path.join(process.cwd(), themeName);
             if (fs.existsSync(targetDirectory)) {
                 shouldDelete = false;
@@ -203,7 +203,7 @@ export default class Theme {
             Logger.info('Copying template config files');
             shouldDelete = true;
             await Theme.copyTemplateFiles(Theme.TEMPLATE_DIRECTORY, targetDirectory);
-            
+
             let context: any = {
                 name: themeName + '-' + Env.getEnvValue(),
                 application_id: appConfig._id,
@@ -226,7 +226,7 @@ export default class Theme {
             let current = _.get(themeData, 'config.current', 'default');
             let preset = _.get(themeData, 'config.preset', {});
             let information = { features: _.get(themeData, 'information.features', []) };
-            
+
             await Theme.writeSettingJson(Theme.getSettingsDataPath(), {
                 list,
                 current,
@@ -293,9 +293,9 @@ export default class Theme {
                 ? Logger.warn('Syncing Theme to: ' + currentContext.domain)
                 : Logger.warn('Please add domain to context');
             let { data: theme } = await ThemeService.getThemeById(currentContext);
-            
+
             // Merge with latest platform config
-            await Theme.matchWithLatestPlatformConfig(theme, (isNew));
+            await Theme.matchWithLatestPlatformConfig(theme, isNew);
             Theme.clearPreviousBuild();
             
             Logger.info('Reading Files');
@@ -309,7 +309,7 @@ export default class Theme {
 
             let available_sections = await Theme.getAvailableSectionsForSync();
             await Theme.validateAvailableSections(available_sections);
-            
+
             // Create index.js with section file imports
             await Theme.createSectionsIndexFile(available_sections);
             
@@ -338,7 +338,7 @@ export default class Theme {
 
             Logger.info('Creating theme source code zip file');
             await Theme.copyThemeSourceToFdkFolder();
-            
+
             // Remove temp source folder
             rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
 
@@ -348,7 +348,7 @@ export default class Theme {
             Logger.info('Uploading bundle files');
             let pArr = await Theme.uploadThemeBundle({ assetHash });
             let [cssUrls, commonJsUrl, umdJsUrls] = await Promise.all(pArr);
-            
+
             // Set new theme data
             const newTheme = await Theme.setThemeData(
                 theme,
@@ -378,11 +378,21 @@ export default class Theme {
                 chalk.green.bold('Your Theme was pushed successfully\n') +
                     chalk.white('\n') +
                     chalk.white('View your theme:\n') +
-                    chalk.green(terminalLink('',`https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true`)) +
+                    chalk.green(
+                        terminalLink(
+                            '',
+                            `https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true`
+                        )
+                    ) +
                     chalk.white('\n') +
                     chalk.white('\n') +
                     chalk.white('Customize this theme in Theme Editor:\n') +
-                    chalk.green(terminalLink('',`https://platform.${domain}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`)),
+                    chalk.green(
+                        terminalLink(
+                            '',
+                            `https://platform.${domain}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`
+                        )
+                    ),
                 {
                     padding: 1,
                     margin: 1,
@@ -582,11 +592,15 @@ export default class Theme {
 
             try {
                 return settingsText ? JSON.parse(settingsText) : {};
-            } catch(err) {
-                throw new Error(`Invalid settings JSON object in ${path}. Validate JSON from https://jsonlint.com/`);
+            } catch (err) {
+                throw new Error(
+                    `Invalid settings JSON object in ${path}. Validate JSON from https://jsonlint.com/`
+                );
             }
-        } catch(error) {
-            throw new Error(`Invalid settings JSON object in ${path}. Validate JSON from https://jsonlint.com/`);
+        } catch (error) {
+            throw new Error(
+                `Invalid settings JSON object in ${path}. Validate JSON from https://jsonlint.com/`
+            );
         }
     }
     private static validateSections(available_sections) {
@@ -650,7 +664,9 @@ export default class Theme {
             spinner.start();
             if (fs.existsSync(targetDirectory)) {
                 if (fs.existsSync(`${path.join(targetDirectory, '.fdk', 'context.json')}`)) {
-                    const contexts = await fs.readJSON(`${path.join(targetDirectory, '.fdk', 'context.json')}`);
+                    const contexts = await fs.readJSON(
+                        `${path.join(targetDirectory, '.fdk', 'context.json')}`
+                    );
                     const activeContext = contexts.theme.active_context;
                     await ThemeService.deleteThemeById(contexts.theme.contexts[activeContext]);
                 }
@@ -691,18 +707,22 @@ export default class Theme {
         const fdkConfigPath = path.join(process.cwd(), 'fdk.config.js');
         if (fs.existsSync(oldVueConfigPath)) {
             if (fs.existsSync(fdkConfigPath)) {
-                throw new CommandError(`vue.config.js is not supported, move its file content to fdk.config.js`, ErrorCodes.NOT_KNOWN.code);
+                throw new CommandError(
+                    `vue.config.js is not supported, move its file content to fdk.config.js`,
+                    ErrorCodes.NOT_KNOWN.code
+                );
             } else {
                 fs.renameSync(oldVueConfigPath, fdkConfigPath);
                 Logger.info('Renamed file from vue.config.js to fdk.config.js');
             }
         }
         rimraf.sync(path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH));
-        fs.writeFileSync(path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH), themeVueConfigTemplate);
+        fs.writeFileSync(
+            path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH),
+            themeVueConfigTemplate
+        );
         rimraf.sync(path.join(process.cwd(), Theme.SETTING_LOADER_FILE));
-        fs.writeFileSync(path.join(process.cwd(), Theme.SETTING_LOADER_FILE),  settingLoader);
-        
-        
+        fs.writeFileSync(path.join(process.cwd(), Theme.SETTING_LOADER_FILE), settingLoader);
     }
 
     private static assetsImageUploader = async () => {
@@ -710,7 +730,13 @@ export default class Theme {
             const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'assets', 'images');
             const images = glob.sync(path.join('**', '**.**'), { cwd });
             await asyncForEach(images, async img => {
-                const assetPath = path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets', 'images', img);
+                const assetPath = path.join(
+                    process.cwd(),
+                    Theme.BUILD_FOLDER,
+                    'assets',
+                    'images',
+                    img
+                );
                 await UploadService.uploadFile(assetPath, 'application-theme-images');
             });
         } catch (err) {
@@ -838,8 +864,14 @@ export default class Theme {
     };
     private static copyThemeSourceToFdkFolder = async () => {
         try {
-            await fs.copy(path.join(process.cwd(), 'theme'), path.join(process.cwd(), Theme.SRC_FOLDER));
-            fs.copyFileSync(path.join(process.cwd(), 'package.json'), path.join(process.cwd(), Theme.SRC_FOLDER, 'package.json'));
+            await fs.copy(
+                path.join(process.cwd(), 'theme'),
+                path.join(process.cwd(), Theme.SRC_FOLDER)
+            );
+            fs.copyFileSync(
+                path.join(process.cwd(), 'package.json'),
+                path.join(process.cwd(), Theme.SRC_FOLDER, 'package.json')
+            );
             await archiveFolder({
                 srcFolder: Theme.SRC_FOLDER,
                 destFolder: Theme.SRC_ARCHIVE_FOLDER,
@@ -906,23 +938,23 @@ export default class Theme {
             theme.assets = theme.assets || {};
             theme.assets.umd_js = theme.assets.umdJs || {};
             theme.assets.umd_js.links = umdJsUrls;
-            theme.assets.umd_js.link = "";
+            theme.assets.umd_js.link = '';
             theme.assets.common_js = theme.assets.commonJs || {};
             theme.assets.common_js.link = commonJsUrl;
             // - start for backward compatibility, will be removed
             theme.assets.umdJs = theme.assets.umdJs || {};
             theme.assets.umdJs.links = umdJsUrls;
-            theme.assets.umdJs.link = "";
+            theme.assets.umdJs.link = '';
             theme.assets.umd_js = theme.assets.umdJs || {};
             theme.assets.umd_js.links = umdJsUrls;
-            theme.assets.umd_js.link = "";
+            theme.assets.umd_js.link = '';
             theme.assets.commonJs = theme.assets.commonJs || {};
             theme.assets.commonJs.link = commonJsUrl;
             theme.assets.common_js = theme.assets.commonJs || {};
             theme.assets.common_js.link = commonJsUrl;
             theme.assets.css = theme.assets.css || {};
             theme.assets.css.links = cssUrls;
-            theme.assets.css.link = "";
+            theme.assets.css.link = '';
             // TODO Issue here
             theme = {
                 ...theme,
@@ -1006,17 +1038,17 @@ export default class Theme {
             );
             let customTemplates = [];
             const themeBundle = evaluateModule(bundleFiles);
-            if(themeBundle && themeBundle.getCustomTemplates){
+            if (themeBundle && themeBundle.getCustomTemplates) {
                 customTemplates = themeBundle.getCustomTemplates();
-            }   
+            }
             const customFiles = {};
             let settingProps;
             const customRoutes = (ctTemplates, parentKey = null) => {
                 for (let key in ctTemplates) {
                     const routerPath = (parentKey && `${parentKey}/${key}`) || `c/${key}`;
                     const value = routerPath.replace(/\//g, ':::');
-                    if(ctTemplates[key].component && ctTemplates[key].component.__settings){
-                        settingProps = ctTemplates[key].component.__settings.props
+                    if (ctTemplates[key].component && ctTemplates[key].component.__settings) {
+                        settingProps = ctTemplates[key].component.__settings.props;
                     }
                     customFiles[value] = {
                         fileSetting: settingProps,
@@ -1024,7 +1056,7 @@ export default class Theme {
                         text: pageNameModifier(key),
                         path: routerPath,
                     };
-                   
+
                     if (
                         ctTemplates[key].children &&
                         Object.keys(ctTemplates[key].children).length
@@ -1032,7 +1064,7 @@ export default class Theme {
                         customRoutes(ctTemplates[key].children, routerPath);
                     }
                 }
-            };   
+            };
             customRoutes(customTemplates);
 
             // Delete custom pages removed from code
@@ -1041,7 +1073,7 @@ export default class Theme {
                 pagesToDelete.map(page => {
                     return ThemeService.deleteAvailablePage(page.value);
                 })
-            )
+            );
             for (let key in customFiles) {
                 const customPageConfig = customFiles[key];
                 let customPage = customPagesDB.find(p => p.value == key);
@@ -1058,8 +1090,8 @@ export default class Theme {
                     };
                     customPage = (await ThemeService.createAvailabePage(pageData)).data;
                 }
-                customPage.props = customPageConfig.fileSetting || []
-                customPage.sections_meta =[]
+                customPage.props = customPageConfig.fileSetting || [];
+                customPage.sections_meta = [];
                 customPage.type = 'custom';
                 pagesToSave.push(customPage);
             }
@@ -1109,11 +1141,13 @@ export default class Theme {
         }
     };
 
-    public static previewTheme =  async() => {
+    public static previewTheme = async () => {
         const currentContext = getActiveContext();
         try {
-           await open(`https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true&upgrade=true`);
-        } catch(err) {
+            await open(
+                `https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true&upgrade=true`
+            );
+        } catch (err) {
             throw new CommandError(err.message, err.code);
         }
     };
@@ -1130,7 +1164,7 @@ export default class Theme {
                     Theme.copyFolders(path.join(from, element), path.join(to, element));
                 }
             });
-        } catch(err) {
+        } catch (err) {
             throw new CommandError(err.message, err.code);
         }
     };
@@ -1155,7 +1189,7 @@ export default class Theme {
             });
             await Theme.copyFolders(path.join(process.cwd()), Theme.SRC_FOLDER);
             await archiveFolder({
-                srcFolder: path.join(process.cwd(),'.fdk','temp-theme'),
+                srcFolder: path.join(process.cwd(), '.fdk', 'temp-theme'),
                 destFolder: path.join(process.cwd()),
                 zipFileName: `${content.name}_${content.version}.zip`,
             });

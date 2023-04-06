@@ -31,9 +31,7 @@ export type Action = (...args: any[]) => void;
 // Common Handler for all commands are executed from here
 Command.prototype.asyncAction = async function (asyncFn: Action) {
     return this.action(async (...args: any[]) => {
-
         try {
-
             let parent = args[1].parent;
             while (true) {
                 if (parent.parent) parent = parent.parent;
@@ -60,14 +58,14 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
 You are currently using ${packageJSON.name} ${packageJSON.version}.
 Install fdk-cli globally using the package manager of your choice.
 ${major ? `\nNote: You need to update \`${packageJSON.name}\` first inorder to use it.` : ''}
-Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
+Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
 
             if (latest && semver.lt(packageJSON.version, latest)) {
                 console.log(
-                    boxen(
-                        major ? chalk.red(logMessage) : chalk.green(logMessage),
-                        { borderColor: color, padding: 1 }
-                    )
+                    boxen(major ? chalk.red(logMessage) : chalk.green(logMessage), {
+                        borderColor: color,
+                        padding: 1,
+                    })
                 );
 
                 if (semver.diff(packageJSON.version, latest) === 'major') {
@@ -123,6 +121,8 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
         } catch (err) {
             // TODO: Find better ways to consolidate error messages
             if (err instanceof CommandError) {
+                console.error(chalk.red('Error'), err);
+
                 const message = `${err.code} - ${err.message} `;
                 Logger.error(message);
             } else {
@@ -153,7 +153,8 @@ export async function init(programName: string) {
     //set API versios
     configStore.set(CONFIG_KEYS.API_VERSION, '1.0');
     // set default environment
-    if(!configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)) configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'fynd')
+    if (!configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE))
+        configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'fynd');
     program.on('command:*', (subCommand: any) => {
         let msg = `"${subCommand.join(
             ' '
@@ -173,7 +174,7 @@ export async function init(programName: string) {
     return program;
 }
 
-export function parseCommands(){
+export function parseCommands() {
     program.parse(process.argv);
     // Show help when no sub-command specified
     if (program.args.length === 0) {
@@ -182,7 +183,7 @@ export function parseCommands(){
 }
 
 async function checkCliVersionAsync() {
-    return await latestVersion(packageJSON.name, {version: '*'});
+    return await latestVersion(packageJSON.name, { version: '*' });
 }
 
 async function promptForFDKFolder() {
