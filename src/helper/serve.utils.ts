@@ -17,6 +17,7 @@ import UploadService from '../lib/api/services/upload.service';
 import Configstore, { CONFIG_KEYS } from '../lib/Config';
 import { createProxyMiddleware, fixRequestBody } from 'http-proxy-middleware';
 import { addSignatureFn } from '../lib/api/helper/interceptors';
+import { ErrorCodes } from '../lib/CommandError';
 const { transformRequest } = axios.defaults;
 
 const BUILD_FOLDER = './.fdk/dist';
@@ -44,8 +45,8 @@ export function getPort(port) {
 
 export async function startServer({ domain, host, isSSR, port }) {
     const currentContext = getActiveContext();
-    const currentDomain = `https://${currentContext.domain}`;
-    // const currentDomain = 'http://localdev.jiox0.de:8087';
+    // const currentDomain = `https://${currentContext.domain}`;
+    const currentDomain = 'http://localdev.jiox0.de:8087';
     const app = require('https-localhost')(getLocalBaseUrl());
     const certs = await app.getCerts();
     const server = require('https').createServer(certs, app);
@@ -240,24 +241,23 @@ export async function startServer({ domain, host, isSSR, port }) {
 
             themeUrl = (await UploadService.uploadFile(BUNDLE_PATH, 'fdk-cli-dev-files', User._id))
                 .start.cdn.url;
-		} else {
-			jetfireUrl.searchParams.set('__csr', 'true');
-		}
-		try {
-			
-			// Bundle directly passed on with POST request body.
-			const { data: html } = await axios({
-				method: 'POST',
-				url: jetfireUrl.toString(),
-				headers: {
-					'Content-Yype': 'application/json',
-					'Accept': 'application/json'
-				},
-				data: {
-					theme_url: themeUrl,
-					port: port.toString()
-				}
-			});
+        } else {
+            jetfireUrl.searchParams.set('__csr', 'true');
+        }
+        try {
+            // Bundle directly passed on with POST request body.
+            const { data: html } = await axios({
+                method: 'POST',
+                url: jetfireUrl.toString(),
+                headers: {
+                    'Content-Yype': 'application/json',
+                    Accept: 'application/json',
+                },
+                data: {
+                    theme_url: themeUrl,
+                    port: port.toString(),
+                },
+            });
 
             let $ = cheerio.load(html);
             $('head').prepend(`
@@ -329,7 +329,10 @@ export async function startServer({ domain, host, isSSR, port }) {
         } catch (e) {
             // Check if error contains "all_server_components" string
             // if yes, then it means error is from jetfire
-            const all_server_components = e.response.data.includes('all_server_components');
+            const errorStackIsPresent = e.stack;
+            const all_server_components = errorStackIsPresent
+                ? e.stack.includes?.('all_server_components')
+                : false;
             let pathToFile = null;
 
             // Showing in CLI whether it's from Jetfire or Theme
@@ -337,8 +340,8 @@ export async function startServer({ domain, host, isSSR, port }) {
 
             // If it's from theme side
             // then find original location from .map file
-            if (!all_server_components) {
-                const stack = stackTraceParser(e.response.data);
+            if (errorStackIsPresent && !all_server_components) {
+                const stack = stackTraceParser(e.stack);
                 if (stack[0]) {
                     const mapContent = JSON.parse(
                         fs.readFileSync(`${BUILD_FOLDER}/themeBundle.common.js.map`, {
@@ -364,12 +367,10 @@ export async function startServer({ domain, host, isSSR, port }) {
 
             if (e.response && e.response.status == 504) {
                 res.redirect(req.originalUrl);
-            } else if (e.response && e.response.status == 500) {
+            } else if (e.code == ErrorCodes.API_ERROR.code) {
                 try {
-                    Logger.error(e.response.data);
-                    let errorString = e.response.data
-                        .split('\n')
-                        .find(line => line.trim().length > 0);
+                    Logger.error(e.stack);
+                    let errorString = e.stack.split('\n').find(line => line.trim().length > 0);
                     errorString = `<h3><b>${errorString}</b></h3>`;
                     const mapContent = JSON.parse(
                         fs.readFileSync(`${BUILD_FOLDER}/themeBundle.common.js.map`, {
@@ -380,7 +381,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 
                     const smc = await new SourceMapConsumer(mapContent);
 
-                    const stack = stackTraceParser(e.response.data);
+                    const stack = stackTraceParser(e.stack);
                     stack?.forEach(({ methodName, lineNumber, column }) => {
                         try {
                             if (lineNumber == null || lineNumber < 1) {
@@ -410,19 +411,20 @@ export async function startServer({ domain, host, isSSR, port }) {
                     console.log(e);
                 }
             } else {
-                console.log(e.request && e.request.path, e.message);
+                // console.log(e.request && e.request.path, e.message);
+                console.log(e.message);
             }
         }
     });
 
-	await new Promise((resolve, reject) => {
-		server.listen(port, (err) => {
-			if (err) {
-				return reject(err);
-			}
-			Logger.info(`Starting starter at port -- ${port} in ${isSSR? 'SSR': 'Non-SSR'} mode`);
-			Logger.info(`************* Using Debugging build`);
-			resolve(true);
-		});
-	});
+    await new Promise((resolve, reject) => {
+        server.listen(port, err => {
+            if (err) {
+                return reject(err);
+            }
+            Logger.info(`Starting starter at port -- ${port} in ${isSSR ? 'SSR' : 'Non-SSR'} mode`);
+            Logger.info(`************* Using Debugging build`);
+            resolve(true);
+        });
+    });
 }

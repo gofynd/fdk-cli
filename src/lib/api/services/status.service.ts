@@ -11,12 +11,17 @@ type ENDPOINTS = {
 
 export default {
     checkServices: async (serviceEndpoints: ENDPOINTS[]) => {
+        let spinner = ora('Checking services...\n').start();
+
+        if (serviceEndpoints.length === 0) {
+            spinner.fail('No service found.');
+            return;
+        }
+
         const allPrmoises = [];
         serviceEndpoints.forEach(endpoint => {
             allPrmoises.push(axiosInstance.get(endpoint.url, { data: endpoint.name }));
         });
-
-        let spinner = ora('Checking services...\n').start();
 
         const results: PromiseSettledResult<any>[] = await Promise.allSettled(allPrmoises);
 
@@ -34,7 +39,14 @@ export default {
         if (failedServices.length > 0) {
             spinner.fail(failedServices.join(', ') + ' are not working.');
         } else {
-            spinner.succeed('All services are working fine.');
+            let pretext = 'All services are ';
+            if (serviceEndpoints.length === 1) {
+                pretext =
+                    serviceEndpoints[0].name.charAt(0).toUpperCase() +
+                    serviceEndpoints[0].name.slice(1) +
+                    ' service is ';
+            }
+            spinner.succeed(pretext + 'working fine.');
         }
     },
 };

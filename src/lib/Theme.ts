@@ -97,7 +97,7 @@ export default class Theme {
                 shouldDelete = false;
                 throw new CommandError(`Folder ${options.name} already exists`);
             }
-            
+
             Logger.info('Validating token');
             const configObj = JSON.parse(decodeBase64(options.token) || '{}');
             Debug(`Token Data: ${JSON.stringify(configObj)}`);
@@ -110,7 +110,7 @@ export default class Theme {
             }
             Debug(`Token expires in: ${configObj.expires_in}`);
             const { data: appConfig } = await ConfigurationService.getApplicationDetails(configObj);
-            
+
             Logger.info('Cloning template files');
             await Theme.cloneTemplate(options, targetDirectory);
             shouldDelete = true;
@@ -138,15 +138,15 @@ export default class Theme {
             await createContext(context);
 
             Logger.info('Installing dependencies');
-            let spinner = new Spinner("Installing npm packages")
+            let spinner = new Spinner('Installing npm packages');
             try {
                 spinner.start();
-                await installNpmPackages()
+                await installNpmPackages();
                 spinner.succeed();
-            } catch(error) {
+            } catch (error) {
                 spinner.fail();
                 throw new CommandError(error.message);
-            } 
+            }
 
             let packageJSON = await fs.readJSON(path.join(process.cwd(), 'package.json'));
             packageJSON.name = Theme.sanitizeThemeName(options.name);
@@ -189,7 +189,7 @@ export default class Theme {
             }
 
             const { data: appConfig } = await ConfigurationService.getApplicationDetails(configObj);
-            
+
             Logger.info('Fetching Template Files');
             const { data: themeData } = await ThemeService.getThemeById(configObj);
             const themeName = themeData?.information?.name || 'default';
@@ -214,13 +214,13 @@ export default class Theme {
 
             process.chdir(path.join('.', themeName));
             let zipPath = path.join(targetDirectory, '.fdk', 'archive', 'archive.zip');
-            
+
             Logger.info('Downloading bundle file');
             await downloadFile(themeData.src.link, zipPath);
-            
-            Logger.info('Extracting bundle archive')
+
+            Logger.info('Extracting bundle archive');
             await extractArchive({ zipPath, destFolderPath: path.resolve(process.cwd(), 'theme') });
-            
+
             Logger.info('Generating Configuration Files');
             let list = _.get(themeData, 'config.list', []);
             let current = _.get(themeData, 'config.current', 'default');
@@ -263,16 +263,16 @@ export default class Theme {
                 );
                 rimraf.sync(path.join(process.cwd(), 'theme', 'package.json'));
             }
-            
-            let spinner = new Spinner("Installing npm packages");
+
+            let spinner = new Spinner('Installing npm packages');
             try {
                 spinner.start();
                 await installNpmPackages();
                 spinner.succeed();
-            } catch(error) {
+            } catch (error) {
                 spinner.fail();
                 throw new CommandError(error.message);
-            } 
+            }
             let packageJSON = await fs.readJSON(path.join(process.cwd(), 'package.json'));
             packageJSON.name = Theme.sanitizeThemeName(themeName);
             await fs.writeJSON(path.join(process.cwd(), 'package.json'), packageJSON, {
@@ -297,7 +297,7 @@ export default class Theme {
             // Merge with latest platform config
             await Theme.matchWithLatestPlatformConfig(theme, isNew);
             Theme.clearPreviousBuild();
-            
+
             Logger.info('Reading Files');
             let themeContent: any = readFile(`${process.cwd()}/config.json`);
 
@@ -312,7 +312,7 @@ export default class Theme {
 
             // Create index.js with section file imports
             await Theme.createSectionsIndexFile(available_sections);
-            
+
             const imageCdnUrl = await Theme.getImageCdnBaseUrl();
             const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
             Theme.createVueConfig();
@@ -329,10 +329,10 @@ export default class Theme {
 
             let [androidImages, iosImages, desktopImages, thumbnailImages] =
                 await Theme.uploadThemePreviewImages();
-            
+
             Logger.info('Uploading theme assets/images');
             await Theme.assetsImageUploader();
-            
+
             Logger.info('Uploading theme assets/fonts');
             await Theme.assetsFontsUploader();
 
@@ -443,6 +443,7 @@ export default class Theme {
             // start dev server
             Logger.info(chalk.bold.blueBright(`Starting server`));
             await startServer({ domain, host, isSSR, port });
+            // await startServer({ domain: 'http://localdev.jiox0.de:8087', host, isSSR, port });
 
             // open browser
             await open(getFullLocalUrl(port));
@@ -658,7 +659,7 @@ export default class Theme {
         return sections.get();
     }
     private static async cleanUp(targetDirectory = process.cwd()) {
-        const spinner = new Spinner("Cleaning up theme data");
+        const spinner = new Spinner('Cleaning up theme data');
         try {
             Logger.error('Cleaning up');
             spinner.start();
@@ -893,12 +894,23 @@ export default class Theme {
         try {
             Logger.info('Uploading commonJS');
             const commonJS = `${assetHash}_themeBundle.common.js`;
-            const commonJsUrlRes = await UploadService.uploadFile(path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS), 'application-theme-assets');
-            const commonJsUrl = commonJsUrlRes.start.cdn.url
-            
+            const commonJsUrlRes = await UploadService.uploadFile(
+                path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS),
+                'application-theme-assets'
+            );
+            const commonJsUrl = commonJsUrlRes.start.cdn.url;
+
             Logger.info('Uploading umdJS');
-            const umdMinAssets = glob.sync(path.join(process.cwd(), Theme.BUILD_FOLDER, `${assetHash}_themeBundle.umd.min.**.js`));
-            umdMinAssets.push(path.join(process.cwd(), Theme.BUILD_FOLDER, `${assetHash}_themeBundle.umd.min.js`));
+            const umdMinAssets = glob.sync(
+                path.join(
+                    process.cwd(),
+                    Theme.BUILD_FOLDER,
+                    `${assetHash}_themeBundle.umd.min.**.js`
+                )
+            );
+            umdMinAssets.push(
+                path.join(process.cwd(), Theme.BUILD_FOLDER, `${assetHash}_themeBundle.umd.min.js`)
+            );
             const umdJSPromisesArr = umdMinAssets.map(asset => {
                 const assetPath = asset;
                 return UploadService.uploadFile(assetPath, 'application-theme-assets');
@@ -910,7 +922,11 @@ export default class Theme {
                 return UploadService.uploadFile(asset, 'application-theme-assets');
             });
             const cssUrls = await Promise.all(cssPromisesArr);
-            return [cssUrls.map(res => res.start.cdn.url), commonJsUrl, umdJsUrls.map(res => res.start.cdn.url)];
+            return [
+                cssUrls.map(res => res.start.cdn.url),
+                commonJsUrl,
+                umdJsUrls.map(res => res.start.cdn.url),
+            ];
         } catch (err) {
             throw new CommandError(err.message || `Failed to upload theme bundle `, err.code);
         }
@@ -990,7 +1006,7 @@ export default class Theme {
         }
     };
     private static updateAvailablePages = async ({ newTheme: theme, assetHash }) => {
-        const spinner = new Spinner("Adding/updating available pages");
+        const spinner = new Spinner('Adding/updating available pages');
         try {
             spinner.start();
             const allPages = (await ThemeService.getAllAvailablePage()).data.pages;
@@ -1151,16 +1167,24 @@ export default class Theme {
             throw new CommandError(err.message, err.code);
         }
     };
-    public static copyFolders = async(from, to) => {
+    public static copyFolders = async (from, to) => {
         try {
             fs.mkdir(to);
-           const files = await fs.readdir(from)
-           files.forEach((element) => {
+            const files = await fs.readdir(from);
+            files.forEach(element => {
                 if (element === 'temp-theme') {
-                return;
-                }else if (fs.lstatSync(path.join(from, element)).isFile() && element != 'node_modules' && element != '.fdk') {
+                    return;
+                } else if (
+                    fs.lstatSync(path.join(from, element)).isFile() &&
+                    element != 'node_modules' &&
+                    element != '.fdk'
+                ) {
                     fs.copyFile(path.join(from, element), path.join(to, element));
-                } else if (fs.lstatSync(path.join(from, element)).isDirectory() && element != 'node_modules' && element != '.fdk') {
+                } else if (
+                    fs.lstatSync(path.join(from, element)).isDirectory() &&
+                    element != 'node_modules' &&
+                    element != '.fdk'
+                ) {
                     Theme.copyFolders(path.join(from, element), path.join(to, element));
                 }
             });
@@ -1170,21 +1194,21 @@ export default class Theme {
     };
 
     public static generateThemeZip = async () => {
-        let content = { name: ''};
+        let content = { name: '' };
         let spinner;
         try {
-            if(fs.existsSync(Theme.SRC_FOLDER)){
+            if (fs.existsSync(Theme.SRC_FOLDER)) {
                 rimraf.sync(Theme.SRC_FOLDER);
             }
-            spinner = new Spinner(chalk.yellow("CLI has started creating zip file..."))
+            spinner = new Spinner(chalk.yellow('CLI has started creating zip file...'));
             spinner.start();
-            let filepath = path.join(process.cwd(),'package.json');
+            let filepath = path.join(process.cwd(), 'package.json');
             let packageContent: any = readFile(filepath);
             let content = JSON.parse(packageContent) || {};
-            process.on("SIGINT", () => {
-                rimraf.sync(path.join(process.cwd(),'.fdk','temp-theme'));
-                rimraf.sync(path.join(process.cwd(),`${content.name}_${content.version}.zip`));
-                spinner.fail("CLI has stopped creating zip file...");
+            process.on('SIGINT', () => {
+                rimraf.sync(path.join(process.cwd(), '.fdk', 'temp-theme'));
+                rimraf.sync(path.join(process.cwd(), `${content.name}_${content.version}.zip`));
+                spinner.fail('CLI has stopped creating zip file...');
                 process.exit(0);
             });
             await Theme.copyFolders(path.join(process.cwd()), Theme.SRC_FOLDER);
@@ -1193,13 +1217,16 @@ export default class Theme {
                 destFolder: path.join(process.cwd()),
                 zipFileName: `${content.name}_${content.version}.zip`,
             });
-            rimraf.sync(path.join(process.cwd(),'.fdk','temp-theme'));
+            rimraf.sync(path.join(process.cwd(), '.fdk', 'temp-theme'));
             spinner.succeed(`${content.name}_${content.version}.zip file created.`);
         } catch (err) {
             if (spinner.isSpinning) {
                 spinner.fail();
             }
-            throw new CommandError(`Failed to generate .zip file of ${content?.name} theme`, err.code);
+            throw new CommandError(
+                `Failed to generate .zip file of ${content?.name} theme`,
+                err.code
+            );
         }
     };
 
