@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import chalk from 'chalk';
 import ora from 'ora';
 
-const axiosInstance = axios.create({});
+export const axiosInstance = axios.create({});
 
 type ENDPOINTS = {
     url: string;
