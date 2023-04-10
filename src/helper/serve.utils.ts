@@ -45,8 +45,8 @@ export function getPort(port) {
 
 export async function startServer({ domain, host, isSSR, port }) {
     const currentContext = getActiveContext();
-    // const currentDomain = `https://${currentContext.domain}`;
-    const currentDomain = 'http://localdev.jiox0.de:8087';
+    const currentDomain = `https://${currentContext.domain}`;
+    // const currentDomain = 'http://localdev.jiox0.de:8087';
     const app = require('https-localhost')(getLocalBaseUrl());
     const certs = await app.getCerts();
     const server = require('https').createServer(certs, app);
