@@ -65,7 +65,7 @@ export const createContext = async context => {
   try {
     if (!isAThemeDirectory()) createDirectory(FDK_PATH());
     if (!hasContext()) {
-      fs.writeJSON(CONTEXT_PATH(), DEFAULT_CONTEXT);
+      await fs.writeJSON(CONTEXT_PATH(), DEFAULT_CONTEXT);
     }
     let contextsData = await fs.readJSON(CONTEXT_PATH());
     if (contextsData.theme.contexts[context.name])
