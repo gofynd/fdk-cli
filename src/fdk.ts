@@ -94,6 +94,7 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
                 !configStore.get(CONFIG_KEYS.COOKIE)  && !(parent.args.includes('theme') &&
                 parent.args.includes('package'))
             ) {
+                console.log("args", args);
                 throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
             }
             if (THEME_COMMANDS.findIndex(c => themeCommand.includes(c)) !== -1) {

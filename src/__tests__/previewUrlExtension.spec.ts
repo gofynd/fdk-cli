@@ -28,8 +28,9 @@ let logSpy: jest.SpyInstance<any>;
 
 jest.mock('configstore', () => {
   const Store = jest.requireActual<typeof import('configstore')>('configstore');
+  const path = jest.requireActual<typeof import('path')>('path');
   return class MockConfigstore {
-    store = new Store('test-cli', undefined, {configPath: './previewUrl-test-cli.json'})
+    store = new Store('test-cli', undefined, {configPath: path.join(__dirname, "previewUrl-test-cli.json")})
     all = this.store.all
     get(key: string) {
       return this.store.get(key)
