@@ -51,6 +51,7 @@ export const AVAILABLE_ENVS = {
   // Swadesh
   swadeshz0: 'api.swadeshz0.de',
   swadeshz5: 'api.swadeshz5.de',
+  swadesh: 'api.swadeshonline.com',
 
   // Tira beauty
   tirax2:'api.tirax2.de',
