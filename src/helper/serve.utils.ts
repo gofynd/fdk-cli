@@ -44,10 +44,9 @@ export function getPort(port) {
 	return detect(port);
 }
 
-const currentContext = getActiveContext();
-const currentDomain = `https://${currentContext.domain}`;
-
 function applyProxy(app: any) {
+	const currentContext = getActiveContext();
+	const currentDomain = `https://${currentContext.domain}`;
 	const options = {
 		target: currentDomain, // target host
 		changeOrigin: true, // needed for virtual hosted sites
@@ -81,6 +80,7 @@ function applyProxy(app: any) {
 }
 
 export async function startServer({ domain, host, isSSR, port }) {
+	const currentContext = getActiveContext();
 	const app = require('https-localhost')(getLocalBaseUrl());
 	const certs = await app.getCerts();
 	const server = require('https').createServer(certs, app);
@@ -242,7 +242,6 @@ export async function startServer({ domain, host, isSSR, port }) {
 	});
 }
 export async function startThemeServer({ port }) {
-
 	const app = express();
 
 	// Cors for Theme server
@@ -271,6 +270,7 @@ export async function startThemeServer({ port }) {
 
 
 export async function startReactServer({ domain, host, isSSR, port }) {
+	const currentContext = getActiveContext();
 	const app = require('https-localhost')(getLocalBaseUrl());
 	const certs = await app.getCerts();
 	const server = require('https').createServer(certs, app);
