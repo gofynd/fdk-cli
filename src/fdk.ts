@@ -16,12 +16,12 @@ import inquirer from 'inquirer';
 import path from 'path';
 import Env from './lib/Env';
 import { getActiveContext } from './helper/utils';
-import { 
-    THEME_COMMANDS, 
-    AUTHENTICATION_COMMANDS, 
-    ENVIRONMENT_COMMANDS, 
-    EXTENSION_COMMANDS, 
-    PARTNER_COMMANDS 
+import {
+    THEME_COMMANDS,
+    AUTHENTICATION_COMMANDS,
+    ENVIRONMENT_COMMANDS,
+    EXTENSION_COMMANDS,
+    PARTNER_COMMANDS,
 } from './helper/constants';
 const packageJSON = require('../package.json');
 
@@ -91,10 +91,10 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
                 !(ENVIRONMENT_COMMANDS.findIndex(c => envCommand.includes(c)) !== -1) &&
                 !(EXTENSION_COMMANDS.findIndex(c => extensionCommand.includes(c)) !== -1) &&
                 !(PARTNER_COMMANDS.findIndex(c => partnerCommand.includes(c)) !== -1) &&
-                !configStore.get(CONFIG_KEYS.COOKIE)  && !(parent.args.includes('theme') &&
-                parent.args.includes('package'))
+                !configStore.get(CONFIG_KEYS.COOKIE) &&
+                !(parent.args.includes('theme') && parent.args.includes('package'))
             ) {
-                console.log("args", args);
+                console.log('command', JSON.stringify(process.argv));
                 throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
             }
             if (THEME_COMMANDS.findIndex(c => themeCommand.includes(c)) !== -1) {
