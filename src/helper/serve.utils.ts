@@ -47,7 +47,7 @@ export function getPort(port) {
 const currentContext = getActiveContext();
 const currentDomain = `https://${currentContext.domain}`;
 
-function applyproxy(app:any) {
+function applyProxy(app: any) {
 	const options = {
 		target: currentDomain, // target host
 		changeOrigin: true, // needed for virtual hosted sites
@@ -118,7 +118,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 	// parse application/x-www-form-urlencoded
 	app.use(express.json());
 	  
-	applyproxy(app);
+	applyProxy(app);
 
 	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
 	app.get(['/__webpack_hmr', 'manifest.json'], async (req, res, next) => {
@@ -308,7 +308,7 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 	// parse application/x-www-form-urlencoded
 	app.use(express.json());
 	  
-	applyproxy(app);
+	applyProxy(app);
 
 	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
 	app.get(['/__webpack_hmr', 'manifest.json', '/undefined'], async (req, res, next) => {
