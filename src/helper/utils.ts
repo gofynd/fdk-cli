@@ -207,10 +207,10 @@ export const installNpmPackages = async (targetDir: string = process.cwd()) => {
 /**
  * Parses a react-theme bundled file to extract information like component name, content-type, etc.
  *
- * @param fileName FIle name to be parsed
+ * @param fileName File name to be parsed
  * @returns {ParsedFile} Object containing file meta details like extension, contentType, etc
  */
-export function parseFileName(fileName: string): ParsedFile {
+export function parseBundleFilename(fileName: string): ParsedFile {
 	const splitVal = fileName.split('.');
 	const componentName = splitVal[0];
 	const extension = splitVal[splitVal.length -1];
@@ -225,4 +225,22 @@ export function parseFileName(fileName: string): ParsedFile {
     extension, 
     componentName 
   };
+}
+
+/**
+ * Transform a section name into PascalCase form and adds Section as suffix.
+ *
+ * @param fileName Section file name to transform
+ * @returns [sectionTransformedName, sectionRawName] - Array of section names in raw camelCase and in PascalCase
+ */
+export function transformSectionFileName(fileName: string): [string, string] {
+  if (!fileName) {
+    return ['', ''];
+  }
+	const splitVal = fileName.split('.');
+	const sectionRawName = splitVal[0];
+
+  const sectionTransformedName = `${sectionRawName.split('-').map((sub) => `${sub[0].toUpperCase()}${sub.slice(1)}`).join('')}Section`;
+
+	return [sectionTransformedName, sectionRawName];
 }

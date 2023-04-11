@@ -8,7 +8,8 @@ import {
     isAThemeDirectory,
     installNpmPackages,
     ThemeContextInterface,
-    parseFileName,
+    parseBundleFilename,
+    transformSectionFileName,
 } from '../helper/utils';
 import CommandError, { ErrorCodes } from './CommandError';
 import Logger from './Logger';
@@ -29,10 +30,10 @@ import { createDirectory, writeFile, readFile } from '../helper/file.utils';
 import shortid from 'shortid';
 import ThemeService from './api/services/theme.service';
 import UploadService from './api/services/upload.service';
-import { build, devBuild } from '../helper/build';
+import { build, devBuild, devReactBuild } from '../helper/build';
 import { archiveFolder, extractArchive } from '../helper/archive';
 import urlJoin from 'url-join';
-import { getFullLocalUrl, startServer, reload, getPort } from '../helper/serve.utils';
+import { getFullLocalUrl, startServer, reload, getPort, startThemeServer, startReactServer } from '../helper/serve.utils';
 import { getBaseURL } from './api/services/url';
 import open from 'open';
 import chokidar from 'chokidar';
@@ -42,6 +43,7 @@ import Debug from './Debug';
 import Spinner from '../helper/spinner';
 import { themeVueConfigTemplate, settingLoader } from '../helper/theme.vue.config';
 import { simpleGit } from 'simple-git';
+import { themeReactWebpackTemplate } from '../helper/theme.react.config';
 export default class Theme {
     /*
         new theme from default template -> create
@@ -55,9 +57,9 @@ export default class Theme {
     */
     static TEMPLATE_DIRECTORY = path.join(__dirname, '..', '..', 'template');
     static BUILD_FOLDER = './.fdk/dist';
-    static REACT_BUILD_FOLDER = './dist';
     static SRC_FOLDER = path.join('.fdk', 'temp-theme');
     static VUE_CLI_CONFIG_PATH = path.join('.fdk', 'vue.config.js');
+    static REACT_CLI_CONFIG_PATH = path.join('.fdk', 'webpack.config.js');
     static SRC_ARCHIVE_FOLDER = path.join('.fdk', 'archive');
     static  SETTING_LOADER_FILE = path.join('.fdk', 'setting-loader.js');
     static ZIP_FILE_NAME = `archive.zip`;
@@ -307,11 +309,28 @@ export default class Theme {
                 ? Logger.warn('Syncing Theme to: ' + currentContext.domain)
                 : Logger.warn('Please add domain to context');
             let { data: theme } = await ThemeService.getThemeById(currentContext);
+
+            // Create index.js with section file imports
+            await Theme.createReactSectionsIndexFile();
             
-            const buildPath = path.join(process.cwd(), Theme.REACT_BUILD_FOLDER);
-            if (!fs.existsSync(buildPath)) {
-                throw new Error('Build Failed');
-            }
+            // Creates a webpack config file
+            await Theme.createReactConfig();
+            
+            const buildPath = path.join(process.cwd(), Theme.BUILD_FOLDER);
+            
+
+            const assetBasePath = await Theme.getAssetCdnBaseUrl();
+
+            Logger.info('Building Theme for Production...');
+            await devReactBuild({
+                buildFolder: Theme.BUILD_FOLDER,
+                runOnLocal: false,
+                assetBasePath
+            });
+
+            let available_sections = await Theme.getAvailableReactSectionsForSync();
+            await Theme.validateAvailableSections(available_sections);
+
 
             Logger.info('Uploading bundle files');
             let pArr = await Theme.uploadReactThemeBundle({ buildPath  });
@@ -330,11 +349,11 @@ export default class Theme {
                 '',
                 '',
                 '',
-                {}
+                available_sections
             );
 
             Logger.info('Updating theme');
-            await ThemeService.updateTheme(newTheme);
+            await ThemeService.updateTheme({isReactTheme: true, ...newTheme});
 
             Logger.info('Theme syncing DONE');
             let domainURL = `https://${AVAILABLE_ENVS[currentContext.env]}`;
@@ -357,7 +376,9 @@ export default class Theme {
                 }
             );
             console.log(b5.toString());
+            
         } catch (error) {
+            console.log(error)
             throw new CommandError(error.message, error.code);
         }
     };
@@ -470,6 +491,25 @@ export default class Theme {
     };
     public static serveTheme = async options => {
         try {
+            const currentContext = getActiveContext();
+            switch (currentContext.themeType) {
+                case 'React':
+                    console.log('Serving React Theme...')
+                    await Theme.serveReactTheme(options);
+                    break;
+                case 'Vue': 
+                    await Theme.serveVueTheme(options);
+                    break;
+                default:
+                    await Theme.serveVueTheme(options);
+                    break;
+            }
+        } catch (error) {
+            throw new CommandError(error.message, error.code);
+        }
+    };
+    public static serveVueTheme = async options => {
+        try {
             const isSSR =
                 typeof options['ssr'] === 'boolean'
                     ? options['ssr']
@@ -520,6 +560,84 @@ export default class Theme {
                     buildFolder: Theme.BUILD_FOLDER,
                     imageCdnUrl: urlJoin(getFullLocalUrl(port), 'assets/images'),
                     isProd: isSSR,
+                });
+                reload();
+            });
+        } catch (error) {
+            throw new CommandError(error.message, error.code);
+        }
+    };
+    public static serveReactTheme = async options => {
+        try {
+            const isSSR =
+                typeof options['ssr'] === 'boolean'
+                    ? options['ssr']
+                    : options['ssr'] == 'true'
+                    ? true
+                    : false;
+            const DEFAULT_PORT = 5001;
+            const THEME_DEFAULT_PORT = 5500;
+            const serverPort =
+                typeof options['port'] === 'string'
+                    ? parseInt(options['port'])
+                    : typeof options['port'] === 'number'
+                    ? options['port']
+                    : DEFAULT_PORT;
+            const port = await getPort(serverPort);
+            const themeAvailablePort = await getPort(THEME_DEFAULT_PORT);
+
+            Logger.info(
+                chalk.bold.yellowBright(
+                    `THEME WILL BE SERVED ON PORT: ${themeAvailablePort}`
+                )
+            );
+            if (port !== serverPort)
+                Logger.warn(
+                    chalk.bold.yellowBright(
+                        `PORT: ${serverPort} is busy, Switching to PORT: ${port}`
+                    )
+                );
+            !isSSR ? Logger.warn('Disabling SSR') : null;
+            let { data: appInfo } = await ConfigurationService.getApplicationDetails();
+            let domain = Array.isArray(appInfo.domains)
+                ? `https://${appInfo.domains.filter(d => d.is_primary)[0].name}`
+                : `https://${appInfo.domain.name}`;
+            let host = getBaseURL();
+            // initial build
+            Logger.info(`Locally building`);
+            
+            await Theme.createReactConfig();
+
+            await devReactBuild({
+                buildFolder: Theme.BUILD_FOLDER,
+                runOnLocal: true,
+                localThemePort: themeAvailablePort,
+            });
+
+            
+            // start dev server
+            Logger.info(chalk.bold.blueBright(`Starting server`));
+            await startThemeServer({ port: themeAvailablePort });
+
+            await startReactServer({ 
+                domain,
+                host,
+                port,
+                isSSR
+         })
+
+            // open browser
+            await open(getFullLocalUrl(port));
+            console.log(chalk.bold.green(`Watching files for changes`));
+            let watcher = chokidar.watch(path.resolve(process.cwd(), 'theme'), {
+                persistent: true,
+            });
+            watcher.on('change', async () => {
+                console.log(chalk.bold.green(`reloading`));
+                await devReactBuild({
+                    buildFolder: Theme.BUILD_FOLDER,
+                    runOnLocal: true,
+                    localThemePort: themeAvailablePort
                 });
                 reload();
             });
@@ -649,6 +767,24 @@ export default class Theme {
         });
         return settings;
     }
+    private static async getAvailableReactSectionsForSync() {
+        const sectionPath = path.resolve(process.cwd(), Theme.BUILD_FOLDER,'sections/sections.commonjs.js');
+
+        const imported = require(sectionPath)?.sections?.default;
+
+        if (!imported) {
+            console.log('Error occured');
+        }
+
+        const allSections = Object.entries<{meta: any, Component: any}>(imported).map(([name, sectionModule]) => (
+            {
+                name,
+                ...(sectionModule.meta || {}),
+            }
+        ));
+
+        return allSections;
+    }
     private static extractSettingsFromFile(path) {
         try {
             let $ = cheerio.load(readFile(path));
@@ -703,6 +839,31 @@ export default class Theme {
             `;
         rimraf.sync(`${process.cwd()}/theme/sections/index.js`);
         fs.writeFileSync(`${process.cwd()}/theme/sections/index.js`, template);
+    }
+    private static async createReactSectionsIndexFile() {
+        let fileNames = fs
+            .readdirSync(`${process.cwd()}/theme/sections`)
+            .filter(o => o != 'index.js');
+
+        const importingTemplate = fileNames.map((fileName) => {
+            const [SectionName] = transformSectionFileName(fileName);
+            return `import * as ${SectionName} from './${fileName}';`
+        }).join('\n');
+
+        const exportingTemplate = `export default {
+            ${
+                fileNames.map((fileName) => {
+                    const [SectionName, sectionKey] = transformSectionFileName(fileName);
+                    return `'${sectionKey}': { ...${SectionName}, },`
+                }).join(`
+                `)
+            }
+        }`;
+
+        const content = importingTemplate + '\n\n' + exportingTemplate;
+        
+        rimraf.sync(`${process.cwd()}/theme/sections/index.js`);
+        fs.writeFileSync(`${process.cwd()}/theme/sections/index.js`, content);
     }
     private static extractSectionsFromFile(path) {
         let $ = cheerio.load(readFile(path));
@@ -777,6 +938,12 @@ export default class Theme {
         fs.writeFileSync(path.join(process.cwd(), Theme.SETTING_LOADER_FILE),  settingLoader);
         
         
+    }
+    private static createReactConfig() {
+        const reactWebpackPath = path.join(process.cwd(), Theme.REACT_CLI_CONFIG_PATH);
+        rimraf.sync(reactWebpackPath);
+        fs.writeFileSync(reactWebpackPath, themeReactWebpackTemplate);
+       
     }
 
     private static assetsImageUploader = async () => {
@@ -937,7 +1104,7 @@ export default class Theme {
             const cdnFiles = await Promise.all(
                 buildFiles.reduce((promises, fileName) => {
                     const filepath = path.join(buildPath, fileName);
-                    const { extension, componentName } = parseFileName(fileName);
+                    const { extension, componentName } = parseBundleFilename(fileName);
                     if (!['js', 'css'].includes(extension)) {
                         return promises;
                     }

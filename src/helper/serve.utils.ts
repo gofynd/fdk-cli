@@ -7,7 +7,7 @@ import express from 'express';
 import _ from 'lodash';
 import { SourceMapConsumer } from 'source-map';
 import {
-    getActiveContext,
+    getActiveContext, parseBundleFilename,
 } from './utils';
 import urlJoin from 'url-join';
 import { parse as stackTraceParser}  from 'stacktrace-parser';
@@ -44,9 +44,43 @@ export function getPort(port) {
 	return detect(port);
 }
 
+const currentContext = getActiveContext();
+const currentDomain = `https://${currentContext.domain}`;
+
+function applyproxy(app:any) {
+	const options = {
+		target: currentDomain, // target host
+		changeOrigin: true, // needed for virtual hosted sites
+		cookieDomainRewrite: 'localhost', // rewrite cookies to localhost
+		onProxyReq: fixRequestBody,
+		onError: error => Logger.error(error)
+	  };
+
+	  // proxy to solve CORS issue
+	  const corsProxy = createProxyMiddleware(options);
+	  app.use(['/service', '/ext'], async (req,res,next) => {
+		// generating new signature for proxy server
+		req.transformRequest = transformRequest;
+		req.originalUrl = req.originalUrl.startsWith('/service') ? req.originalUrl.replace('/service','/api/service'): req.originalUrl;
+		req.url = req.originalUrl;
+		// don't send body for GET request
+		if(!_.isEmpty(req.body)){
+			req.data = req.body;
+		}
+		req.baseURL = currentDomain;
+		delete req.headers['x-fp-signature'];
+		delete req.headers['x-fp-date'];
+		const url = new URL(currentDomain);
+		req.headers.host = url.host;
+		// regenerating signature as per proxy server
+		const config = await addSignatureFn(options)(req);
+		req.headers['x-fp-signature'] = config.headers['x-fp-signature'];
+		req.headers['x-fp-date'] = config.headers['x-fp-date'];
+		next();
+	  }, corsProxy);
+}
+
 export async function startServer({ domain, host, isSSR, port }) {
-	const currentContext = getActiveContext();
-	const currentDomain = `https://${currentContext.domain}`;
 	const app = require('https-localhost')(getLocalBaseUrl());
 	const certs = await app.getCerts();
 	const server = require('https').createServer(certs, app);
@@ -84,36 +118,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 	// parse application/x-www-form-urlencoded
 	app.use(express.json());
 	  
-	const options = {
-		target: currentDomain, // target host
-		changeOrigin: true, // needed for virtual hosted sites
-		cookieDomainRewrite: 'localhost', // rewrite cookies to localhost
-		onProxyReq: fixRequestBody,
-		onError: error => Logger.error(error)
-	  };
-
-	  // proxy to solve CORS issue
-	  const corsProxy = createProxyMiddleware(options);
-	  app.use(['/service', '/ext'], async (req,res,next) => {
-		// generating new signature for proxy server
-		req.transformRequest = transformRequest;
-		req.originalUrl = req.originalUrl.startsWith('/service') ? req.originalUrl.replace('/service','/api/service'): req.originalUrl;
-		req.url = req.originalUrl;
-		// don't send body for GET request
-		if(!_.isEmpty(req.body)){
-			req.data = req.body;
-		}
-		req.baseURL = currentDomain;
-		delete req.headers['x-fp-signature'];
-		delete req.headers['x-fp-date'];
-		const url = new URL(currentDomain);
-		req.headers.host = url.host;
-		// regenerating signature as per proxy server
-		const config = await addSignatureFn(options)(req);
-		req.headers['x-fp-signature'] = config.headers['x-fp-signature'];
-		req.headers['x-fp-date'] = config.headers['x-fp-date'];
-		next();
-	  }, corsProxy);
+	applyproxy(app);
 
 	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
 	app.get(['/__webpack_hmr', 'manifest.json'], async (req, res, next) => {
@@ -226,6 +231,160 @@ export async function startServer({ domain, host, isSSR, port }) {
 	});
 
 	await new Promise((resolve, reject) => {
+		server.listen(port, (err) => {
+			if (err) {
+				return reject(err);
+			}
+			Logger.info(`Starting starter at port -- ${port} in ${isSSR? 'SSR': 'Non-SSR'} mode`);
+			Logger.info(`************* Using Debugging build`);
+			resolve(true);
+		});
+	});
+}
+export async function startThemeServer({ port }) {
+
+	const app = express();
+
+	// Cors for Theme server
+	app.use((req, res, next) => {
+		res.header(`Access-Control-Allow-Origin`, `*`);
+		res.header(`Access-Control-Allow-Methods`, `GET,PUT,POST,DELETE`);
+		res.header(`Access-Control-Allow-Headers`, `Content-Type`);
+		next();
+	});
+	
+	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
+	app.get(['/__webpack_hmr', 'manifest.json'], async (req, res, next) => {
+		return res.end()
+	});
+
+	app.get('/*', (_, response) => response.status(404).send({message: 'Not Found'}))
+	
+
+	return new Promise((resolve) => {
+		app.listen(port, () => {
+			Logger.info(`Starting Theme server at port -- ${port}`);
+			resolve(true);
+		});
+	});
+}
+
+
+export async function startReactServer({ domain, host, isSSR, port }) {
+	const app = require('https-localhost')(getLocalBaseUrl());
+	const certs = await app.getCerts();
+	const server = require('https').createServer(certs, app);
+	const io = require('socket.io')(server);
+
+	io.on('connection', function (socket) {
+		sockets.push(socket);
+		socket.on('disconnect', function () {
+			sockets = sockets.filter((s) => s !== socket);
+		});
+	});
+
+	app.use('/public', async (req, res, done) => {
+		try {
+			const { url } = req;
+			if (publicCache[url]) {
+				res.set(publicCache[url].headers);
+				return res.send(publicCache[url].body);
+			}
+			const networkRes = await axios.get(urlJoin(domain, 'public', url));
+			publicCache[url] = publicCache[url] || {};
+			publicCache[url].body = networkRes.data;
+			publicCache[url].headers = networkRes.headers;
+			res.set(publicCache[url].headers);
+			return res.send(publicCache[url].body);
+		} catch(e) {
+			console.log("Error loading file ", url)
+		}
+	});
+
+	app.get('/_healthz', (req, res) => {
+		res.json({ ok: 'ok' });
+	});
+
+	// parse application/x-www-form-urlencoded
+	app.use(express.json());
+	  
+	applyproxy(app);
+
+	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
+	app.get(['/__webpack_hmr', 'manifest.json', '/undefined'], async (req, res, next) => {
+		return res.end()
+	})
+	app.get('/*', async (req, res) => {
+		const BUNDLE_DIR = path.join(process.cwd(), path.join('.fdk', 'dist'));
+		const BUNDLE_PATH = path.join(BUNDLE_DIR, 'themeBundle.umd.js');
+		if(!fs.existsSync(BUNDLE_PATH)) return res.sendFile(path.join(__dirname,'../../','/dist/helper','/loader.html'));
+		if (req.originalUrl == '/favicon.ico' || req.originalUrl == '/.webp') {
+			return res.status(404).send('Not found');
+		}
+		const skyfireUrl = new URL(urlJoin(domain, req.originalUrl));
+		// skyfireUrl.searchParams.set('themeId', currentContext.theme_id);
+		let themeUrl = "";
+		if (isSSR) {
+			const reqChunkUrl = new URL(urlJoin(domain, '__required_chunks'));
+			reqChunkUrl.searchParams.set('url', req.originalUrl);
+			const response = await axios.get(reqChunkUrl.toString()); 
+			const requiredFiles = [
+				'themeBundle',
+				...(response.data || [])
+			];
+
+			const User = Configstore.get(CONFIG_KEYS.USER);
+			const buildFiles = fs.readdirSync(BUNDLE_DIR);
+
+			const promises = [];
+			const themeURLs = {};
+			for (let fileName of buildFiles) {
+				const { extension, componentName } = parseBundleFilename(fileName);
+				if (['js', 'css'].includes(extension) && requiredFiles.indexOf(componentName) !== -1) {
+					const promise = UploadService.uploadFile(path.join(BUNDLE_DIR, fileName), 'fdk-cli-dev-files', User._id).then(response => {
+						const url = response.complete.cdn.url;
+						themeURLs[componentName] = themeURLs[componentName] || {};
+						themeURLs[componentName][extension] = url;
+					});
+					promises.push(promise);
+				}
+
+			}
+			
+			await Promise.all(promises);
+
+
+			const {data: html} = await axios.post(
+				skyfireUrl.toString(), 
+				{
+					themeURLs,
+					cliMeta: {
+						port,
+					}
+				}
+				).catch((error) => {
+				console.log(error);
+				return { data: error}
+			});
+			let $ = cheerio.load(html);
+			$('head').prepend(`
+					<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+					<script>
+					var socket = io();
+					console.log('Initialized sockets')
+					socket.on('reload',function(){
+						location.reload();
+					});
+					</script>
+				`);
+			res.send($.html({ decodeEntities: false }));
+           
+		} else {
+			skyfireUrl.searchParams.set('__csr', 'true');
+		}
+	});
+
+	return new Promise((resolve, reject) => {
 		server.listen(port, (err) => {
 			if (err) {
 				return reject(err);
