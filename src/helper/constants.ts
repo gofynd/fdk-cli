@@ -16,6 +16,7 @@ export const ENVIRONMENT_COMMANDS = ['env'];
 export const AUTHENTICATION_COMMANDS = ['auth', 'login', 'logout'];
 export const EXTENSION_COMMANDS = ['init', 'setup', 'get', 'set'];
 export const PARTNER_COMMANDS = ['connect'];
+export const STATUS_COMMANDS = ['check'];
 
 export const SERVICE_URL = {
     theme: '/service/platform/theme',

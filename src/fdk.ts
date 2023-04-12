@@ -79,6 +79,7 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
             const themeCommand = args[1].name();
             const extensionCommand = args[1].name();
             const partnerCommand = args[1].name();
+            const isStatusCommand = args[1].parent.name() === 'status';
 
             if (
                 !(ENVIRONMENT_COMMANDS.findIndex(c => envCommand.includes(c)) !== -1) &&
@@ -87,6 +88,7 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
                 throw new CommandError(COMMON_LOG_MESSAGES.EnvNotSet);
             }
             if (
+                !isStatusCommand &&
                 !(AUTHENTICATION_COMMANDS.findIndex(c => authCommand.includes(c)) !== -1) &&
                 !(ENVIRONMENT_COMMANDS.findIndex(c => envCommand.includes(c)) !== -1) &&
                 !(EXTENSION_COMMANDS.findIndex(c => extensionCommand.includes(c)) !== -1) &&
