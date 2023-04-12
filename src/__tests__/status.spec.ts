@@ -18,6 +18,10 @@ const oraMock = {
     // add any other methods that you need to mock here
 };
 
+const response = {
+    ok: 'ok',
+};
+
 // Replace the actual ora library with the mock
 jest.mock('ora', () => jest.fn(() => oraMock));
 
@@ -27,14 +31,10 @@ describe('Status Commands', () => {
 
         mock = new MockAdapter(axiosInstance);
 
-        const response = {
-            ok: 'ok',
-        };
-
         Object.keys(SERVICE_URL).forEach((name, index) => {
             if (typeof SERVICE_URL[name] === 'string') {
                 mock.onGet(`${getBaseURL() + SERVICE_URL[name]}/_healthz`)
-                    .replyOnce(200, response)
+                    .reply(200, response)
                     .onGet(`${getBaseURL() + SERVICE_URL[name]}/_healthz`)
                     .replyOnce(index % 2 == 0 ? 503 : 200, index % 2 == 0 ? undefined : response);
             }
@@ -61,6 +61,17 @@ describe('Status Commands', () => {
         // Check if the succeed function was called on the ora mock
         expect(oraMock.succeed).toHaveBeenCalledTimes(1);
         expect(oraMock.succeed).toBeCalledWith('All services are working fine.');
+
+        // Reset
+        mock.reset();
+        Object.keys(SERVICE_URL).forEach((name, index) => {
+            if (typeof SERVICE_URL[name] === 'string') {
+                mock.onGet(`${getBaseURL() + SERVICE_URL[name]}/_healthz`).reply(
+                    index % 2 == 0 ? 503 : 200,
+                    index % 2 == 0 ? undefined : response
+                );
+            }
+        });
     });
 
     it('some of the service should not work', async () => {
