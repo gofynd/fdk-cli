@@ -123,6 +123,8 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
             await asyncFn(...args);
         } catch (err) {
             // TODO: Find better ways to consolidate error messages
+            console.log('command:', args?.[1]?.parent?.name(), args?.[1]?.name?.());
+
             if (err instanceof CommandError) {
                 console.error(chalk.red('Error'), err);
 
