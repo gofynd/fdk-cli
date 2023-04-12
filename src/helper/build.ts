@@ -38,8 +38,7 @@ export function build({ buildFolder, imageCdnUrl, assetCdnUrl, assetHash = '' })
 interface DevBuild {
     buildFolder: string,
     imageCdnUrl: string,
-    isProd: boolean,
-    runOnLocal?: boolean,
+    isProd: boolean
 }
 
 interface DevReactBuild {
