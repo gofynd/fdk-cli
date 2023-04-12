@@ -36,7 +36,7 @@ describe('Status Commands', () => {
                 mock.onGet(`${getBaseURL() + SERVICE_URL[name]}/_healthz`)
                     .replyOnce(200, response)
                     .onGet(`${getBaseURL() + SERVICE_URL[name]}/_healthz`)
-                    .reply(index % 2 == 0 ? 503 : 200, index % 2 == 0 ? undefined : response);
+                    .replyOnce(index % 2 == 0 ? 503 : 200, index % 2 == 0 ? undefined : response);
             }
         });
     });
