@@ -27,18 +27,7 @@ jest.mock('ora', () => jest.fn(() => oraMock));
 
 describe('Status Commands', () => {
     beforeAll(async () => {
-        createDirectory(path.join(__dirname, '..', '..', 'test-theme'));
-
         mock = new MockAdapter(axiosInstance);
-
-        Object.keys(SERVICE_URL).forEach((name, index) => {
-            if (typeof SERVICE_URL[name] === 'string') {
-                mock.onGet(`${getBaseURL() + SERVICE_URL[name]}/_healthz`)
-                    .reply(200, response)
-                    .onGet(`${getBaseURL() + SERVICE_URL[name]}/_healthz`)
-                    .replyOnce(index % 2 == 0 ? 503 : 200, index % 2 == 0 ? undefined : response);
-            }
-        });
     });
 
     afterAll(async () => {
@@ -57,6 +46,13 @@ describe('Status Commands', () => {
     // afterAll(() => {});
 
     it('should all services running', async () => {
+        // Set mock
+        Object.keys(SERVICE_URL).forEach((name, index) => {
+            if (typeof SERVICE_URL[name] === 'string') {
+                mock.onGet(`${getBaseURL() + SERVICE_URL[name]}/_healthz`).reply(200, response);
+            }
+        });
+
         await program.parseAsync(['ts-node', './src/fdk.ts', 'status', 'check']);
         // Check if the succeed function was called on the ora mock
         expect(oraMock.succeed).toHaveBeenCalledTimes(1);
