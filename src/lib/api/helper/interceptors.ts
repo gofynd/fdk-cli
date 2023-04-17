@@ -43,19 +43,10 @@ function interceptorFn(options) {
                 // set cookie
                 const cookie = ConfigStore.get(CONFIG_KEYS.COOKIE);
                 config.headers['Cookie'] = cookie || '';
-                if (pathname.startsWith('/service/platform')) {
-                    const company_id = getCompanyId(pathname);
-                    let data;
-                    try {
-                        data = (await AuthenticationService.getOauthToken(company_id)).data || {};
-                    } catch (error) {
-                        ConfigStore.delete(CONFIG_KEYS.USER);
-                        ConfigStore.delete(CONFIG_KEYS.COOKIE);
-                        throw error;
-                    }
-
-                    if (data.access_token) {
-                        config.headers['Authorization'] = 'Bearer ' + data.access_token;
+                if (pathname.startsWith('/service/partner')) {
+                    const auth_token = ConfigStore.get(CONFIG_KEYS.AUTH_TOKEN);
+                    if (auth_token && auth_token.access_token) {
+                        config.headers['Authorization'] = 'Bearer ' + auth_token;
                     }
                 }
                 let queryParam = '';
@@ -126,7 +117,7 @@ export function responseErrorInterceptor() {
         } else {
             throw new Error('There was an issue in setting up the request, Please raise issue');
         }
-    } 
+    }
 }
 
 export { interceptorFn as addSignatureFn };
