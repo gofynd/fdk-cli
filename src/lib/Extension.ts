@@ -24,9 +24,8 @@ import {
   writeFile, 
   readFile 
 } from "../helper/file.utils";
-import configStore, { CONFIG_KEYS } from "./Config";
-import { getBaseURL } from "./api/services/url";
 import { installNpmPackages, installJavaPackages, installPythonDependencies } from "../helper/utils";
+import { getBaseURL } from "./api/services/utils";
 
 export const NODE_VUE = 'Node + Vue.js'
 export const NODE_REACT = 'Node + React.js'

@@ -31,7 +31,6 @@ import { build, devBuild } from '../helper/build';
 import { archiveFolder, extractArchive } from '../helper/archive';
 import urlJoin from 'url-join';
 import { getFullLocalUrl, startServer, reload, getPort } from '../helper/serve.utils';
-import { getBaseURL } from './api/services/url';
 import open from 'open';
 import chokidar from 'chokidar';
 import { downloadFile } from '../helper/download';
@@ -40,6 +39,7 @@ import Debug from './Debug';
 import Spinner from '../helper/spinner';
 import { themeVueConfigTemplate, settingLoader } from '../helper/theme.vue.config';
 import { simpleGit } from 'simple-git';
+import { getBaseURL } from './api/services/utils';
 export default class Theme {
     /*
         new theme from default template -> create

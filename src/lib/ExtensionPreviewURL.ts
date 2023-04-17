@@ -7,7 +7,6 @@ import inquirer from "inquirer";
 
 import Debug from "./Debug";
 import Partner from "./Partner";
-import { getBaseURL } from "./api/services/url";
 import configStore, { CONFIG_KEYS } from "./Config";
 import ExtensionLaunchURL from "./ExtensionLaunchURL";
 import ExtensionService from "./api/services/extension.service";
@@ -18,6 +17,7 @@ import {
 } from '../helper/extension_utils'
 import Spinner from "../helper/spinner";
 import CommandError, { ErrorCodes } from "./CommandError";
+import { getBaseURL } from "./api/services/utils";
 
 export default class ExtensionPreviewURL {
   organizationInfo: Object;
