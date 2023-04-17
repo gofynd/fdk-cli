@@ -29,11 +29,9 @@ export default {
 
         results.forEach(result => {
             if (result.status === 'fulfilled') {
-                // console.log(chalk.green('\u2713 ' + result.value.config.data));
             } else {
                 const serviceName = result.reason.config.data;
                 failedServices.push(serviceName.charAt(0).toUpperCase() + serviceName.slice(1));
-                // console.log('\u26D4 ', result.reason.config.data);
             }
         });
         if (failedServices.length > 0) {

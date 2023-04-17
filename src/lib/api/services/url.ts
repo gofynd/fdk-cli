@@ -1,14 +1,9 @@
 import configStore, { CONFIG_KEYS } from '../../Config';
 import urlJoin from 'url-join';
-import { AVAILABLE_ENVS } from '../../Env';
 import { SERVICE_URL } from '../../../helper/constants';
+import { getBaseURL } from './utils';
 
 const apiVersion = configStore.get(CONFIG_KEYS.API_VERSION) || '1.0';
-
-export const getBaseURL = () => {
-    const currentEnv = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
-    return `https://${AVAILABLE_ENVS[currentEnv]}`;
-};
 
 const THEME_URL = () => getBaseURL() + `${SERVICE_URL.theme}/v` + apiVersion;
 const AUTH_URL = () => getBaseURL() + `${SERVICE_URL.authentication}/v` + apiVersion;

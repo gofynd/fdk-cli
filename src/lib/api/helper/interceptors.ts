@@ -117,7 +117,7 @@ export function responseErrorInterceptor() {
         // Request made and server responded
         if (error.response) {
             Debug(`Error Response  :  ${JSON.stringify(error.response.data)}`);
-            throw new CommandError(`${error.response.data.message}`, ErrorCodes.API_ERROR.code, error?.response?.data?.stack);
+            throw new CommandError(`${error?.response?.data?.message ?? error.message}`, ErrorCodes.API_ERROR.code, error?.response?.data?.stack ?? error.stack);
         } else if (error.request) {
             // The request was made but no error.response was received
             throw new Error(

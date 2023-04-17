@@ -7,8 +7,6 @@ export default function statusCommandBuilder() {
         .command('check')
         .alias('verify')
         .description('Check service status')
-        // .requiredOption('-t, --token [token]', 'Token')
-        // .requiredOption('-n, --name [name]', 'Theme name')
         .option('-n, --name [name]', 'Service name')
         .asyncAction(Status.checkServiceStatus);
 
