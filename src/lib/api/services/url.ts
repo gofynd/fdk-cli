@@ -26,9 +26,6 @@ export const URLS = {
     VERIFY_OTP: () => {
         return urlJoin(AUTH_URL(), '/auth/login/mobile/otp/verify');
     },
-    OAUTH_TOKEN: (company_id: number) => {
-        return urlJoin(AUTH_URL(), `/company/${company_id}/oauth/staff/token`);
-    },
 
     //CONFIGURATION
     GET_APPLICATION_DETAILS: (application_id: string, company_id: number) => {
