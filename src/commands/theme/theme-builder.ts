@@ -41,7 +41,7 @@ export default function themeCommandBuilder() {
     theme
         .command('context')
         .description('Add context')
-        .option('--type <string>', 'Theme Type', 'Vue')
+        .option('--type <string>', 'Theme Type', 'vue2')
         .requiredOption('-t, --token [token]', 'Token')
         .requiredOption('-n, --name [name]', 'Context name')
         .asyncAction(ThemeContext.addThemeContext);

@@ -291,10 +291,10 @@ export default class Theme {
     public static syncThemeWrapper = async () => {
         const currentContext = getActiveContext();
         switch (currentContext.themeType) {
-            case 'React':
+            case 'react':
                 await Theme.syncReactTheme(currentContext);
                 break;
-            case 'Vue': 
+            case 'vue2': 
                 await Theme.syncTheme(currentContext);
                 break;
             default:
@@ -340,11 +340,9 @@ export default class Theme {
             const newTheme = await Theme.setThemeData(
                 theme,
                 cssUrls,
-                //! TODO: Remove after fixing validation from API
-                umdJsUrls[0],
+                'https://example-host.com/temp-common-js-file.js',
                 umdJsUrls,
-                 //! TODO: Remove after fixing validation from API
-                umdJsUrls[0],
+                'https://example-host.com/temp-source-cdn.js',
                 '',
                 '',
                 '',
@@ -353,7 +351,7 @@ export default class Theme {
             );
 
             Logger.info('Updating theme');
-            await ThemeService.updateTheme({isReactTheme: true, ...newTheme});
+            await ThemeService.updateTheme(newTheme);
 
             Logger.info('Theme syncing DONE');
             let domainURL = `https://${AVAILABLE_ENVS[currentContext.env]}`;
@@ -493,11 +491,11 @@ export default class Theme {
         try {
             const currentContext = getActiveContext();
             switch (currentContext.themeType) {
-                case 'React':
+                case 'react':
                     console.log('Serving React Theme...')
                     await Theme.serveReactTheme(options);
                     break;
-                case 'Vue': 
+                case 'vue2': 
                     await Theme.serveVueTheme(options);
                     break;
                 default:
@@ -605,6 +603,9 @@ export default class Theme {
             let host = getBaseURL();
             // initial build
             Logger.info(`Locally building`);
+
+            // Create index.js with section file imports
+            await Theme.createReactSectionsIndexFile();
             
             await Theme.createReactConfig();
 
@@ -620,6 +621,7 @@ export default class Theme {
             await startThemeServer({ port: themeAvailablePort });
 
             await startReactServer({ 
+                // domain: `http://127.0.0.1:2048`,
                 domain,
                 host,
                 port,
@@ -776,10 +778,10 @@ export default class Theme {
             console.log('Error occured');
         }
 
-        const allSections = Object.entries<{meta: any, Component: any}>(imported).map(([name, sectionModule]) => (
+        const allSections = Object.entries<{settings: any, Component: any}>(imported).map(([name, sectionModule]) => (
             {
                 name,
-                ...(sectionModule.meta || {}),
+                ...(sectionModule.settings || {}),
             }
         ));
 

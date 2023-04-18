@@ -13,7 +13,7 @@ const FDK_PATH = () => path.join(process.cwd(), '.fdk');
 const CONTEXT_PATH = () => path.join(FDK_PATH(), 'context.json');
 const DEFAULT_CONTEXT = { theme: {active_context: '', contexts: {}}, partners: {} };
 
-export type ThemeType = 'React' | 'Vue' | null ;
+export type ThemeType = 'react' | 'vue2' | null ;
 
 export type ParsedFile = {
   contentType: 'text/javascript' | 'text/css';
