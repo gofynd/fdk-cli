@@ -33,7 +33,7 @@ import UploadService from './api/services/upload.service';
 import { build, devBuild, devReactBuild } from '../helper/build';
 import { archiveFolder, extractArchive } from '../helper/archive';
 import urlJoin from 'url-join';
-import { getFullLocalUrl, startServer, reload, getPort, startThemeServer, startReactServer } from '../helper/serve.utils';
+import { getFullLocalUrl, startServer, reload, getPort, startReactServer } from '../helper/serve.utils';
 import { getBaseURL } from './api/services/url';
 import open from 'open';
 import chokidar from 'chokidar';
@@ -574,7 +574,6 @@ export default class Theme {
                     ? true
                     : false;
             const DEFAULT_PORT = 5001;
-            const THEME_DEFAULT_PORT = 5500;
             const serverPort =
                 typeof options['port'] === 'string'
                     ? parseInt(options['port'])
@@ -582,13 +581,7 @@ export default class Theme {
                     ? options['port']
                     : DEFAULT_PORT;
             const port = await getPort(serverPort);
-            const themeAvailablePort = await getPort(THEME_DEFAULT_PORT);
 
-            Logger.info(
-                chalk.bold.yellowBright(
-                    `THEME WILL BE SERVED ON PORT: ${themeAvailablePort}`
-                )
-            );
             if (port !== serverPort)
                 Logger.warn(
                     chalk.bold.yellowBright(
@@ -612,17 +605,17 @@ export default class Theme {
             await devReactBuild({
                 buildFolder: Theme.BUILD_FOLDER,
                 runOnLocal: true,
-                localThemePort: themeAvailablePort,
+                localThemePort: port,
             });
 
             
             // start dev server
             Logger.info(chalk.bold.blueBright(`Starting server`));
-            await startThemeServer({ port: themeAvailablePort });
 
             await startReactServer({ 
                 // domain: `http://127.0.0.1:2048`,
-                domain,
+                domain: `https://react-theme-engine.fyndx1.de`,
+                // domain,
                 host,
                 port,
                 isSSR
@@ -639,7 +632,7 @@ export default class Theme {
                 await devReactBuild({
                     buildFolder: Theme.BUILD_FOLDER,
                     runOnLocal: true,
-                    localThemePort: themeAvailablePort
+                    localThemePort: port
                 });
                 reload();
             });

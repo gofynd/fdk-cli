@@ -241,36 +241,9 @@ export async function startServer({ domain, host, isSSR, port }) {
 		});
 	});
 }
-export async function startThemeServer({ port }) {
-	const app = express();
-
-	// Cors for Theme server
-	app.use((req, res, next) => {
-		res.header(`Access-Control-Allow-Origin`, `*`);
-		res.header(`Access-Control-Allow-Methods`, `GET,PUT,POST,DELETE`);
-		res.header(`Access-Control-Allow-Headers`, `Content-Type`);
-		next();
-	});
-	
-	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
-	app.get(['/__webpack_hmr', 'manifest.json'], async (req, res, next) => {
-		return res.end()
-	});
-
-	app.get('/*', (_, response) => response.status(404).send({message: 'Not Found'}))
-	
-
-	return new Promise((resolve) => {
-		app.listen(port, () => {
-			Logger.info(`Starting Theme server at port -- ${port}`);
-			resolve(true);
-		});
-	});
-}
 
 
 export async function startReactServer({ domain, host, isSSR, port }) {
-	const currentContext = getActiveContext();
 	const app = require('https-localhost')(getLocalBaseUrl());
 	const certs = await app.getCerts();
 	const server = require('https').createServer(certs, app);
@@ -311,9 +284,7 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 	applyProxy(app);
 
 	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
-	app.get(['/__webpack_hmr', 'manifest.json', '/undefined'], async (req, res, next) => {
-		return res.end()
-	})
+	
 	app.get('/*', async (req, res) => {
 		const BUNDLE_DIR = path.join(process.cwd(), path.join('.fdk', 'dist'));
 		const BUNDLE_PATH = path.join(BUNDLE_DIR, 'themeBundle.umd.js');
@@ -322,66 +293,62 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 			return res.status(404).send('Not found');
 		}
 		const skyfireUrl = new URL(urlJoin(domain, req.originalUrl));
-		// skyfireUrl.searchParams.set('themeId', currentContext.theme_id);
-		let themeUrl = "";
-		if (isSSR) {
-			const reqChunkUrl = new URL(urlJoin(domain, '__required_chunks'));
-			reqChunkUrl.searchParams.set('url', req.originalUrl);
-			const response = await axios.get(reqChunkUrl.toString()); 
-			const requiredFiles = [
-				'themeBundle',
-				...(response.data || [])
-			];
+		const reqChunkUrl = new URL(urlJoin(domain, '__required_chunks'));
+		reqChunkUrl.searchParams.set('url', req.originalUrl);
+		console.log({ reqChunkUrl, url: reqChunkUrl.toString()});
+		const response = await axios.get(reqChunkUrl.toString()); 
+		const requiredFiles = [
+			'themeBundle',
+			...(response.data || [])
+		];
+		
 
-			const User = Configstore.get(CONFIG_KEYS.USER);
-			const buildFiles = fs.readdirSync(BUNDLE_DIR);
+		const User = Configstore.get(CONFIG_KEYS.USER);
+		const buildFiles = fs.readdirSync(BUNDLE_DIR);
 
-			const promises = [];
-			const themeURLs = {};
-			for (let fileName of buildFiles) {
-				const { extension, componentName } = parseBundleFilename(fileName);
-				if (['js', 'css'].includes(extension) && requiredFiles.indexOf(componentName) !== -1) {
-					const promise = UploadService.uploadFile(path.join(BUNDLE_DIR, fileName), 'fdk-cli-dev-files', User._id).then(response => {
-						const url = response.complete.cdn.url;
-						themeURLs[componentName] = themeURLs[componentName] || {};
-						themeURLs[componentName][extension] = url;
-					});
-					promises.push(promise);
-				}
-
+		const promises = [];
+		const themeURLs = {};
+		for (let fileName of buildFiles) {
+			const { extension, componentName } = parseBundleFilename(fileName);
+			if (['js', 'css'].includes(extension) && requiredFiles.indexOf(componentName) !== -1) {
+				const promise = UploadService.uploadFile(path.join(BUNDLE_DIR, fileName), 'fdk-cli-dev-files', User._id).then(response => {
+					const url = response.complete.cdn.url;
+					themeURLs[componentName] = themeURLs[componentName] || {};
+					themeURLs[componentName][extension] = url;
+				});
+				promises.push(promise);
 			}
-			
-			await Promise.all(promises);
 
-
-			const {data: html} = await axios.post(
-				skyfireUrl.toString(), 
-				{
-					themeURLs,
-					cliMeta: {
-						port,
-					}
-				}
-				).catch((error) => {
-				console.log(error);
-				return { data: error}
-			});
-			let $ = cheerio.load(html);
-			$('head').prepend(`
-					<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
-					<script>
-					var socket = io();
-					console.log('Initialized sockets')
-					socket.on('reload',function(){
-						location.reload();
-					});
-					</script>
-				`);
-			res.send($.html({ decodeEntities: false }));
-           
-		} else {
-			skyfireUrl.searchParams.set('__csr', 'true');
 		}
+		
+		await Promise.all(promises);
+
+
+		const {data: html} = await axios.post(
+			skyfireUrl.toString(), 
+			{
+				themeURLs,
+				cliMeta: {
+					port,
+				}
+			}
+			).catch((error) => {
+			console.log(error);
+			return { data: error}
+		});
+		let $ = cheerio.load(html);
+		$('head').prepend(`
+				<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+				<script>
+				var socket = io();
+				console.log('Initialized sockets')
+				socket.on('reload',function(){
+					location.reload();
+				});
+				</script>
+			`);
+		res.send($.html({ decodeEntities: false }));
+           
 	});
 
 	return new Promise((resolve, reject) => {

@@ -11,7 +11,7 @@ module.exports = (env) => {
 	const { buildPath, NODE_ENV, assetBasePath = '', localThemePort = 5500 } = process.env;
 	const assetNormalizedBasePath = assetBasePath[assetBasePath.length - 1] === '/' ? assetBasePath : assetBasePath + '/';
 	const isLocal = NODE_ENV === 'development';
-    const localBasePath = \`http://127.0.0.1:\${localThemePort}/\`
+    const localBasePath = \`https://127.0.0.1:\${localThemePort}/\`
 	return [
 		{
 			mode: 'production',
