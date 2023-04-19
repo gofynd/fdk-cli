@@ -274,10 +274,6 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 		}
 	});
 
-	app.get('/_healthz', (req, res) => {
-		res.json({ ok: 'ok' });
-	});
-
 	// parse application/x-www-form-urlencoded
 	app.use(express.json());
 	  
@@ -295,7 +291,6 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 		const skyfireUrl = new URL(urlJoin(domain, req.originalUrl));
 		const reqChunkUrl = new URL(urlJoin(domain, '__required_chunks'));
 		reqChunkUrl.searchParams.set('url', req.originalUrl);
-		console.log({ reqChunkUrl, url: reqChunkUrl.toString()});
 		const response = await axios.get(reqChunkUrl.toString()); 
 		const requiredFiles = [
 			'themeBundle',
