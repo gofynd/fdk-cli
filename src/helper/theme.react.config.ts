@@ -8,10 +8,12 @@ const context = process.cwd();
 
 // Return Array of Configurations
 module.exports = (env) => {
-	const { buildPath, NODE_ENV, assetBasePath = '', localThemePort = 5500 } = process.env;
+	const { buildPath, NODE_ENV, assetBasePath = '', imageCdnUrl = '', localThemePort = 5500 } = process.env;
 	const assetNormalizedBasePath = assetBasePath[assetBasePath.length - 1] === '/' ? assetBasePath : assetBasePath + '/';
+	const imageCDNNormalizedBasePath = imageCdnUrl[imageCdnUrl.length - 1] === '/' ? imageCdnUrl : imageCdnUrl + '/';
 	const isLocal = NODE_ENV === 'development';
     const localBasePath = \`https://127.0.0.1:\${localThemePort}/\`
+    const localImageBasePath = \`https://127.0.0.1:\${localThemePort}/assets/images/\`
 	return [
 		{
 			mode: 'production',
@@ -51,6 +53,14 @@ module.exports = (env) => {
 							},
 						}],
 					},
+					{
+						test: /\.(png|jpg|jpeg)$/i,
+						type: 'asset/resource',
+						generator: {
+							publicPath: isLocal ? localImageBasePath : imageCDNNormalizedBasePath,
+							outputPath: 'assets/images/'
+						  }
+					}
 				],
 			},
 			externals: {
@@ -70,6 +80,8 @@ module.exports = (env) => {
 					umdNamedDefine: true,
 				},
 				globalObject: 'typeof self !=="undefined" ? self : this',
+				// [ext] has "." as prefix
+				assetModuleFilename: 'images.[contenthash][ext]'
 			},
 			plugins: [
 				new MiniCssExtractPlugin({

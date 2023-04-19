@@ -318,15 +318,19 @@ export default class Theme {
             
             const buildPath = path.join(process.cwd(), Theme.BUILD_FOLDER);
             
-
+            const imageCdnUrl = await Theme.getImageCdnBaseUrl();
             const assetBasePath = await Theme.getAssetCdnBaseUrl();
 
             Logger.info('Building Theme for Production...');
             await devReactBuild({
                 buildFolder: Theme.BUILD_FOLDER,
                 runOnLocal: false,
-                assetBasePath
+                assetBasePath,
+                imageCdnUrl
             });
+
+            Logger.info('Uploading theme assets/images');
+            await Theme.assetsImageUploader();
 
             let available_sections = await Theme.getAvailableReactSectionsForSync();
             await Theme.validateAvailableSections(available_sections);
@@ -618,7 +622,7 @@ export default class Theme {
                 // domain,
                 host,
                 port,
-                isSSR
+                isSSR,
          })
 
             // open browser
@@ -632,7 +636,7 @@ export default class Theme {
                 await devReactBuild({
                     buildFolder: Theme.BUILD_FOLDER,
                     runOnLocal: true,
-                    localThemePort: port
+                    localThemePort: port,
                 });
                 reload();
             });

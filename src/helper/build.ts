@@ -45,6 +45,7 @@ interface DevReactBuild {
     buildFolder: string,
     runOnLocal?: boolean,
     assetBasePath?: string,
+    imageCdnUrl?: string,
     localThemePort?: string,
 }
 
@@ -76,7 +77,7 @@ export function devBuild({ buildFolder, imageCdnUrl, isProd } : DevBuild) {
     });
 }
 
-export function devReactBuild({ buildFolder, runOnLocal, assetBasePath, localThemePort } : DevReactBuild) {
+export function devReactBuild({ buildFolder, runOnLocal, assetBasePath, localThemePort, imageCdnUrl } : DevReactBuild) {
     const WEBPACK_CLI_PATH = path.join('.', 'node_modules', '.bin', 'webpack');
     const buildPath = path.join(process.cwd(), buildFolder);
 
@@ -92,6 +93,7 @@ export function devReactBuild({ buildFolder, runOnLocal, assetBasePath, localThe
                     buildPath,
                     NODE_ENV: (!runOnLocal && "production") || "development",
                     assetBasePath,
+                    imageCdnUrl,
                     localThemePort
                 }
             });
