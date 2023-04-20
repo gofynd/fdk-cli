@@ -95,7 +95,19 @@ export default {
       throw error;
     }
   },
-  getAllAvailablePage: async() => {
+  getPageDefaultValues: async pageName => {
+    try {
+      const axiosOption = Object.assign({}, getCommonHeaderOptions());
+      const res = await ApiClient.get(
+        URLS.PAGE_PROP(pageName),
+        axiosOption
+      );
+      return res;
+    } catch (error) {
+      throw error;
+    }
+  },
+  getAllAvailablePage: async () => {
     try {
       const activeContext = getActiveContext();
       const axiosOption = Object.assign({}, getCommonHeaderOptions());

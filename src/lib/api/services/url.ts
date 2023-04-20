@@ -9,7 +9,10 @@ export const getBaseURL = () => {
     return `https://${AVAILABLE_ENVS[currentEnv]}`;
 };
 
-const THEME_URL = () => getBaseURL() + '/service/platform/theme/v' + apiVersion;
+// const THEME_URL = () => getBaseURL() + '/service/platform/theme/v' + apiVersion;
+const THEME_URL = () => 'http://localdev.jiox0.de:8081' + '/v' + apiVersion;
+// const COMMON_URL = () => getBaseURL() + '/common';
+const COMMON_URL = () => 'http://localdev.jiox0.de:8081' + '/common';
 const AUTH_URL = () => getBaseURL() + '/service/panel/authentication/v' + apiVersion;
 const CONFIGURATION_URL = () => getBaseURL() + '/service/platform/configuration/v' + apiVersion;
 const ASSET_URL = () => getBaseURL() + '/service/platform/assets/v' + apiVersion;
@@ -93,6 +96,10 @@ export const URLS = {
             THEME_URL(),
             `/company/${company_id}/application/${application_id}/${theme_id}/${page_value}`
         );
+    },
+
+    PAGE_PROP: (page_name: string) => {
+        return urlJoin(COMMON_URL(), `/props/${page_name}`)
     },
 
     SETUP_COMPANY: (company_id: number) => {
