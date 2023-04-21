@@ -17,7 +17,7 @@ module.exports = (env) => {
 	return [
 		{
 			mode: 'production',
-			entry: { themeBundle: path.resolve(context, 'index.js') },
+			entry: { themeBundle: path.resolve(context, 'theme/index.js') },
 			module: {
 				rules: [
 					{
@@ -71,9 +71,9 @@ module.exports = (env) => {
 			},
 			output: {
 				path: buildPath,
-				filename: isLocal ? 'themeBundle.umd.js' : 'themeBundle.[contenthash].umd.js',
+				filename: isLocal ? 'themeBundle.[contenthash].umd.js' : 'themeBundle.[contenthash].umd.js',
 				publicPath: isLocal ? localBasePath : assetNormalizedBasePath,
-				chunkFilename: isLocal ? '[name].themeBundle.umd.js' : '[name].themeBundle.[contenthash].umd.js',
+				chunkFilename: isLocal ? '[name].themeBundle.[contenthash].umd.js' : '[name].themeBundle.[contenthash].umd.js',
 				library: {
 					name: 'themeBundle',
 					type: 'umd',

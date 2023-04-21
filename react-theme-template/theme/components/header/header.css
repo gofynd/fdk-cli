@@ -1,0 +1,24 @@
+.header {
+    display: flex;
+    justify-content: center;
+    position: sticky;
+    top: 0;
+    background: #FFF;
+    box-shadow: 0 0 15px rgb(0 0 0 / 12%);
+}
+
+.link-menu {
+    display: flex;
+}
+
+.link {
+    padding: 8px 10px;
+    border-radius: 3px;
+    font-size: 1.4em;
+    margin: 10px 5px;
+    color: black;
+}
+
+.link:hover {
+    background: rgba(0, 0, 0, .1);
+}

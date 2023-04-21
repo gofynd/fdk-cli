@@ -28,7 +28,7 @@ export default class ThemeContext {
                 domain: appConfig.domain.name,
                 company_id: appConfig.company_id,
                 theme_id: themeConfig._id,
-                themeType: options.type,
+                theme_type: themeConfig.theme_type,
             };
             Logger.info('Saving context');
             await createContext(context);

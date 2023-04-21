@@ -29,7 +29,7 @@ export interface ThemeContextInterface {
   company_id?: number;
   domain?: string;
   env?: string;
-  themeType: ThemeType;
+  theme_type: ThemeType;
 }
 
 export const transformRequestOptions = params => {

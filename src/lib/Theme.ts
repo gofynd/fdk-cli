@@ -56,6 +56,8 @@ export default class Theme {
         pull-config
     */
     static TEMPLATE_DIRECTORY = path.join(__dirname, '..', '..', 'template');
+    static REACT_TEMPLATE_DIRECTORY = path.join(__dirname, '..', '..', 'react-template');
+    static TEMP_REACT_TEMPLATE_DIRECTORY = path.join(__dirname, '..', '..', 'react-theme-template');
     static BUILD_FOLDER = './.fdk/dist';
     static SRC_FOLDER = path.join('.fdk', 'temp-theme');
     static VUE_CLI_CONFIG_PATH = path.join('.fdk', 'vue.config.js');
@@ -95,6 +97,121 @@ export default class Theme {
     }
 
     public static async createTheme(options) {
+        const { type, ...restOptions } = options;
+
+        if (type === 'react') {
+            Logger.info(`Creating React Theme`);
+            Theme.createReactTheme(restOptions);
+        } else {
+            Logger.info(`Creating Vue Theme`);
+            Theme.createVueTheme(restOptions);
+        }
+    }
+
+    public static async createReactTheme(options) {
+        let shouldDelete = false;
+        const targetDirectory = path.join(process.cwd(), options.name);
+        try {
+            if (fs.existsSync(targetDirectory)) {
+                shouldDelete = false;
+                throw new CommandError(`Folder ${options.name} already exists`);
+            }
+
+            Logger.info('Validating token');
+            const configObj = JSON.parse(decodeBase64(options.token) || '{}');
+            Debug(`Token Data: ${JSON.stringify(configObj)}`);
+            if (!configObj) throw new CommandError('Invalid token', ErrorCodes.INVALID_INPUT.code);
+            if (new Date(Date.now()) > new Date(configObj.expires_in)) {
+                throw new CommandError(
+                    'Token expired. Generate a new token',
+                    ErrorCodes.INVALID_INPUT.code
+                );
+            }
+            Debug(`Token expires in: ${configObj.expires_in}`);
+            const { data: appConfig } = await ConfigurationService.getApplicationDetails(configObj);
+
+            Logger.info('Copying template files');
+            await Theme.copyTemplateFiles(Theme.TEMP_REACT_TEMPLATE_DIRECTORY, targetDirectory);
+            shouldDelete = true;
+            Logger.info('Copied template files');
+            process.chdir(path.join('.', options.name));
+
+            // Create index.js with section file imports
+            Logger.info('creating section index file');
+            await Theme.createReactSectionsIndexFile();
+            Logger.info('created section index file');
+            
+            // Creates a webpack config file
+            await Theme.createReactConfig();
+
+            Logger.info('Installing dependencies');
+            let spinner = new Spinner("Installing npm packages")
+            try {
+                spinner.start();
+                await installNpmPackages()
+                spinner.succeed();
+            } catch(error) {
+                spinner.fail();
+                throw new CommandError(error.message);
+            } 
+
+            Logger.info('Building Theme...');
+            await devReactBuild({
+                buildFolder: Theme.BUILD_FOLDER,
+                runOnLocal: true,
+            });
+
+            const available_sections = await Theme.getAvailableReactSectionsForSync();
+
+            const themeData = {
+                information: {
+                    name: options.name,
+                },
+                available_sections,
+                theme_type: 'react'
+            };
+
+            const { data: theme } = await ThemeService.createTheme({ ...configObj, ...themeData });
+
+            const context: any = {
+                name: options.name,
+                application_id: appConfig._id,
+                domain: appConfig.domain.name,
+                company_id: appConfig.company_id,
+                theme_id: theme._id,
+                theme_type: 'react'
+            };
+
+            Logger.info('Saving context');
+            await createContext(context);
+
+            let packageJSON = await fs.readJSON(path.join(process.cwd(), 'package.json'));
+            packageJSON.name = Theme.sanitizeThemeName(options.name);
+            await fs.writeJSON(`${process.cwd()}/package.json`, packageJSON, {
+                spaces: 2,
+            });
+            // const currentContext = getActiveContext();
+            // await Theme.syncReactTheme(currentContext);
+            var b5 = Box(
+                chalk.green.bold('DONE ') +
+                    chalk.green.bold('Project ready\n') +
+                    chalk.yellowBright.bold('NOTE ') +
+                    chalk.green.bold('cd ' + targetDirectory + ' to continue ...'),
+                {
+                    padding: 1,
+                    margin: 1,
+                }
+            );
+            console.log(b5.toString());
+
+        } catch (error) {
+            console.log(error)
+            // if (shouldDelete) await Theme.cleanUp(targetDirectory);
+            // throw new CommandError(error.message, error.code);
+        }
+    }
+
+    public static async createVueTheme(options) {
         let shouldDelete = false;
         const targetDirectory = path.join(process.cwd(), options.name);
         try {
@@ -115,7 +232,6 @@ export default class Theme {
             }
             Debug(`Token expires in: ${configObj.expires_in}`);
             const { data: appConfig } = await ConfigurationService.getApplicationDetails(configObj);
-            
             Logger.info('Cloning template files');
             await Theme.cloneTemplate(options, targetDirectory);
             shouldDelete = true;
@@ -136,6 +252,7 @@ export default class Theme {
                 domain: appConfig.domain.name,
                 company_id: appConfig.company_id,
                 theme_id: theme._id,
+                theme_type: 'vue2'
             };
             process.chdir(path.join('.', options.name));
 
@@ -159,7 +276,7 @@ export default class Theme {
                 spaces: 2,
             });
             const currentContext = getActiveContext();
-            await Theme.syncTheme(currentContext, true);
+            await Theme.syncVueTheme(currentContext, true);
             var b5 = Box(
                 chalk.green.bold('DONE ') +
                     chalk.green.bold('Project ready\n') +
@@ -198,7 +315,7 @@ export default class Theme {
             Logger.info('Fetching Template Files');
             const { data: themeData } = await ThemeService.getThemeById(configObj);
             const themeName = themeData?.information?.name || 'default';
-            
+
             targetDirectory = path.join(process.cwd(), themeName);
             if (fs.existsSync(targetDirectory)) {
                 shouldDelete = false;
@@ -207,7 +324,11 @@ export default class Theme {
 
             Logger.info('Copying template config files');
             shouldDelete = true;
-            await Theme.copyTemplateFiles(Theme.TEMPLATE_DIRECTORY, targetDirectory);
+            if (themeData.theme_type === 'react') {
+                await Theme.copyTemplateFiles(Theme.REACT_TEMPLATE_DIRECTORY, targetDirectory);
+            } else {
+                await Theme.copyTemplateFiles(Theme.TEMPLATE_DIRECTORY, targetDirectory);
+            }
             
             let context: any = {
                 name: themeName + '-' + Env.getEnvValue(),
@@ -215,6 +336,7 @@ export default class Theme {
                 domain: appConfig.domain.name,
                 company_id: appConfig.company_id,
                 theme_id: themeData._id,
+                theme_type: themeData.theme_type
             };
 
             process.chdir(path.join('.', themeName));
@@ -290,25 +412,28 @@ export default class Theme {
     };
     public static syncThemeWrapper = async () => {
         const currentContext = getActiveContext();
-        switch (currentContext.themeType) {
+        switch (currentContext.theme_type) {
             case 'react':
                 await Theme.syncReactTheme(currentContext);
                 break;
             case 'vue2': 
-                await Theme.syncTheme(currentContext);
+                await Theme.syncVueTheme(currentContext);
                 break;
             default:
-                await Theme.syncTheme(currentContext);
+                await Theme.syncVueTheme(currentContext);
                 break;
         }
         
     };
-    private static syncReactTheme = async (currentContext: ThemeContextInterface, isNew = false) => {
+    private static syncReactTheme = async (currentContext: ThemeContextInterface) => {
         try {
             currentContext.domain
                 ? Logger.warn('Syncing Theme to: ' + currentContext.domain)
                 : Logger.warn('Please add domain to context');
             let { data: theme } = await ThemeService.getThemeById(currentContext);
+
+            // Clear previosu builds
+            Theme.clearPreviousBuild();
 
             // Create index.js with section file imports
             await Theme.createReactSectionsIndexFile();
@@ -317,6 +442,15 @@ export default class Theme {
             await Theme.createReactConfig();
             
             const buildPath = path.join(process.cwd(), Theme.BUILD_FOLDER);
+
+            Logger.info('Creating theme source code zip file');
+            await Theme.copyThemeSourceToFdkFolder();
+            
+            // Remove temp source folder
+            rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
+
+            Logger.info('Uploading theme source code zip file');
+            let srcCdnUrl = await Theme.uploadThemeSrcZip();
             
             const imageCdnUrl = await Theme.getImageCdnBaseUrl();
             const assetBasePath = await Theme.getAssetCdnBaseUrl();
@@ -346,11 +480,11 @@ export default class Theme {
                 cssUrls,
                 'https://example-host.com/temp-common-js-file.js',
                 umdJsUrls,
-                'https://example-host.com/temp-source-cdn.js',
-                '',
-                '',
-                '',
-                '',
+                srcCdnUrl,
+                ['https://hdn-1.addsale.com/x0/company/1/applications/000000000000000000000004/theme/pictures/free/original/desktop.png'],
+                ['https://hdn-1.addsale.com/x0/company/1/applications/000000000000000000000004/theme/pictures/free/original/desktop.png'],
+                ['https://hdn-1.addsale.com/x0/company/1/applications/000000000000000000000004/theme/pictures/free/original/desktop.png'],
+                ['https://hdn-1.addsale.com/x0/company/1/applications/000000000000000000000004/theme/pictures/free/original/desktop.png'],
                 available_sections
             );
 
@@ -384,7 +518,7 @@ export default class Theme {
             throw new CommandError(error.message, error.code);
         }
     };
-    private static syncTheme = async (currentContext: ThemeContextInterface, isNew = false) => {
+    private static syncVueTheme = async (currentContext: ThemeContextInterface, isNew = false) => {
         try {
             currentContext.domain
                 ? Logger.warn('Syncing Theme to: ' + currentContext.domain)
@@ -494,7 +628,7 @@ export default class Theme {
     public static serveTheme = async options => {
         try {
             const currentContext = getActiveContext();
-            switch (currentContext.themeType) {
+            switch (currentContext.theme_type) {
                 case 'react':
                     console.log('Serving React Theme...')
                     await Theme.serveReactTheme(options);
@@ -618,7 +752,8 @@ export default class Theme {
 
             await startReactServer({ 
                 // domain: `http://127.0.0.1:2048`,
-                domain: `https://react-theme-engine.fyndx1.de`,
+                // Tempraray Fix
+                domain: domain === 'https://react.fyndx1.de' ? `https://react-theme-engine.fyndx1.de` : domain,
                 // domain,
                 host,
                 port,
@@ -939,6 +1074,7 @@ export default class Theme {
         
     }
     private static createReactConfig() {
+        if (!isAThemeDirectory()) createDirectory(path.join(process.cwd(), '.fdk'));
         const reactWebpackPath = path.join(process.cwd(), Theme.REACT_CLI_CONFIG_PATH);
         rimraf.sync(reactWebpackPath);
         fs.writeFileSync(reactWebpackPath, themeReactWebpackTemplate);

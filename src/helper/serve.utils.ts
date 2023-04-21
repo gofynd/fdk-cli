@@ -256,6 +256,11 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 		});
 	});
 
+	app.use((req, res, next) => {
+		res.set('Cache-Control', 'no-store')
+		next()
+	})
+
 	app.use('/public', async (req, res, done) => {
 		try {
 			const { url } = req;
@@ -283,8 +288,6 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 	
 	app.get('/*', async (req, res) => {
 		const BUNDLE_DIR = path.join(process.cwd(), path.join('.fdk', 'dist'));
-		const BUNDLE_PATH = path.join(BUNDLE_DIR, 'themeBundle.umd.js');
-		if(!fs.existsSync(BUNDLE_PATH)) return res.sendFile(path.join(__dirname,'../../','/dist/helper','/loader.html'));
 		if (req.originalUrl == '/favicon.ico' || req.originalUrl == '/.webp') {
 			return res.status(404).send('Not found');
 		}

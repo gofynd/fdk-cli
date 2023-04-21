@@ -1,0 +1,12 @@
+.container {
+    display: flex;
+    margin: 30px 50px;
+}
+
+.filterSection {
+    flex: 0.2;
+}
+
+.listingSection {
+    flex: 0.8;
+}

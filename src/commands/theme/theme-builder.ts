@@ -10,6 +10,7 @@ export default function themeCommandBuilder() {
         .requiredOption('-t, --token [token]', 'Token')
         .requiredOption('-n, --name [name]', 'Theme name')
         .option('-u, --url [url]', 'repo url')
+        .option('--type <string>', 'Theme Type', 'vue2')
         .asyncAction(Theme.createTheme);
 
     theme
@@ -41,7 +42,6 @@ export default function themeCommandBuilder() {
     theme
         .command('context')
         .description('Add context')
-        .option('--type <string>', 'Theme Type', 'vue2')
         .requiredOption('-t, --token [token]', 'Token')
         .requiredOption('-n, --name [name]', 'Context name')
         .asyncAction(ThemeContext.addThemeContext);

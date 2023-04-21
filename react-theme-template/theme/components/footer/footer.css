@@ -1,0 +1,124 @@
+.desktop-footer {
+    margin-top: 35px;
+}
+
+.fyndFeatures {
+    background: #fff;
+    display: block;
+}
+
+.blocks {
+    width: 100%;
+    opacity: 0.7;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    align-content: flex-start;
+}
+
+.block-item {
+    padding: 25px 0;
+    max-width: 350px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+    align-content: flex-start;
+}
+
+.feature-data {
+    padding: 8px 0 0 15px;
+}
+
+.feature-text {
+    margin-top: 3px;
+    line-height: 21px;
+}
+
+.bold-xl {
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.regular-xs {
+    font-weight: 400;
+    font-size: 14px;
+}
+
+.footer {
+    background: #fff;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer-container-box {
+    background: #fff;
+    display: table;
+    vertical-align: top;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.footer-fynd-logo {
+    height: 24px;
+    background-size: cover;
+}
+
+.icons-box li a:hover {
+    opacity: 0.7;
+}
+
+.footer-border-box {
+    padding: 20px 0;
+    display: table;
+    vertical-align: top;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.footer-border {
+    border-bottom: 1px solid #ececec;
+}
+
+.subscribe-container {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.logo-content {
+    padding: 0 0 0 5px;
+}
+
+.alignment {
+    display: inline-block;
+}
+
+.logo-title {
+    font-weight: 700;
+    font-size: 12px;
+    line-height: 17px;
+}
+
+.logo-subtitle {
+    font-weight: 300;
+    font-size: 12px;
+}
+
+.subscribe-form {
+    float: right;
+}
+
+.form-input {
+    height: 43px;
+    min-width: 400px;
+    max-width: 400px;
+    display: inline-block;
+}
