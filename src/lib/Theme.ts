@@ -947,23 +947,25 @@ export default class Theme {
             theme.config = theme.config || {};
             theme.config.global_schema = globalConfigSchema;
             theme.config.current = globalConfigData.current || 'default';
-            console.log("globalConfigData", globalConfigData);
 
+            // Modify list to update deleted page's prop
             let newList = null;
             if (globalConfigData.list) {
                 newList = globalConfigData.list.map(listItem => {
 
+                    // delete extra props from all list (Default, Blue, Dark)
                     const page = listItem.page.map(pageData => {
+                        // allowedDefaultProps object have deleted page name as key
                         // If current page is not deleted page, then no changes needed
                         if (!allowedDefaultProps[pageData.page]) return pageData;
 
                         const { settings } = pageData;
                         const newSettingsProps = settings.props
-                        console.log(`\nWorking on`, pageData);
+                        console.log(`\nWorking on`, pageData.page);
 
                         Object.keys(newSettingsProps).forEach(prop => {
                             if (!allowedDefaultProps[pageData.page].includes(prop)) {
-                                console.log(`\nRemoved ${prop} prop from ${pageData.page} page`);
+                                console.log(`\nRemoved ${prop} prop from ${pageData.page} page in ${listItem.name}`);
                                 delete newSettingsProps[prop]
                             }
                         })
@@ -1051,8 +1053,6 @@ export default class Theme {
                 pagesToSave.push(systemPage);
             });
 
-            // console.log("\nsystemPagesLocally", systemPagesLocally);
-
             // remove .vue from file name
             const allLocalSystemPageNames = systemPagesLocally.map(name => name.replace('.vue', ''))
             // Delete system pages that were available before sync but now deleted
@@ -1066,15 +1066,24 @@ export default class Theme {
                 // Reseting props in system pages
                 console.log("\n// Reseting props in system pages");
 
+                // Get default values of all pages
                 const default_props_req = await Promise.all(systemPagesToDelete.map(
                     page => ThemeService.getPageDefaultValues(page.value))
                 )
 
-                const default_props = default_props_req.map(res => res.data)
+                const default_props = {}
 
+                // Create object with page name as a key
+                default_props_req.forEach(res => { default_props[res.data.value] = res.data })
+
+                // Update props of deleted pages (in available_pages collection)
+                // Here we are just updating prop information
+                // We need to delete remove extra props that was added by themified page
+                // For that we are creating allowedDefaultProps variable
+                // Which will contain all default props for the pages
                 await Promise.all(
                     systemPagesToDelete.map(page => {
-                        const pageDetails = default_props.find(p => p.value === page.value)
+                        const pageDetails = default_props[page.value];
                         if (pageDetails) {
                             console.log(`\nUpdate ${pageDetails.value} | Updated props `, pageDetails.props.map(p => p.id));
                             allowedDefaultProps[pageDetails.value] = pageDetails.props.map(p => p.id)
