@@ -99,7 +99,7 @@ export default {
     try {
       const axiosOption = Object.assign({}, getCommonHeaderOptions());
       const res = await ApiClient.get(
-        URLS.PAGE_PROP(pageName),
+        URLS.PAGE_DEFAULT_VALUES(pageName),
         axiosOption
       );
       return res;

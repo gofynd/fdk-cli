@@ -98,8 +98,8 @@ export const URLS = {
         );
     },
 
-    PAGE_PROP: (page_name: string) => {
-        return urlJoin(COMMON_URL(), `/props/${page_name}`)
+    PAGE_DEFAULT_VALUES: (page_name: string) => {
+        return urlJoin(COMMON_URL(), `/default/${page_name}`)
     },
 
     SETUP_COMPANY: (company_id: number) => {
