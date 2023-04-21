@@ -753,7 +753,7 @@ export default class Theme {
             await startReactServer({ 
                 // domain: `http://127.0.0.1:2048`,
                 // Tempraray Fix
-                domain: domain === 'https://react.fyndx1.de' ? `https://react-theme-engine.fyndx1.de` : domain,
+                domain: domain === 'https://react.hostx1.de' ? `https://react-theme-engine.fyndx1.de` : domain,
                 // domain,
                 host,
                 port,
