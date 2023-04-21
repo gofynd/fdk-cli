@@ -101,10 +101,10 @@ export default class Theme {
 
         if (type === 'react') {
             Logger.info(`Creating React Theme`);
-            Theme.createReactTheme(restOptions);
+            await Theme.createReactTheme(restOptions);
         } else {
             Logger.info(`Creating Vue Theme`);
-            Theme.createVueTheme(restOptions);
+            await Theme.createVueTheme(restOptions);
         }
     }
 
