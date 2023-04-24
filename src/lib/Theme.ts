@@ -950,8 +950,9 @@ export default class Theme {
 
             // Modify list to update deleted page's prop
             let newList = null;
-            if (globalConfigData.list) {
+            if (globalConfigData.list && Object.keys(allowedDefaultProps).length > 0) {
                 newList = globalConfigData.list.map(listItem => {
+                    if (!listItem.page) return listItem
 
                     // delete extra props from all list (Default, Blue, Dark)
                     const page = listItem.page.map(pageData => {
