@@ -9,10 +9,8 @@ export const getBaseURL = () => {
     return `https://${AVAILABLE_ENVS[currentEnv]}`;
 };
 
-// const THEME_URL = () => getBaseURL() + '/service/platform/theme/v' + apiVersion;
-const THEME_URL = () => 'http://localdev.jiox0.de:8081' + '/v' + apiVersion;
-// const COMMON_URL = () => getBaseURL() + '/common';
-const COMMON_URL = () => 'http://localdev.jiox0.de:8081' + '/common';
+const THEME_URL = () => getBaseURL() + '/service/platform/theme/v' + apiVersion;
+const COMMON_URL = () => getBaseURL() + '/common';
 const AUTH_URL = () => getBaseURL() + '/service/panel/authentication/v' + apiVersion;
 const CONFIGURATION_URL = () => getBaseURL() + '/service/platform/configuration/v' + apiVersion;
 const ASSET_URL = () => getBaseURL() + '/service/platform/assets/v' + apiVersion;
