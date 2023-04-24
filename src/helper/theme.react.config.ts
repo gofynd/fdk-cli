@@ -122,7 +122,7 @@ module.exports = (env) => {
 			},
 			externals: {
 				react: 'React',
-				'react-router-dom': 'ReactRouterDOM',
+				'react-router-dom': 'globalThis',
 			},
 			output: {
 				filename: 'sections.commonjs.js',

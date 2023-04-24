@@ -1,10 +1,16 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
-export function Component({ label, url, target }) {
+export function Component({ props, blocks }) {
+	const { label, url, target } = props;
 	return (
-		<a href={url} target={target}>
-			{label}
-		</a>
+		target.value === '_blank'
+			? (
+				<a href={url.value} target={target.value}>
+					{label.value}
+				</a>
+			)
+			: <Link to={url.value}>{label.value}</Link>
 	);
 }
 
@@ -12,21 +18,24 @@ export const settings = {
 	label: 'Link',
 	props: [
 		{
+			id: 'label',
 			label: 'Link Label',
-			type: 'string',
+			type: 'text',
 			default: 'Section Link',
 			info: 'Label to show for link',
 		},
 		{
+			id: 'url',
 			label: 'URL',
-			type: 'string',
+			type: 'text',
 			default: '/',
 			info: 'URl for link',
 		},
 		{
+			id: 'target',
 			label: 'Link Target',
-			type: 'string',
-			default: '_blank',
+			type: 'text',
+			default: '',
 			info: 'HTML target attribute for link',
 		},
 	],

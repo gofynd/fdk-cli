@@ -4,7 +4,7 @@ import { GETTERS } from 'fdk-store';
 
 function Home({ numberOfSections }) {
 	const {
-		sections, isLoading, error,
+		sections, isLoading, error, pageData,
 	} = useGlobalStore((store) => store[GETTERS.PAGE_CONFIG]);
 
 	if (isLoading) {
@@ -31,8 +31,11 @@ function Home({ numberOfSections }) {
 
 	return (
 		<div className="wrapper">
-			<h1>Home page</h1>
-			<SectionRenderer sections={sections} />
+			<h1>This is Home Page updated locally</h1>
+			<SectionRenderer
+				sections={sections}
+				actualSections={pageData.sections}
+			/>
 		</div>
 	);
 }

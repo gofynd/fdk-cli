@@ -1,9 +1,10 @@
 import React from 'react';
 
-export function Component({ imageUrl, alt, width = 100 }) {
+export function Component({ props, blocks }) {
+	const { imageUrl, alt, width = 100 } = props;
 	return (
 		<div>
-			<img src={imageUrl} alt={alt} style={{ width: `${width}%` }} />
+			<img src={imageUrl.value} alt={alt.value} style={{ width: `${width.value}%` }} />
 		</div>
 	);
 }
@@ -12,21 +13,24 @@ export const settings = {
 	label: 'Banner',
 	props: [
 		{
+			id: 'imageUrl',
 			label: 'Banner Image Link',
-			type: 'string',
+			type: 'text',
 			default: '',
 			info: 'Link to the image that should be displayed in banner',
 		},
 		{
+			id: 'alt',
 			label: 'Alt Text',
-			type: 'string',
+			type: 'text',
 			default: 'Image Alt',
 			info: 'Image Alt',
 		},
 		{
+			id: 'width',
 			label: 'Image Width',
-			type: 'number',
-			default: 100,
+			type: 'text',
+			default: '100',
 			info: 'Width of image in %',
 		},
 	],

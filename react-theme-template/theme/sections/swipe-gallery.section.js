@@ -16,19 +16,21 @@ const styles = {
 	},
 };
 
-export function Component({ tiles, title }) {
-	if (!tiles?.length) {
+export function Component({ props, blocks}) {
+	console.log('PROPS IN GALLERY  : ', props, blocks);
+	const { title } = props;
+	if (!blocks?.length) {
 		return null;
 	}
 
 	return (
 		<div style={styles.section}>
-			<h1 style={styles.title}>{title}</h1>
+			<h1 style={styles.title}>{title.value}</h1>
 			<div style={styles.swipeGallery}>
 				{
-					tiles.map((tile, index) => (
-						<div style={styles.tile} key={title + index + tile.url}>
-							<img src={tile.url} alt={tile.alt} />
+					blocks?.map(({props: tile}, index) => (
+						<div style={styles.tile} key={title.value + index + tile.url.value}>
+							<img src={tile.url.value} alt={tile.alt.value} />
 						</div>
 					))
 				}
@@ -38,26 +40,43 @@ export function Component({ tiles, title }) {
 }
 
 export const settings = {
-	label: 'Link',
+	label: 'Swipe Gallery',
+	blocks: [
+		{
+			label: 'Image card',
+			type: 'gallery',
+			props: [
+				{
+					id: 'url',
+					label: 'Banner Image Link',
+					type: 'text',
+					default: '',
+					info: 'Link to the image that should be displayed in banner',
+				},
+				{
+					id: 'alt',
+					label: 'Alt Text',
+					type: 'text',
+					default: 'Image Alt',
+					info: 'Image Alt',
+				},
+				{
+					id: 'width',
+					label: 'Image Width',
+					type: 'text',
+					default: '100',
+					info: 'Width of image in %',
+				},
+			]
+		},
+	],
 	props: [
 		{
-			label: 'Banner Image Link',
-			type: 'string',
+			id: 'title',
+			label: 'Title',
+			type: 'text',
 			default: '',
 			info: 'Link to the image that should be displayed in banner',
 		},
-		{
-			label: 'Alt Text',
-			type: 'string',
-			default: 'Image Alt',
-			info: 'Image Alt',
-		},
-		{
-			label: 'Image Width',
-			type: 'number',
-			default: 100,
-			info: 'Width of image in %',
-		},
 	],
-	blocks: [],
 };
