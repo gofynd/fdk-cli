@@ -1,5 +1,5 @@
 import React from 'react';
-import sections from '../../sections';
+import sections from '../sections';
 
 function Section({
 	section,

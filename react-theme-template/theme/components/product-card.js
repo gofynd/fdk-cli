@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from './product-card.css';
+import styles from '../styles/product-card.less';
 
 function ProductCard({
 	name,

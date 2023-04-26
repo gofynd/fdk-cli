@@ -1,10 +1,8 @@
 import React, { useEffect } from 'react';
-import { GETTERS } from 'fdk-store';
 import { useGlobalStore, SectionRenderer } from 'fdk-core';
 
-import './product-description.css';
-import testImage from '../../assets/images/test.png';
-import { ErrorHandler } from '../../components/error-handler/error-handler';
+import testImage from '../assets/images/test.png';
+import { ErrorHandler } from '../components/error-handler';
 
 function ProductDescription({
 	fpi, slug,
@@ -13,8 +11,8 @@ function ProductDescription({
 		product,
 		isLoading,
 		error,
-	} = useGlobalStore((store) => store[GETTERS.PRODUCT_DESCRIPTION_PAGE]);
-	const { sections } = useGlobalStore((store) => store[GETTERS.PAGE_CONFIG]);
+	} = useGlobalStore((store) => store[fpi.getters.PRODUCT_DESCRIPTION_PAGE]);
+	const { sections } = useGlobalStore((store) => store[fpi.getters.PAGE_CONFIG]);
 
 	useEffect(() => {
 		const currentProductExists = product?.slug === slug;

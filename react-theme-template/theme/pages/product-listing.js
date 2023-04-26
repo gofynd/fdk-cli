@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { GETTERS } from 'fdk-store';
 import { useGlobalStore } from 'fdk-core';
-import ProductGallery from '../../components/product-gallery/product-gallery';
-import styles from './styles.css';
+import ProductGallery from '../components/product-gallery';
+import styles from '../styles/product-listing.less';
 
 function ProductListing({ fpi }) {
 	const [sdkOptions, setSDKOptions] = useState({
@@ -10,7 +9,7 @@ function ProductListing({ fpi }) {
 		pageSize: 50,
 		idle: true,
 	});
-	const productsMeta = useGlobalStore((store) => store[GETTERS.PRODUCT_LISTING_PAGE]);
+	const productsMeta = useGlobalStore((store) => store[fpi.getters.PRODUCT_LISTING_PAGE]);
 
 	const { products, isLoading, error } = productsMeta;
 
@@ -28,7 +27,7 @@ function ProductListing({ fpi }) {
 			}
 		}
 	}
-	function handleWishlistButton(slug) {
+	function handleWishlistButton() {
 		// const updatedProducts = products.map((productInStore) => {
 		// 	if (productInStore.slug !== slug) {
 		// 		return productInStore;
@@ -79,7 +78,7 @@ function ProductListing({ fpi }) {
 	return (
 		<div className={styles.container}>
 			<div className={styles.filterSection}>
-				<p>I am filter section</p>
+				<p className={styles.red_text}>I am filter section</p>
 				<TestSideComponent />
 			</div>
 			<div className={styles.listingSection}>

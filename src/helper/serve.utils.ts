@@ -256,10 +256,10 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 		});
 	});
 
-	app.use((req, res, next) => {
-		res.set('Cache-Control', 'no-store')
-		next()
-	})
+	// app.use((req, res, next) => {
+	// 	res.set('Cache-Control', 'no-store')
+	// 	next()
+	// })
 
 	app.use('/public', async (req, res, done) => {
 		try {

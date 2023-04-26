@@ -1,7 +1,7 @@
-import FPIClient, { GETTERS } from 'fdk-store';
-
-import Header from './components/header/header';
-import Footer from './components/footer/footer';
+import FPIClient from 'fdk-store';
+import Header from './components/header';
+import Footer from './components/footer';
+import customTemplates from './custom-templates';
 
 import sections from './sections';
 
@@ -13,14 +13,14 @@ export default async ({
 	return {
 		fpi,
 		sections,
-		GETTERS,
-		getHome: () => import(/* webpackChunkName:"getHome" */ './pages/homepage/Home'),
+		customTemplates,
 		getHeader: () => Header,
 		getFooter: () => Footer,
-		getProductListing: () => import(/* webpackChunkName:"getProductListing" */ './pages/product-listing/product-listing'),
-		getProductDescription: () => import(/* webpackChunkName:"getProductDescription" */ './pages/product-description/product-description'),
-		getCart: () => import(/* webpackChunkName:"getCart" */ './pages/cart/cart'),
-		getWishlist: () => import(/* webpackChunkName:"getWishlist" */ './pages/wishlist/wishlist'),
-		getSections: () => import(/* webpackChunkName:"getSections" */ './pages/sections-page/sections-page'),
+		getHome: () => import(/* webpackChunkName:"getHome" */ './pages/Home'),
+		getProductListing: () => import(/* webpackChunkName:"getProductListing" */ './pages/product-listing'),
+		getProductDescription: () => import(/* webpackChunkName:"getProductDescription" */ './pages/product-description'),
+		getCart: () => import(/* webpackChunkName:"getCart" */ './pages/cart'),
+		getWishlist: () => import(/* webpackChunkName:"getWishlist" */ './pages/wishlist'),
+		getSections: () => import(/* webpackChunkName:"getSections" */ './pages/sections-page'),
 	};
 };

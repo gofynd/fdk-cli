@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
 import { SectionRenderer, useGlobalStore } from 'fdk-core';
-import { GETTERS } from 'fdk-store';
 
 function Home({ numberOfSections, fpi }) {
-	const { sections, isLoading, error } = useGlobalStore((store) => store[GETTERS.PAGE_CONFIG]);
+	const {
+		sections, isLoading, error,
+	} = 	useGlobalStore((store) => store[fpi.getters.PAGE_CONFIG]);
 
 	useEffect(() => {
 		if (!sections?.length) {

@@ -1,11 +1,12 @@
 import React from 'react';
 import { SectionRenderer, useGlobalStore } from 'fdk-core';
-import { GETTERS } from 'fdk-store';
+import style from '../styles/homepage.less';
+import testImage from '../assets/images/test.png';
 
-function Home({ numberOfSections }) {
+function Home({ numberOfSections, fpi }) {
 	const {
 		sections, isLoading, error, pageData,
-	} = useGlobalStore((store) => store[GETTERS.PAGE_CONFIG]);
+	} = useGlobalStore((store) => store[fpi.getters.PAGE_CONFIG]);
 
 	if (isLoading) {
 		return (
@@ -31,7 +32,13 @@ function Home({ numberOfSections }) {
 
 	return (
 		<div className="wrapper">
-			<h1>This is Home Page updated locally</h1>
+			<img src={testImage} alt="alt sample" />
+			<h1 className={style.my_class}>
+				This is
+				{' '}
+				<span>Blue text </span>
+				Home Page updated locally
+			</h1>
 			<SectionRenderer
 				sections={sections}
 				actualSections={pageData.sections}

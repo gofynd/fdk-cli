@@ -1,6 +1,6 @@
 import React from 'react';
-import ProductCard from '../product-card/product-card';
-import styles from './product-gallery.css';
+import ProductCard from './product-card';
+import styles from '../styles/product-gallery.less';
 
 function ProductGallery({
 	products,
