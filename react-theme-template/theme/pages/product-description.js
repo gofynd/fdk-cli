@@ -8,16 +8,16 @@ function ProductDescription({
 	fpi, slug,
 }) {
 	const {
-		product,
 		isLoading,
 		error,
+		...product
 	} = useGlobalStore((store) => store[fpi.getters.PRODUCT_DESCRIPTION_PAGE]);
 	const { sections } = useGlobalStore((store) => store[fpi.getters.PAGE_CONFIG]);
 
 	useEffect(() => {
 		const currentProductExists = product?.slug === slug;
 		if (!currentProductExists) {
-			fpi.client.productDescription.fetchProductBySlug(slug);
+			fpi.client.productDescription.fetchProductBySlug({ slug });
 		}
 	}, [slug]);
 
@@ -61,7 +61,7 @@ ProductDescription.serverFetch = ({ fpi, router }) => {
 		// fpi.client.pageConfig.fetchPageConfig('PDP'),
 	];
 	if (slug) {
-		dataPromises.push(fpi.client.productDescription.fetchProductBySlug(slug));
+		dataPromises.push(fpi.client.productDescription.fetchProductBySlug({ slug }));
 	}
 
 	return Promise.all(dataPromises);

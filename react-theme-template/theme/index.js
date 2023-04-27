@@ -8,8 +8,10 @@ import sections from './sections';
 export default async ({
 	applicationID, applicationToken, domain, storeInitialData,
 }) => {
-	const fpi = new FPIClient(applicationID, applicationToken, { domain }, storeInitialData);
-
+	const fpiOptions = {
+		applicationID, applicationToken, domain, storeInitialData,
+	};
+	const fpi = new FPIClient(fpiOptions);
 	return {
 		fpi,
 		sections,

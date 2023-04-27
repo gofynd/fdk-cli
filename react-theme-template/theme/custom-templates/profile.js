@@ -12,7 +12,6 @@ function Profile({ fpi }) {
 }
 
 Profile.serverFetch = ({ router }) => {
-	console.log('CUSTOM TEMPLATE IN THEME SERVER FETCGH: ', router);
 };
 
 export default Profile;

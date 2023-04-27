@@ -16,8 +16,7 @@ const styles = {
 	},
 };
 
-export function Component({ props, blocks}) {
-	console.log('PROPS IN GALLERY  : ', props, blocks);
+export function Component({ props, blocks }) {
 	const { title } = props;
 	if (!blocks?.length) {
 		return null;
@@ -28,7 +27,7 @@ export function Component({ props, blocks}) {
 			<h1 style={styles.title}>{title.value}</h1>
 			<div style={styles.swipeGallery}>
 				{
-					blocks?.map(({props: tile}, index) => (
+					blocks?.map(({ props: tile }, index) => (
 						<div style={styles.tile} key={title.value + index + tile.url.value}>
 							<img src={tile.url.value} alt={tile.alt.value} />
 						</div>
@@ -67,7 +66,7 @@ export const settings = {
 					default: '100',
 					info: 'Width of image in %',
 				},
-			]
+			],
 		},
 	],
 	props: [

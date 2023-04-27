@@ -4,14 +4,10 @@ import ProductGallery from '../components/product-gallery';
 import styles from '../styles/product-listing.less';
 
 function ProductListing({ fpi }) {
-	const [sdkOptions, setSDKOptions] = useState({
-		pageNumber: 1,
-		pageSize: 50,
-		idle: true,
-	});
-	const productsMeta = useGlobalStore((store) => store[fpi.getters.PRODUCT_LISTING_PAGE]);
-
-	const { products, isLoading, error } = productsMeta;
+	const [sdkOptions, setSDKOptions] = useState({});
+	const {
+		isLoading, error, ...products
+	} = useGlobalStore((store) => store[fpi.getters.PRODUCT_LISTING_PAGE]);
 
 	function isAtBottom() {
 		return (window.innerHeight + window.scrollY) >= document.body.offsetHeight;
@@ -50,7 +46,6 @@ function ProductListing({ fpi }) {
 	}, []);
 
 	useEffect(() => {
-		console.log('PRODUCTS IN USE EFFECT : ', products?.items);
 		if ((!products?.items?.length)) {
 			// fetch from sdk and populate store
 			fpi.client.productListing.fetchProducts(sdkOptions);
@@ -97,10 +92,7 @@ function ProductListing({ fpi }) {
 
 ProductListing.serverFetch = ({ router, fpi }) => {
 	const { page_id: pageId = '*', page_size: pageSize = 50 } = router?.filterQuery || {};
-	return fpi.client.productListing.fetchProducts({
-		pageId,
-		pageSize,
-	});
+	return fpi.client.productListing.fetchProducts({});
 };
 
 export default ProductListing;

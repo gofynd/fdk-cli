@@ -1,16 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { SectionRenderer, useGlobalStore } from 'fdk-core';
 
 function Home({ numberOfSections, fpi }) {
 	const {
 		sections, isLoading, error,
 	} = 	useGlobalStore((store) => store[fpi.getters.PAGE_CONFIG]);
-
-	useEffect(() => {
-		if (!sections?.length) {
-			fpi.client.pageConfig.fetchPageConfig(numberOfSections);
-		}
-	}, [numberOfSections]);
 
 	if (isLoading) {
 		return (
@@ -41,9 +35,7 @@ function Home({ numberOfSections, fpi }) {
 	);
 }
 
-Home.serverFetch = ({ router, fpi }) => {
-	const numberOfSections = router?.filterQuery?.sections;
-	return fpi.client.pageConfig.fetchPageConfig(numberOfSections);
+Home.serverFetch = () => {
 };
 
 export default Home;

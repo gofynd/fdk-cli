@@ -1,11 +1,10 @@
 import React from 'react';
 import { SectionRenderer, useGlobalStore } from 'fdk-core';
 import style from '../styles/homepage.less';
-import testImage from '../assets/images/test.png';
 
 function Home({ numberOfSections, fpi }) {
 	const {
-		sections, isLoading, error, pageData,
+		sections, isLoading, error,
 	} = useGlobalStore((store) => store[fpi.getters.PAGE_CONFIG]);
 
 	if (isLoading) {
@@ -30,18 +29,24 @@ function Home({ numberOfSections, fpi }) {
 		);
 	}
 
+	const updateButtonHandler = () => {
+		fpi.client.pageConfig.updateSectionsForPreview({ index: 0, newIndex: 1 });
+	};
+
 	return (
 		<div className="wrapper">
-			<img src={testImage} alt="alt sample" />
 			<h1 className={style.my_class}>
 				This is
 				{' '}
 				<span>Blue text </span>
 				Home Page updated locally
 			</h1>
+			<button onClick={updateButtonHandler}>
+				Update Sections
+			</button>
 			<SectionRenderer
 				sections={sections}
-				actualSections={pageData.sections}
+				actualSections={sections}
 			/>
 		</div>
 	);

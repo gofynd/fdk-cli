@@ -12,7 +12,6 @@ function Cart({ fpi }) {
 }
 
 Cart.serverFetch = ({ router }) => {
-	console.log('CUSTOM TEMPLATE IN THEME SERVER FETCH: ', router);
 };
 
 export default Cart;
