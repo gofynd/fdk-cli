@@ -10,7 +10,6 @@ export const getBaseURL = () => {
 };
 
 const THEME_URL = () => getBaseURL() + '/service/platform/theme/v' + apiVersion;
-const COMMON_URL = () => getBaseURL() + '/common';
 const AUTH_URL = () => getBaseURL() + '/service/panel/authentication/v' + apiVersion;
 const CONFIGURATION_URL = () => getBaseURL() + '/service/platform/configuration/v' + apiVersion;
 const ASSET_URL = () => getBaseURL() + '/service/platform/assets/v' + apiVersion;
@@ -96,8 +95,12 @@ export const URLS = {
         );
     },
 
-    PAGE_DEFAULT_VALUES: (page_name: string) => {
-        return urlJoin(COMMON_URL(), `/default/${page_name}`)
+    PAGE_DEFAULT_VALUES: (
+        application_id: string,
+        company_id: number,
+        page_name: string
+        ) => {
+        return urlJoin(THEME_URL(), `/company/${company_id}/application/${application_id}/default/${page_name}`)
     },
 
     SETUP_COMPANY: (company_id: number) => {

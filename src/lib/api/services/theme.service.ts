@@ -97,9 +97,14 @@ export default {
   },
   getPageDefaultValues: async pageName => {
     try {
+      const activeContext = getActiveContext();
       const axiosOption = Object.assign({}, getCommonHeaderOptions());
       const res = await ApiClient.get(
-        URLS.PAGE_DEFAULT_VALUES(pageName),
+        URLS.PAGE_DEFAULT_VALUES(
+          activeContext.application_id,
+          activeContext.company_id,
+          pageName
+        ),
         axiosOption
       );
       return res;
