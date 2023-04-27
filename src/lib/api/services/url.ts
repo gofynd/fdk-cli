@@ -1,7 +1,8 @@
 import configStore, { CONFIG_KEYS } from '../../Config';
 import urlJoin from 'url-join';
-import { SERVICE_URL } from '../../../helper/constants';
 import { getBaseURL } from './utils';
+import { SERVICE_URL } from '../../../helper/constants';
+
 
 const apiVersion = configStore.get(CONFIG_KEYS.API_VERSION) || '1.0';
 
@@ -96,9 +97,10 @@ export const URLS = {
         return urlJoin(MIXMASTER_URL('platform'), `/company/${company_id}/setup`);
     },
 
+
     // Extension
     REGISTER_EXTENSION: (): string => {
-        return urlJoin(MIXMASTER_URL('panel'), `/extensions/`);
+        return urlJoin(MIXMASTER_URL('panel'), `/extensions/`)
     },
     GET_EXTENSION_DETAILS: (extension_api_key: string): string => {
         return urlJoin(MIXMASTER_URL('panel'), `/extensions/details/${extension_api_key}`);
@@ -110,15 +112,9 @@ export const URLS = {
         return urlJoin(MIXMASTER_URL('panel'), `/accesstoken/${partner_access_token}/organization`);
     },
 
+
     // Preview URL
-    GET_DEVELOPMENT_ACCOUNTS: (
-        organization_id: string,
-        page_no: number,
-        page_size: number
-    ): string => {
-        return urlJoin(
-            MIXMASTER_URL('partner'),
-            `/organization/${organization_id}/accounts?page_size=${page_size}&page_no=${page_no}`
-        );
-    },
+    GET_DEVELOPMENT_ACCOUNTS: (organization_id: string, page_no: number, page_size: number): string => {
+        return urlJoin(MIXMASTER_URL('partner'), `/organization/${organization_id}/accounts?page_size=${page_size}&page_no=${page_no}`);
+    }
 };

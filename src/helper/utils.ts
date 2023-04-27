@@ -11,54 +11,54 @@ import Debug from '../lib/Debug';
 
 const FDK_PATH = () => path.join(process.cwd(), '.fdk');
 const CONTEXT_PATH = () => path.join(FDK_PATH(), 'context.json');
-const DEFAULT_CONTEXT = { theme: { active_context: '', contexts: {} }, partners: {} };
+const DEFAULT_CONTEXT = { theme: {active_context: '', contexts: {}}, partners: {} };
 export interface ThemeContextInterface {
-    name?: string;
-    application_id?: string;
-    application_token?: string;
-    theme_id?: string;
-    company_id?: number;
-    domain?: string;
-    env?: string;
+  name?: string;
+  application_id?: string;
+  application_token?: string;
+  theme_id?: string;
+  company_id?: number;
+  domain?: string;
+  env?: string;
 }
 
 export const transformRequestOptions = params => {
-    let options = '';
+  let options = '';
 
-    for (const key in params) {
-        if (typeof params[key] !== 'object' && params[key]) {
-            const encodeVal = encodeURIComponent(params[key]);
-            options += `${key}=${encodeVal}&`;
-        } else if (Array.isArray(params[key])) {
-            params[key].forEach(el => {
-                const encodeVal = encodeURIComponent(el);
-                options += `${key}=${encodeVal}&`;
-            });
-        } else if (typeof params[key] === 'object' && params[key]) {
-            options += transformRequestOptions(params[key]);
-        }
+  for (const key in params) {
+    if (typeof params[key] !== 'object' && params[key]) {
+      const encodeVal = encodeURIComponent(params[key]);
+      options += `${key}=${encodeVal}&`;
+    } else if (Array.isArray(params[key])) {
+      params[key].forEach(el => {
+        const encodeVal = encodeURIComponent(el);
+        options += `${key}=${encodeVal}&`;
+      });
+    } else if (typeof params[key] === 'object' && params[key]) {
+      options += transformRequestOptions(params[key]);
     }
-    return options ? options.slice(0, -1) : options;
+  }
+  return options ? options.slice(0, -1) : options;
 };
 
 export const decodeBase64 = encodedString => {
-    return Buffer.from(encodedString, 'base64').toString('utf8');
+  return Buffer.from(encodedString, 'base64').toString('utf8');
 };
 
 export const getActiveContext = (): ThemeContextInterface => {
-    if (isAThemeDirectory() && hasContext()) {
-        const contextData = fs.readJSONSync(CONTEXT_PATH());
-        if (!contextData)
-            throw new CommandError(
-                `${ErrorCodes.INVALID_CONTEXT.message}.\n${COMMON_LOG_MESSAGES.ContextNotSet}`,
-                ErrorCodes.INVALID_CONTEXT.code
-            );
-        return contextData.theme.contexts[contextData.theme.active_context];
-    }
-    throw new CommandError(
-        ErrorCodes.INVALID_THEME_DIRECTORY.message,
-        ErrorCodes.INVALID_THEME_DIRECTORY.code
-    );
+  if (isAThemeDirectory() && hasContext()) {
+    const contextData = fs.readJSONSync(CONTEXT_PATH());
+    if (!contextData)
+      throw new CommandError(
+        `${ErrorCodes.INVALID_CONTEXT.message}.\n${COMMON_LOG_MESSAGES.ContextNotSet}`,
+        ErrorCodes.INVALID_CONTEXT.code
+      );
+    return contextData.theme.contexts[contextData.theme.active_context];
+  }
+  throw new CommandError(
+    ErrorCodes.INVALID_THEME_DIRECTORY.message,
+    ErrorCodes.INVALID_THEME_DIRECTORY.code
+  );
 };
 
 export const createContext = async context => {
@@ -82,32 +82,32 @@ export const createContext = async context => {
 };
 
 export const isAThemeDirectory = () => {
-    return fs.existsSync(FDK_PATH());
+  return fs.existsSync(FDK_PATH());
 };
 export const hasContext = () => {
-    return fs.existsSync(CONTEXT_PATH()) && fs.readJSONSync(CONTEXT_PATH()).theme.contexts;
+  return fs.existsSync(CONTEXT_PATH()) && fs.readJSONSync(CONTEXT_PATH()).theme.contexts;
 };
 
 export const asyncForEach = async (array, callback) => {
-    for (let index = 0; index < array.length; index++) {
-        await callback(array[index], index, array);
-    }
+  for (let index = 0; index < array.length; index++) {
+    await callback(array[index], index, array);
+  }
 };
 
 export function sortString(str) {
-    var arr = str.split('');
-    arr.sort();
-    return arr.join('');
+  var arr = str.split('');
+  arr.sort();
+  return arr.join('');
 }
 
-export const pageNameModifier = page => {
-    let pageArr = page.split('-');
-    let res = '';
-    pageArr.forEach(p => {
-        res += p[0]?.toUpperCase() + p.substring(1) + ' ';
-    });
-    return res.trim();
-};
+export const pageNameModifier = (page) => {
+  let pageArr = page.split('-');
+  let res = ''
+  pageArr.forEach(p => {
+    res+= p[0]?.toUpperCase() + p.substring(1) + ' '
+  })
+  return res.trim()
+}
 
 export const requireFile = path => {
     return require(path);
@@ -127,6 +127,7 @@ export const evaluateModule = code => {
         : m.exports;
     return res;
 };
+
 export const installPythonDependencies = async (targetDir: string = process.cwd()) => {
     return new Promise(async (resolve, reject) => {
         const os_platform = process.platform
@@ -192,4 +193,3 @@ export const installNpmPackages = async (targetDir: string = process.cwd()) => {
         })
     })
 }
-
