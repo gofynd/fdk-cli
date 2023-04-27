@@ -962,11 +962,9 @@ export default class Theme {
 
                         const { settings } = pageData;
                         const newSettingsProps = settings.props
-                        console.log(`\nWorking on`, pageData.page);
 
                         Object.keys(newSettingsProps).forEach(prop => {
                             if (!allowedDefaultProps[pageData.page].includes(prop)) {
-                                console.log(`\nRemoved ${prop} prop from ${pageData.page} page in ${listItem.name}`);
                                 delete newSettingsProps[prop]
                             }
                         })
@@ -1059,13 +1057,10 @@ export default class Theme {
             // Delete system pages that were available before sync but now deleted
             const systemPagesToDelete = systemPagesDB.filter(x => !allLocalSystemPageNames.includes(x.value));
 
-            console.log("\nsystemPagesToDelete", systemPagesToDelete.map(p => p.value));
-
             const allowedDefaultProps = {}
 
             if (systemPagesToDelete.length > 0) {
                 // Reseting props in system pages
-                console.log("\n// Reseting props in system pages");
 
                 // Get default values of all pages
                 const default_props_req = await Promise.all(systemPagesToDelete.map(
@@ -1086,16 +1081,14 @@ export default class Theme {
                     systemPagesToDelete.map(page => {
                         const pageDetails = default_props[page.value];
                         if (pageDetails) {
-                            console.log(`\nUpdate ${pageDetails.value} | Updated props `, pageDetails.props.map(p => p.id));
                             allowedDefaultProps[pageDetails.value] = pageDetails.props.map(p => p.id)
                             return ThemeService.updateAvailablePage(pageDetails);
                         } else {
-                            console.log(`\nTrying to reset ${page.value} page details but page not found in ALL_AVAILABLE_PAGES in Blitzkrieg`);
+                            // show something in CLI
                         }
                     })
                 )
             }
-            console.log("allowedDefaultProps", allowedDefaultProps);
 
             // asyncForEach(systemPagesToDelete, async (params:type) {
 
