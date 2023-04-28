@@ -1,58 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useGlobalStore } from 'fdk-core/utils';
 import ProductGallery from '../components/product-gallery';
 import styles from '../styles/product-listing.less';
 
 function ProductListing({ fpi }) {
-	const [sdkOptions, setSDKOptions] = useState({});
 	const {
-		isLoading, error, ...products
+		productLists,
 	} = useGlobalStore((store) => store[fpi.getters.PRODUCT_LISTING_PAGE]);
 
-	function isAtBottom() {
-		return (window.innerHeight + window.scrollY) >= document.body.offsetHeight;
-	}
-	function scrollHandler() {
-		if (isAtBottom()) {
-			if (sdkOptions.idle) {
-				setSDKOptions({
-					...sdkOptions,
-					pageNumber: sdkOptions.pageNumber + 1,
-					idle: false,
-				});
-			}
-		}
-	}
-	function handleWishlistButton() {
-		// const updatedProducts = products.map((productInStore) => {
-		// 	if (productInStore.slug !== slug) {
-		// 		return productInStore;
-		// 	}
-		// 	return {
-		// 		...productInStore,
-		// 		isWishlisted: !productInStore.isWishlisted,
-		// 	};
-		// });
-		// window.dispatchEvent(new Event('wishlist.add'), { slug })
-		// setProducts({ data: updatedProducts });
-	}
+	const { loading, error, items = [] } = productLists || {};
 
 	useEffect(() => {
-		window.addEventListener('scroll', scrollHandler);
-
-		return () => {
-			window.removeEventListener('scroll', scrollHandler);
-		};
+		if ((!items?.length)) {
+			// fetch from sdk and populate store
+			fpi.productListing.fetchProducts({});
+		}
 	}, []);
 
-	useEffect(() => {
-		if ((!products?.items?.length)) {
-			// fetch from sdk and populate store
-			fpi.productListing.fetchProducts(sdkOptions);
-		}
-	}, [JSON.stringify(sdkOptions)]);
-
-	if (isLoading) {
+	if (loading) {
 		return <h1>Product details are being loaded</h1>;
 	}
 
@@ -67,7 +32,7 @@ function ProductListing({ fpi }) {
 		);
 	}
 
-	if (!products?.items?.length) {
+	if (!items?.length) {
 		return <h1>No products found !!</h1>;
 	}
 	return (
@@ -78,10 +43,9 @@ function ProductListing({ fpi }) {
 			</div>
 			<div className={styles.listingSection}>
 				{
-					!products?.items?.length ? (<h1>Products are being loaded !!!</h1>) : (
+					!items?.length ? (<h1>Products are being loaded !!!</h1>) : (
 						<ProductGallery
-							products={products?.items}
-							handleWishlistButton={handleWishlistButton}
+							products={items}
 						/>
 					)
 				}
@@ -90,10 +54,7 @@ function ProductListing({ fpi }) {
 	);
 }
 
-ProductListing.serverFetch = ({ router, fpi }) => {
-	const { page_id: pageId = '*', page_size: pageSize = 50 } = router?.filterQuery || {};
-	return fpi.productListing.fetchProducts({});
-};
+ProductListing.serverFetch = ({ fpi }) => fpi.productListing.fetchProducts({});
 
 export default ProductListing;
 

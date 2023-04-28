@@ -4,7 +4,6 @@ import styles from '../styles/product-gallery.less';
 
 function ProductGallery({
 	products,
-	handleWishlistButton,
 }) {
 	if (products?.length) {
 		return (
@@ -17,8 +16,6 @@ function ProductGallery({
 							name={product.name}
 							description={product.short_description}
 							slug={product.slug}
-							isWishlisted={product.isWishlisted}
-							handleWishlistButton={handleWishlistButton}
 							media={product.medias[0]}
 						/>
 					))

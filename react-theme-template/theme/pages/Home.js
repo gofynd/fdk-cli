@@ -1,6 +1,7 @@
 import React from 'react';
 import { SectionRenderer } from 'fdk-core/components';
 import { useGlobalStore } from 'fdk-core/utils';
+// import testImage from '../assets/images/test.png';
 
 function Home({ numberOfSections, fpi }) {
 	const {
@@ -28,7 +29,6 @@ function Home({ numberOfSections, fpi }) {
 			</>
 		);
 	}
-
 
 	return (
 		<div className="wrapper">

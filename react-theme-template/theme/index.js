@@ -12,7 +12,7 @@ export default async ({
 		applicationID, applicationToken, domain, storeInitialData,
 	};
 	const { client } = new FPIClient(fpiOptions);
-
+	console.log({ client });
 	return {
 		fpi: client,
 		sections,

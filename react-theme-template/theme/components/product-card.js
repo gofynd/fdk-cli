@@ -7,8 +7,6 @@ function ProductCard({
 	description,
 	slug,
 	media,
-	isWishlisted,
-	handleWishlistButton,
 }) {
 	const navigate = useNavigate();
 
@@ -24,21 +22,6 @@ function ProductCard({
 				<h2>{name}</h2>
 				<h4>{description}</h4>
 			</a>
-			{
-				handleWishlistButton
-					? (
-						<button
-							onClick={() => handleWishlistButton(slug)}
-						>
-
-							Like
-							{
-								isWishlisted ? '💖' : ''
-							}
-						</button>
-					)
-					: null
-			}
 		</div>
 	);
 }

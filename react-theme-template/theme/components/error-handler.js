@@ -1,7 +1,6 @@
 import React from 'react';
 
 export function ErrorHandler({ error }) {
-	console.log('Error in error component : ', error);
 	const { name, message, stack } = error;
 
 	if (name === 'FDKServerResponseError') {
