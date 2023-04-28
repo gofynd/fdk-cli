@@ -1076,8 +1076,10 @@ export default class Theme {
                 spinner.fail();
                 throw new CommandError(errorMessage, err.code);
             }
-            spinner.fail();
-            throw new CommandError(err.message, err.code);
+            else{
+                spinner.fail();
+                throw new CommandError(err.message, err.code);
+            }
         }
     };
     private static uploadThemeSrcZip = async () => {
