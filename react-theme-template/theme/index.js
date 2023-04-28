@@ -11,9 +11,10 @@ export default async ({
 	const fpiOptions = {
 		applicationID, applicationToken, domain, storeInitialData,
 	};
-	const fpi = new FPIClient(fpiOptions);
+	const { client } = new FPIClient(fpiOptions);
+
 	return {
-		fpi,
+		fpi: client,
 		sections,
 		customTemplates,
 		getHeader: () => Header,

@@ -1,5 +1,6 @@
 import React from 'react';
-import { SectionRenderer, useGlobalStore } from 'fdk-core';
+import { SectionRenderer } from 'fdk-core/components';
+import { useGlobalStore } from 'fdk-core/utils';
 
 function Home({ numberOfSections, fpi }) {
 	const {

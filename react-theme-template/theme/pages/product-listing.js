@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useGlobalStore } from 'fdk-core';
+import { useGlobalStore } from 'fdk-core/utils';
 import ProductGallery from '../components/product-gallery';
 import styles from '../styles/product-listing.less';
 
@@ -48,7 +48,7 @@ function ProductListing({ fpi }) {
 	useEffect(() => {
 		if ((!products?.items?.length)) {
 			// fetch from sdk and populate store
-			fpi.client.productListing.fetchProducts(sdkOptions);
+			fpi.productListing.fetchProducts(sdkOptions);
 		}
 	}, [JSON.stringify(sdkOptions)]);
 
@@ -92,7 +92,7 @@ function ProductListing({ fpi }) {
 
 ProductListing.serverFetch = ({ router, fpi }) => {
 	const { page_id: pageId = '*', page_size: pageSize = 50 } = router?.filterQuery || {};
-	return fpi.client.productListing.fetchProducts({});
+	return fpi.productListing.fetchProducts({});
 };
 
 export default ProductListing;

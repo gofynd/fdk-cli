@@ -1,6 +1,6 @@
 import React from 'react';
-import { SectionRenderer, useGlobalStore } from 'fdk-core';
-import style from '../styles/homepage.less';
+import { SectionRenderer } from 'fdk-core/components';
+import { useGlobalStore } from 'fdk-core/utils';
 
 function Home({ numberOfSections, fpi }) {
 	const {
@@ -29,21 +29,9 @@ function Home({ numberOfSections, fpi }) {
 		);
 	}
 
-	const updateButtonHandler = () => {
-		fpi.client.pageConfig.updateSectionsForPreview({ index: 0, newIndex: 1 });
-	};
 
 	return (
 		<div className="wrapper">
-			<h1 className={style.my_class}>
-				This is
-				{' '}
-				<span>Blue text </span>
-				Home Page updated locally
-			</h1>
-			<button onClick={updateButtonHandler}>
-				Update Sections
-			</button>
 			<SectionRenderer
 				sections={sections}
 				actualSections={sections}
@@ -52,6 +40,6 @@ function Home({ numberOfSections, fpi }) {
 	);
 }
 
-// Home.serverFetch = ({ fpi }) => fpi.client.pageConfig.fetchPageConfig('HOME');
+// Home.serverFetch = ({ fpi }) => fpi.pageConfig.fetchPageConfig('HOME');
 
 export default Home;

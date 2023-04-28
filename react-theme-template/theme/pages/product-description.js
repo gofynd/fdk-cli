@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { useGlobalStore, SectionRenderer } from 'fdk-core';
+import { SectionRenderer } from 'fdk-core/components';
+import { useGlobalStore } from 'fdk-core/utils';
 
 import testImage from '../assets/images/test.png';
 import { ErrorHandler } from '../components/error-handler';
@@ -17,7 +18,7 @@ function ProductDescription({
 	useEffect(() => {
 		const currentProductExists = product?.slug === slug;
 		if (!currentProductExists) {
-			fpi.client.productDescription.fetchProductBySlug({ slug });
+			fpi.productDescription.fetchProductBySlug({ slug });
 		}
 	}, [slug]);
 
@@ -58,10 +59,10 @@ function ProductDescription({
 ProductDescription.serverFetch = ({ fpi, router }) => {
 	const slug = router?.params?.slug ?? null;
 	const dataPromises = [
-		// fpi.client.pageConfig.fetchPageConfig('PDP'),
+		// fpi.pageConfig.fetchPageConfig('PDP'),
 	];
 	if (slug) {
-		dataPromises.push(fpi.client.productDescription.fetchProductBySlug({ slug }));
+		dataPromises.push(fpi.productDescription.fetchProductBySlug(slug));
 	}
 
 	return Promise.all(dataPromises);

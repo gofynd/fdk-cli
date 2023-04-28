@@ -101,8 +101,8 @@ const baseConfig = () => {
 			externals: {
 				react: 'React',
 				'react-router-dom': 'ReactRouterDOM',
-				'fdk-core': 'engineLibrary',
-				'fdk-core/components': 'engineLibrary',
+				'fdk-core/components': 'sharedComponentLibrary',
+				'fdk-core/utils': 'sharedUtilsLibrary',
 				'react-helmet-async': 'helmetModule',
 			},
 			output: {
