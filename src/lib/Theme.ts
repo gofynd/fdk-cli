@@ -1073,9 +1073,11 @@ export default class Theme {
             if(err?.message.split(':')[0]==='Invalid system page'){
                 let fs=`${path.join(process.cwd(), 'theme', 'templates', 'pages')}/${err.message.split(':')[1].trim()}.vue`
                 errorMessage=`Invalid system page : ${fs}`
+                spinner.fail();
+                throw new CommandError(errorMessage, err.code);
             }
             spinner.fail();
-            throw new CommandError(errorMessage, err.code);
+            throw new CommandError(err.message, err.code);
         }
     };
     private static uploadThemeSrcZip = async () => {
