@@ -27,6 +27,7 @@ import { createDirectory, writeFile, readFile } from '../helper/file.utils';
 import shortid from 'shortid';
 import ThemeService from './api/services/theme.service';
 import UploadService from './api/services/upload.service';
+import ExtensionService from "./api/services/extension.service";
 import { build, devBuild } from '../helper/build';
 import { archiveFolder, extractArchive } from '../helper/archive';
 import urlJoin from 'url-join';
@@ -40,6 +41,7 @@ import Debug from './Debug';
 import Spinner from '../helper/spinner';
 import { themeVueConfigTemplate, settingLoader } from '../helper/theme.vue.config';
 import { simpleGit } from 'simple-git';
+import ConfigStore, { CONFIG_KEYS } from './Config';
 export default class Theme {
     /*
         new theme from default template -> create
@@ -47,8 +49,6 @@ export default class Theme {
         pull theme updates
         serve theme
         sync theme
-        publish theme
-        unpublish theme
         pull-config
     */
     static TEMPLATE_DIRECTORY = path.join(__dirname, '..', '..', 'template');
@@ -89,6 +89,121 @@ export default class Theme {
         }
     }
 
+    private static async selectTheme(config) {
+        const themeListOptions = {};
+        const themeList = await ThemeService.getAllThemes(config);
+        if (!themeList.data.items.length) {
+            Logger.error("Theme not found")
+            return;
+        }
+        themeList.data.items.forEach(theme => {
+            themeListOptions[`${theme.name}`] = { ...theme };
+        });
+        const themeListQuestions = [
+            {
+                type: 'list',
+                name: 'selectedTheme',
+                message: 'Select Theme',
+                choices: Object.keys(themeListOptions)
+            }
+        ];
+        return await inquirer.prompt(themeListQuestions).then(async answers => {
+            try {
+                const selectedTheme = themeListOptions[answers.selectedTheme]?._id;
+                config['theme_id'] = selectedTheme;
+                return config;
+            }
+            catch (error) {
+                console.log(error)
+                throw new CommandError(error.message, error.code);
+            }
+        })
+    }
+
+    private static async selectCompanyAndStore() {
+        const accountTypeQuestions = [
+            {
+                type: 'list',
+                name: 'accountType',
+                message: 'Select accounts type.',
+                choices: ['development', 'live']
+            },
+        ];
+        let config = {}
+        let companyList;
+        let selectedCompany;
+        let applicationList;
+        let selectedApplication;
+        await inquirer.prompt(accountTypeQuestions).then(async answers => {
+            try {
+                if (answers.accountType === 'development') {
+                    companyList = await ExtensionService.getDevelopmentAccounts(1, 9999);
+                }
+                else {
+                    companyList = await ExtensionService.getLiveAccounts(1, 9999);
+                }
+            } catch (error) {
+                throw new CommandError(error.message, error.code);
+            }
+        });
+
+        const companyListOptions = {};
+        if (!companyList.items.length) {
+            Logger.error("Company not found")
+            return
+        }
+        companyList?.items.forEach(company => {
+            companyListOptions[`${company.company_name}`] = { ...company };
+        });
+        const companyListQuestions = [
+            {
+                type: 'list',
+                name: 'selectedCompany',
+                message: 'Select company',
+                choices: Object.keys(companyListOptions)
+            }
+        ];
+        await inquirer.prompt(companyListQuestions).then(async answers => {
+            try {
+                selectedCompany = companyListOptions[answers.selectedCompany]?.company?.uid || companyListOptions[answers.selectedCompany].company_id;
+                applicationList = await ConfigurationService.getApplications(selectedCompany);
+            }
+            catch (error) {
+                console.log(error)
+                throw new CommandError(error.message, error.code);
+            }
+        })
+        if (!applicationList.data.items.length) {
+            Logger.error("sales channel not found")
+            return
+        }
+        const applicationListOptions = {};
+        applicationList.data.items.forEach(application => {
+            applicationListOptions[`${application.name}`] = { ...application };
+        });
+        const applicationListQuestions = [
+            {
+                type: 'list',
+                name: 'selectedApplication',
+                message: 'Select sales channel',
+                choices: Object.keys(applicationListOptions)
+            }
+        ];
+
+        await inquirer.prompt(applicationListQuestions).then(async answers => {
+            try {
+                selectedApplication = applicationListOptions[answers.selectedApplication]._id;
+            }
+            catch (error) {
+                console.log(error)
+                throw new CommandError(error.message, error.code);
+            }
+        })
+        config['application_id'] = selectedApplication
+        config['company_id'] = selectedCompany
+        return config;
+    }
+
     public static async createTheme(options) {
         let shouldDelete = false;
         const targetDirectory = path.join(process.cwd(), options.name);
@@ -97,18 +212,7 @@ export default class Theme {
                 shouldDelete = false;
                 throw new CommandError(`Folder ${options.name} already exists`);
             }
-            
-            Logger.info('Validating token');
-            const configObj = JSON.parse(decodeBase64(options.token) || '{}');
-            Debug(`Token Data: ${JSON.stringify(configObj)}`);
-            if (!configObj) throw new CommandError('Invalid token', ErrorCodes.INVALID_INPUT.code);
-            if (new Date(Date.now()) > new Date(configObj.expires_in)) {
-                throw new CommandError(
-                    'Token expired. Generate a new token',
-                    ErrorCodes.INVALID_INPUT.code
-                );
-            }
-            Debug(`Token expires in: ${configObj.expires_in}`);
+            const configObj = await Theme.selectCompanyAndStore();
             const { data: appConfig } = await ConfigurationService.getApplicationDetails(configObj);
             
             Logger.info('Cloning template files');
@@ -117,11 +221,11 @@ export default class Theme {
 
             Logger.info('Creating Theme');
             let available_sections = await Theme.getAvailableSections();
+            // TODO: Removed infomation key
             const themeData = {
-                information: {
-                    name: options.name,
-                },
+                name: options.name,
                 available_sections,
+                version: "1.0.0"
             };
             const { data: theme } = await ThemeService.createTheme({ ...configObj, ...themeData });
             
@@ -150,6 +254,7 @@ export default class Theme {
 
             let packageJSON = await fs.readJSON(path.join(process.cwd(), 'package.json'));
             packageJSON.name = Theme.sanitizeThemeName(options.name);
+            packageJSON.version = "1.0.0"
             await fs.writeJSON(`${process.cwd()}/package.json`, packageJSON, {
                 spaces: 2,
             });
@@ -175,24 +280,13 @@ export default class Theme {
         let shouldDelete = false;
         let targetDirectory = '';
         try {
-            Logger.info('Validating token');
-            const configObj = JSON.parse(decodeBase64(options.token) || '{}');
-            Debug(`Token Data: ${JSON.stringify(configObj)}`);
-            if (!configObj || !configObj.theme_id)
-                throw new CommandError('Invalid token', ErrorCodes.INVALID_INPUT.code);
-            
-            if (new Date(Date.now()) > new Date(configObj.expires_in)) {
-                throw new CommandError(
-                    'Token expired. Generate a new token',
-                    ErrorCodes.INVALID_INPUT.code
-                );
-            }
-            
+            let configObj = await Theme.selectCompanyAndStore();
+            configObj = await Theme.selectTheme(configObj);
             const { data: appConfig } = await ConfigurationService.getApplicationDetails(configObj);
             
             Logger.info('Fetching Template Files');
             const { data: themeData } = await ThemeService.getThemeById(configObj);
-            const themeName = themeData?.information?.name || 'default';
+            const themeName = themeData?.name || 'default';
             
             targetDirectory = path.join(process.cwd(), themeName);
             if (fs.existsSync(targetDirectory)) {
@@ -216,7 +310,7 @@ export default class Theme {
             let zipPath = path.join(targetDirectory, '.fdk', 'archive', 'archive.zip');
             
             Logger.info('Downloading bundle file');
-            await downloadFile(themeData.src.link, zipPath);
+            await downloadFile(themeData.src, zipPath);
             
             Logger.info('Extracting bundle archive')
             await extractArchive({ zipPath, destFolderPath: path.resolve(process.cwd(), 'theme') });
@@ -225,13 +319,11 @@ export default class Theme {
             let list = _.get(themeData, 'config.list', []);
             let current = _.get(themeData, 'config.current', 'default');
             let preset = _.get(themeData, 'config.preset', {});
-            let information = { features: _.get(themeData, 'information.features', []) };
             
             await Theme.writeSettingJson(Theme.getSettingsDataPath(), {
                 list,
                 current,
                 preset,
-                information,
             });
 
             await Theme.writeSettingJson(
@@ -463,7 +555,7 @@ export default class Theme {
             const theme = _.cloneDeep({ ...themeData });
             rimraf.sync(path.resolve(process.cwd(), './.fdk/archive'));
             const zipFilePath = path.join(process.cwd(), './.fdk/pull-archive.zip');
-            await downloadFile(theme.src.link, zipFilePath);
+            await downloadFile(theme.src, zipFilePath);
             await extractArchive({
                 zipPath: path.resolve(process.cwd(), './.fdk/pull-archive.zip'),
                 destFolderPath: path.resolve(process.cwd(), './theme'),
@@ -478,12 +570,10 @@ export default class Theme {
             let list = _.get(theme, 'config.list', []);
             let current = _.get(theme, 'config.current', 'default');
             let preset = _.get(theme, 'config.preset', {});
-            let information = { features: _.get(theme, 'information.features', []) };
             await Theme.writeSettingJson(Theme.getSettingsDataPath(), {
                 list,
                 current,
                 preset,
-                information,
             });
             await Theme.writeSettingJson(
                 Theme.getSettingsSchemaPath(),
@@ -500,40 +590,15 @@ export default class Theme {
             throw new CommandError(error.message, error.code);
         }
     };
-    public static publishTheme = async () => {
-        let spinner = new Spinner('Publishing theme');
-        try {
-            spinner.start();
-            await ThemeService.publishTheme();
-            spinner.succeed();
-        } catch (error) {
-            spinner.fail();
-            throw new CommandError(error.message, error.code);
-        }
-    };
-    public static unPublishTheme = async () => {
-        let spinner = new Spinner('Unpublishing theme');
-        try {
-            spinner.start();
-            await ThemeService.unPublishTheme();
-            spinner.succeed();
-        } catch (error) {
-            spinner.fail();
-            throw new CommandError(error.message, error.code);
-        }
-    };
     public static pullThemeConfig = async () => {
         try {
             const { data: theme } = await ThemeService.getThemeById(null);
-            const { config, information } = theme;
+            const { config } = theme;
             const newConfig: any = {};
-            if (config && information) {
+            if (config) {
                 newConfig.list = config.list;
                 newConfig.current = config.current;
                 newConfig.preset = config.preset;
-                newConfig.information = {
-                    features: information.features,
-                };
             }
             await Theme.writeSettingJson(Theme.getSettingsDataPath(), newConfig);
             Theme.createVueConfig();
@@ -670,14 +735,12 @@ export default class Theme {
     };
     private static getSettingsData = theme => {
         let newConfig;
-        if (theme.config && theme.information) {
+        // TODO: removed information key
+        if (theme.config) {
             newConfig = {};
             newConfig.list = theme.config.list;
             newConfig.current = theme.config.current;
             newConfig.preset = theme.config.preset;
-            newConfig.information = {
-                features: theme.information.features,
-            };
         }
         return newConfig;
     };
@@ -711,7 +774,7 @@ export default class Theme {
             const images = glob.sync(path.join('**', '**.**'), { cwd });
             await asyncForEach(images, async img => {
                 const assetPath = path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets', 'images', img);
-                await UploadService.uploadFile(assetPath, 'application-theme-images');
+                await UploadService.uploadFile(assetPath, 'misc');
             });
         } catch (err) {
             throw new CommandError(err.message || `Failed to upload assets/images`, err.code);
@@ -729,7 +792,7 @@ export default class Theme {
             let pArr = androidImages
                 .map(async img => {
                     const assetPath = path.join(process.cwd(), 'theme/config/images/android', img);
-                    let res = await UploadService.uploadFile(assetPath, 'application-theme-images');
+                    let res = await UploadService.uploadFile(assetPath, 'misc');
                     return res.start.cdn.url;
                 })
                 .filter(o => o);
@@ -740,7 +803,7 @@ export default class Theme {
             pArr = iosImages
                 .map(async img => {
                     const assetPath = path.join(process.cwd(), 'theme/config/images/ios', img);
-                    let res = await UploadService.uploadFile(assetPath, 'application-theme-images');
+                    let res = await UploadService.uploadFile(assetPath, 'misc');
                     return res.start.cdn.url;
                 })
                 .filter(o => o);
@@ -751,7 +814,7 @@ export default class Theme {
             pArr = desktopImages
                 .map(async img => {
                     const assetPath = path.join(process.cwd(), 'theme/config/images/desktop', img);
-                    let res = await UploadService.uploadFile(assetPath, 'application-theme-images');
+                    let res = await UploadService.uploadFile(assetPath, 'misc');
                     return res.start.cdn.url;
                 })
                 .filter(o => o);
@@ -775,7 +838,7 @@ export default class Theme {
                         'thumbnail',
                         img
                     );
-                    let res = await UploadService.uploadFile(assetPath, 'application-theme-images');
+                    let res = await UploadService.uploadFile(assetPath, 'misc');
                     return res.start.cdn.url;
                 })
                 .filter(o => o);
@@ -795,7 +858,7 @@ export default class Theme {
                 size: '1',
             };
             let startAssetData = (
-                await UploadService.startUpload(startData, 'application-theme-images')
+                await UploadService.startUpload(startData, 'misc')
             ).data;
             return (imageCdnUrl = path.dirname(startAssetData.cdn.url));
         } catch (err) {
@@ -813,7 +876,7 @@ export default class Theme {
                     size: '10',
                 };
                 let startAssetData = (
-                    await UploadService.startUpload(startData, 'application-theme-assets')
+                    await UploadService.startUpload(startData, 'misc')
                 ).data;
                 return (assetCdnUrl = path.dirname(startAssetData.cdn.url));
             }
@@ -829,7 +892,7 @@ export default class Theme {
                 const fonts = glob.sync('**/**.**', { cwd });
                 await asyncForEach(fonts, async font => {
                     const assetPath = path.join(Theme.BUILD_FOLDER, 'assets', 'fonts', font);
-                    await UploadService.uploadFile(assetPath, 'application-theme-assets');
+                    await UploadService.uploadFile(assetPath, 'misc');
                 });
             }
         } catch (err) {
@@ -861,7 +924,7 @@ export default class Theme {
         try {
             Logger.info('Uploading commonJS');
             const commonJS = `${assetHash}_themeBundle.common.js`;
-            const commonJsUrlRes = await UploadService.uploadFile(path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS), 'application-theme-assets');
+            const commonJsUrlRes = await UploadService.uploadFile(path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS), 'misc');
             const commonJsUrl = commonJsUrlRes.start.cdn.url
             
             Logger.info('Uploading umdJS');
@@ -869,13 +932,13 @@ export default class Theme {
             umdMinAssets.push(path.join(process.cwd(), Theme.BUILD_FOLDER, `${assetHash}_themeBundle.umd.min.js`));
             const umdJSPromisesArr = umdMinAssets.map(asset => {
                 const assetPath = asset;
-                return UploadService.uploadFile(assetPath, 'application-theme-assets');
+                return UploadService.uploadFile(assetPath, 'misc');
             });
             const umdJsUrls = await Promise.all(umdJSPromisesArr);
             Logger.info('Uploading css');
             let cssAssests = glob.sync(path.join(process.cwd(), Theme.BUILD_FOLDER, '**.css'));
             let cssPromisesArr = cssAssests.map(asset => {
-                return UploadService.uploadFile(asset, 'application-theme-assets');
+                return UploadService.uploadFile(asset, 'misc');
             });
             const cssUrls = await Promise.all(cssPromisesArr);
             return [cssUrls.map(res => res.start.cdn.url), commonJsUrl, umdJsUrls.map(res => res.start.cdn.url)];
@@ -901,8 +964,8 @@ export default class Theme {
             if (!packageJSON.name) {
                 throw new Error('package.json name can not be empty');
             }
-            theme.src = theme.src || {};
-            theme.src.link = srcCdnUrl;
+            theme.src = srcCdnUrl;
+            // TODO: clean up backward compatibility
             theme.assets = theme.assets || {};
             theme.assets.umd_js = theme.assets.umdJs || {};
             theme.assets.umd_js.links = umdJsUrls;
@@ -929,11 +992,12 @@ export default class Theme {
                 ...themeContent.theme,
                 available_sections,
             };
-            _.set(theme, 'information.images.desktop', desktopImages);
-            _.set(theme, 'information.images.ios', iosImages);
-            _.set(theme, 'information.images.android', androidImages);
-            _.set(theme, 'information.images.thumbnail', thumbnailImages);
-            _.set(theme, 'information.name', Theme.unSanitizeThemeName(packageJSON.name));
+            // TODO: Check if this is required in mobile app
+            // _.set(theme, 'information.images.desktop', desktopImages);
+            // _.set(theme, 'information.images.ios', iosImages);
+            // _.set(theme, 'information.images.android', androidImages);
+            // _.set(theme, 'information.images.thumbnail', thumbnailImages);
+            _.set(theme, 'name', Theme.unSanitizeThemeName(packageJSON.name));
             let globalConfigSchema = await fs.readJSON(
                 path.join(process.cwd(), 'theme', 'config', 'settings_schema.json')
             );
@@ -947,11 +1011,7 @@ export default class Theme {
             theme.config.preset = globalConfigData.preset || [];
             theme.version = packageJSON.version;
             theme.customized = true;
-            _.set(
-                theme,
-                'information.features',
-                _.get(globalConfigData, 'information.features', [])
-            );
+            theme.is_private = true;
             return theme;
         } catch (err) {
             throw new CommandError(`Failed to set theme data `);
@@ -1076,7 +1136,7 @@ export default class Theme {
     private static uploadThemeSrcZip = async () => {
         const zipFilePath = path.join(process.cwd(), Theme.SRC_ARCHIVE_FOLDER, Theme.ZIP_FILE_NAME);
         try {
-            let res = await UploadService.uploadFile(zipFilePath, 'application-theme-src');
+            let res = await UploadService.uploadFile(zipFilePath, 'misc');
             return res.start.cdn.url;
         } catch (err) {
             throw new CommandError(err.message || `Failed to upload src folder`, err.code);
