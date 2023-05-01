@@ -46,7 +46,7 @@ function interceptorFn(options) {
                 if (pathname.startsWith('/service/partner')) {
                     const auth_token = ConfigStore.get(CONFIG_KEYS.AUTH_TOKEN);
                     if (auth_token && auth_token.access_token) {
-                        config.headers['Authorization'] = 'Bearer ' + auth_token;
+                        config.headers['Authorization'] = 'Bearer ' + auth_token.access_token;
                     }
                 }
                 let queryParam = '';
@@ -106,7 +106,11 @@ export function responseInterceptor() {
 export function responseErrorInterceptor() {
     return error => {
         // Request made and server responded
-        if (error.response) {
+        if (error.response.status === 401) {
+            ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
+            throw new CommandError(`${error.response.data.message}`, ErrorCodes.API_ERROR.code);
+        }
+        else if (error.response) {
             Debug(`Error Response  :  ${JSON.stringify(error.response.data)}`);
             throw new CommandError(`${error.response.data.message}`, ErrorCodes.API_ERROR.code);
         } else if (error.request) {

@@ -14,6 +14,18 @@ export default class Auth {
     public static async login() {
         const isLoggedIn = await Auth.isAlreadyLoggedIn();
         const server = await Auth.startServer();
+
+        app.post('/token', async (req, res) => {
+            ConfigStore.set(CONFIG_KEYS.AUTH_TOKEN, req.body.auth_token);
+            ConfigStore.set(CONFIG_KEYS.ORGANIZATION, req.body.organization);
+            res.status(200).json({ 'message': 'sucess' })
+            await Auth.stopSever(server);
+            if (isOrganizationChange)
+                Logger.info('Organization changed successfully');
+            else
+                Logger.info('User logged in successfully');
+            return;
+        })
         let isOrganizationChange;
         if (isLoggedIn) {
             const questions = [
@@ -36,16 +48,6 @@ export default class Auth {
                 }
             });
         }
-        app.post('/token', async (req, res) => {
-            ConfigStore.set(CONFIG_KEYS.AUTH_TOKEN, req.body.auth_token);
-            res.status(200).json({ 'message': 'sucess' })
-            await Auth.stopSever(server);
-            if (isOrganizationChange)
-                Logger.info('Organization changed successfully');
-            else
-                Logger.info('User logged in successfully');
-            return;
-        })
 
         try {
             if (!isLoggedIn)
