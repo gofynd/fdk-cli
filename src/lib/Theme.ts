@@ -751,8 +751,8 @@ export default class Theme {
             Logger.info(chalk.bold.blueBright(`Starting server`));
 
             await startReactServer({
-                domain: `http://127.0.0.1:2048`,
-                // domain,
+                // domain: `http://127.0.0.1:2048`,
+                domain,
                 host,
                 port,
                 isSSR,
