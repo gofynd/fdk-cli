@@ -91,7 +91,7 @@ export const URLS = {
     },
 
     SETUP_COMPANY: (company_id: number) => {
-        return urlJoin(MIXMASTER_URL('platform'), `/company/${company_id}/setup`);
+        return urlJoin(MIXMASTER_URL('partner'), `organization/${organization_id}/company/${company_id}/setup`);
     },
 
 
