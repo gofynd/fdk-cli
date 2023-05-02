@@ -131,8 +131,8 @@ export async function startServer({ domain, host, isSSR, port }) {
 		let themeUrl = "";
 		if (isSSR) {
             const BUNDLE_PATH = path.join(process.cwd(), '/.fdk/dist/themeBundle.common.js');
-            const User = Configstore.get(CONFIG_KEYS.USER);
-            themeUrl = (await UploadService.uploadFile(BUNDLE_PATH, 'fdk-cli-dev-files', User._id))
+            const User = Configstore.get(CONFIG_KEYS.AUTH_TOKEN);
+            themeUrl = (await UploadService.uploadFile(BUNDLE_PATH, 'fdk-cli-dev-files', User.current_user._id))
                 .start.cdn.url;
 		} else {
 			jetfireUrl.searchParams.set('__csr', 'true');
