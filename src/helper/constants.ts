@@ -5,7 +5,8 @@ export const AUTHENTICATION_COMMANDS = ['auth', 'login', 'logout'];
 export const EXTENSION_COMMANDS = ['init', 'setup', 'get', 'set'];
 export const PARTNER_COMMANDS = ['connect']
 
-export const ALLOWD_ENV = [
-    'https://partners.fyndx0.de/',
-    'http://local.fyndx1.de:8088'
-]
+// TODO: Add all env here
+export const ALLOWD_ENV = {
+    "fyndx1":'https://partners.fyndx1.de',
+    "fyndx5":'https://partners.fyndx5.de',
+}
