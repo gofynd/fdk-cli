@@ -36,6 +36,8 @@ export const AVAILABLE_ENVS = {
   // Jio mart partners
   jmpx2: 'api.jmpx2.de',
   jmpx3: 'api.jmpx3.de',
+  jmpz0: 'api.jmpz0.de',
+  jmpz5: 'api.jmpz5.de',
   jiomartpartners: 'api.jiomartpartners.com',
 
   // Product business group
@@ -49,6 +51,7 @@ export const AVAILABLE_ENVS = {
   // Swadesh
   swadeshz0: 'api.swadeshz0.de',
   swadeshz5: 'api.swadeshz5.de',
+  swadesh: 'api.swadeshonline.com',
 
   // Tira beauty
   tirax2:'api.tirax2.de',
