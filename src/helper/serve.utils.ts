@@ -94,8 +94,8 @@ export async function startServer({ domain, host, isSSR, port }) {
 	});
 
 	app.use('/public', async (req, res, done) => {
+		const { url } = req;
 		try {
-			const { url } = req;
 			if (publicCache[url]) {
 				res.set(publicCache[url].headers);
 				return res.send(publicCache[url].body);
@@ -262,8 +262,8 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 	// })
 
 	app.use('/public', async (req, res, done) => {
+		const { url } = req;
 		try {
-			const { url } = req;
 			if (publicCache[url]) {
 				res.set(publicCache[url].headers);
 				return res.send(publicCache[url].body);
