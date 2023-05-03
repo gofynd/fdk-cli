@@ -9,4 +9,5 @@ export const PARTNER_COMMANDS = ['connect']
 export const ALLOWD_ENV = {
     "fyndx1":'https://partners.fyndx1.de',
     "fyndx5":'https://partners.fyndx5.de',
+    "fynd":'https://partners.fynd.com',
 }

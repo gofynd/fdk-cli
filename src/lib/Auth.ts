@@ -6,13 +6,20 @@ import { ALLOWD_ENV } from '../helper/constants'
 import open from 'open';
 import express from 'express';
 var cors = require('cors')
-const app = express();
+const app = require('https-localhost')(getLocalBaseUrl());
 const port = 7071
+function getLocalBaseUrl() {
+    return "https://localhost";
+}
 export default class Auth {
     constructor() { }
     public static async login() {
         const isLoggedIn = await Auth.isAlreadyLoggedIn();
-        const server = await Auth.startServer();
+        app.use(cors());
+        app.use(express.json());
+        const certs = await app.getCerts();
+	    const server = require('https').createServer(certs, app);
+        await Auth.startServer(server);
 
         app.post('/token', async (req, res) => {
             ConfigStore.set(CONFIG_KEYS.AUTH_TOKEN, req.body.auth_token);
@@ -50,9 +57,9 @@ export default class Auth {
         const env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)
         try {
             if (!isLoggedIn)
-                await open(`${ALLOWD_ENV[env]}/?fdk-cli=true&callback=http://localhost:${port}`);
+                await open(`${ALLOWD_ENV[env]}/?fdk-cli=true&callback=${(getLocalBaseUrl())}:${port}`);
             else
-                await open(`${ALLOWD_ENV[env]}/organizations?fdk-cli=true&callback=http://localhosts:${port}`);
+                await open(`${ALLOWD_ENV[env]}/organizations?fdk-cli=true&callback=${getLocalBaseUrl()}:${port}`);
         }
         catch (error) {
             throw new CommandError(error.message, error.code);
@@ -96,12 +103,15 @@ export default class Auth {
         else
             return false;
     }
-    private static startServer = async () => {
-        app.use(cors({ origin: ALLOWD_ENV }))
-        app.use(express.json());
-        const server = app.listen(port, () => {
-        })
-        return server;
+    private static startServer = async (server) => {
+        await new Promise((resolve, reject) => {
+            server.listen(port, (err) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(true);
+            });
+        });
     }
     private static stopSever = async (server) => {
         server.close(() => {
