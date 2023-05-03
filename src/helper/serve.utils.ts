@@ -244,6 +244,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 
 
 export async function startReactServer({ domain, host, isSSR, port }) {
+	const currentContext = getActiveContext();
 	const app = require('https-localhost')(getLocalBaseUrl());
 	const certs = await app.getCerts();
 	const server = require('https').createServer(certs, app);
@@ -293,6 +294,7 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 		}
 		const skyfireUrl = new URL(urlJoin(domain, req.originalUrl));
 		const reqChunkUrl = new URL(urlJoin(domain, '__required_chunks'));
+		skyfireUrl.searchParams.set('theme_id', currentContext.theme_id);
 		reqChunkUrl.searchParams.set('url', req.originalUrl);
 		const response = await axios.get(reqChunkUrl.toString()); 
 		const requiredFiles = [
