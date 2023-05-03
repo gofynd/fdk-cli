@@ -7,15 +7,15 @@ function ProductDescription({
 	fpi, slug,
 }) {
 	const {
-		productDetails,
-	} = useGlobalStore((store) => store[fpi.getters.PRODUCT_DESCRIPTION_PAGE]);
+		product_details: productDetails,
+	} = useGlobalStore((store) => store[fpi.getters.PRODUCT_DETAILS]);
 
 	const { loading, error, ...product } = productDetails || {};
 
 	useEffect(() => {
 		const currentProductExists = product?.slug === slug;
 		if (!currentProductExists) {
-			fpi.productDescription.fetchProductBySlug({ slug });
+			fpi.product.fetchProductBySlug({ slug });
 		}
 	}, [slug]);
 
@@ -55,7 +55,7 @@ ProductDescription.serverFetch = ({ fpi, router }) => {
 		// fpi.pageConfig.fetchPageConfig('PDP'),
 	];
 	if (slug) {
-		dataPromises.push(fpi.productDescription.fetchProductBySlug({ slug }));
+		dataPromises.push(fpi.product.fetchProductBySlug({ slug }));
 	}
 
 	return Promise.all(dataPromises);
