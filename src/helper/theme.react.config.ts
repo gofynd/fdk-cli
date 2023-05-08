@@ -178,6 +178,9 @@ module.exports = () => {
 		externals: {
 			react: 'React',
 			'react-router-dom': 'globalThis',
+			'fdk-core/components': 'globalThis',
+			'fdk-core/utils': 'globalThis',
+			'react-helmet-async': 'globalThis',
 		},
 		output: {
 			filename: 'sections.commonjs.js',
