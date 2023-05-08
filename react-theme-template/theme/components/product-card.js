@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { FDKLink } from 'fdk-core/components';
 import styles from '../styles/product-card.less';
 
 function ProductCard({
@@ -10,14 +10,14 @@ function ProductCard({
 	brand,
 }) {
 	return (
-		<Link to={`/product/${slug}`}>
-			<div className={styles.card}>
-				<img src={medias?.[0]?.url} alt={medias[0]?.alt} />
-				<p>{brand?.name}</p>
-				<h2>{name}</h2>
+		<FDKLink to={`/product/${slug}`}>
+			<div className={styles.cardContainer}>
+				<img src={medias[0]?.url} alt={medias[0]?.alt} />
+				<p className={styles.brandName}>{brand?.name}</p>
+				<p className={styles.name}>{name}</p>
 				<h4>{description}</h4>
 			</div>
-		</Link>
+		</FDKLink>
 
 	);
 }

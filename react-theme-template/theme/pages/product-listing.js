@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useGlobalStore } from 'fdk-core/utils';
+import { Helmet } from 'react-helmet-async';
 import { InfinteScroll } from '../components/infinite-scroll';
 import ProductGallery from '../components/product-gallery';
 import styles from '../styles/product-listing.less';
@@ -9,14 +10,14 @@ function ProductListing({ fpi }) {
 		product_lists: productLists,
 	} = useGlobalStore((store) => store[fpi.getters.PRODUCTS]);
 	const {
-		loading, error, items = [], page,
+		loading, items = [], page,
 	} = productLists || {};
 
 	const [params, setParams] = useState({ pageId: page?.next_id ?? '*' });
 
 	const productLoader = () => {
 		const hasNext = page?.has_next ?? null;
-		const nextPageId = page.next_id;
+		const nextPageId = page?.next_id;
 		if (hasNext && params.pageId !== nextPageId) {
 			setParams({
 				...params,
@@ -30,39 +31,30 @@ function ProductListing({ fpi }) {
 		fpi.products.fetchProductListing(params);
 	}, [params]);
 
-	if (error) {
-		return (
-			<>
-				<h1>Error Occured !</h1>
-				<pre>
-					{JSON.stringify(error, null, 4)}
-				</pre>
-			</>
-		);
-	}
-
-	if (!items?.length) {
-		return <h1>No products found !!</h1>;
-	}
 	return (
 		<div className={styles.container}>
-			<div className={styles.filterSection}>
+			<Helmet>
+				<meta charSet="utf-8" />
+				<title>Products</title>
+				<meta name="description" content="Meta description from theme here" />
+				<link rel="canonical" href="http://mysite.com/example" />
+			</Helmet>
+			<div className={styles.left}>
 				<p className={styles.red_text}>I am filter section</p>
 				<TestSideComponent />
 			</div>
-			<div className={styles.listingSection}>
+			<div className={styles.right}>
 				<InfinteScroll
 					loader={productLoader}
 				>
-					{
-						!items?.length
-							? (<h1>Products are being loaded !!!</h1>)
-							: (
-								<ProductGallery
-									products={items}
-								/>
-							)
-					}
+					<p className={styles.itemCount}>
+						Total Products:
+						{' '}
+						{page?.item_total}
+					</p>
+					<ProductGallery
+						products={items}
+					/>
 					{
 						!!loading && <h1>Loading ...</h1>
 					}
@@ -72,7 +64,10 @@ function ProductListing({ fpi }) {
 	);
 }
 
-ProductListing.serverFetch = ({ fpi }) => fpi.products.fetchProductListing({});
+ProductListing.serverFetch = async ({ fpi }) => {
+	const products = await fpi.products.fetchProductListing({ pageId: '*' });
+	console.log('Products in server : ', products);
+};
 
 export default ProductListing;
 

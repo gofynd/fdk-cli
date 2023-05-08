@@ -1,7 +1,7 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { FDKLink } from 'fdk-core/components';
 
-export function Component({ props, blocks }) {
+export function Component({ props }) {
 	const { label, url, target } = props;
 	return (
 		target.value === '_blank'
@@ -10,7 +10,7 @@ export function Component({ props, blocks }) {
 					{label.value}
 				</a>
 			)
-			: <Link to={url.value}>{label.value}</Link>
+			: <FDKLink to={url.value}>{label.value}</FDKLink>
 	);
 }
 

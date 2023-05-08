@@ -33,7 +33,6 @@ export function InfinteScroll(props) {
 
 	return (
 		<>
-			<h2>I am infinte scroll component</h2>
 			{children}
 			<div ref={domRef} />
 		</>

@@ -8,12 +8,12 @@ function ProductGallery({
 	console.log({ products });
 	if (products?.length) {
 		return (
-			<div className={styles['product-gallery']}>
+			<div className={styles.gallery}>
 				{
-					products.map((product, index) => (
+					products.map((product) => (
 						<ProductCard
 							// eslint-disable-next-line react/no-array-index-key
-							key={product.slug + index}
+							key={product.slug}
 							{
 								...product
 							}
