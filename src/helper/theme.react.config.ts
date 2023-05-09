@@ -104,6 +104,7 @@ const baseConfig = () => {
 				'fdk-core/components': 'sharedComponentLibrary',
 				'fdk-core/utils': 'sharedUtilsLibrary',
 				'react-helmet-async': 'helmetModule',
+				'styled-components': 'styledComponents',
 			},
 			output: {
 				path: buildPath,
@@ -181,6 +182,7 @@ module.exports = () => {
 			'fdk-core/components': 'globalThis',
 			'fdk-core/utils': 'globalThis',
 			'react-helmet-async': 'globalThis',
+			'styled-components': 'globalThis',
 		},
 		output: {
 			filename: 'sections.commonjs.js',
