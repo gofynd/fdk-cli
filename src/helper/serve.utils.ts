@@ -294,7 +294,7 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 		}
 		const skyfireUrl = new URL(urlJoin(domain, req.originalUrl));
 		const reqChunkUrl = new URL(urlJoin(domain, '__required_chunks'));
-		skyfireUrl.searchParams.set('theme_id', currentContext.theme_id);
+		skyfireUrl.searchParams.set('themeId', currentContext.theme_id);
 		reqChunkUrl.searchParams.set('url', req.originalUrl);
 		const response = await axios.get(reqChunkUrl.toString()); 
 		const requiredFiles = [
