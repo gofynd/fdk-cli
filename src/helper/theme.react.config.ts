@@ -22,7 +22,10 @@ const baseConfig = () => {
     const localImageBasePath = \`https://127.0.0.1:\${localThemePort}/assets/images/\`
 	return {
 			mode: 'production',
-			entry: { themeBundle: path.resolve(context, 'theme/index.js') },
+			entry: { themeBundle: path.resolve(context, 'theme/index.jsx') },
+			resolve: {
+				extensions: ['', '.js', '.jsx'],
+			},
 			module: {
 				rules: [
 					{

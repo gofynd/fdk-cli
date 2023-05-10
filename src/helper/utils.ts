@@ -244,3 +244,24 @@ export function transformSectionFileName(fileName: string): [string, string] {
 
 	return [sectionTransformedName, sectionRawName];
 }
+
+/**
+ * Helper function to create a debounced version of any function.
+ *
+ * @param func Function that needs to be debounced
+ * @param delay delay in milliseconds
+ * @returns Debounced function
+ */
+export function debounce<T extends (...args: any[]) => void>(func: T, delay: number): (...args: Parameters<T>) => void {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  
+  return function(this: any, ...args: Parameters<T>) {
+    const context = this;
+    
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      func.apply(context, args);
+    }, delay);
+  };
+}
+

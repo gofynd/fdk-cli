@@ -10,6 +10,7 @@ import {
     ThemeContextInterface,
     parseBundleFilename,
     transformSectionFileName,
+    debounce,
 } from '../helper/utils';
 import CommandError, { ErrorCodes } from './CommandError';
 import Logger from './Logger';
@@ -764,15 +765,22 @@ export default class Theme {
             let watcher = chokidar.watch(path.resolve(process.cwd(), 'theme'), {
                 persistent: true,
             });
-            watcher.on('change', async () => {
-                console.log(chalk.bold.green(`reloading`));
+
+            const watchHandler = async () => {
+                console.log(chalk.bold.green(`Rebuilding theme...`));
                 await devReactBuild({
                     buildFolder: Theme.BUILD_FOLDER,
                     runOnLocal: true,
                     localThemePort: port,
                 });
+                console.log(chalk.bold.green(`reloading`));
                 reload();
-            });
+            };
+
+            const debouncedWatchHandler = debounce(watchHandler, 2000);
+            
+            watcher.on('change', debouncedWatchHandler);
+
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
@@ -988,7 +996,7 @@ export default class Theme {
             const [SectionName, sectionKey] = transformSectionFileName(fileName);
             return `'${sectionKey}': { ...${SectionName}, },`
         }).join(`
-                `)
+            `)
             }
         }`;
 
