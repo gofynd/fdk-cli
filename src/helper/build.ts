@@ -1,5 +1,5 @@
 import { exec } from 'child_process'
-import { promisify } from 'node:util';
+import { promisify } from 'util';
 import path from 'path'
 import rimraf from 'rimraf';
 import Theme from '../lib/Theme';
