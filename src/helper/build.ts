@@ -1,8 +1,12 @@
 import { exec } from 'child_process'
+import { promisify } from 'node:util';
 import path from 'path'
 import rimraf from 'rimraf';
 import Theme from '../lib/Theme';
 import Spinner from './spinner';
+import webpack from 'webpack';
+
+const promisifiedWebpack = promisify(webpack);
 
 export function build({ buildFolder, imageCdnUrl, assetCdnUrl, assetHash = '' }) {
     const VUE_CLI_PATH = path.join('.', 'node_modules', '@vue', 'cli-service', 'bin', 'vue-cli-service.js');
@@ -77,35 +81,56 @@ export function devBuild({ buildFolder, imageCdnUrl, isProd } : DevBuild) {
     });
 }
 
-export function devReactBuild({ buildFolder, runOnLocal, assetBasePath, localThemePort, imageCdnUrl } : DevReactBuild) {
-    const WEBPACK_CLI_PATH = path.join('.', 'node_modules', '.bin', 'webpack');
+export async function devReactBuild({ buildFolder, runOnLocal, assetBasePath, localThemePort, imageCdnUrl } : DevReactBuild) {
     const buildPath = path.join(process.cwd(), buildFolder);
+    try {
+        // Clean the build directory
+        rimraf.sync(buildPath);
 
-    // Clean the build directory
-    rimraf.sync(buildPath);
+        const webpackConfigFromTheme = await import(path.join(process.cwd(), Theme.REACT_CLI_CONFIG_PATH));
+        const ctx = {
+            buildPath: buildPath,
+            NODE_ENV: (!runOnLocal && "production") || "development",
+            assetBasePath: assetBasePath,
+            imageCdnUrl: imageCdnUrl,
+            localThemePort: localThemePort,
+        }
+        const config = webpackConfigFromTheme.default(ctx);
+        
+        await promisifiedWebpack(config);
+    } catch (error) {
+        console.log('Error while building : ', error)
+    }
+}
 
-    return new Promise((resolve, reject) => {
-        let b = exec(`node ${WEBPACK_CLI_PATH} --config ${Theme.REACT_CLI_CONFIG_PATH}`,
+export async function devReactWatch({ buildFolder, runOnLocal, assetBasePath, localThemePort, imageCdnUrl } : DevReactBuild, callback: Function) {
+    const buildPath = path.join(process.cwd(), buildFolder);
+    try {
+        const webpackConfigFromTheme = await import(path.join(process.cwd(), Theme.REACT_CLI_CONFIG_PATH));
+        const ctx = {
+            buildPath: buildPath,
+            NODE_ENV: (!runOnLocal && "production") || "development",
+            assetBasePath: assetBasePath,
+            imageCdnUrl: imageCdnUrl,
+            localThemePort: localThemePort,
+        }
+        const config = webpackConfigFromTheme.default(ctx);
+        
+        const compiler = webpack(config);
+        compiler.watch(
             {
-                cwd: process.cwd(),
-                env: {
-                    ...process.env,
-                    buildPath,
-                    NODE_ENV: (!runOnLocal && "production") || "development",
-                    assetBasePath,
-                    imageCdnUrl,
-                    localThemePort
-                }
-            });
-
-        b.stdout.pipe(process.stdout);
-        b.stderr.pipe(process.stderr);
-
-        b.on('exit', function (code) {
-            if (!code) {
-                return resolve(true);
+              aggregateTimeout: 1500,
+              ignored: /node_modules/,
+              poll: undefined,
+            },
+            (err, stats) => {
+              if(err) {
+                throw err;
+              }
+              callback(stats);
             }
-            reject({ message: 'Build Failed' });
-        });
-    });
+          );
+    } catch (error) {
+        console.log('Error while building : ', error)
+    }
 }

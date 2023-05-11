@@ -2,6 +2,7 @@
 export const themeReactWebpackTemplate = 
 `const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const TerserPlugin = require("terser-webpack-plugin");
 const webpack = require('webpack');
 const fs = require('fs');
 const { mergeWithRules, merge } = require('webpack-merge');
@@ -13,16 +14,29 @@ const isWebpackExtendedInTheme = fs.existsSync(themeConfigPath);
 const extendedWebpackConfig = isWebpackExtendedInTheme ? require(themeConfigPath) : {};
 
 // Return Array of Configurations
-const { buildPath, NODE_ENV, assetBasePath = '', imageCdnUrl = '', localThemePort = 5500 } = process.env;
-const baseConfig = () => {
+
+const baseConfig = (ctx) => {
+	const { buildPath, NODE_ENV, assetBasePath = '', imageCdnUrl = '', localThemePort = 5500 } = ctx;
 	const assetNormalizedBasePath = assetBasePath[assetBasePath.length - 1] === '/' ? assetBasePath : assetBasePath + '/';
 	const imageCDNNormalizedBasePath = imageCdnUrl[imageCdnUrl.length - 1] === '/' ? imageCdnUrl : imageCdnUrl + '/';
 	const isLocal = NODE_ENV === 'development';
     const localBasePath = \`https://127.0.0.1:\${localThemePort}/\`
     const localImageBasePath = \`https://127.0.0.1:\${localThemePort}/assets/images/\`
+	console.log({isLocal})
 	return {
-			mode: 'production',
+			mode: isLocal ? 'development' : 'production',
 			entry: { themeBundle: path.resolve(context, 'theme/index.jsx') },
+			devtool: isLocal ? 'source-map' : false,
+			optimization: {
+				minimizer: [
+				  new TerserPlugin({
+					terserOptions: {
+					  keep_fnames: true,
+					  keep_classnames: true,
+					},
+				  }),
+				],
+			  },
 			resolve: {
 				extensions: ['', '.js', '.jsx'],
 			},
@@ -79,7 +93,7 @@ const baseConfig = () => {
 					  {
 						test: /\.scss$/i,
 						use: [
-						  // compiles Less to CSS
+						  // compiles scss to CSS
 						  MiniCssExtractPlugin.loader,
 						  {
 							loader: 'css-loader',
@@ -111,9 +125,9 @@ const baseConfig = () => {
 			},
 			output: {
 				path: buildPath,
-				filename: isLocal ? 'themeBundle.[contenthash].umd.js' : 'themeBundle.[contenthash].umd.js',
+				filename: 'themeBundle.[contenthash].umd.js',
 				publicPath: isLocal ? localBasePath : assetNormalizedBasePath,
-				chunkFilename: isLocal ? '[name].themeBundle.[contenthash].umd.js' : '[name].themeBundle.[contenthash].umd.js',
+				chunkFilename: '[name].themeBundle.[contenthash].umd.js',
 				library: {
 					name: 'themeBundle',
 					type: 'umd',
@@ -125,7 +139,7 @@ const baseConfig = () => {
 			},
 			plugins: [
 				new MiniCssExtractPlugin({
-					filename: isLocal ? '[name].css' : '[name].[contenthash].css',
+					filename: '[name].[contenthash].css',
 				}),
 				new webpack.ProvidePlugin({
 					// you must "npm install buffer" to use this.
@@ -135,8 +149,9 @@ const baseConfig = () => {
 		}
 };
 
-module.exports = () => {
-	const baseWebpackConfig = baseConfig();
+module.exports = (ctx) => {
+	const { buildPath } = ctx;
+	const baseWebpackConfig = baseConfig(ctx);
 	// const mergedConfig = mergeWithRules({
 	// 	module: {
 	// 	  rules: {

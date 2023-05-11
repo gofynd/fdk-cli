@@ -31,7 +31,7 @@ import { createDirectory, writeFile, readFile } from '../helper/file.utils';
 import shortid from 'shortid';
 import ThemeService from './api/services/theme.service';
 import UploadService from './api/services/upload.service';
-import { build, devBuild, devReactBuild } from '../helper/build';
+import { build, devBuild, devReactBuild, devReactWatch } from '../helper/build';
 import { archiveFolder, extractArchive } from '../helper/archive';
 import urlJoin from 'url-join';
 import { getFullLocalUrl, startServer, reload, getPort, startReactServer } from '../helper/serve.utils';
@@ -757,29 +757,22 @@ export default class Theme {
                 host,
                 port,
                 isSSR,
-            })
-
-            // open browser
-            await open(getFullLocalUrl(port));
-            console.log(chalk.bold.green(`Watching files for changes`));
-            let watcher = chokidar.watch(path.resolve(process.cwd(), 'theme'), {
-                persistent: true,
             });
 
-            const watchHandler = async () => {
-                console.log(chalk.bold.green(`Rebuilding theme...`));
-                await devReactBuild({
-                    buildFolder: Theme.BUILD_FOLDER,
-                    runOnLocal: true,
-                    localThemePort: port,
-                });
-                console.log(chalk.bold.green(`reloading`));
-                reload();
-            };
+           
+            console.log(chalk.bold.green(`Watching files for changes`));
+            devReactWatch({
+                buildFolder: Theme.BUILD_FOLDER,
+                runOnLocal: true,
+                localThemePort: port,
+            }, () => {
+                    console.log(chalk.bold.green(`reloading`));
+                    reload();
+            });
 
-            const debouncedWatchHandler = debounce(watchHandler, 2000);
-            
-            watcher.on('change', debouncedWatchHandler);
+            // open browser
+            console.log(chalk.bold.green(`opening browser here`));
+            await open(getFullLocalUrl(port));
 
         } catch (error) {
             throw new CommandError(error.message, error.code);

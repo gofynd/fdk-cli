@@ -285,6 +285,8 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 	  
 	applyProxy(app);
 
+	const uploadedFiles = {};
+
 	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
 	
 	app.get('/*', async (req, res) => {
@@ -307,16 +309,33 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 		const buildFiles = fs.readdirSync(BUNDLE_DIR);
 
 		const promises = [];
-		const themeURLs = {};
+		const themeURLs: any = {};
 		for (let fileName of buildFiles) {
 			const { extension, componentName } = parseBundleFilename(fileName);
 			if (['js', 'css'].includes(extension) && requiredFiles.indexOf(componentName) !== -1) {
-				const promise = UploadService.uploadFile(path.join(BUNDLE_DIR, fileName), 'fdk-cli-dev-files', User._id).then(response => {
-					const url = response.complete.cdn.url;
+				// check if it has been already uploaded
+				uploadedFiles[componentName] = uploadedFiles[componentName] || {};
+				const { fileName: lastUploadedFileName, cdnLink } = uploadedFiles[componentName][extension] || {};
+
+				if (fileName === lastUploadedFileName) {
 					themeURLs[componentName] = themeURLs[componentName] || {};
-					themeURLs[componentName][extension] = url;
-				});
-				promises.push(promise);
+					themeURLs[componentName][extension] = cdnLink;
+				} else {
+					const promise = UploadService.uploadFile(path.join(BUNDLE_DIR, fileName), 'fdk-cli-dev-files', User._id).then(response => {
+						const url = response.complete.cdn.url;
+						themeURLs[componentName] = themeURLs[componentName] || {};
+						themeURLs[componentName][extension] = url;
+
+						// update global updated files store
+						uploadedFiles[componentName] = uploadedFiles[componentName] || {};
+						uploadedFiles[componentName][extension] = {
+							fileName,
+							cdnLink: url
+						}
+					});
+					promises.push(promise);
+				}
+
 			}
 
 		}
@@ -324,6 +343,10 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 		await Promise.all(promises);
 
 
+		// While build is not complete
+		if(!themeURLs.themeBundle) {
+			return res.sendFile(path.join(__dirname,'../../','/dist/helper','/loader.html'));
+		} 
 		const {data: html} = await axios.post(
 			skyfireUrl.toString(), 
 			{
