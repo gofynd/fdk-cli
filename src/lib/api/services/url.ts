@@ -14,6 +14,7 @@ const THEME_URL = () => getBaseURL() + '/service/partner/theme/v' + apiVersion;
 const AUTH_URL = () => getBaseURL() + '/service/panel/authentication/v' + apiVersion;
 const CONFIGURATION_URL = () => getBaseURL() + '/service/partner/partners/v' + apiVersion;
 const MIXMASTER_URL = (serverType: string) => getBaseURL() + `/service/${serverType}/partners/v` + apiVersion;
+const ASSET_URL = () => getBaseURL() + '/service/partner/assets/v' + apiVersion;
 
 export const URLS = {
     // AUTHENTICATION
@@ -38,14 +39,14 @@ export const URLS = {
     //ASSETS
     START_UPLOAD_FILE: (application_id: string, company_id: number, namespaces: string) => {
         return urlJoin(
-            MIXMASTER_URL('partner'),
-            `/organization/${organization_id}/namespaces/${namespaces}/upload/start`
+           ASSET_URL(),
+            `/organization/${organization_id}/company/${company_id}/application/${application_id}/namespaces/${namespaces}/upload/start`
         );
     },
     COMPLETE_UPLOAD_FILE: (application_id: string, company_id: number, namespaces: string) => {
         return urlJoin(
-            MIXMASTER_URL('partner'),
-            `/organization/${organization_id}/namespaces/${namespaces}/upload/complete`
+           ASSET_URL(),
+            `/organization/${organization_id}/company/${company_id}/application/${application_id}/namespaces/${namespaces}/upload/complete`
         );
     },
 
@@ -63,17 +64,6 @@ export const URLS = {
         return urlJoin(
             THEME_URL(),
             `organization/${organization_id}/company/${company_id}/application/${application_id}/themes`
-        );
-    },
-    // TODO: not used anywhere check if we can remove it.
-    GET_APPLICATION_THEME_LIBRARY: (
-        application_id: string,
-        company_id: number,
-        theme_id: string
-    ) => {
-        return urlJoin(
-            THEME_URL(),
-            `/company/${company_id}/application/${application_id}/${theme_id}/library`
         );
     },
 

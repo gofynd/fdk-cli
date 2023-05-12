@@ -92,11 +92,11 @@ export default class Theme {
     private static async selectTheme(config) {
         const themeListOptions = {};
         const themeList = await ThemeService.getAllThemes(config);
-        if (!themeList.data.items.length) {
+        if (!themeList.data.length) {
             Logger.error("Theme not found")
             return;
         }
-        themeList.data.items.forEach(theme => {
+        themeList.data.forEach(theme => {
             themeListOptions[`${theme.name}`] = { ...theme };
         });
         const themeListQuestions = [
@@ -221,7 +221,7 @@ export default class Theme {
 
             Logger.info('Creating Theme');
             let available_sections = await Theme.getAvailableSections();
-            // TODO: Removed infomation key
+
             const themeData = {
                 name: options.name,
                 available_sections,
@@ -235,6 +235,7 @@ export default class Theme {
                 domain: appConfig.domain.name,
                 company_id: appConfig.company_id,
                 theme_id: theme._id,
+                application_token: appConfig.token
             };
             process.chdir(path.join('.', options.name));
 
@@ -304,6 +305,7 @@ export default class Theme {
                 domain: appConfig.domain.name,
                 company_id: appConfig.company_id,
                 theme_id: themeData._id,
+                application_token: appConfig.token
             };
 
             process.chdir(path.join('.', themeName));
@@ -419,9 +421,6 @@ export default class Theme {
                 throw new Error('Build Failed');
             }
 
-            let [androidImages, iosImages, desktopImages, thumbnailImages] =
-                await Theme.uploadThemePreviewImages();
-            
             Logger.info('Uploading theme assets/images');
             await Theme.assetsImageUploader();
             
@@ -448,10 +447,6 @@ export default class Theme {
                 commonJsUrl,
                 umdJsUrls,
                 srcCdnUrl,
-                desktopImages,
-                iosImages,
-                androidImages,
-                thumbnailImages,
                 available_sections
             );
 
@@ -735,7 +730,7 @@ export default class Theme {
     };
     private static getSettingsData = theme => {
         let newConfig;
-        // TODO: removed information key
+
         if (theme.config) {
             newConfig = {};
             newConfig.list = theme.config.list;
@@ -774,78 +769,10 @@ export default class Theme {
             const images = glob.sync(path.join('**', '**.**'), { cwd });
             await asyncForEach(images, async img => {
                 const assetPath = path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets', 'images', img);
-                await UploadService.uploadFile(assetPath, 'misc');
+                await UploadService.uploadFile(assetPath, 'application-theme-images');
             });
         } catch (err) {
             throw new CommandError(err.message || `Failed to upload assets/images`, err.code);
-        }
-    };
-    private static uploadThemePreviewImages = async () => {
-        let androidImages = [];
-        let iosImages = [];
-        let desktopImages = [];
-        let thumbnailImages = [];
-        try {
-            const androidImageFolder = path.resolve(process.cwd(), 'theme/config/images/android');
-            androidImages = glob.sync('**/**.**', { cwd: androidImageFolder });
-            Logger.info('Uploading android images');
-            let pArr = androidImages
-                .map(async img => {
-                    const assetPath = path.join(process.cwd(), 'theme/config/images/android', img);
-                    let res = await UploadService.uploadFile(assetPath, 'misc');
-                    return res.start.cdn.url;
-                })
-                .filter(o => o);
-            androidImages = await Promise.all(pArr);
-            const iosImageFolder = path.resolve(process.cwd(), 'theme/config/images/ios');
-            iosImages = glob.sync('**/**.**', { cwd: iosImageFolder });
-            Logger.info('Uploading ios image');
-            pArr = iosImages
-                .map(async img => {
-                    const assetPath = path.join(process.cwd(), 'theme/config/images/ios', img);
-                    let res = await UploadService.uploadFile(assetPath, 'misc');
-                    return res.start.cdn.url;
-                })
-                .filter(o => o);
-            iosImages = await Promise.all(pArr);
-            const desktopImageFolder = path.resolve(process.cwd(), 'theme/config/images/desktop');
-            desktopImages = glob.sync('**/**.**', { cwd: desktopImageFolder });
-            Logger.info('Uploading desktop images');
-            pArr = desktopImages
-                .map(async img => {
-                    const assetPath = path.join(process.cwd(), 'theme/config/images/desktop', img);
-                    let res = await UploadService.uploadFile(assetPath, 'misc');
-                    return res.start.cdn.url;
-                })
-                .filter(o => o);
-            desktopImages = await Promise.all(pArr);
-            const thumbnailImageFolder = path.resolve(
-                process.cwd(),
-                'theme',
-                'config',
-                'images',
-                'thumbnail'
-            );
-            thumbnailImages = glob.sync('**/**.**', { cwd: thumbnailImageFolder });
-            Logger.info('Uploading thumbnail images');
-            pArr = thumbnailImages
-                .map(async img => {
-                    const assetPath = path.join(
-                        process.cwd(),
-                        'theme',
-                        'config',
-                        'images',
-                        'thumbnail',
-                        img
-                    );
-                    let res = await UploadService.uploadFile(assetPath, 'misc');
-                    return res.start.cdn.url;
-                })
-                .filter(o => o);
-            thumbnailImages = await Promise.all(pArr);
-            return [androidImages, iosImages, desktopImages, thumbnailImages];
-        } catch (err) {
-            throw new CommandError(err.message, err.code);
         }
     };
 
@@ -858,7 +785,7 @@ export default class Theme {
                 size: '1',
             };
             let startAssetData = (
-                await UploadService.startUpload(startData, 'misc')
+                await UploadService.startUpload(startData, 'application-theme-images')
             ).data;
             return (imageCdnUrl = path.dirname(startAssetData.cdn.url));
         } catch (err) {
@@ -876,7 +803,7 @@ export default class Theme {
                     size: '10',
                 };
                 let startAssetData = (
-                    await UploadService.startUpload(startData, 'misc')
+                    await UploadService.startUpload(startData, 'application-theme-assets')
                 ).data;
                 return (assetCdnUrl = path.dirname(startAssetData.cdn.url));
             }
@@ -892,7 +819,7 @@ export default class Theme {
                 const fonts = glob.sync('**/**.**', { cwd });
                 await asyncForEach(fonts, async font => {
                     const assetPath = path.join(Theme.BUILD_FOLDER, 'assets', 'fonts', font);
-                    await UploadService.uploadFile(assetPath, 'misc');
+                    await UploadService.uploadFile(assetPath, 'application-theme-assets');
                 });
             }
         } catch (err) {
@@ -924,7 +851,7 @@ export default class Theme {
         try {
             Logger.info('Uploading commonJS');
             const commonJS = `${assetHash}_themeBundle.common.js`;
-            const commonJsUrlRes = await UploadService.uploadFile(path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS), 'misc');
+            const commonJsUrlRes = await UploadService.uploadFile(path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS), 'application-theme-assets');
             const commonJsUrl = commonJsUrlRes.start.cdn.url
             
             Logger.info('Uploading umdJS');
@@ -932,13 +859,13 @@ export default class Theme {
             umdMinAssets.push(path.join(process.cwd(), Theme.BUILD_FOLDER, `${assetHash}_themeBundle.umd.min.js`));
             const umdJSPromisesArr = umdMinAssets.map(asset => {
                 const assetPath = asset;
-                return UploadService.uploadFile(assetPath, 'misc');
+                return UploadService.uploadFile(assetPath, 'application-theme-assets');
             });
             const umdJsUrls = await Promise.all(umdJSPromisesArr);
             Logger.info('Uploading css');
             let cssAssests = glob.sync(path.join(process.cwd(), Theme.BUILD_FOLDER, '**.css'));
             let cssPromisesArr = cssAssests.map(asset => {
-                return UploadService.uploadFile(asset, 'misc');
+                return UploadService.uploadFile(asset, 'application-theme-assets');
             });
             const cssUrls = await Promise.all(cssPromisesArr);
             return [cssUrls.map(res => res.start.cdn.url), commonJsUrl, umdJsUrls.map(res => res.start.cdn.url)];
@@ -952,10 +879,6 @@ export default class Theme {
         commonJsUrl,
         umdJsUrls,
         srcCdnUrl,
-        desktopImages,
-        iosImages,
-        androidImages,
-        thumbnailImages,
         available_sections
     ) => {
         try {
@@ -992,11 +915,6 @@ export default class Theme {
                 ...themeContent.theme,
                 available_sections,
             };
-            // TODO: Check if this is required in mobile app
-            // _.set(theme, 'information.images.desktop', desktopImages);
-            // _.set(theme, 'information.images.ios', iosImages);
-            // _.set(theme, 'information.images.android', androidImages);
-            // _.set(theme, 'information.images.thumbnail', thumbnailImages);
             _.set(theme, 'name', Theme.unSanitizeThemeName(packageJSON.name));
             let globalConfigSchema = await fs.readJSON(
                 path.join(process.cwd(), 'theme', 'config', 'settings_schema.json')
@@ -1136,7 +1054,7 @@ export default class Theme {
     private static uploadThemeSrcZip = async () => {
         const zipFilePath = path.join(process.cwd(), Theme.SRC_ARCHIVE_FOLDER, Theme.ZIP_FILE_NAME);
         try {
-            let res = await UploadService.uploadFile(zipFilePath, 'misc');
+            let res = await UploadService.uploadFile(zipFilePath, 'application-theme-src');
             return res.start.cdn.url;
         } catch (err) {
             throw new CommandError(err.message || `Failed to upload src folder`, err.code);
