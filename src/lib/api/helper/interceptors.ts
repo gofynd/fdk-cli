@@ -120,13 +120,14 @@ export function responseErrorInterceptor() {
             throw new CommandError(`${error.response.data.message}`, ErrorCodes.API_ERROR.code);
         } else if (error.request) {
             // The request was made but no error.response was received
-            throw new Error(
-                'Not received response from the server, possibly some network issue, please retry!!'
-            );
+            // throw new Error(
+            //     'Not received response from the server, possibly some network issue, please retry!!'
+            // );
+            throw new CommandError(`Not received response from the server, possibly some network issue, please retry!!`, ErrorCodes.NETWORK_ISSUE.code);
         } else {
             throw new Error('There was an issue in setting up the request, Please raise issue');
         }
-    } 
+    }
 }
 
 export { interceptorFn as addSignatureFn };

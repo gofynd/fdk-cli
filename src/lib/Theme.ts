@@ -286,6 +286,26 @@ export default class Theme {
     public static syncThemeWrapper = async () => {
         await Theme.syncTheme();
     };
+    private static manageAPI = async (apiFunc, retry = Theme.MAX_RETRY) => new Promise(async (res, rej) => {
+        try {
+            const result = await apiFunc();
+            res(result)
+        } catch (err) {
+            console.log(err);
+            // ["ECONNABORTED","EPIPE", "ENOTFOUND", "ETIMEDOUT", "ECONNRESET"]
+            if (retry > 0) {
+                console.log("Retrying attempt:", Theme.MAX_RETRY - retry + 1);
+                try{
+                    const result = await Theme.manageAPI(apiFunc, --retry);
+                    res(result)
+                }catch(err){
+                    return rej(err)
+                }
+            } else {
+                rej(err)
+            }
+        }
+    })
     private static syncTheme = async (isNew = false) => {
         try {
             const currentContext = getActiveContext();

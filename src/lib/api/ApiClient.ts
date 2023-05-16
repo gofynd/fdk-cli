@@ -4,7 +4,8 @@ import { transformRequestOptions } from './../../helper/utils';
 import { addSignatureFn, responseErrorInterceptor, responseInterceptor } from './helper/interceptors';
 import Curl from '../../helper/curl';
 axios.defaults.withCredentials = true;
-axios.defaults.timeout = 300000; // 5 minute
+// axios.defaults.timeout = 300000; // 5 minute
+axios.defaults.timeout = 30000; // 5 minute
 
 let uninterceptedAxiosInstance = axios.create()
 uninterceptedAxiosInstance.interceptors.request.use(addSignatureFn({}));
