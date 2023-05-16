@@ -59,6 +59,7 @@ export default class Theme {
     static  SETTING_LOADER_FILE = path.join('.fdk', 'setting-loader.js');
     static ZIP_FILE_NAME = `archive.zip`;
     static TEMPLATE_THEME_URL = 'https://github.com/gofynd/Emerge.git';
+    // static MAX_RETRY = 5;
 
     public static getSettingsDataPath() {
         return path.join(process.cwd(), 'theme', 'config', 'settings_data.json');
@@ -286,26 +287,26 @@ export default class Theme {
     public static syncThemeWrapper = async () => {
         await Theme.syncTheme();
     };
-    private static manageAPI = async (apiFunc, retry = Theme.MAX_RETRY) => new Promise(async (res, rej) => {
-        try {
-            const result = await apiFunc();
-            res(result)
-        } catch (err) {
-            console.log(err);
-            // ["ECONNABORTED","EPIPE", "ENOTFOUND", "ETIMEDOUT", "ECONNRESET"]
-            if (retry > 0) {
-                console.log("Retrying attempt:", Theme.MAX_RETRY - retry + 1);
-                try{
-                    const result = await Theme.manageAPI(apiFunc, --retry);
-                    res(result)
-                }catch(err){
-                    return rej(err)
-                }
-            } else {
-                rej(err)
-            }
-        }
-    })
+    // private static manageAPI = async (apiFunc, retry = Theme.MAX_RETRY) => new Promise(async (res, rej) => {
+    //     try {
+    //         const result = await apiFunc();
+    //         res(result)
+    //     } catch (err) {
+    //         // ["ECONNABORTED","EPIPE", "ENOTFOUND", "ETIMEDOUT", "ECONNRESET"]
+    //         if (err.code === ErrorCodes.NETWORK_ISSUE.code && retry > 0) {
+    //             console.log("Retrying attempt:", Theme.MAX_RETRY - retry + 1);
+    //             try{
+    //                 await new Promise(res => {setTimeout(()=>{res(true)},1000)})
+    //                 const result = await Theme.manageAPI(apiFunc, --retry);
+    //                 res(result)
+    //             }catch(err){
+    //                 return rej(err)
+    //             }
+    //         } else {
+    //             return rej(err)
+    //         }
+    //     }
+    // })
     private static syncTheme = async (isNew = false) => {
         try {
             const currentContext = getActiveContext();
@@ -385,9 +386,9 @@ export default class Theme {
 
             // extract page level settings schema
             Logger.info('Updating Available pages');
-            await Theme.updateAvailablePages({ newTheme, assetHash });
+            await Theme.updateAvailablePages({ newTheme, assetHash })
             Logger.info('Updating theme');
-            await ThemeService.updateTheme(newTheme);
+            await ThemeService.updateTheme(newTheme)
 
             Logger.info('Theme syncing DONE');
             let domainURL = `https://${AVAILABLE_ENVS[currentContext.env]}`;

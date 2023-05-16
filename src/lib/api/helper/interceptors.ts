@@ -6,6 +6,7 @@ import Debug from '../../Debug';
 import CommandError, { ErrorCodes } from '../../CommandError';
 import AuthenticationService from '../services/auth.service';
 import ConfigStore, { CONFIG_KEYS } from '../../Config';
+import { AxiosInstance } from 'axios';
 
 function getTransformer(config) {
     const { transformRequest } = config;
@@ -49,8 +50,11 @@ function interceptorFn(options) {
                     try {
                         data = (await AuthenticationService.getOauthToken(company_id)).data || {};
                     } catch (error) {
-                        ConfigStore.delete(CONFIG_KEYS.USER);
-                        ConfigStore.delete(CONFIG_KEYS.COOKIE);
+                        // console.log("CONFIG_KEYS","Code",error.code ,error);
+                        if(error.code !== ErrorCodes.NETWORK_ISSUE.code){
+                            ConfigStore.delete(CONFIG_KEYS.USER);
+                            ConfigStore.delete(CONFIG_KEYS.COOKIE);
+                        }
                         throw error;
                     }
 
@@ -111,8 +115,8 @@ export function responseInterceptor() {
         return response; // IF 2XX then return response.data only
     }
 }
-
-export function responseErrorInterceptor() {
+const RETRY_MANAGER = {}
+export function responseErrorInterceptor(axiosInstance: AxiosInstance) {
     return error => {
         // Request made and server responded
         if (error.response) {
@@ -123,6 +127,20 @@ export function responseErrorInterceptor() {
             // throw new Error(
             //     'Not received response from the server, possibly some network issue, please retry!!'
             // );
+            const originalRequest = error.config;
+            // ["ECONNABORTED","EPIPE", "ENOTFOUND", "ETIMEDOUT", "ECONNRESET"]
+            // Ask: Can I add custom header for this count?
+            // todo: Check why cancleToken error is coming?
+            if(!RETRY_MANAGER[error.config.url] || RETRY_MANAGER[error.config.url] < 3){
+                return new Promise((resolve) => {
+                    RETRY_MANAGER[error.config.url] = RETRY_MANAGER[error.config.url] ? (RETRY_MANAGER[error.config.url]+1) : 1
+                    console.log("\nRetrying", RETRY_MANAGER[error.config.url]);
+                    setTimeout(() => {
+                        resolve(axiosInstance(originalRequest));
+                    }, 2000); // Retry after 2 seconds (adjust the delay as needed)
+                });
+            }
+
             throw new CommandError(`Not received response from the server, possibly some network issue, please retry!!`, ErrorCodes.NETWORK_ISSUE.code);
         } else {
             throw new Error('There was an issue in setting up the request, Please raise issue');

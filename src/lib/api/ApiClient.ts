@@ -15,7 +15,7 @@ uninterceptedAxiosInstance.interceptors.response.use(
         Debug(`Response Headers: ${JSON.stringify(response.headers)}`);
         return response; // IF 2XX then return response.data only
     }, 
-    responseErrorInterceptor()
+    responseErrorInterceptor(uninterceptedAxiosInstance)
 );
 
 // Axios Interceptors
@@ -39,7 +39,7 @@ axios.interceptors.request.use(
     }
 );
 axios.interceptors.request.use(addSignatureFn({}));
-axios.interceptors.response.use(responseInterceptor(), responseErrorInterceptor());
+axios.interceptors.response.use(responseInterceptor(), responseErrorInterceptor(axios));
 
 let axiosMisc = axios.create({
     withCredentials: false,
