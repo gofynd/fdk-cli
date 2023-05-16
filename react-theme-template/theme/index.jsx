@@ -25,6 +25,5 @@ export default async ({
 		getProductDescription: () => import(/* webpackChunkName:"getProductDescription" */ './pages/product-description'),
 		getCart: () => import(/* webpackChunkName:"getCart" */ './pages/cart'),
 		getWishlist: () => import(/* webpackChunkName:"getWishlist" */ './pages/wishlist'),
-		getSections: () => import(/* webpackChunkName:"getSections" */ './pages/sections-page'),
 	};
 };

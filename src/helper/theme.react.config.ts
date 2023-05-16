@@ -22,7 +22,6 @@ const baseConfig = (ctx) => {
 	const isLocal = NODE_ENV === 'development';
     const localBasePath = \`https://127.0.0.1:\${localThemePort}/\`
     const localImageBasePath = \`https://127.0.0.1:\${localThemePort}/assets/images/\`
-	console.log({isLocal})
 	return {
 			mode: isLocal ? 'development' : 'production',
 			entry: { themeBundle: path.resolve(context, 'theme/index.jsx') },
@@ -149,25 +148,8 @@ const baseConfig = (ctx) => {
 		}
 };
 
-module.exports = (ctx) => {
-	const { buildPath } = ctx;
-	const baseWebpackConfig = baseConfig(ctx);
-	// const mergedConfig = mergeWithRules({
-	// 	module: {
-	// 	  rules: {
-	// 		test: "match",
-	// 		use: {
-	// 		  loader: "match",
-	// 		  options: "append",
-	// 		},
-	// 	  },
-	// 	},
-	//   })(baseWebpackConfig, extendedWebpackConfig);
-	const mergedConfig = merge(baseWebpackConfig, extendedWebpackConfig);
-
-	return [
-		mergedConfig,
-	  {
+const baseSectionConfig = () => {
+	return {
 		mode: 'production',
 		entry: path.resolve(context, 'theme/sections/index.js'),
 		module: {
@@ -192,6 +174,33 @@ module.exports = (ctx) => {
 						},
 					],
 				},
+				{
+					test: /\.css$/i,
+					use: [MiniCssExtractPlugin.loader, {
+						loader: 'css-loader',
+						options: {
+							modules: {
+								localIdentName: '[hash:base64:5]',
+							},
+
+						},
+					}],
+				},
+				{
+					test: /\.less$/i,
+					use: [
+					  // compiles Less to CSS
+					  MiniCssExtractPlugin.loader,
+					  {
+						loader: 'css-loader',
+						options: {
+							modules: {
+								localIdentName: '[hash:base64:5]',
+								},
+							},
+						},
+					],
+				  },
 			],
 		},
 		externals: {
@@ -217,6 +226,29 @@ module.exports = (ctx) => {
 			}),
 		],
 	}
+}
+
+module.exports = (ctx) => {
+	const { buildPath } = ctx;
+	const baseWebpackConfig = baseConfig(ctx);
+	// const mergedConfig = mergeWithRules({
+	// 	module: {
+	// 	  rules: {
+	// 		test: "match",
+	// 		use: {
+	// 		  loader: "match",
+	// 		  options: "append",
+	// 		},
+	// 	  },
+	// 	},
+	//   })(baseWebpackConfig, extendedWebpackConfig);
+
+	const mergedBaseConfig = merge(baseWebpackConfig, extendedWebpackConfig);
+	const mergedSectionConfig = merge(baseSectionConfig, extendedWebpackConfig);
+
+	return [
+		mergedBaseConfig,
+		mergedSectionConfig,
 	]
 }
 `;

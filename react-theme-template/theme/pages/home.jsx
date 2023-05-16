@@ -3,9 +3,11 @@ import { SectionRenderer } from 'fdk-core/components';
 import { useGlobalStore } from 'fdk-core/utils';
 
 function Home({ numberOfSections, fpi }) {
+	const { page } = useGlobalStore((store) => store[fpi.getters.THEME]);
+
 	const {
-		sections, isLoading, error,
-	} = useGlobalStore((store) => store[fpi.getters.PAGE_CONFIG]);
+		sections = [], isLoading, error,
+	} = page || {};
 
 	if (isLoading) {
 		return (
