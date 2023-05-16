@@ -184,6 +184,9 @@ const baseSectionConfig = ({ buildPath }) => {
 				  },
 			],
 		},
+		resolve: {
+			extensions: ['', '.js', '.jsx'],
+		},
 		externals: {
 			react: 'React',
 			'react-router-dom': 'globalThis',
