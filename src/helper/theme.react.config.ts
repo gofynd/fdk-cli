@@ -148,14 +148,14 @@ const baseConfig = (ctx) => {
 		}
 };
 
-const baseSectionConfig = () => {
+const baseSectionConfig = ({ buildPath }) => {
 	return {
 		mode: 'production',
 		entry: path.resolve(context, 'theme/sections/index.js'),
 		module: {
 			rules: [
 				{
-					test: /\.section.(jsx|js)$/,
+					test: /\.(jsx|js)$/,
 					exclude: /node_modules/,
 					use: [
 						{
@@ -175,31 +175,12 @@ const baseSectionConfig = () => {
 					],
 				},
 				{
-					test: /\.css$/i,
-					use: [MiniCssExtractPlugin.loader, {
-						loader: 'css-loader',
-						options: {
-							modules: {
-								localIdentName: '[hash:base64:5]',
-							},
-
-						},
-					}],
+					test: /\\.css$/i,
+					use: ['css-loader'],
 				},
 				{
-					test: /\.less$/i,
-					use: [
-					  // compiles Less to CSS
-					  MiniCssExtractPlugin.loader,
-					  {
-						loader: 'css-loader',
-						options: {
-							modules: {
-								localIdentName: '[hash:base64:5]',
-								},
-							},
-						},
-					],
+					test: /\\.less$/i,
+					use: ['css-loader'],
 				  },
 			],
 		},
@@ -220,32 +201,24 @@ const baseSectionConfig = () => {
 			},
 			globalObject: 'typeof self !== "undefined" ? self : this',
 		},
-		plugins: [
-			new MiniCssExtractPlugin({
-				filename: '[name].css',
-			}),
-		],
+		plugins: [],
 	}
 }
 
 module.exports = (ctx) => {
-	const { buildPath } = ctx;
 	const baseWebpackConfig = baseConfig(ctx);
-	// const mergedConfig = mergeWithRules({
-	// 	module: {
-	// 	  rules: {
-	// 		test: "match",
-	// 		use: {
-	// 		  loader: "match",
-	// 		  options: "append",
-	// 		},
-	// 	  },
-	// 	},
-	//   })(baseWebpackConfig, extendedWebpackConfig);
+	const sectionBaseConfig = baseSectionConfig(ctx);
+	const mergedSectionConfig = mergeWithRules({
+		module: {
+		  rules: {
+			test: "match",
+			use: "append",
+		  },
+		},
+	  })(sectionBaseConfig, extendedWebpackConfig);
 
 	const mergedBaseConfig = merge(baseWebpackConfig, extendedWebpackConfig);
-	const mergedSectionConfig = merge(baseSectionConfig, extendedWebpackConfig);
-
+	// const mergedSectionConfig = merge(sectionBaseConfig, extendedWebpackConfig);
 	return [
 		mergedBaseConfig,
 		mergedSectionConfig,
