@@ -7,6 +7,9 @@ import CommandError, { ErrorCodes } from '../../CommandError';
 import AuthenticationService from '../services/auth.service';
 import ConfigStore, { CONFIG_KEYS } from '../../Config';
 import { AxiosInstance } from 'axios';
+import chalk from 'chalk';
+
+const MAX_RETRY = 3
 
 function getTransformer(config) {
     const { transformRequest } = config;
@@ -50,8 +53,8 @@ function interceptorFn(options) {
                     try {
                         data = (await AuthenticationService.getOauthToken(company_id)).data || {};
                     } catch (error) {
-                        // console.log("CONFIG_KEYS","Code",error.code ,error);
-                        if(error.code !== ErrorCodes.NETWORK_ISSUE.code){
+                        // Do not remove Config data, if it's network error.
+                        if (error.code !== ErrorCodes.NETWORK_ISSUE.code) {
                             ConfigStore.delete(CONFIG_KEYS.USER);
                             ConfigStore.delete(CONFIG_KEYS.COOKIE);
                         }
@@ -115,7 +118,6 @@ export function responseInterceptor() {
         return response; // IF 2XX then return response.data only
     }
 }
-const RETRY_MANAGER = {}
 export function responseErrorInterceptor(axiosInstance: AxiosInstance) {
     return error => {
         // Request made and server responded
@@ -128,17 +130,22 @@ export function responseErrorInterceptor(axiosInstance: AxiosInstance) {
             //     'Not received response from the server, possibly some network issue, please retry!!'
             // );
             const originalRequest = error.config;
-            // ["ECONNABORTED","EPIPE", "ENOTFOUND", "ETIMEDOUT", "ECONNRESET"]
             // Ask: Can I add custom header for this count?
-            // todo: Check why cancleToken error is coming?
-            if(!RETRY_MANAGER[error.config.url] || RETRY_MANAGER[error.config.url] < 3){
-                return new Promise((resolve) => {
-                    RETRY_MANAGER[error.config.url] = RETRY_MANAGER[error.config.url] ? (RETRY_MANAGER[error.config.url]+1) : 1
-                    console.log("\nRetrying", RETRY_MANAGER[error.config.url]);
-                    setTimeout(() => {
-                        resolve(axiosInstance(originalRequest));
-                    }, 2000); // Retry after 2 seconds (adjust the delay as needed)
-                });
+            // Check if it's network related error
+            // If yes, then add counter inside header
+            // If count is less than max retry limit, then resend request
+            if (["ECONNABORTED", "EPIPE", "ENOTFOUND", "ETIMEDOUT", "ECONNRESET"].includes(error.code)) {
+                let retryingCount = (originalRequest.headers["c-retry-count"] || 0) + 1
+                if (retryingCount <= MAX_RETRY) {
+                    return new Promise((resolve) => {
+                        chalk.yellow("\n📶 It seems network issue. Retrying:", retryingCount);
+                        setTimeout(() => {
+                            resolve(axiosInstance({ ...originalRequest, headers: { ...originalRequest.headers, "c-retry-count": retryingCount } }));
+                        }, 2000); // Retry after 2 seconds (adjust the delay as needed)
+                    });
+                }else{
+                    console.log(chalk.red("\nMaximum retry limit reached. Please check your internet connection."));
+                }
             }
 
             throw new CommandError(`Not received response from the server, possibly some network issue, please retry!!`, ErrorCodes.NETWORK_ISSUE.code);
