@@ -115,6 +115,7 @@ export const requireFile = path => {
 
 export const evaluateModule = code => {
     var script = new vm.Script(NativeModule.wrap(code), {
+        // @ts-ignore
         displayErrors: true,
     });
     var compiledWrapper = script.runInNewContext();
