@@ -1,12 +1,9 @@
 import { exec } from 'child_process'
-import { promisify } from 'util';
 import path from 'path'
 import rimraf from 'rimraf';
 import Theme from '../lib/Theme';
 import Spinner from './spinner';
 import webpack from 'webpack';
-
-const promisifiedWebpack = promisify(webpack);
 
 export function build({ buildFolder, imageCdnUrl, assetCdnUrl, assetHash = '' }) {
     const VUE_CLI_PATH = path.join('.', 'node_modules', '@vue', 'cli-service', 'bin', 'vue-cli-service.js');
@@ -97,7 +94,15 @@ export async function devReactBuild({ buildFolder, runOnLocal, assetBasePath, lo
         }
         const config = webpackConfigFromTheme.default(ctx);
         
-        await promisifiedWebpack(config);
+        await new Promise((resolve, reject) => {
+            webpack(config, (err, stats) => {
+                console.log(stats.toString());
+                if (err || stats.hasErrors()) {
+                    reject();
+                }
+                resolve(stats);
+            })
+        });
     } catch (error) {
         console.log('Error while building : ', error)
     }
@@ -124,6 +129,7 @@ export async function devReactWatch({ buildFolder, runOnLocal, assetBasePath, lo
               poll: undefined,
             },
             (err, stats) => {
+            console.log(stats.toString());
               if(err) {
                 throw err;
               }
