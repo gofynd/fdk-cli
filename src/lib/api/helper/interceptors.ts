@@ -126,9 +126,7 @@ export function responseErrorInterceptor(axiosInstance: AxiosInstance) {
             throw new CommandError(`${error.response.data.message}`, ErrorCodes.API_ERROR.code);
         } else if (error.request) {
             // The request was made but no error.response was received
-            // throw new Error(
-            //     'Not received response from the server, possibly some network issue, please retry!!'
-            // );
+            
             const originalRequest = error.config;
             // Ask: Can I add custom header for this count?
             // Check if it's network related error
