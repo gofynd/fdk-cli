@@ -8,6 +8,7 @@ import AuthenticationService from '../services/auth.service';
 import ConfigStore, { CONFIG_KEYS } from '../../Config';
 import { AxiosInstance } from 'axios';
 import chalk from 'chalk';
+import { interceptedAxiosInstance, UNINTERCEPTED, uninterceptedAxiosInstance } from '../ApiClient';
 
 const MAX_RETRY = 3
 
@@ -118,7 +119,7 @@ export function responseInterceptor() {
         return response; // IF 2XX then return response.data only
     }
 }
-export function responseErrorInterceptor(axiosInstance: AxiosInstance) {
+export function responseErrorInterceptor(axiosInstanceType: string) {
     return error => {
         // Request made and server responded
         if (error.response) {
@@ -132,6 +133,7 @@ export function responseErrorInterceptor(axiosInstance: AxiosInstance) {
             // Check if it's network related error
             // If yes, then add counter inside header
             // If count is less than max retry limit, then resend request
+            const axiosInstance = axiosInstanceType === UNINTERCEPTED ? uninterceptedAxiosInstance : interceptedAxiosInstance
             if (["ECONNABORTED", "EPIPE", "ENOTFOUND", "ETIMEDOUT", "ECONNRESET"].includes(error.code)) {
                 let retryingCount = (originalRequest.headers["c-retry-count"] || 0) + 1
                 if (retryingCount <= MAX_RETRY) {
