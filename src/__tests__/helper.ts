@@ -10,7 +10,7 @@ export function generateToken(decodedToken) {
     const currentDate = new Date();
     const expires_in = new Date(currentDate.getTime() + 30 * 60000); // add 30 mins expiry
     decodedToken.expires_in = expires_in;
-    return Buffer.from(`${JSON.stringify(decodedToken)}`).toString('base64');
+    return new Buffer(`${JSON.stringify(decodedToken)}`).toString('base64');
 }
 
 export function setEnv(){
