@@ -4,10 +4,7 @@ import { transformRequestOptions } from './../../helper/utils';
 import { addSignatureFn, responseErrorInterceptor, responseInterceptor } from './helper/interceptors';
 import Curl from '../../helper/curl';
 axios.defaults.withCredentials = true;
-axios.defaults.timeout = 30000; // 5 minute
-
-export const UNINTERCEPTED = "UNINTERCEPTED"
-export const INTERCEPTED = "INTERCEPTED"
+axios.defaults.timeout = 300000; // 5 minute
 
 let uninterceptedAxiosInstance = axios.create()
 uninterceptedAxiosInstance.interceptors.request.use(addSignatureFn({}));
@@ -17,7 +14,7 @@ uninterceptedAxiosInstance.interceptors.response.use(
         Debug(`Response Headers: ${JSON.stringify(response.headers)}`);
         return response; // IF 2XX then return response.data only
     }, 
-    responseErrorInterceptor(UNINTERCEPTED)
+    responseErrorInterceptor(uninterceptedAxiosInstance)
 );
 
 // Axios Interceptors
@@ -41,7 +38,7 @@ axios.interceptors.request.use(
     }
 );
 axios.interceptors.request.use(addSignatureFn({}));
-axios.interceptors.response.use(responseInterceptor(), responseErrorInterceptor(INTERCEPTED));
+axios.interceptors.response.use(responseInterceptor(), responseErrorInterceptor(axios));
 
 let axiosMisc = axios.create({
     withCredentials: false,
@@ -135,6 +132,4 @@ class ApiEngine {
 
 // use uninterceptedApiClient to skip curl print in verbose mode
 export const uninterceptedApiClient = new ApiEngine(uninterceptedAxiosInstance);
-
-export { uninterceptedAxiosInstance, axios as interceptedAxiosInstance }
 export default new ApiEngine(axios);
