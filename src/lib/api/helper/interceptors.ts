@@ -118,7 +118,7 @@ export function responseInterceptor() {
         return response; // IF 2XX then return response.data only
     }
 }
-export function responseErrorInterceptor() {
+export function responseErrorInterceptor(axiosInstance: AxiosInstance) {
     return error => {
         // Request made and server responded
         if (error.response) {
@@ -132,19 +132,19 @@ export function responseErrorInterceptor() {
             // Check if it's network related error
             // If yes, then add counter inside header
             // If count is less than max retry limit, then resend request
-            // if (["ECONNABORTED", "EPIPE", "ENOTFOUND", "ETIMEDOUT", "ECONNRESET"].includes(error.code)) {
-            //     let retryingCount = (originalRequest.headers["c-retry-count"] || 0) + 1
-            //     if (retryingCount <= MAX_RETRY) {
-            //         return new Promise((resolve) => {
-            //             console.log(chalk.yellow("\n📶 It seems network issue. Retrying:", retryingCount));
-            //             setTimeout(() => {
-            //                 resolve(axiosInstance({ ...originalRequest, headers: { ...originalRequest.headers, "c-retry-count": retryingCount } }));
-            //             }, 2000); // Retry after 2 seconds (adjust the delay as needed)
-            //         });
-            //     }else{
-            //         console.log(chalk.red("\nMaximum retry limit reached. Please check your internet connection."));
-            //     }
-            // }
+            if (["ECONNABORTED", "EPIPE", "ENOTFOUND", "ETIMEDOUT", "ECONNRESET"].includes(error.code)) {
+                let retryingCount = (originalRequest.headers["c-retry-count"] || 0) + 1
+                if (retryingCount <= MAX_RETRY) {
+                    return new Promise((resolve) => {
+                        console.log(chalk.yellow("\n📶 It seems network issue. Retrying:", retryingCount));
+                        setTimeout(() => {
+                            resolve(axiosInstance({ ...originalRequest, headers: { ...originalRequest.headers, "c-retry-count": retryingCount } }));
+                        }, 2000); // Retry after 2 seconds (adjust the delay as needed)
+                    });
+                }else{
+                    console.log(chalk.red("\nMaximum retry limit reached. Please check your internet connection."));
+                }
+            }
 
             throw new CommandError(`Not received response from the server, possibly some network issue, please retry!!`, ErrorCodes.NETWORK_ISSUE.code);
         } else {
