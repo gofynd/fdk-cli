@@ -7,9 +7,6 @@ axios.defaults.withCredentials = true;
 axios.defaults.timeout = 300000; // 5 minute
 
 let uninterceptedAxiosInstance = axios.create()
-
-const uninterceptedResErrorInterceptor = responseErrorInterceptor(uninterceptedAxiosInstance)
-
 uninterceptedAxiosInstance.interceptors.request.use(addSignatureFn({}));
 uninterceptedAxiosInstance.interceptors.response.use(
     (response) => {
@@ -17,11 +14,8 @@ uninterceptedAxiosInstance.interceptors.response.use(
         Debug(`Response Headers: ${JSON.stringify(response.headers)}`);
         return response; // IF 2XX then return response.data only
     }, 
-    uninterceptedResErrorInterceptor
+    responseErrorInterceptor()
 );
-
-
-const interceptedResErrorInterceptor = responseErrorInterceptor(axios)
 
 // Axios Interceptors
 axios.interceptors.request.use(
@@ -44,7 +38,7 @@ axios.interceptors.request.use(
     }
 );
 axios.interceptors.request.use(addSignatureFn({}));
-axios.interceptors.response.use(responseInterceptor(), interceptedResErrorInterceptor);
+axios.interceptors.response.use(responseInterceptor(), responseErrorInterceptor());
 
 let axiosMisc = axios.create({
     withCredentials: false,
