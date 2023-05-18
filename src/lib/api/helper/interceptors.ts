@@ -136,7 +136,7 @@ export function responseErrorInterceptor(axiosInstance: AxiosInstance) {
                 let retryingCount = (originalRequest.headers["c-retry-count"] || 0) + 1
                 if (retryingCount <= MAX_RETRY) {
                     return new Promise((resolve) => {
-                        chalk.yellow("\n📶 It seems network issue. Retrying:", retryingCount);
+                        console.log(chalk.yellow("\n📶 It seems network issue. Retrying:", retryingCount));
                         setTimeout(() => {
                             resolve(axiosInstance({ ...originalRequest, headers: { ...originalRequest.headers, "c-retry-count": retryingCount } }));
                         }, 2000); // Retry after 2 seconds (adjust the delay as needed)
