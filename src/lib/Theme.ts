@@ -295,7 +295,8 @@ export default class Theme {
             let { data: theme } = await ThemeService.getThemeById(currentContext);
             
             // Merge with latest platform config
-            await Theme.matchWithLatestPlatformConfig(theme, (isNew));
+            const { preset } = await Theme.matchWithLatestPlatformConfig(theme, (isNew));
+            
             Theme.clearPreviousBuild();
             
             Logger.info('Reading Files');
@@ -307,7 +308,60 @@ export default class Theme {
                 throw new CommandError(`Invalid config.json`);
             }
 
+            let preset_section_names = {};
+            let preset_section_values = {};
+
+            // Check if preset available for pages
+            if (preset && preset.pages) {
+                preset.pages.forEach(data => {
+                    preset_section_names[data.value] = data.sections.map(sec_data => sec_data.name);
+                    preset_section_values[data.value] = data.sections;
+                });
+            }
+
             let available_sections = await Theme.getAvailableSectionsForSync();
+            
+            const preset_section_name_pages = Object.keys(preset_section_names);
+
+            // Check if preset data available or not
+            if (preset_section_name_pages.length > 0) {
+                let not_available_sections = [];
+                // Check if all section mentioned in preset are available or not
+                const all_sections = available_sections.map(data => data.name)
+                preset_section_name_pages.forEach(page => { 
+                    preset_section_names[page].forEach(section_name => {
+                        if(!all_sections.includes(section_name)){
+                            not_available_sections.push({page, section_name})
+                        }
+                    });
+                })
+                // If some of the section from preset data not available then confirm with developer
+                // if he/she wants to continue or not
+                if(not_available_sections.length > 0){
+                    const questions = [
+                        {
+                            type: 'confirm',
+                            name: 'proceed',
+                            message: `Certain preset sections are unavailable. Proceeding with the site may result in potential side effects and issues. Would you like to continue?`,
+                        },
+                    ];
+
+                    const log_section_details = not_available_sections.map(data => `❌ ${data.section_name} section used in ${data.page} page is not available`).join("\n")
+
+                    // Show which section is not present and in which page it is set as an preset section.
+                    // Ex. ❌ hero_image section used in home page is not available
+                    console.log('\n' + chalk.yellow(log_section_details) + '\n');
+                    
+                    await inquirer.prompt(questions).then(async answers => {
+                        if (answers.proceed) {
+                            Logger.info('Proceeding without unavailable sections...');
+                        } else {
+                            throw new Error(`Please check preset data in ${process.cwd()}/theme/config/settings_data.json`)
+                        }
+                    });
+                
+                }
+            }
             await Theme.validateAvailableSections(available_sections);
             
             // Create index.js with section file imports
@@ -365,7 +419,7 @@ export default class Theme {
 
             // extract page level settings schema
             Logger.info('Updating Available pages');
-            await Theme.updateAvailablePages({ newTheme, assetHash });
+            await Theme.updateAvailablePages({ newTheme, assetHash, presetValues: preset_section_values });
             Logger.info('Updating theme');
             await ThemeService.updateTheme(newTheme);
 
@@ -957,7 +1011,7 @@ export default class Theme {
             throw new CommandError(`Failed to set theme data `);
         }
     };
-    private static updateAvailablePages = async ({ newTheme: theme, assetHash }) => {
+    private static updateAvailablePages = async ({ newTheme: theme, assetHash, presetValues }) => {
         const spinner = new Spinner("Adding/updating available pages");
         try {
             spinner.start();
@@ -979,7 +1033,8 @@ export default class Theme {
                     const pageData = {
                         value: pageName,
                         props: [],
-                        sections: [],
+                        // When new page is being created, get sections values from preset (in settings_data.json)
+                        sections: presetValues?.[pageName] ?? [],
                         sections_meta: [],
                         type: 'system',
                         text: pageNameModifier(pageName),
@@ -1104,6 +1159,7 @@ export default class Theme {
                     }
                 });
             }
+            return { preset: newConfig.preset }
         } catch (err) {
             throw new CommandError(err.message, err.code);
         }
