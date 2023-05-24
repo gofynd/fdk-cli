@@ -276,7 +276,8 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 			res.set(publicCache[url].headers);
 			return res.send(publicCache[url].body);
 		} catch(e) {
-			console.log("Error loading file ", url)
+			console.log("Error loading file ", url);
+			return res.status(500).send(e.message);
 		}
 	});
 

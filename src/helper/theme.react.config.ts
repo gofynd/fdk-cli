@@ -1,27 +1,26 @@
-
-export const themeReactWebpackTemplate = 
-`const path = require('path');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const TerserPlugin = require("terser-webpack-plugin");
-const webpack = require('webpack');
-const fs = require('fs');
-const { mergeWithRules, merge } = require('webpack-merge');
+import path from 'path';
+import MiniCssExtractPlugin from 'mini-css-extract-plugin';
+import TerserPlugin from "terser-webpack-plugin";
+import webpack from 'webpack';
+import fs from 'fs';
+import { mergeWithRules, merge } from 'webpack-merge';
 
 const context = process.cwd();
-const themeConfigPath = path.join(context, 'webpack.config.js');
-const isWebpackExtendedInTheme = fs.existsSync(themeConfigPath);
+// const themeConfigPath = path.join(context, 'webpack.config.js');
+// const isWebpackExtendedInTheme = fs.existsSync(themeConfigPath);
 
-const extendedWebpackConfig = isWebpackExtendedInTheme ? require(themeConfigPath) : {};
+// const extendedWebpackConfig = isWebpackExtendedInTheme ? require(themeConfigPath) : {};
 
 // Return Array of Configurations
 
 const baseConfig = (ctx) => {
-	const { buildPath, NODE_ENV, assetBasePath = '', imageCdnUrl = '', localThemePort = 5500 } = ctx;
+	const { buildPath, NODE_ENV, assetBasePath = '', imageCdnUrl = '', context, localThemePort = 5500 } = ctx;
+
 	const assetNormalizedBasePath = assetBasePath[assetBasePath.length - 1] === '/' ? assetBasePath : assetBasePath + '/';
 	const imageCDNNormalizedBasePath = imageCdnUrl[imageCdnUrl.length - 1] === '/' ? imageCdnUrl : imageCdnUrl + '/';
 	const isLocal = NODE_ENV === 'development';
-    const localBasePath = \`https://127.0.0.1:\${localThemePort}/\`
-    const localImageBasePath = \`https://127.0.0.1:\${localThemePort}/assets/images/\`
+    const localBasePath = `https://127.0.0.1:${localThemePort}/`
+    const localImageBasePath = `https://127.0.0.1:${localThemePort}/assets/images/`
 	return {
 			mode: isLocal ? 'development' : 'production',
 			entry: { themeBundle: path.resolve(context, 'theme/index.jsx') },
@@ -35,6 +34,11 @@ const baseConfig = (ctx) => {
 					},
 				  }),
 				],
+				splitChunks: {
+						chunks() {
+							return false;
+					  	},
+				  },
 			  },
 			resolve: {
 				extensions: ['', '.js', '.jsx'],
@@ -148,7 +152,7 @@ const baseConfig = (ctx) => {
 		}
 };
 
-const baseSectionConfig = ({ buildPath }) => {
+const baseSectionConfig = ({ buildPath, context}) => {
 	return {
 		mode: 'production',
 		entry: path.resolve(context, 'theme/sections/index.js'),
@@ -175,11 +179,11 @@ const baseSectionConfig = ({ buildPath }) => {
 					],
 				},
 				{
-					test: /\\.css$/i,
+					test: /\.css$/i,
 					use: ['css-loader'],
 				},
 				{
-					test: /\\.less$/i,
+					test: /\.less$/i,
 					use: ['css-loader'],
 				  },
 			],
@@ -208,9 +212,10 @@ const baseSectionConfig = ({ buildPath }) => {
 	}
 }
 
-module.exports = (ctx) => {
+export default (ctx, extendedWebpackConfig) => {
 	const baseWebpackConfig = baseConfig(ctx);
 	const sectionBaseConfig = baseSectionConfig(ctx);
+
 	const mergedSectionConfig = mergeWithRules({
 		module: {
 		  rules: {
@@ -220,11 +225,17 @@ module.exports = (ctx) => {
 		},
 	  })(sectionBaseConfig, extendedWebpackConfig);
 
-	const mergedBaseConfig = merge(baseWebpackConfig, extendedWebpackConfig);
-	// const mergedSectionConfig = merge(sectionBaseConfig, extendedWebpackConfig);
+	const mergedBaseConfig = mergeWithRules({
+		module: {
+		  rules: {
+			test: "match",
+			use: "append",
+		  },
+		},
+	  })(baseWebpackConfig, extendedWebpackConfig);
+
 	return [
 		mergedBaseConfig,
 		mergedSectionConfig,
 	]
 }
-`;

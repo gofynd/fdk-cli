@@ -1,9 +1,11 @@
 import { exec } from 'child_process'
 import path from 'path'
+import fs from 'fs';
 import rimraf from 'rimraf';
 import Theme from '../lib/Theme';
 import Spinner from './spinner';
 import webpack from 'webpack';
+import createBaseWebpackConfig from '../helper/theme.react.config';
 
 export function build({ buildFolder, imageCdnUrl, assetCdnUrl, assetHash = '' }) {
     const VUE_CLI_PATH = path.join('.', 'node_modules', '@vue', 'cli-service', 'bin', 'vue-cli-service.js');
@@ -83,19 +85,25 @@ export async function devReactBuild({ buildFolder, runOnLocal, assetBasePath, lo
     try {
         // Clean the build directory
         rimraf.sync(buildPath);
+        let webpackConfigFromTheme = {};
+        const themeWebpackConfigPath = path.join(process.cwd(), Theme.REACT_CLI_CONFIG_PATH);
 
-        const webpackConfigFromTheme = await import(path.join(process.cwd(), Theme.REACT_CLI_CONFIG_PATH));
+        if (fs.existsSync(themeWebpackConfigPath)) {
+             ({ default: webpackConfigFromTheme }  = await import(themeWebpackConfigPath));
+        }
+
         const ctx = {
             buildPath: buildPath,
             NODE_ENV: (!runOnLocal && "production") || "development",
             assetBasePath: assetBasePath,
             imageCdnUrl: imageCdnUrl,
             localThemePort: localThemePort,
+            context: process.cwd(),
         }
-        const config = webpackConfigFromTheme.default(ctx);
-        
-        await new Promise((resolve, reject) => {
-            webpack(config, (err, stats) => {
+        const baseWebpackConfig = createBaseWebpackConfig(ctx, webpackConfigFromTheme);
+        return await new Promise((resolve, reject) => {
+            webpack(baseWebpackConfig, (err, stats) => {
+                console.log(err)
                 console.log(stats.toString());
                 if (err || stats.hasErrors()) {
                     reject();
@@ -111,17 +119,24 @@ export async function devReactBuild({ buildFolder, runOnLocal, assetBasePath, lo
 export async function devReactWatch({ buildFolder, runOnLocal, assetBasePath, localThemePort, imageCdnUrl } : DevReactBuild, callback: Function) {
     const buildPath = path.join(process.cwd(), buildFolder);
     try {
-        const webpackConfigFromTheme = await import(path.join(process.cwd(), Theme.REACT_CLI_CONFIG_PATH));
+        let webpackConfigFromTheme = {};
+        const themeWebpackConfigPath = path.join(process.cwd(), Theme.REACT_CLI_CONFIG_PATH);
+
+        if (fs.existsSync(themeWebpackConfigPath)) {
+             ({ default: webpackConfigFromTheme }  = await import(themeWebpackConfigPath));
+        }
         const ctx = {
             buildPath: buildPath,
             NODE_ENV: (!runOnLocal && "production") || "development",
             assetBasePath: assetBasePath,
             imageCdnUrl: imageCdnUrl,
             localThemePort: localThemePort,
+            context: process.cwd(),
         }
-        const config = webpackConfigFromTheme.default(ctx);
         
-        const compiler = webpack(config);
+        const baseWebpackConfig = createBaseWebpackConfig(ctx, webpackConfigFromTheme);
+        
+        const compiler = webpack(baseWebpackConfig);
         compiler.watch(
             {
               aggregateTimeout: 1500,
@@ -129,7 +144,7 @@ export async function devReactWatch({ buildFolder, runOnLocal, assetBasePath, lo
               poll: undefined,
             },
             (err, stats) => {
-            console.log(stats.toString());
+                console.log(err)
               if(err) {
                 throw err;
               }

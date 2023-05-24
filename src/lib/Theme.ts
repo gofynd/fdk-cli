@@ -44,7 +44,6 @@ import Debug from './Debug';
 import Spinner from '../helper/spinner';
 import { themeVueConfigTemplate, settingLoader } from '../helper/theme.vue.config';
 import { simpleGit } from 'simple-git';
-import { themeReactWebpackTemplate } from '../helper/theme.react.config';
 export default class Theme {
     /*
         new theme from default template -> create
@@ -62,7 +61,7 @@ export default class Theme {
     static BUILD_FOLDER = './.fdk/dist';
     static SRC_FOLDER = path.join('.fdk', 'temp-theme');
     static VUE_CLI_CONFIG_PATH = path.join('.fdk', 'vue.config.js');
-    static REACT_CLI_CONFIG_PATH = path.join('.fdk', 'webpack.config.js');
+    static REACT_CLI_CONFIG_PATH = 'webpack.config.js';
     static SRC_ARCHIVE_FOLDER = path.join('.fdk', 'archive');
     static SETTING_LOADER_FILE = path.join('.fdk', 'setting-loader.js');
     static ZIP_FILE_NAME = `archive.zip`;
@@ -141,9 +140,6 @@ export default class Theme {
             Logger.info('creating section index file');
             await Theme.createReactSectionsIndexFile();
             Logger.info('created section index file');
-
-            // Creates a webpack config file
-            await Theme.createReactConfig();
 
             Logger.info('Installing dependencies');
             let spinner = new Spinner("Installing npm packages")
@@ -438,9 +434,6 @@ export default class Theme {
 
             // Create index.js with section file imports
             await Theme.createReactSectionsIndexFile();
-
-            // Creates a webpack config file
-            await Theme.createReactConfig();
 
             const buildPath = path.join(process.cwd(), Theme.BUILD_FOLDER);
 
@@ -738,8 +731,6 @@ export default class Theme {
 
             // Create index.js with section file imports
             await Theme.createReactSectionsIndexFile();
-
-            await Theme.createReactConfig();
 
             await devReactBuild({
                 buildFolder: Theme.BUILD_FOLDER,
@@ -1070,13 +1061,6 @@ export default class Theme {
         rimraf.sync(path.join(process.cwd(), Theme.SETTING_LOADER_FILE));
         fs.writeFileSync(path.join(process.cwd(), Theme.SETTING_LOADER_FILE), settingLoader);
 
-
-    }
-    private static createReactConfig() {
-        if (!isAThemeDirectory()) createDirectory(path.join(process.cwd(), '.fdk'));
-        const reactWebpackPath = path.join(process.cwd(), Theme.REACT_CLI_CONFIG_PATH);
-        rimraf.sync(reactWebpackPath);
-        fs.writeFileSync(reactWebpackPath, themeReactWebpackTemplate);
 
     }
 
