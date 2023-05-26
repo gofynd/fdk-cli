@@ -1112,8 +1112,37 @@ export default class Theme {
             throw new CommandError(err.message, err.code);
         }
     };
+    
+    public static generateAssets = async () =>{
+        let available_sections = await Theme.getAvailableSectionsForSync();
+        await Theme.validateAvailableSections(available_sections);
+        Theme.clearPreviousBuild();
+        const imageCdnUrl = await Theme.getImageCdnBaseUrl();
+        const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
+        Theme.createVueConfig();
+        const assetHash = shortid.generate();
+        Logger.info('Building Assets');
+        // Building .js & .css bundles using vue-cli
+        await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl, assetHash });
+        let pArr = await Theme.uploadThemeBundle({ assetHash });
+        let [cssUrls, commonJsUrl, umdJsUrls] = await Promise.all(pArr);
+        const configPath = path.join(process.cwd(), 'config.json');
+        const config = fs.readJSONSync(configPath);
+        config.theme.available_sections = available_sections
+        config.theme.assets = {};
+        config.theme.assets.umd_js = {};        
+        config.theme.assets.umd_js.links = umdJsUrls;
+        config.theme.assets.common_js = {};        
+        config.theme.assets.common_js.link = commonJsUrl;
+        config.theme.assets.css = {};   
+        config.theme.assets.css.links = cssUrls;
+        await fs.writeJson(configPath, config,{ spaces: 2 });
+    };
 
+    
     public static generateThemeZip = async () => {
+        // Generate production build so that we can get assets and available sections in config file while creating zip
+        await Theme.generateAssets();
         let content = { name: ''};
         let spinner;
         try {
