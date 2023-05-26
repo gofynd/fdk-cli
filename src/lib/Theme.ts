@@ -1114,29 +1114,31 @@ export default class Theme {
     };
     
     public static generateAssets = async () =>{
+        Theme.clearPreviousBuild();
         let available_sections = await Theme.getAvailableSectionsForSync();
         await Theme.validateAvailableSections(available_sections);
-        Theme.clearPreviousBuild();
         const imageCdnUrl = await Theme.getImageCdnBaseUrl();
         const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
-        Theme.createVueConfig();
         const assetHash = shortid.generate();
         Logger.info('Building Assets');
         // Building .js & .css bundles using vue-cli
         await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl, assetHash });
         let pArr = await Theme.uploadThemeBundle({ assetHash });
         let [cssUrls, commonJsUrl, umdJsUrls] = await Promise.all(pArr);
-        const configPath = path.join(process.cwd(), 'config.json');
-        const config = fs.readJSONSync(configPath);
-        config.theme.available_sections = available_sections
-        config.theme.assets = {};
-        config.theme.assets.umd_js = {};        
-        config.theme.assets.umd_js.links = umdJsUrls;
-        config.theme.assets.common_js = {};        
-        config.theme.assets.common_js.link = commonJsUrl;
-        config.theme.assets.css = {};   
-        config.theme.assets.css.links = cssUrls;
-        await fs.writeJson(configPath, config,{ spaces: 2 });
+        
+        // tech debt: need to add this as a part of config.json file
+        const assetsPath = path.join(process.cwd(), 'assets.json');
+        const assetsData = {
+            assets: {
+                umd_js: {
+                    links: umdJsUrls
+                },
+                common_js: commonJsUrl,
+                css: cssUrls
+            },
+            available_sections: available_sections
+        }
+        await fs.writeJson(assetsPath, assetsData,{ spaces: 2 });
     };
 
     
