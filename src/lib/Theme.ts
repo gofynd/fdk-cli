@@ -1133,8 +1133,12 @@ export default class Theme {
                 umd_js: {
                     links: umdJsUrls
                 },
-                common_js: commonJsUrl,
-                css: cssUrls
+                common_js: {
+                    link: commonJsUrl
+                },
+                css: {
+                    links: cssUrls
+                }
             },
             available_sections: available_sections
         }
