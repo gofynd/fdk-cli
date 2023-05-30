@@ -789,6 +789,7 @@ export default class Theme {
             ).data;
             return (imageCdnUrl = path.dirname(startAssetData.cdn.url));
         } catch (err) {
+            console.log(err);
             throw new CommandError(`Failed in getting image CDN base url`, err.code);
         }
     };
@@ -1119,6 +1120,7 @@ export default class Theme {
         await Theme.validateAvailableSections(available_sections);
         const imageCdnUrl = await Theme.getImageCdnBaseUrl();
         const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
+        Theme.createVueConfig();
         const assetHash = shortid.generate();
         Logger.info('Building Assets');
         // Building .js & .css bundles using vue-cli
