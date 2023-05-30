@@ -39,14 +39,14 @@ export const URLS = {
     //ASSETS
     START_UPLOAD_FILE: (application_id: string, company_id: number, namespaces: string) => {
         return urlJoin(
-           ASSET_URL(),
-            `/organization/${organization_id}/company/${company_id}/application/${application_id}/namespaces/${namespaces}/upload/start`
+            MIXMASTER_URL('partner'),
+            `/organization/${organization_id}/namespaces/${namespaces}/upload/start`
         );
     },
     COMPLETE_UPLOAD_FILE: (application_id: string, company_id: number, namespaces: string) => {
         return urlJoin(
-           ASSET_URL(),
-            `/organization/${organization_id}/company/${company_id}/application/${application_id}/namespaces/${namespaces}/upload/complete`
+            MIXMASTER_URL('partner'),
+            `/organization/${organization_id}/namespaces/${namespaces}/upload/complete`
         );
     },
 
