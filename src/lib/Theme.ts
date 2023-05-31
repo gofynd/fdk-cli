@@ -314,8 +314,10 @@ export default class Theme {
             // Check if preset available for pages
             if (preset && preset.pages) {
                 preset.pages.forEach(data => {
-                    preset_section_names[data.value] = data.sections.map(sec_data => sec_data.name);
-                    preset_section_values[data.value] = data.sections;
+                    if(data && data.value){
+                        preset_section_names[data.value] = data.sections.map(sec_data => sec_data.name);
+                        preset_section_values[data.value] = data.sections;
+                    }
                 });
             }
 
