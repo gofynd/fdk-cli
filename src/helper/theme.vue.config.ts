@@ -49,7 +49,7 @@ vueConfig = mergeDeep(vueConfig, {
   publicPath: process.env.ASSET_CDN_URL,
   css: {
     extract: {
-      chunkFilename: process.env.ASSET_HASH && \`\${process.env.ASSET_HASH}_[name].[contenthash].css\` ||
+      filename: process.env.ASSET_HASH && \`\${process.env.ASSET_HASH}_[name].[contenthash].css\` ||
         \`[name].[contenthash].css\`,
     },
   }
