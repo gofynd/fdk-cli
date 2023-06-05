@@ -8,12 +8,14 @@ import express from 'express';
 var cors = require('cors')
 const app = require('https-localhost')(getLocalBaseUrl());
 const port = 7071
+import chalk from 'chalk';
 function getLocalBaseUrl() {
     return "https://localhost";
 }
 export default class Auth {
     constructor() { }
     public static async login() {
+        console.log(chalk.green("Current env: ",ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)))
         const isLoggedIn = await Auth.isAlreadyLoggedIn();
         app.use(cors());
         app.use(express.json());

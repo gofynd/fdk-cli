@@ -1,4 +1,4 @@
-export const ALL_THEME_COMMANDS = ['context-list', 'init', 'new', 'package', 'pull', 'pull-config', 'sync', 'serve']
+export const ALL_THEME_COMMANDS = ['context', 'context-list', 'init', 'new', 'package', 'pull', 'pull-config', 'sync', 'serve']
 export const THEME_COMMANDS = ['pull', 'pull-config', 'serve', 'sync'];
 export const ENVIRONMENT_COMMANDS = ['env'];
 export const AUTHENTICATION_COMMANDS = ['auth', 'login', 'logout'];

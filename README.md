@@ -67,6 +67,7 @@ ___
 | ------------- |-------------| 
 | [new](#theme-new)     | Create new theme |
 | [init](#theme-init)     | Initialize an existing theme |
+| [context](#theme-context)     | Add context of a theme |
 | [context-list](#theme-context-list)     | List all available contexts |
 | [active-context](theme-active-context)    | show currently active context |
 | [serve](#theme-serve)     | Start theme serving on localhost |
@@ -221,6 +222,28 @@ fdk theme init [options]
 #### **Example**
 ```sh
 fdk theme init
+```
+___
+
+<div id="theme-context"></div>
+
+#### **context**
+Context is a JSON object which holds the configurations related the the application and theme. When you initialize or create a new theme a context is created with the name provided in the commands and assigned as the active context. You can add multiple contexts if you want to use the same theme on multiple applications or envoirnments. <br/> <br/>
+This command is used to add a new context.
+#### **Syntax**
+```sh
+fdk theme context [options]
+```
+#### **Command Options**
+| Option        | Description           | 
+| ------------- |-------------| 
+| --name, -n    | Context name |
+| --help    | Show help |
+| --verbose, -v | enable debug mode |
+
+#### **Example**
+```sh
+fdk theme context -n [context-name] 
 ```
 ___
 

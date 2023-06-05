@@ -1,11 +1,39 @@
 import CommandError, { ErrorCodes } from './CommandError';
 import Logger from './Logger';
-import { getActiveContext, hasContext, isAThemeDirectory } from '../helper/utils';
+import { createContext, getActiveContext, hasContext, isAThemeDirectory } from '../helper/utils';
+import ConfigurationService from './api/services/configuration.service';
+import ThemeService from './api/services/theme.service';
+import Theme from '../lib/Theme';
 import fs from 'fs-extra';
 import path from 'path';
 import inquirer from 'inquirer';
 export default class ThemeContext {
     constructor() {}
+    
+    public static async addThemeContext(options) {
+        try {           
+            let configObj = await Theme.selectCompanyAndStore();
+            configObj = await Theme.selectTheme(configObj);
+            const { data: appConfig } = await ConfigurationService.getApplicationDetails(configObj);
+            const { data: themeData } = await ThemeService.getThemeById(configObj);
+            const themeName = themeData?.name || 'default';
+            let context: any = {
+                name: options.name,
+                application_id: appConfig._id,
+                domain: appConfig.domain.name,
+                company_id: appConfig.company_id,
+                theme_id: themeData._id,
+                application_token: appConfig.token
+            };
+            Logger.info('Saving context');
+            await createContext(context);
+            Logger.info('Setting as current context');
+            Logger.info('DONE');
+        } catch (error) {
+            throw new CommandError(error.message, error.code);
+        }
+    }
+    
     public static async listThemeContext() {
         try {
             if (!isAThemeDirectory()) {
@@ -16,6 +44,7 @@ export default class ThemeContext {
             }
             if (!hasContext()) {
                 Logger.warn('No theme contexts available');
+                Logger.info('Add a theme context using fdk theme context -n [context-name]');
                 return;
             }
             const contextPath = path.join(process.cwd(), '.fdk','context.json');

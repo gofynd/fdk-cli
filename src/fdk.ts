@@ -105,9 +105,7 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
                 }
             }
             if (
-                parent.args.includes('theme') &&
-                !parent.args.includes('new') &&
-                !parent.args.includes('init')
+                parent.args.includes('theme')            
             ) {
                 if (!isAThemeDirectory()) {
                     const answer = await promptForFDKFolder();

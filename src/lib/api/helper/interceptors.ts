@@ -7,6 +7,7 @@ import CommandError, { ErrorCodes } from '../../CommandError';
 import AuthenticationService from '../services/auth.service';
 import ConfigStore, { CONFIG_KEYS } from '../../Config';
 import { getActiveContext } from '../../../helper/utils';
+import { COMMON_LOG_MESSAGES } from '../../../lib/Logger';
 
 function getTransformer(config) {
     const { transformRequest } = config;
@@ -112,9 +113,9 @@ export function responseInterceptor() {
 export function responseErrorInterceptor() {
     return error => {
         // Request made and server responded
-        if (error.response.status === 401) {
+        if (error.response.status === 401 || error.response.status === 403) {
             ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
-            throw new CommandError(`${error.response.data.message}`, ErrorCodes.API_ERROR.code);
+            throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
         }
         else if (error.response) {
             Debug(`Error Response  :  ${JSON.stringify(error.response.data)}`);

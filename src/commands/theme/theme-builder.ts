@@ -31,6 +31,12 @@ export default function themeCommandBuilder() {
         .command('pull-config')
         .description('Pull theme config')
         .asyncAction(Theme.pullThemeConfig);
+        
+    theme
+        .command('context')
+        .description('Add context')
+        .requiredOption('-n, --name [name]', 'Context name')
+        .asyncAction(ThemeContext.addThemeContext);
 
 
     theme.command('context-list').description('List all contexts').asyncAction(ThemeContext.listThemeContext);
