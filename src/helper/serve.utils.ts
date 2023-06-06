@@ -295,6 +295,10 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 		if (req.originalUrl == '/favicon.ico' || req.originalUrl == '/.webp') {
 			return res.status(404).send('Not found');
 		}
+		// While build is not complete
+		if(!fs.existsSync(path.join(BUNDLE_DIR, 'themeBundle.umd.js'))) {
+			return res.sendFile(path.join(__dirname,'../../','/dist/helper','/loader.html'));
+		} 
 		const skyfireUrl = new URL(urlJoin(domain, req.originalUrl));
 		const reqChunkUrl = new URL(urlJoin(domain, '__required_chunks'));
 		skyfireUrl.searchParams.set('themeId', currentContext.theme_id);
@@ -314,28 +318,14 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 		for (let fileName of buildFiles) {
 			const { extension, componentName } = parseBundleFilename(fileName);
 			if (['js', 'css'].includes(extension) && requiredFiles.indexOf(componentName) !== -1) {
-				// check if it has been already uploaded
-				uploadedFiles[componentName] = uploadedFiles[componentName] || {};
-				const { fileName: lastUploadedFileName, cdnLink } = uploadedFiles[componentName][extension] || {};
-
-				if (fileName === lastUploadedFileName) {
+				
+				const promise = UploadService.uploadFile(path.join(BUNDLE_DIR, fileName), 'fdk-cli-dev-files', User._id).then(response => {
+					const url = response.complete.cdn.url;
 					themeURLs[componentName] = themeURLs[componentName] || {};
-					themeURLs[componentName][extension] = cdnLink;
-				} else {
-					const promise = UploadService.uploadFile(path.join(BUNDLE_DIR, fileName), 'fdk-cli-dev-files', User._id).then(response => {
-						const url = response.complete.cdn.url;
-						themeURLs[componentName] = themeURLs[componentName] || {};
-						themeURLs[componentName][extension] = url;
+					themeURLs[componentName][extension] = url;
 
-						// update global updated files store
-						uploadedFiles[componentName] = uploadedFiles[componentName] || {};
-						uploadedFiles[componentName][extension] = {
-							fileName,
-							cdnLink: url
-						}
-					});
-					promises.push(promise);
-				}
+				});
+				promises.push(promise);
 
 			}
 
@@ -343,11 +333,7 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 		
 		await Promise.all(promises);
 
-
-		// While build is not complete
-		if(!themeURLs.themeBundle) {
-			return res.sendFile(path.join(__dirname,'../../','/dist/helper','/loader.html'));
-		} 
+		
 		const {data: html} = await axios.post(
 			skyfireUrl.toString(), 
 			{
