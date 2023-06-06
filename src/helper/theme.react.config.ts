@@ -128,9 +128,9 @@ const baseConfig = (ctx) => {
 			},
 			output: {
 				path: buildPath,
-				filename: 'themeBundle.[contenthash].umd.js',
+				filename: isLocal ? 'themeBundle.umd.js' : 'themeBundle.[contenthash].umd.js',
 				publicPath: isLocal ? localBasePath : assetNormalizedBasePath,
-				chunkFilename: '[name].themeBundle.[contenthash].umd.js',
+				chunkFilename: isLocal ? '[name].themeBundle.umd.js' : '[name].themeBundle.[contenthash].umd.js',
 				library: {
 					name: 'themeBundle',
 					type: 'umd',
@@ -142,7 +142,7 @@ const baseConfig = (ctx) => {
 			},
 			plugins: [
 				new MiniCssExtractPlugin({
-					filename: '[name].[contenthash].css',
+					filename: isLocal ? '[name].css' : '[name].[contenthash].css',
 				}),
 				new webpack.ProvidePlugin({
 					// you must "npm install buffer" to use this.
