@@ -768,7 +768,7 @@ export default class Theme {
             const images = glob.sync(path.join('**', '**.**'), { cwd });
             await asyncForEach(images, async img => {
                 const assetPath = path.join(process.cwd(), Theme.BUILD_FOLDER, 'assets', 'images', img);
-                await UploadService.uploadFile(assetPath, 'misc');
+                await UploadService.uploadFile(assetPath, 'application-theme-images');
             });
         } catch (err) {
             throw new CommandError(err.message || `Failed to upload assets/images`, err.code);
@@ -784,7 +784,7 @@ export default class Theme {
                 size: '1',
             };
             let startAssetData = (
-                await UploadService.startUpload(startData, 'misc')
+                await UploadService.startUpload(startData, 'application-theme-images')
             ).data;
             return (imageCdnUrl = path.dirname(startAssetData.cdn.url));
         } catch (err) {
@@ -803,7 +803,7 @@ export default class Theme {
                     size: '10',
                 };
                 let startAssetData = (
-                    await UploadService.startUpload(startData, 'misc')
+                    await UploadService.startUpload(startData, 'application-theme-assets')
                 ).data;
                 return (assetCdnUrl = path.dirname(startAssetData.cdn.url));
             }
@@ -819,7 +819,7 @@ export default class Theme {
                 const fonts = glob.sync('**/**.**', { cwd });
                 await asyncForEach(fonts, async font => {
                     const assetPath = path.join(Theme.BUILD_FOLDER, 'assets', 'fonts', font);
-                    await UploadService.uploadFile(assetPath, 'misc');
+                    await UploadService.uploadFile(assetPath, 'application-theme-assets');
                 });
             }
         } catch (err) {
@@ -851,7 +851,7 @@ export default class Theme {
         try {
             Logger.info('Uploading commonJS');
             const commonJS = `${assetHash}_themeBundle.common.js`;
-            const commonJsUrlRes = await UploadService.uploadFile(path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS), 'misc');
+            const commonJsUrlRes = await UploadService.uploadFile(path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS), 'application-theme-assets');
             const commonJsUrl = commonJsUrlRes.start.cdn.url
             
             Logger.info('Uploading umdJS');
@@ -859,13 +859,13 @@ export default class Theme {
             umdMinAssets.push(path.join(process.cwd(), Theme.BUILD_FOLDER, `${assetHash}_themeBundle.umd.min.js`));
             const umdJSPromisesArr = umdMinAssets.map(asset => {
                 const assetPath = asset;
-                return UploadService.uploadFile(assetPath, 'misc');
+                return UploadService.uploadFile(assetPath, 'application-theme-assets');
             });
             const umdJsUrls = await Promise.all(umdJSPromisesArr);
             Logger.info('Uploading css');
             let cssAssests = glob.sync(path.join(process.cwd(), Theme.BUILD_FOLDER, '**.css'));
             let cssPromisesArr = cssAssests.map(asset => {
-                return UploadService.uploadFile(asset, 'misc');
+                return UploadService.uploadFile(asset, 'application-theme-assets');
             });
             const cssUrls = await Promise.all(cssPromisesArr);
             return [cssUrls.map(res => res.start.cdn.url), commonJsUrl, umdJsUrls.map(res => res.start.cdn.url)];
@@ -1054,7 +1054,7 @@ export default class Theme {
     private static uploadThemeSrcZip = async () => {
         const zipFilePath = path.join(process.cwd(), Theme.SRC_ARCHIVE_FOLDER, Theme.ZIP_FILE_NAME);
         try {
-            let res = await UploadService.uploadFile(zipFilePath, 'misc');
+            let res = await UploadService.uploadFile(zipFilePath, 'application-theme-src');
             return res.start.cdn.url;
         } catch (err) {
             throw new CommandError(err.message || `Failed to upload src folder`, err.code);

@@ -9,7 +9,6 @@ import Spinner from '../../../helper/spinner';
 export default {
     startUpload: async (data, namespace) => {
         try {
-           // const activeContext = getActiveContext();
             const axiosOption = Object.assign(
                 {},
                 {
@@ -32,7 +31,6 @@ export default {
         let spinner = new Spinner();
         let textMessage;
         try {
-           // const activeContext = getActiveContext();
             let stats = fs.statSync(filepath);
             textMessage = `Uploading file ${path.basename(filepath)}  [${Math.round(stats.size / 1024)} KB]`
             spinner.start(textMessage);

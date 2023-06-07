@@ -6,7 +6,6 @@ import Debug from '../../Debug';
 import CommandError, { ErrorCodes } from '../../CommandError';
 import AuthenticationService from '../services/auth.service';
 import ConfigStore, { CONFIG_KEYS } from '../../Config';
-import { getActiveContext } from '../../../helper/utils';
 import { COMMON_LOG_MESSAGES } from '../../../lib/Logger';
 
 function getTransformer(config) {
@@ -88,11 +87,6 @@ function interceptorFn(options) {
                 // config.headers = signingOptions.headers;
                 config.headers['x-fp-date'] = signingOptions.headers['x-fp-date'];
                 config.headers['x-fp-signature'] = signingOptions.headers['x-fp-signature'];
-                if (pathname.includes('assets')) {
-                    const activeContext = getActiveContext();
-                    config.headers['x-application-id'] = activeContext.application_id || '-';
-                    config.headers['x-application-token'] = activeContext.application_token || '-';
-                }
             }
             return config;
         } catch (error) {
