@@ -212,8 +212,8 @@ export default class Theme {
                 shouldDelete = false;
                 throw new CommandError(`Folder ${options.name} already exists`);
             }
-            const currentContext = getActiveContext();
-            const { data: appConfig } = await ConfigurationService.getApplicationDetails(currentContext);
+            const configObj = await Theme.selectCompanyAndStore();
+            const { data: appConfig } = await ConfigurationService.getApplicationDetails(configObj);
             
             Logger.info('Cloning template files');
             await Theme.cloneTemplate(options, targetDirectory);
@@ -227,7 +227,7 @@ export default class Theme {
                 available_sections,
                 version: "1.0.0"
             };
-            const { data: theme } = await ThemeService.createTheme({ ...currentContext, ...themeData });
+            const { data: theme } = await ThemeService.createTheme({ ...configObj, ...themeData });
             
             let context: any = {
                 name: options.name,
@@ -281,11 +281,12 @@ export default class Theme {
         let shouldDelete = false;
         let targetDirectory = '';
         try {
-            const currentContext = getActiveContext();
-            const { data: appConfig } = await ConfigurationService.getApplicationDetails(currentContext);
+            let configObj = await Theme.selectCompanyAndStore();
+            configObj = await Theme.selectTheme(configObj);
+            const { data: appConfig } = await ConfigurationService.getApplicationDetails(configObj);
             
             Logger.info('Fetching Template Files');
-            const { data: themeData } = await ThemeService.getThemeById(currentContext);
+            const { data: themeData } = await ThemeService.getThemeById(configObj);
             const themeName = themeData?.name || 'default';
             
             targetDirectory = path.join(process.cwd(), themeName);
