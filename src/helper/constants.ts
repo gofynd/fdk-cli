@@ -3,7 +3,9 @@ export const THEME_COMMANDS = ['pull', 'pull-config', 'serve', 'sync'];
 export const ENVIRONMENT_COMMANDS = ['env'];
 export const AUTHENTICATION_COMMANDS = ['auth', 'login', 'logout'];
 export const EXTENSION_COMMANDS = ['init', 'setup', 'get', 'set'];
-export const PARTNER_COMMANDS = ['connect']
+export const PARTNER_COMMANDS = ['connect'];
+export const DEPRECATED_THEME_COMMANDS = ['publish', 'unpublish', 'context', 'init', 'new', ];
+export const DEPRECATED_AUTHENTICATION_COMMANDS = ['login', 'auth']
 
 // TODO: Add all env here
 export const ALLOWD_ENV = {
