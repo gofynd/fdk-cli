@@ -49,7 +49,7 @@ vueConfig = mergeDeep(vueConfig, {
   publicPath: process.env.ASSET_CDN_URL,
   css: {
     extract: {
-      filename: process.env.ASSET_HASH && \`\${process.env.ASSET_HASH}_[name].[contenthash].css\` ||
+      chunkFilename: process.env.ASSET_HASH && \`\${process.env.ASSET_HASH}_[name].[contenthash].css\` ||
         \`[name].[contenthash].css\`,
     },
   }
@@ -88,7 +88,15 @@ const chainWebpack = (config) => {
   } 
   config
     .optimization.splitChunks({
-      automaticNameDelimiter: "_"
+      automaticNameDelimiter: "_",
+      cacheGroups: {
+        styles: {
+          name: "styles",
+          test: m => m.constructor.name === 'CssModule',
+          chunks: "all",
+          enforce: true,
+        }
+      }
     })
 }
 
