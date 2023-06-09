@@ -1145,7 +1145,99 @@ export default class Theme {
             available_sections: available_sections
         }
         await fs.writeJson(assetsPath, assetsData,{ spaces: 2 });
+        await Theme.generateAvailablePages(assetHash)
     };
+    
+    public static generateAvailablePages = async (assetHash) => {
+        try{
+            // extract system page level settings schema
+            const pagesToSave = [];
+            let systemPages = fs
+            .readdirSync(path.join(process.cwd(), 'theme', 'templates', 'pages'))
+            .filter(o => o != 'index.js');
+            await asyncForEach(systemPages, async fileName => {
+                let pageName = fileName.replace('.vue', '');
+                    // SYSTEM Pages
+                    Logger.info('Creating System Page: ', pageName);
+                    const pageData = {
+                        value: pageName,
+                        props: [],
+                        sections: [],
+                        sections_meta: [],
+                        type: 'system',
+                        text: pageNameModifier(pageName),
+                    };
+                    pageData.props=
+                    (
+                        Theme.extractSettingsFromFile(
+                            path.join(process.cwd(), 'theme', 'templates', 'pages', fileName)
+                        ) || {}
+                    ).props || [];
+                    pageData.sections_meta = Theme.extractSectionsFromFile(
+                    path.join(process.cwd(), 'theme', 'templates', 'pages', fileName)
+                );
+                pageData.type = 'system';
+                pagesToSave.push(pageData);
+            });
+            
+            // extract custom page level settings schema
+            const bundleFiles = await fs.readFile(
+                path.join(Theme.BUILD_FOLDER, `${assetHash}_themeBundle.common.js`),
+                'utf-8'
+            );
+            let customTemplates = [];
+            const themeBundle = evaluateModule(bundleFiles);
+            if(themeBundle && themeBundle.getCustomTemplates){
+                customTemplates = themeBundle.getCustomTemplates();
+            }   
+            const customFiles = {};
+            let settingProps;
+            const customRoutes = (ctTemplates, parentKey = null) => {
+                for (let key in ctTemplates) {
+                    const routerPath = (parentKey && `${parentKey}/${key}`) || `c/${key}`;
+                    const value = routerPath.replace(/\//g, ':::');
+                    if(ctTemplates[key].component && ctTemplates[key].component.__settings){
+                        settingProps = ctTemplates[key].component.__settings.props
+                    }
+                    customFiles[value] = {
+                        fileSetting: settingProps,
+                        value,
+                        text: pageNameModifier(key),
+                        path: routerPath,
+                    };
+                   
+                    if (
+                        ctTemplates[key].children &&
+                        Object.keys(ctTemplates[key].children).length
+                    ) {
+                        customRoutes(ctTemplates[key].children, routerPath);
+                    }
+                }
+            };   
+            customRoutes(customTemplates);
+            for (let key in customFiles) {
+                const customPageConfig = customFiles[key];
+                let pageData = {
+                    value: customPageConfig.value,
+                    text: customPageConfig.text,
+                    path: customPageConfig.path,
+                    props: [],
+                    sections: [],
+                    sections_meta: [],
+                    type: 'custom',
+                }
+                pageData.props = customPageConfig.fileSetting || []
+                pageData.sections_meta =[]
+                pageData.type = 'custom';
+                pagesToSave.push(pageData);
+            }
+            const pageJson = path.join(process.cwd(), 'page.json');
+            await fs.writeJson(pageJson, pagesToSave,{ spaces: 2 });
+        }
+        catch(err){
+            throw new CommandError(err.message, err.code);
+        }
+    }
 
     
     public static generateThemeZip = async () => {
