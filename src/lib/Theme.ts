@@ -1231,8 +1231,8 @@ export default class Theme {
                 pageData.type = 'custom';
                 pagesToSave.push(pageData);
             }
-            const pageJson = path.join(process.cwd(), 'page.json');
-            await fs.writeJson(pageJson, pagesToSave,{ spaces: 2 });
+            const pageJson = path.join(process.cwd(), 'pages.json');
+            await fs.writeJson(pageJson, { pages: pagesToSave},{ spaces: 2 });
         }
         catch(err){
             throw new CommandError(err.message, err.code);
