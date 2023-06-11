@@ -921,7 +921,7 @@ export default class Theme {
             theme.assets.common_js = theme.assets.commonJs || {};
             theme.assets.common_js.link = commonJsUrl;
             theme.assets.css = theme.assets.css || {};
-            theme.assets.css.links = cssUrls;
+            theme.assets.css.links = cssUrls.filter(x => x.endsWith("_themeBundle.css"));
             theme.assets.css.link = "";
             // TODO Issue here
             theme = {
