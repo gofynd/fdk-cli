@@ -24,6 +24,8 @@ export default class Auth {
         await Auth.startServer(server);
 
         app.post('/token', async (req, res) => {
+            const expiryTimestamp = Math.floor(Date.now() / 1000) + req.body.auth_token.expires_in;
+            req.body.auth_token.expiry_time = expiryTimestamp;
             ConfigStore.set(CONFIG_KEYS.AUTH_TOKEN, req.body.auth_token);
             ConfigStore.set(CONFIG_KEYS.ORGANIZATION, req.body.organization);
             res.status(200).json({ 'message': 'sucess' })
@@ -60,7 +62,7 @@ export default class Auth {
         try {
             if (!isLoggedIn)
                 await open(`${ALLOWD_ENV[env]}/?fdk-cli=true&callback=${(getLocalBaseUrl())}:${port}`);
-            else
+            else if(isOrganizationChange)
                 await open(`${ALLOWD_ENV[env]}/organizations?fdk-cli=true&callback=${getLocalBaseUrl()}:${port}`);
         }
         catch (error) {

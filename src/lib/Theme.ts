@@ -93,8 +93,10 @@ export default class Theme {
         const themeListOptions = {};
         const themeList = await ThemeService.getAllThemes(config);
         if (!themeList.data.length) {
-            Logger.error("Theme not found")
-            return;
+            throw new CommandError(
+                ErrorCodes.NO_THEME_FOUND.message, 
+                ErrorCodes.NO_THEME_FOUND.code
+              )
         }
         themeList.data.forEach(theme => {
             themeListOptions[`${theme.name}`] = { ...theme };
@@ -149,8 +151,10 @@ export default class Theme {
 
         const companyListOptions = {};
         if (!companyList.items.length) {
-            Logger.error("Company not found")
-            return
+            throw new CommandError(
+                ErrorCodes.NO_COMPANY_FOUND.message, 
+                ErrorCodes.NO_COMPANY_FOUND.code
+              )
         }
         companyList?.items.forEach(company => {
             companyListOptions[`${company.company_name}`] = { ...company };
@@ -174,8 +178,10 @@ export default class Theme {
             }
         })
         if (!applicationList.data.items.length) {
-            Logger.error("sales channel not found")
-            return
+            throw new CommandError(
+                ErrorCodes.NO_APP_FOUND.message, 
+                ErrorCodes.NO_APP_FOUND.code
+              )
         }
         const applicationListOptions = {};
         applicationList.data.items.forEach(application => {

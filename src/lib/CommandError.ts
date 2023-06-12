@@ -34,6 +34,18 @@ export const ErrorCodes = {
   NO_DEVELOPMENT_COMPANY: {
     message: "Development account not found",
     code: 'FDK-0008'
+  },
+  NO_COMPANY_FOUND: {
+    message: "Company not found",
+    code: 'FDK-0009'
+  },
+  NO_APP_FOUND: {
+    message: "Sales channel not found",
+    code: 'FDK-00010'
+  },
+  NO_THEME_FOUND: {
+    message: "Theme not found",
+    code: 'FDK-00011'
   }
 };
 
