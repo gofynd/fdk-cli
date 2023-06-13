@@ -5,7 +5,6 @@ import vm from 'vm';
 import CommandError, { ErrorCodes } from '../lib/CommandError';
 import { COMMON_LOG_MESSAGES } from '../lib/Logger';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
-import { createDirectory } from './file.utils';
 import execa from 'execa';
 import Debug from '../lib/Debug';
 
@@ -63,13 +62,7 @@ export const getActiveContext = (): ThemeContextInterface => {
 
 export const createContext = async context => {
   try {
-    if (!isAThemeDirectory()) createDirectory(FDK_PATH());
-    if (!hasContext()) {
-      await fs.writeJSON(CONTEXT_PATH(), DEFAULT_CONTEXT);
-    }
     let contextsData = await fs.readJSON(CONTEXT_PATH());
-    if (contextsData.theme.contexts[context.name])
-      throw new CommandError('Context with the same name already exists');
     context.env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
     contextsData.theme.active_context = context.name;
     contextsData.theme.contexts[context.name] = context;
