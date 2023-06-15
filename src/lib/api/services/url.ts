@@ -2,11 +2,17 @@ import configStore, { CONFIG_KEYS } from '../../Config';
 import urlJoin from 'url-join';
 import { AVAILABLE_ENVS } from '../../Env';
 
+// todo: Resolve "unable to verify the first certificate" issue then remove below line
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 const apiVersion = configStore.get(CONFIG_KEYS.API_VERSION) || '1.0';
 
 export const getBaseURL = () => {
     const currentEnv = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
-    return `https://${AVAILABLE_ENVS[currentEnv]}`;
+    if(AVAILABLE_ENVS[currentEnv])
+        return `https://${AVAILABLE_ENVS[currentEnv]}`;
+    
+    return `https://${currentEnv}`
 };
 
 const THEME_URL = () => getBaseURL() + '/service/platform/theme/v' + apiVersion;

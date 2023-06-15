@@ -2,6 +2,9 @@ import configStore, { CONFIG_KEYS } from './Config';
 import CommandError from './CommandError';
 import Logger, { COMMON_LOG_MESSAGES } from './Logger';
 import chalk from 'chalk';
+import axios from 'axios';
+import urljoin from 'url-join';
+import { isValidDomain } from '../helper/utils';
 
 export const AVAILABLE_ENVS = {
   // Fynd
@@ -98,6 +101,14 @@ export default class Env {
 
   public static async setNewEnvs(options) {
     try {
+      if (!options.url && !options.name) {
+        throw new Error('Please provide either --name or --url.')
+      }
+      
+      if (options.url && options.name) {
+        throw new Error('Please provide only one option: either --name or --url.')
+      }
+
       if(options.name) {
         if(Object.keys(AVAILABLE_ENVS).includes(options.name)) {
           Env.setEnv(options.name);
@@ -106,6 +117,28 @@ export default class Env {
           Logger.error(`*${chalk.bold(options.name)}* environment is not supported.\n`);
           Env.listEnvs();
         }
+      } else if(options.url){
+        if(!isValidDomain(options.url))
+          throw new Error('Please provide valid URL.')
+
+        try{
+          // todo: Resolve "unable to verify the first certificate" issue then remove below line
+          process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+          const url = urljoin("https://",options.url, '/service/application/content/_healthz')
+          const response = await axios.get(url)
+          
+          if(response?.data?.ok){
+            Env.setEnv(options.url);
+            Logger.info(`Env set to: ${chalk.bold(options.url)}`);
+          } else {
+            throw new Error("Provided url is not sandbox URL.")
+          }
+        }catch(err){
+          console.log(err);
+          throw new Error("Provided url is not sandbox URL.")
+        }
+        
+
       }
     } catch(e) {
       throw new CommandError(e.message);
