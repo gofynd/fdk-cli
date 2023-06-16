@@ -122,8 +122,6 @@ export default class Env {
           throw new Error('Please provide valid URL.')
 
         try{
-          // todo: Resolve "unable to verify the first certificate" issue then remove below line
-          process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
           const url = urljoin("https://",options.url, '/service/application/content/_healthz')
           const response = await axios.get(url)
           
