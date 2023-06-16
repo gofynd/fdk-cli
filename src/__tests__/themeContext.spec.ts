@@ -3,19 +3,20 @@ import MockAdapter from 'axios-mock-adapter';
 import inquirer from 'inquirer';
 import { URLS } from '../lib/api/services/url';
 import mockFunction from './helper';
-import { generateToken, setEnv } from './helper';
-const { contextToken } = require('./constants');
+import { setEnv } from './helper';
 const appConfig = require('./fixtures/appConfig.json');
-const oauthData = require('./fixtures/oauthData.json');
-const data = require('./fixtures/email-login.json');
-import configStore from '../lib/Config';
-import { decodeBase64, getActiveContext } from '../helper/utils';
+const tokenData = require('./fixtures/partnertoken.json');
+const appList = require('./fixtures/applicationList.json');
+const themeList = require('./fixtures/themeList.json');
+import { getActiveContext } from '../helper/utils';
 import fs from 'fs-extra';
 import path from 'path';
 import { init } from '../fdk';
 import rimraf from 'rimraf';
 import { readFile } from '../helper/file.utils';
 import CommandError from '../lib/CommandError';
+import { startServer, getApp } from '../lib/Auth';
+const request = require('supertest')
 
 jest.mock('inquirer');
 let program;
@@ -41,9 +42,6 @@ jest.mock('configstore', () => {
     }
 });
 
-let configObj = JSON.parse(decodeBase64(`${contextToken}`));
-let addContextToken = generateToken(configObj);
-
 afterAll(() => {
     rimraf.sync('./themeCtx-test-cli.json');
     let filePath = path.join(process.cwd(), '.fdk', 'context.json');
@@ -54,9 +52,15 @@ afterAll(() => {
     }
 });
 async function login() {
-    const inquirerMock = mockFunction(inquirer.prompt);
-    inquirerMock.mockResolvedValue({ password: '1234567' });
-    await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '-e', 'anything@something.com']);
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
+    const app = await startServer();
+    const req = request(app)
+    await program.parseAsync([
+        'ts-node',
+        './src/fdk.ts',
+        'login',
+    ]);
+    await req.post('/token').send(tokenData);
 }
 
 describe('Theme Context Commands', () => {
@@ -64,13 +68,40 @@ describe('Theme Context Commands', () => {
         setEnv();
         program = await init('fdk');
         const mock = new MockAdapter(axios);
-        mock.onPost(`${URLS.LOGIN_USER()}`).reply(200, data, {
-            'set-cookie': [{ Name: 'some one' }],
-        });
-        mock.onGet(`${URLS.OAUTH_TOKEN(appConfig.company_id)}`).reply(200, oauthData);
         mock.onGet(
-            `${URLS.GET_APPLICATION_DETAILS(appConfig.application_id, appConfig.company_id)}`
+            `${URLS.GET_APPLICATION_DETAILS(appConfig.company_id, appConfig.application_id)}`
         ).reply(200, appConfig);
+        
+        mock
+        .onGet(`${URLS.GET_DEVELOPMENT_ACCOUNTS(1, 9999)}`)
+        .reply(200, {items: [{"company": {
+                "uid": 1,
+                "name": "cli-test"
+            }, 
+            company_name: "cli-test"}]
+        })
+        
+        mock
+        .onGet(`${URLS.GET_LIVE_ACCOUNTS(1, 9999)}`)
+        .reply(200, {items: [{"company": {
+                "uid": 1,
+                "name": "cli-test"
+            }, company_name: "cli-test"}]
+        })
+        
+        mock.onGet(
+            `${URLS.GET_APPLICATION_LIST(
+                appConfig.company_id,
+            )}`
+        ).reply(200, appList);
+        
+        mock
+        .onGet(`${URLS.GET_ALL_THEME(
+            appConfig.company_id,
+            appConfig.application_id,
+        )}`)
+        .reply(200, themeList.items)
+        
         mock.onGet(
             `${URLS.THEME_BY_ID(
                 appConfig.application_id,
@@ -83,16 +114,20 @@ describe('Theme Context Commands', () => {
     it('should successfully add theme context ', async () => {
         await login();
         const inquirerMock = mockFunction(inquirer.prompt);
-        inquirerMock.mockResolvedValue({ showCreateFolder: 'Yes' });
+        inquirerMock.mockResolvedValue({ 
+            showCreateFolder: 'Yes',
+            accountType: 'development', 
+            selectedCompany: 'cli-test',
+            selectedApplication: 'anurag', 
+            selectedTheme: 'Namaste'
+        });
         await program.parseAsync([
             'ts-node',
             './src/fdk.ts',
             'theme',
             'context',
-            '-t',
-            `${addContextToken}`,
             '-n',
-            'fyndx0',
+            'fyndx1',
         ]);
         let context: any = readFile(path.join(process.cwd(), '.fdk', 'context.json'));
         try {
@@ -100,24 +135,22 @@ describe('Theme Context Commands', () => {
         } catch (e) {
             throw new CommandError(`Invalid config.json`);
         }
-        expect(configObj.application_id).toMatch(context.theme.contexts.fyndx0.application_id);
+        expect(context.theme.contexts.fyndx1.application_id).toMatch("622894659baaca3be88c9d65");
     });
 
     it('should successfully show theme context list', async () => {
-        await login();
         const inquirerMock = mockFunction(inquirer.prompt);
-        inquirerMock.mockResolvedValue({ listContext: 'fyndx0' });
+        inquirerMock.mockResolvedValue({ listContext: 'fyndx1' });
         await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'context-list']);
         const contextPath = path.join(process.cwd(), '.fdk', 'context.json');
         let contextJSON = await fs.readJSON(contextPath);
         let contextObj = contextJSON.theme.active_context;
-        expect(contextObj).toMatch('fyndx0');
+        expect(contextObj).toMatch('fyndx1');
     });
 
     it('should successsfully show active context', async () => {
-        await login();
         let context =  getActiveContext()
         await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'active-context']);
-        expect(context.name).toMatch('fyndx0');
+        expect(context.name).toMatch('fyndx1');
     })
 });

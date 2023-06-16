@@ -2,41 +2,71 @@ import CommandError from './CommandError';
 import Logger from './Logger';
 import inquirer from 'inquirer';
 import ConfigStore, { CONFIG_KEYS } from './Config';
-import { ALLOWD_ENV } from '../helper/constants'
+import { ALLOWD_ENV } from '../helper/constants';
 import open from 'open';
 import express from 'express';
-var cors = require('cors')
-const app = require('https-localhost')(getLocalBaseUrl());
-const port = 7071
+var cors = require('cors');
+const port = 7071;
 import chalk from 'chalk';
 function getLocalBaseUrl() {
-    return "https://localhost";
+    return 'https://localhost';
 }
-export default class Auth {
-    constructor() { }
-    public static async login() {
-        console.log(chalk.green("Current env: ",ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)))
-        const isLoggedIn = await Auth.isAlreadyLoggedIn();
-        app.use(cors());
-        app.use(express.json());
-        const certs = await app.getCerts();
-	    const server = require('https').createServer(certs, app);
-        await Auth.startServer(server);
+async function checkTokenExpired(auth_token) {
+    const { expiry_time } = auth_token
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+    if (currentTimestamp > expiry_time) {
+        return true;
+    }
+    else{
+        return false
+    }
+}
 
-        app.post('/token', async (req, res) => {
+export const getApp = async () => {
+    const app = require('https-localhost')(getLocalBaseUrl());
+    const certs = await app.getCerts();
+
+    app.use(cors());
+    app.use(express.json());
+
+    app.post('/token', async (req, res) => {
+        try {
+            if(Auth.isOrganizationChange)
+                ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
             const expiryTimestamp = Math.floor(Date.now() / 1000) + req.body.auth_token.expires_in;
             req.body.auth_token.expiry_time = expiryTimestamp;
             ConfigStore.set(CONFIG_KEYS.AUTH_TOKEN, req.body.auth_token);
             ConfigStore.set(CONFIG_KEYS.ORGANIZATION, req.body.organization);
-            res.status(200).json({ 'message': 'sucess' })
-            await Auth.stopSever(server);
-            if (isOrganizationChange)
-                Logger.info('Organization changed successfully');
-            else
-                Logger.info('User logged in successfully');
-            return;
-        })
-        let isOrganizationChange;
+            Auth.stopSever();
+            if (Auth.isOrganizationChange) Logger.info('Organization changed successfully');
+            else Logger.info('User logged in successfully');
+            res.status(200).json({ message: 'success' });
+        } catch (err) {
+            console.log(err);
+        }
+    });
+
+    return { app, certs };
+};
+
+export const startServer = async () => {
+    const { app, certs } = await getApp();
+    const serverIn = require('https').createServer(certs, app);
+    if (!Auth.server)
+        Auth.server = serverIn.listen(port, err => {
+            if (err) console.log(err);
+        });
+    return Auth.server;
+};
+
+export default class Auth {
+    static server = null;
+    static isOrganizationChange = false;
+    constructor() {}
+    public static async login() {
+        console.log(chalk.green('Current env: ', ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)));
+        const isLoggedIn = await Auth.isAlreadyLoggedIn();
+        await startServer();
         if (isLoggedIn) {
             const questions = [
                 {
@@ -48,24 +78,27 @@ export default class Auth {
             ];
             await inquirer.prompt(questions).then(async answers => {
                 if (answers.confirmChangeOrg === 'No') {
-                    isOrganizationChange = false;
-                    await Auth.stopSever(server);
+                    Auth.isOrganizationChange = false;
+                    await Auth.stopSever();
                     return;
-                }
-                else {
-                    isOrganizationChange = true;
-                    ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
+                } else {
+                    Auth.isOrganizationChange = true;
                 }
             });
         }
-        const env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)
+        const env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
         try {
             if (!isLoggedIn)
-                await open(`${ALLOWD_ENV[env]}/?fdk-cli=true&callback=${(getLocalBaseUrl())}:${port}`);
-            else if(isOrganizationChange)
-                await open(`${ALLOWD_ENV[env]}/organizations?fdk-cli=true&callback=${getLocalBaseUrl()}:${port}`);
-        }
-        catch (error) {
+                await open(
+                    `${ALLOWD_ENV[env]}/?fdk-cli=true&callback=${getLocalBaseUrl()}:${port}`
+                );
+            else if (Auth.isOrganizationChange)
+                await open(
+                    `${
+                        ALLOWD_ENV[env]
+                    }/organizations?fdk-cli=true&callback=${getLocalBaseUrl()}:${port}`
+                );
+        } catch (error) {
             throw new CommandError(error.message, error.code);
         }
     }
@@ -102,23 +135,16 @@ export default class Auth {
     }
     private static isAlreadyLoggedIn = async () => {
         const auth_token = ConfigStore.get(CONFIG_KEYS.AUTH_TOKEN);
-        if (auth_token && auth_token.access_token)
-            return true;
-        else
-            return false;
-    }
-    private static startServer = async (server) => {
-        await new Promise((resolve, reject) => {
-            server.listen(port, (err) => {
-                if (err) {
-                    return reject(err);
-                }
-                resolve(true);
-            });
-        });
-    }
-    private static stopSever = async (server) => {
-        server.close(() => {
-        })
-    }
+        if (auth_token && auth_token.access_token){
+            const isTokenExpired = await checkTokenExpired(auth_token)
+            if(!isTokenExpired)
+                return true;
+            else 
+                return false;
+        }
+        else return false;
+    };
+    static stopSever = async () => {
+        Auth.server.close(() => {});
+    };
 }
