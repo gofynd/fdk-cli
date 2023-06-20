@@ -132,7 +132,6 @@ export default class Env {
             throw new Error("Provided url is not sandbox URL.")
           }
         }catch(err){
-          console.log(err);
           throw new Error("Provided url is not sandbox URL.")
         }
         
