@@ -21,9 +21,7 @@ import {
     AUTHENTICATION_COMMANDS, 
     ENVIRONMENT_COMMANDS, 
     EXTENSION_COMMANDS, 
-    PARTNER_COMMANDS,
-    DEPRECATED_THEME_COMMANDS,
-    DEPRECATED_AUTHENTICATION_COMMANDS
+    PARTNER_COMMANDS 
 } from './helper/constants';
 const packageJSON = require('../package.json');
 
@@ -106,14 +104,6 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
                     throw new CommandError(COMMON_LOG_MESSAGES.contextMismatch);
                 }
             }
-            
-            // cmd deprecation waring message
-            if((DEPRECATED_THEME_COMMANDS.findIndex(c => themeCommand.includes(c)) !== -1 && themeCommand !== 'context-list') ||
-               (DEPRECATED_AUTHENTICATION_COMMANDS.findIndex(c => authCommand.includes(c)) !== -1)
-            ){
-                console.log(COMMON_LOG_MESSAGES.deprecationWarning)
-            } 
-            
             if (
                 parent.args.includes('theme') &&
                 !parent.args.includes('new') &&
