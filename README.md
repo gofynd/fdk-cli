@@ -126,6 +126,7 @@ fdk env set -n fynd
 | Option        | Description | Required |
 | ------------- |-------------|----------|
 | --name, -n   | Environment name | Yes |
+| --url, -u   | Platform API domain | Yes |
 | --help    | Show help | No |
 | --verbose, -v | enable debug mode | No |
 
