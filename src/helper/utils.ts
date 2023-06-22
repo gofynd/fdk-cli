@@ -193,3 +193,8 @@ export const installNpmPackages = async (targetDir: string = process.cwd()) => {
         })
     })
 }
+
+export const isValidDomain = (domain) => {
+  const domainRegex = /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return domainRegex.test(domain);
+}

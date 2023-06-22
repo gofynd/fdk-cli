@@ -114,12 +114,14 @@ export function responseInterceptor() {
 
 export function responseErrorInterceptor() {
     return error => {
+        
         // Request made and server responded
         if (error.response) {
             Debug(`Error Response  :  ${JSON.stringify(error.response.data)}`);
             throw new CommandError(`${error.response.data.message}`, ErrorCodes.API_ERROR.code);
         } else if (error.request) {
             // The request was made but no error.response was received
+            Debug(`\nError => Code: ${error.code} Message: ${error.message}\n`);
             throw new Error(
                 'Not received response from the server, possibly some network issue, please retry!!'
             );
