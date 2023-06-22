@@ -1105,8 +1105,10 @@ export default class Theme {
     public static copyFolders = async(from, to) => {
         try {
             fs.mkdir(to);
-           const files = await fs.readdir(from)
-           files.forEach((element) => {
+            const files = await fs.readdir(from)
+            const nonHiddenFiles = files.filter(file => !file.startsWith("."));
+
+            nonHiddenFiles.forEach((element) => {
                 if (element === 'temp-theme') {
                 return;
                 }else if (fs.lstatSync(path.join(from, element)).isFile() && element != 'node_modules' && element != '.fdk') {
@@ -1266,6 +1268,7 @@ export default class Theme {
                 spinner.fail("CLI has stopped creating zip file...");
                 process.exit(0);
             });
+            rimraf.sync(path.join(process.cwd(),`${content.name}_${content.version}.zip`));
             await Theme.copyFolders(path.join(process.cwd()), Theme.SRC_FOLDER);
             await archiveFolder({
                 srcFolder: path.join(process.cwd(),'.fdk','temp-theme'),
