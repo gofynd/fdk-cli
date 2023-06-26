@@ -106,6 +106,7 @@ export function responseInterceptor() {
 
 export function responseErrorInterceptor() {
     return error => {
+        
         // Request made and server responded
         if (error.response && (error.response.status === 401 || error.response.status === 403)) {
             ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
@@ -116,6 +117,7 @@ export function responseErrorInterceptor() {
             throw new CommandError(`${error.response.data.message}`, ErrorCodes.API_ERROR.code);
         } else if (error.request) {
             // The request was made but no error.response was received
+            Debug(`\nError => Code: ${error.code} Message: ${error.message}\n`);
             throw new Error(
                 'Not received response from the server, possibly some network issue, please retry!!'
             );
