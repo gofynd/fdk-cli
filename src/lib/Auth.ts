@@ -8,6 +8,7 @@ import express from 'express';
 var cors = require('cors');
 const port = 7071;
 import chalk from 'chalk';
+import { AVAILABLE_ENVS } from './Env';
 function getLocalBaseUrl() {
     return 'https://localhost';
 }
@@ -88,16 +89,18 @@ export default class Auth {
         }
         const env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
         try {
-            if (!isLoggedIn)
-                await open(
-                    `${ALLOWD_ENV[env]}/?fdk-cli=true&callback=${getLocalBaseUrl()}:${port}`
-                );
-            else if (Auth.isOrganizationChange)
-                await open(
-                    `${
-                        ALLOWD_ENV[env]
-                    }/organizations?fdk-cli=true&callback=${getLocalBaseUrl()}:${port}`
-                );
+            let domain = null;
+            if(AVAILABLE_ENVS[env] ){
+                let partnerDomain = AVAILABLE_ENVS[env].replace("api.", "partners.")
+                domain = `https://${partnerDomain}`;
+            }
+            else {
+                let partnerDomain = env.replace("api.", "partners.")
+                domain =`https://${partnerDomain}`
+            }
+            await open(
+                `${domain}/organizations/?fdk-cli=true&callback=${getLocalBaseUrl()}:${port}`
+            );
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
