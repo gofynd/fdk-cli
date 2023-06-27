@@ -303,7 +303,7 @@ export default class Theme {
 
             Logger.info('Copying template config files');
             shouldDelete = true;
-            await Theme.copyTemplateFiles(Theme.TEMPLATE_DIRECTORY, targetDirectory);
+            await Theme.copyTemplateFiles(targetDirectory);
             
             let context: any = {
                 name: themeName + '-' + Env.getEnvValue(),
@@ -321,7 +321,7 @@ export default class Theme {
             await downloadFile(themeData.src, zipPath);
             
             Logger.info('Extracting bundle archive')
-            await extractArchive({ zipPath, destFolderPath: path.resolve(process.cwd(), 'theme') });
+            await extractArchive({ zipPath, destFolderPath: path.resolve(process.cwd()) });
             
             Logger.info('Generating Configuration Files');
             let list = _.get(themeData, 'config.list', []);
@@ -613,10 +613,9 @@ export default class Theme {
         }
     };
     // private methods
-    private static async copyTemplateFiles(templateDirectory, targetDirectory) {
+    private static async copyTemplateFiles(targetDirectory) {
         try {
             createDirectory(targetDirectory);
-            await fs.copy(templateDirectory, targetDirectory);
             await execa('git', ['init'], { cwd: targetDirectory });
             writeFile(targetDirectory + '/.gitignore', `.fdk\nnode_modules`);
             return true;
