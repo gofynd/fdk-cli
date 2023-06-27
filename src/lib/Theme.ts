@@ -434,7 +434,12 @@ export default class Theme {
             await Theme.assetsFontsUploader();
 
             Logger.info('Creating theme source code zip file');
-            await Theme.copyThemeSourceToFdkFolder();
+            await Theme.copyFolders(path.join(process.cwd()), Theme.SRC_FOLDER);
+            await archiveFolder({
+                srcFolder: Theme.SRC_FOLDER,
+                destFolder: Theme.SRC_ARCHIVE_FOLDER,
+                zipFileName: Theme.ZIP_FILE_NAME,
+            });
             
             // Remove temp source folder
             rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
@@ -563,7 +568,7 @@ export default class Theme {
             await downloadFile(theme.src, zipFilePath);
             await extractArchive({
                 zipPath: path.resolve(process.cwd(), './.fdk/pull-archive.zip'),
-                destFolderPath: path.resolve(process.cwd(), './theme'),
+                destFolderPath: path.resolve(process.cwd()),
             });
             await fs.writeJSON(
                 path.join(process.cwd(), '/config.json'),
@@ -584,7 +589,7 @@ export default class Theme {
                 Theme.getSettingsSchemaPath(),
                 _.get(theme, 'config.global_schema', { props: [] })
             );
-            const packageJSON = await fs.readJSON(process.cwd() + '/theme/package.json');
+            const packageJSON = await fs.readJSON(process.cwd() + '/package.json');
             await fs.writeJSON(process.cwd() + '/package.json', packageJSON, {
                 spaces: 2,
             });
@@ -834,19 +839,6 @@ export default class Theme {
             }
         } catch (err) {
             throw new CommandError(err.message, err.code);
-        }
-    };
-    private static copyThemeSourceToFdkFolder = async () => {
-        try {
-            await fs.copy(path.join(process.cwd(), 'theme'), path.join(process.cwd(), Theme.SRC_FOLDER));
-            fs.copyFileSync(path.join(process.cwd(), 'package.json'), path.join(process.cwd(), Theme.SRC_FOLDER, 'package.json'));
-            await archiveFolder({
-                srcFolder: Theme.SRC_FOLDER,
-                destFolder: Theme.SRC_ARCHIVE_FOLDER,
-                zipFileName: Theme.ZIP_FILE_NAME,
-            });
-        } catch (err) {
-            throw new CommandError(`Failed to copying theme files to .fdk folder`);
         }
     };
     private static validateAvailableSections = async available_sections => {
