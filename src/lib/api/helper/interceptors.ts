@@ -116,11 +116,12 @@ export function responseErrorInterceptor() {
             Debug(`Error Response  :  ${JSON.stringify(error.response.data)}`);
             throw new CommandError(`${error.response.data.message}`, ErrorCodes.API_ERROR.code);
         } else if (error.request) {
+            if(error.code == 'ERR_FR_MAX_BODY_LENGTH_EXCEEDED'){
+                throw new CommandError(`${ErrorCodes.LARGE_PAYLOAD.message}`, ErrorCodes.LARGE_PAYLOAD.code);
+            }
             // The request was made but no error.response was received
             Debug(`\nError => Code: ${error.code} Message: ${error.message}\n`);
-            throw new Error(
-                'Not received response from the server, possibly some network issue, please retry!!'
-            );
+            throw new CommandError(`${ErrorCodes.ECONN_RESET.message}`, ErrorCodes.ECONN_RESET.code);
         } else {
             throw new Error('There was an issue in setting up the request, Please raise issue');
         }
