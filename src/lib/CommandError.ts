@@ -21,6 +21,7 @@ export const ErrorCodes = {
     message: 'Invalid options passed',
     code: 'FDK-0005',
   },
+
   
   // Extension
   INVALID_KEYS: {
@@ -34,6 +35,16 @@ export const ErrorCodes = {
   NO_DEVELOPMENT_COMPANY: {
     message: "Development account not found",
     code: 'FDK-0008'
+  },
+
+  // generic 
+  ECONN_RESET:{
+    message: 'Connection is reset by the client',
+    code: 'FDK-0009'
+  },
+  LARGE_PAYLOAD: {
+    message: 'File is too large to upload, please optimize it and retry!',
+    code: 'FDK-0010'
   }
 };
 

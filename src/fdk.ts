@@ -128,7 +128,7 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
             } else {
                 Logger.error(err);
             }
-            Debug(err.stack);
+            Debug(err);
             process.exit(1);
         }
     });
