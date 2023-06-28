@@ -373,7 +373,11 @@ export default class Theme {
             await ThemeService.updateTheme(newTheme);
 
             Logger.info('Theme syncing DONE');
-            let domainURL = `https://${AVAILABLE_ENVS[currentContext.env]}`;
+            let domainURL = null;
+            if(AVAILABLE_ENVS[currentContext.env])
+                domainURL = `https://${AVAILABLE_ENVS[currentContext.env]}`;
+            else
+                domainURL =`https://${currentContext.env}`
             const url = new URL(domainURL);
             const hostName = url.hostname;
             let domain = hostName.replace('api.', '');
