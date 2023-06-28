@@ -98,9 +98,9 @@ export const URLS = {
     PAGE_DEFAULT_VALUES: (
         application_id: string,
         company_id: number,
-        page_name: string
+        page_value: string
         ) => {
-        return urlJoin(THEME_URL(), `/company/${company_id}/application/${application_id}/default/${page_name}`)
+        return urlJoin(THEME_URL(), `/company/${company_id}/application/${application_id}/page/${page_value}/default`)
     },
 
     SETUP_COMPANY: (company_id: number) => {
