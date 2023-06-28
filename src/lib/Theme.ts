@@ -212,7 +212,8 @@ export default class Theme {
 
     public static async createTheme(options) {
         let shouldDelete = false;
-        const targetDirectory = path.join(process.cwd(), options.name);
+        const dir_name = Theme.sanitizeThemeName(options.name)
+        const targetDirectory = path.join(process.cwd(), dir_name);
         try {
             if (fs.existsSync(targetDirectory)) {
                 shouldDelete = false;
@@ -243,7 +244,7 @@ export default class Theme {
                 theme_id: theme._id,
                 application_token: appConfig.token
             };
-            process.chdir(path.join('.', options.name));
+            process.chdir(path.join('.', dir_name));
 
             Logger.info('Saving context');
             await createContext(context);
@@ -286,6 +287,7 @@ export default class Theme {
     public static initTheme = async options => {
         let shouldDelete = false;
         let targetDirectory = '';
+        let dir_name = "default";
         try {
             let configObj = await Theme.selectCompanyAndStore();
             configObj = await Theme.selectTheme(configObj);
@@ -294,8 +296,8 @@ export default class Theme {
             Logger.info('Fetching Template Files');
             const { data: themeData } = await ThemeService.getThemeById(configObj);
             const themeName = themeData?.name || 'default';
-            
-            targetDirectory = path.join(process.cwd(), themeName);
+            dir_name = Theme.sanitizeThemeName(themeName);
+            targetDirectory = path.join(process.cwd(), dir_name);
             if (fs.existsSync(targetDirectory)) {
                 shouldDelete = false;
                 throw new CommandError(`Folder ${themeName}  already exists`);
@@ -314,7 +316,7 @@ export default class Theme {
                 application_token: appConfig.token
             };
 
-            process.chdir(path.join('.', themeName));
+            process.chdir(path.join('.', dir_name));
             let zipPath = path.join(targetDirectory, '.fdk', 'archive', 'archive.zip');
             
             Logger.info('Downloading bundle file');
