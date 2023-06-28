@@ -1013,6 +1013,17 @@ export default class Theme {
             let systemPagesLocally = fs
                 .readdirSync(path.join(process.cwd(), 'theme', 'templates', 'pages'))
                 .filter(o => o != 'index.js');
+            
+            // Check if any themefied system page is empty or not
+            await asyncForEach(systemPagesLocally, async fileName => {
+                let $ = cheerio.load(readFile(path.join(process.cwd(), 'theme', 'templates', 'pages', fileName)));
+                let templateText = $('template').text();
+
+                if(!templateText) {
+                    throw new CommandError(`${path.join('theme', 'templates', 'pages', fileName)} file is empty. Either delete this page OR themefy it accordingly`, ErrorCodes.NOT_KNOWN.code);
+                }
+            });
+
             await asyncForEach(systemPagesLocally, async fileName => {
                 let pageName = fileName.replace('.vue', '');
                 // SYSTEM Pages
@@ -1059,27 +1070,35 @@ export default class Theme {
             if (systemPagesToDelete.length > 0) {
                 // Reseting props in system pages
 
-                // Get default values of all pages
-                const default_props_req = await Promise.all(systemPagesToDelete.map(
+                // Get default values of all deleted system pages
+                const default_props_arr = await Promise.all(systemPagesToDelete.map(
                     page => ThemeService.getPageDefaultValues(page.value))
                 )
 
                 const default_props = {}
 
-                // Create object with page name as a key
-                default_props_req.forEach(res => { default_props[res.data.value] = res.data })
+                // Create object with page value as a `key` and page details as `value`
+                default_props_arr.forEach(res => { default_props[res.data.value] = res.data })
 
-                // Update props of deleted pages (in available_pages collection)
-                // Here we are just updating prop information
-                // We need to delete remove extra props that was added by themified page
-                // For that we are creating allowedDefaultProps variable
-                // Which will contain all default props for the pages
+                /**
+                 * Update deleted page props with default props. Also filter out
+                 * default props from existing props to keep current values intact
+                 */
                 await Promise.all(
-                    systemPagesToDelete.map(page => {
-                        const pageDetails = default_props[page.value];
-                        if (pageDetails) {
-                            allowedDefaultProps[pageDetails.value] = pageDetails.props.map(p => p.id)
-                            return ThemeService.updateAvailablePage(pageDetails);
+                    systemPagesToDelete.map(async page => {
+
+                        // To fetch deleted system page details
+                        const { data: deletedPage }  = await ThemeService.getAvailablePage(page.value);
+                        
+                        // default page values for a system page
+                        const defaultPage = default_props[page.value];
+                        if (defaultPage) {
+                            allowedDefaultProps[defaultPage.value] = deletedPage.props.map(prop => {
+                                
+                                // If both `id` and `type` values match for current prop and default prop we will confirm this is a default prop
+                                if(prop.id === defaultPage.id && prop.type === defaultPage.type) return prop.id;
+                            });
+                            return ThemeService.updateAvailablePage(defaultPage);
                         } else {
                             // show something in CLI
                         }
