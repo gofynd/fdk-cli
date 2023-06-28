@@ -1096,7 +1096,9 @@ export default class Theme {
                             allowedDefaultProps[defaultPage.value] = deletedPage.props.map(prop => {
                                 
                                 // If both `id` and `type` values match for current prop and default prop we will confirm this is a default prop
-                                if(prop.id === defaultPage.id && prop.type === defaultPage.type) return prop.id;
+                                for(let i = 0 ; i < defaultPage.props.length ; i++) {
+                                    if(prop.id === defaultPage.props[i].id && prop.type === defaultPage.props[i].type) return prop.id;
+                                }
                             });
                             return ThemeService.updateAvailablePage(defaultPage);
                         } else {
