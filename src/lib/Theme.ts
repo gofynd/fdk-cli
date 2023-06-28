@@ -1072,7 +1072,7 @@ export default class Theme {
 
                 // Get default values of all deleted system pages
                 const default_props_arr = await Promise.all(systemPagesToDelete.map(
-                    page => ThemeService.getPageDefaultValues(page.value))
+                    page => ThemeService.getDefaultPageDetails(page.value))
                 )
 
                 const default_props = {}

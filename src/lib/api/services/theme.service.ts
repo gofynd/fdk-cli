@@ -95,7 +95,7 @@ export default {
       throw error;
     }
   },
-  getPageDefaultValues: async pageName => {
+  getDefaultPageDetails: async pageValue => {
     try {
       const activeContext = getActiveContext();
       const axiosOption = Object.assign({}, getCommonHeaderOptions());
@@ -103,7 +103,7 @@ export default {
         URLS.PAGE_DEFAULT_VALUES(
           activeContext.application_id,
           activeContext.company_id,
-          pageName
+          pageValue
         ),
         axiosOption
       );
