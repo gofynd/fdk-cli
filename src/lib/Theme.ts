@@ -212,7 +212,8 @@ export default class Theme {
 
     public static async createTheme(options) {
         let shouldDelete = false;
-        const targetDirectory = path.join(process.cwd(), options.name);
+        const dir_name = Theme.sanitizeThemeName(options.name)
+        const targetDirectory = path.join(process.cwd(), dir_name);
         try {
             if (fs.existsSync(targetDirectory)) {
                 shouldDelete = false;
@@ -243,7 +244,7 @@ export default class Theme {
                 theme_id: theme._id,
                 application_token: appConfig.token
             };
-            process.chdir(path.join('.', options.name));
+            process.chdir(path.join('.', dir_name));
 
             Logger.info('Saving context');
             await createContext(context);
@@ -286,6 +287,7 @@ export default class Theme {
     public static initTheme = async options => {
         let shouldDelete = false;
         let targetDirectory = '';
+        let dir_name = "default";
         try {
             let configObj = await Theme.selectCompanyAndStore();
             configObj = await Theme.selectTheme(configObj);
@@ -294,8 +296,8 @@ export default class Theme {
             Logger.info('Fetching Template Files');
             const { data: themeData } = await ThemeService.getThemeById(configObj);
             const themeName = themeData?.name || 'default';
-            
-            targetDirectory = path.join(process.cwd(), themeName);
+            dir_name = Theme.sanitizeThemeName(themeName);
+            targetDirectory = path.join(process.cwd(), dir_name);
             if (fs.existsSync(targetDirectory)) {
                 shouldDelete = false;
                 throw new CommandError(`Folder ${themeName}  already exists`);
@@ -314,7 +316,7 @@ export default class Theme {
                 application_token: appConfig.token
             };
 
-            process.chdir(path.join('.', themeName));
+            process.chdir(path.join('.', dir_name));
             let zipPath = path.join(targetDirectory, '.fdk', 'archive', 'archive.zip');
             
             Logger.info('Downloading bundle file');
@@ -434,7 +436,12 @@ export default class Theme {
             await Theme.assetsFontsUploader();
 
             Logger.info('Creating theme source code zip file');
-            await Theme.copyThemeSourceToFdkFolder();
+            await Theme.copyFolders(path.join(process.cwd()), Theme.SRC_FOLDER);
+            await archiveFolder({
+                srcFolder: Theme.SRC_FOLDER,
+                destFolder: Theme.SRC_ARCHIVE_FOLDER,
+                zipFileName: Theme.ZIP_FILE_NAME,
+            });
             
             // Remove temp source folder
             rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
@@ -563,7 +570,7 @@ export default class Theme {
             await downloadFile(theme.src, zipFilePath);
             await extractArchive({
                 zipPath: path.resolve(process.cwd(), './.fdk/pull-archive.zip'),
-                destFolderPath: path.resolve(process.cwd(), './theme'),
+                destFolderPath: path.resolve(process.cwd()),
             });
             await fs.writeJSON(
                 path.join(process.cwd(), '/config.json'),
@@ -584,7 +591,7 @@ export default class Theme {
                 Theme.getSettingsSchemaPath(),
                 _.get(theme, 'config.global_schema', { props: [] })
             );
-            const packageJSON = await fs.readJSON(process.cwd() + '/theme/package.json');
+            const packageJSON = await fs.readJSON(process.cwd() + '/package.json');
             await fs.writeJSON(process.cwd() + '/package.json', packageJSON, {
                 spaces: 2,
             });
@@ -834,19 +841,6 @@ export default class Theme {
             }
         } catch (err) {
             throw new CommandError(err.message, err.code);
-        }
-    };
-    private static copyThemeSourceToFdkFolder = async () => {
-        try {
-            await fs.copy(path.join(process.cwd(), 'theme'), path.join(process.cwd(), Theme.SRC_FOLDER));
-            fs.copyFileSync(path.join(process.cwd(), 'package.json'), path.join(process.cwd(), Theme.SRC_FOLDER, 'package.json'));
-            await archiveFolder({
-                srcFolder: Theme.SRC_FOLDER,
-                destFolder: Theme.SRC_ARCHIVE_FOLDER,
-                zipFileName: Theme.ZIP_FILE_NAME,
-            });
-        } catch (err) {
-            throw new CommandError(`Failed to copying theme files to .fdk folder`);
         }
     };
     private static validateAvailableSections = async available_sections => {
