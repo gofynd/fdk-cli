@@ -87,7 +87,7 @@ async function createThemeFromZip() {
               "company_id": 1,
               "theme_id": "622894659baaca3be88c9d65",
               "application_token": "8DXpyVsKD",
-              "env": "fyndx0"
+              "env": "fyndx1"
             },
           }
         },
