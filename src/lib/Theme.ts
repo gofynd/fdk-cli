@@ -388,6 +388,22 @@ export default class Theme {
                 rimraf.sync(path.join(process.cwd(), 'theme', 'package.json'));
             }
 
+            if (fs.existsSync(path.join(process.cwd(), 'theme', 'webpack.config.js'))) {
+                writeFile(
+                    path.join(process.cwd(), 'webpack.config.js'),
+                    fs.readFileSync(path.join(process.cwd(), 'theme', 'webpack.config.js'))
+                );
+                rimraf.sync(path.join(process.cwd(), 'theme', 'webpack.config.js'));
+            }
+
+            if (fs.existsSync(path.join(process.cwd(), 'theme', 'config.json'))) {
+                writeFile(
+                    path.join(process.cwd(), 'config.json'),
+                    fs.readFileSync(path.join(process.cwd(), 'theme', 'config.json'))
+                );
+                rimraf.sync(path.join(process.cwd(), 'theme', 'config.json'));
+            }
+
             let spinner = new Spinner("Installing npm packages");
             try {
                 spinner.start();
@@ -438,7 +454,7 @@ export default class Theme {
             const buildPath = path.join(process.cwd(), Theme.BUILD_FOLDER);
 
             Logger.info('Creating theme source code zip file');
-            await Theme.copyThemeSourceToFdkFolder();
+            await Theme.copyReactThemeSourceToFdkFolder();
 
             // Remove temp source folder
             rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
@@ -743,7 +759,7 @@ export default class Theme {
             Logger.info(chalk.bold.blueBright(`Starting server`));
 
             await startReactServer({
-                // domain: `http://127.0.0.1:2048`,
+                // domain: `http://127.0.0.1:80`,
                 domain,
                 host,
                 port,
@@ -1195,6 +1211,7 @@ export default class Theme {
             throw new CommandError(err.message, err.code);
         }
     };
+
     private static copyThemeSourceToFdkFolder = async () => {
         try {
             await fs.copy(path.join(process.cwd(), 'theme'), path.join(process.cwd(), Theme.SRC_FOLDER));
@@ -1208,6 +1225,29 @@ export default class Theme {
             throw new CommandError(`Failed to copying theme files to .fdk folder`);
         }
     };
+
+    private static copyReactThemeSourceToFdkFolder = async () => {
+        try {
+            await fs.copy(path.join(process.cwd(), 'theme'), path.join(process.cwd(), Theme.SRC_FOLDER));
+            fs.copyFileSync(path.join(process.cwd(), 'package.json'), path.join(process.cwd(), Theme.SRC_FOLDER, 'package.json'));
+            
+            if (fs.existsSync(path.join(process.cwd(), 'webpack.config.js'))) {
+                fs.copyFileSync(path.join(process.cwd(), 'webpack.config.js'), path.join(process.cwd(), Theme.SRC_FOLDER, 'webpack.config.js'));
+            }
+            if (fs.existsSync(path.join(process.cwd(), 'config.json'))) {
+                fs.copyFileSync(path.join(process.cwd(), 'config.json'), path.join(process.cwd(), Theme.SRC_FOLDER, 'config.json'));
+            }
+
+            await archiveFolder({
+                srcFolder: Theme.SRC_FOLDER,
+                destFolder: Theme.SRC_ARCHIVE_FOLDER,
+                zipFileName: Theme.ZIP_FILE_NAME,
+            });
+        } catch (err) {
+            throw new CommandError(`Failed to copying theme files to .fdk folder`);
+        }
+    };
+
     private static validateAvailableSections = async available_sections => {
         try {
             Logger.info('Validating Files');

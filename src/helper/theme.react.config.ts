@@ -1,9 +1,10 @@
 import path from 'path';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import TerserPlugin from "terser-webpack-plugin";
-import webpack from 'webpack';
+import webpack, { Configuration } from 'webpack';
 import fs from 'fs';
 import { mergeWithRules, merge } from 'webpack-merge';
+const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 
 const context = process.cwd();
 // const themeConfigPath = path.join(context, 'webpack.config.js');
@@ -23,7 +24,11 @@ const baseConfig = (ctx) => {
     const localImageBasePath = `https://127.0.0.1:${localThemePort}/assets/images/`
 	return {
 			mode: isLocal ? 'development' : 'production',
-			entry: { themeBundle: path.resolve(context, 'theme/index.jsx') },
+			entry: { 
+				themeBundle: isLocal ? 
+					[ require.resolve('webpack-hot-middleware/client'), path.resolve(context, 'theme/index.jsx') ] : 
+					[ path.resolve(context, 'theme/index.jsx') ]
+			},
 			devtool: isLocal ? 'source-map' : false,
 			optimization: {
 				minimizer: [
@@ -61,6 +66,9 @@ const baseConfig = (ctx) => {
 											},
 										],
 										'@babel/preset-react',
+									],
+									plugins: [
+										...(isLocal ? [require.resolve('react-refresh/babel')] : []),
 									],
 								},
 							},
@@ -144,6 +152,10 @@ const baseConfig = (ctx) => {
 				new MiniCssExtractPlugin({
 					filename: isLocal ? '[name].css' : '[name].[contenthash].css',
 				}),
+				...(isLocal ? [new webpack.HotModuleReplacementPlugin()] : []),
+				...(isLocal ? [new ReactRefreshWebpackPlugin({
+					overlay: false,
+				})] : []),
 				new webpack.ProvidePlugin({
 					// you must "npm install buffer" to use this.
 					Buffer: ['buffer', 'Buffer'],
@@ -212,7 +224,7 @@ const baseSectionConfig = ({ buildPath, context}) => {
 	}
 }
 
-export default (ctx, extendedWebpackConfig) => {
+export default (ctx, extendedWebpackConfig): Configuration[] => {
 	const baseWebpackConfig = baseConfig(ctx);
 	const sectionBaseConfig = baseSectionConfig(ctx);
 

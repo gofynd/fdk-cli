@@ -62,6 +62,7 @@
   "dependencies": {
     "@babel/core": "7.14.3",
     "@babel/plugin-transform-modules-commonjs": "^7.14.0",
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.10",
     "@types/open": "^6.2.1",
     "archiver": "^5.3.0",
     "async": "^3.2.0",
@@ -98,6 +99,7 @@
     "ora": "^5.4.0",
     "password-validator": "^5.1.1",
     "query-string": "^7.1.0",
+    "react-refresh": "^0.14.0",
     "require-from-string": "^2.0.2",
     "rimraf": "^3.0.2",
     "semver": "^6.3.0",
@@ -111,6 +113,8 @@
     "url-join": "^4.0.1",
     "validator": "^13.6.0",
     "vue-template-compiler": "^2.6.13",
+    "webpack-dev-middleware": "^6.1.1",
+    "webpack-hot-middleware": "^2.25.3",
     "webpack-merge": "^5.8.0",
     "winston": "^3.3.3"
   }

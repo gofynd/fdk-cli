@@ -20,6 +20,10 @@ import Configstore, { CONFIG_KEYS } from '../lib/Config';
 import { createProxyMiddleware, fixRequestBody } from 'http-proxy-middleware';
 import { addSignatureFn }  from '../lib/api/helper/interceptors';
 const { transformRequest } = axios.defaults;
+import webpackDevMiddleware from 'webpack-dev-middleware';
+import webpackHotMiddleware from 'webpack-hot-middleware';
+import webpack from 'webpack';
+import createBaseWebpackConfig from '../helper/theme.react.config';
 
 const BUILD_FOLDER = './.fdk/dist';
 let port = 5001;
@@ -257,10 +261,40 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 		});
 	});
 
-	// app.use((req, res, next) => {
-	// 	res.set('Cache-Control', 'no-store')
-	// 	next()
-	// })
+	let webpackConfigFromTheme = {};
+	const themeWebpackConfigPath = path.join(process.cwd(), Theme.REACT_CLI_CONFIG_PATH);
+
+	if (fs.existsSync(themeWebpackConfigPath)) {
+		({ default: webpackConfigFromTheme }  = await import(themeWebpackConfigPath));
+	}
+
+	const ctx = {
+		buildPath: path.resolve(process.cwd(), Theme.BUILD_FOLDER),
+		NODE_ENV: "development",
+		localThemePort: port,
+		context: process.cwd(),
+	}
+	const [ baseWebpackConfig ] = createBaseWebpackConfig(ctx, webpackConfigFromTheme);
+
+	const compiler = webpack(baseWebpackConfig);
+
+	app.use(webpackDevMiddleware(compiler, {
+		publicPath: baseWebpackConfig.output.publicPath,
+		serverSideRender: true,
+		writeToDisk: true,
+		stats: "none",
+	}));
+
+	app.use(webpackHotMiddleware(compiler));
+
+	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
+
+	app.use((request, response, next) => {
+		if (request.url.indexOf('.hot-update.json') !== -1) {
+			return response.json({"c":["themeBundle"],"r":[],"m":[]});
+		}
+		next();
+	})
 
 	app.use('/public', async (req, res, done) => {
 		const { url } = req;
@@ -276,7 +310,7 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 			res.set(publicCache[url].headers);
 			return res.send(publicCache[url].body);
 		} catch(e) {
-			console.log("Error loading file ", url);
+			console.log("Error loading file ", url, e);
 			return res.status(500).send(e.message);
 		}
 	});
@@ -317,7 +351,11 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 		const themeURLs: any = {};
 		for (let fileName of buildFiles) {
 			const { extension, componentName } = parseBundleFilename(fileName);
-			if (['js', 'css'].includes(extension) && requiredFiles.indexOf(componentName) !== -1) {
+			if (
+				['js', 'css'].includes(extension) &&
+				requiredFiles.indexOf(componentName) !== -1 &&
+				fileName.indexOf('hot-update') === -1
+				) {
 				
 				const promise = UploadService.uploadFile(path.join(BUNDLE_DIR, fileName), 'fdk-cli-dev-files', User._id).then(response => {
 					const url = response.complete.cdn.url;
@@ -351,9 +389,14 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 				<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
 				<script>
 				var socket = io();
-				console.log('Initialized sockets')
 				socket.on('reload',function(){
-					location.reload();
+					try {
+						window.APP_DATA.themeBundleUMDURL = '/themeBundle.umd.js';
+						if (window.fpi) {
+							window.APP_DATA.reduxData = window.fpi.store.getState();
+						}
+						window.loadApp();
+					} catch(e) { console.log( e );}
 				});
 				</script>
 			`);
