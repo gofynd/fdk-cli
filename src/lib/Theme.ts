@@ -959,31 +959,18 @@ export default class Theme {
                     if (!listItem.page) return listItem
 
                     // delete extra props from all list (Default, Blue, Dark)
-                    const page = listItem.page.map(pageData => {
+                    listItem.page.forEach(pageData => {
                         // allowedDefaultProps object have deleted page name as key
                         // If current page is not deleted page, then no changes needed
                         if (!allowedDefaultProps[pageData.page]) return pageData;
 
-                        const { settings } = pageData;
-                        const newSettingsProps = settings.props
-
-                        Object.keys(newSettingsProps).forEach(prop => {
+                        Object.keys(pageData.settings.props).forEach(prop => {
                             if (!allowedDefaultProps[pageData.page].includes(prop)) {
-                                delete newSettingsProps[prop]
+                                delete pageData.settings.props[prop]
                             }
                         })
-                        return {
-                            ...pageData,
-                            settings: {
-                                ...pageData.settings,
-                                props: newSettingsProps
-                            }
-                        }
                     })
-                    return {
-                        ...listItem,
-                        page
-                    }
+                    return listItem
                 })
             }
             theme.config.list = newList || [{ name: 'default' }];
