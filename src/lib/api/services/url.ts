@@ -103,7 +103,7 @@ export const URLS = {
         company_id: number,
         page_value: string
         ) => {
-        return urlJoin(THEME_URL(), `/company/${company_id}/application/${application_id}/page/${page_value}/default`)
+        return urlJoin(THEME_URL(), `/company/${company_id}/application/${application_id}/page/${page_value}/system`)
     },
 
     SETUP_COMPANY: (company_id: number) => {
