@@ -9,7 +9,6 @@ import Spinner from '../../../helper/spinner';
 export default {
     startUpload: async (data, namespace) => {
         try {
-            const activeContext = getActiveContext();
             const axiosOption = Object.assign(
                 {},
                 {
@@ -19,8 +18,6 @@ export default {
             );
             const res = await ApiClient.post(
                 URLS.START_UPLOAD_FILE(
-                    activeContext.application_id,
-                    activeContext.company_id,
                     namespace
                 ),
                 axiosOption
@@ -34,7 +31,6 @@ export default {
         let spinner = new Spinner();
         let textMessage;
         try {
-            const activeContext = getActiveContext();
             let stats = fs.statSync(filepath);
             textMessage = `Uploading file ${path.basename(filepath)}  [${Math.round(stats.size / 1024)} KB]`
             spinner.start(textMessage);
@@ -56,8 +52,6 @@ export default {
             );
             const res1 = await ApiClient.post(
                 URLS.START_UPLOAD_FILE(
-                    activeContext.application_id,
-                    activeContext.company_id,
                     namespace
                 ),
                 axiosOption
@@ -87,8 +81,6 @@ export default {
             );
             const res3 = await ApiClient.post(
                 URLS.COMPLETE_UPLOAD_FILE(
-                    activeContext.application_id,
-                    activeContext.company_id,
                     namespace
                 ),
                 axiosOption

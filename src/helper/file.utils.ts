@@ -14,10 +14,10 @@ export const writeFile = (relativePath, fileContents) => {
   });
 };
 
-export const createDirectory = relativePath => {
-  if (!fs.existsSync(relativePath)) {
-    fs.mkdirSync(relativePath, { recursive: true });
-  } else {
-    fs.emptyDirSync(relativePath)
-  }
+export const createDirectory = (relativePath, emptyIfExists = true) => {
+    if (!fs.existsSync(relativePath)) {
+        fs.mkdirSync(relativePath, { recursive: true });
+    } else if (emptyIfExists) {
+        fs.emptyDirSync(relativePath);
+    }
 };

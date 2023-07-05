@@ -3,6 +3,7 @@ import urlJoin from 'url-join';
 import { AVAILABLE_ENVS } from '../../Env';
 
 const apiVersion = configStore.get(CONFIG_KEYS.API_VERSION) || '1.0';
+const organization_id = configStore.get(CONFIG_KEYS.ORGANIZATION);
 
 export const getBaseURL = () => {
     const currentEnv = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
@@ -12,11 +13,11 @@ export const getBaseURL = () => {
     return `https://${currentEnv}`
 };
 
-const THEME_URL = () => getBaseURL() + '/service/platform/theme/v' + apiVersion;
+const THEME_URL = () => getBaseURL() + '/service/partner/theme/v' + apiVersion;
 const AUTH_URL = () => getBaseURL() + '/service/panel/authentication/v' + apiVersion;
-const CONFIGURATION_URL = () => getBaseURL() + '/service/platform/configuration/v' + apiVersion;
-const ASSET_URL = () => getBaseURL() + '/service/platform/assets/v' + apiVersion;
+const CONFIGURATION_URL = () => getBaseURL() + '/service/partner/partners/v' + apiVersion;
 const MIXMASTER_URL = (serverType: string) => getBaseURL() + `/service/${serverType}/partners/v` + apiVersion;
+const ASSET_URL = () => getBaseURL() + '/service/partner/assets/v' + apiVersion;
 
 export const URLS = {
     // AUTHENTICATION
@@ -29,59 +30,43 @@ export const URLS = {
     VERIFY_OTP: () => {
         return urlJoin(AUTH_URL(), '/auth/login/mobile/otp/verify');
     },
-    OAUTH_TOKEN: (company_id: number) => {
-        return urlJoin(AUTH_URL(), `/company/${company_id}/oauth/staff/token`);
-    },
 
     //CONFIGURATION
-    GET_APPLICATION_DETAILS: (application_id: string, company_id: number) => {
-        return urlJoin(CONFIGURATION_URL(), `/company/${company_id}/application/${application_id}`);
+    GET_APPLICATION_DETAILS: (company_id: number, application_id: string) => {
+        return urlJoin(CONFIGURATION_URL(), `/organization/${organization_id}/company/${company_id}/application/${application_id}`);
+    },
+    GET_APPLICATION_LIST: (company_id: number) => {
+        return urlJoin(MIXMASTER_URL('partner'), `/organization/${organization_id}/company/${company_id}/application`);
     },
 
     //ASSETS
-    START_UPLOAD_FILE: (application_id: string, company_id: number, namespaces: string) => {
+    START_UPLOAD_FILE: (namespaces: string) => {
         return urlJoin(
             ASSET_URL(),
-            `/company/${company_id}/application/${application_id}/namespaces/${namespaces}/upload/start`
+            `/organization/${organization_id}/namespaces/${namespaces}/upload/start`
         );
     },
-    COMPLETE_UPLOAD_FILE: (application_id: string, company_id: number, namespaces: string) => {
+    COMPLETE_UPLOAD_FILE: (namespaces: string) => {
         return urlJoin(
             ASSET_URL(),
-            `/company/${company_id}/application/${application_id}/namespaces/${namespaces}/upload/complete`
+            `/organization/${organization_id}/namespaces/${namespaces}/upload/complete`
         );
     },
 
     //THEME
-    CREATE_THEME: (application_id: string, company_id: number) => {
-        return urlJoin(THEME_URL(), `/company/${company_id}/application/${application_id}`);
+    CREATE_THEME: (company_id: number, application_id: string) => {
+        return urlJoin(THEME_URL(), `organization/${organization_id}/company/${company_id}/application/${application_id}`);
     },
     THEME_BY_ID: (application_id: string, company_id: number, theme_id: string) => {
         return urlJoin(
             THEME_URL(),
-            `/company/${company_id}/application/${application_id}/${theme_id}`
+            `organization/${organization_id}/company/${company_id}/application/${application_id}/${theme_id}`
         );
     },
-    PUBLISH_THEME: (application_id: string, company_id: number, theme_id: string) => {
+    GET_ALL_THEME: (company_id: number, application_id: string) => {
         return urlJoin(
             THEME_URL(),
-            `/company/${company_id}/application/${application_id}/${theme_id}/publish`
-        );
-    },
-    UNPUBLISH_THEME: (application_id: string, company_id: number, theme_id: string) => {
-        return urlJoin(
-            THEME_URL(),
-            `/company/${company_id}/application/${application_id}/${theme_id}/unpublish`
-        );
-    },
-    GET_APPLICATION_THEME_LIBRARY: (
-        application_id: string,
-        company_id: number,
-        theme_id: string
-    ) => {
-        return urlJoin(
-            THEME_URL(),
-            `/company/${company_id}/application/${application_id}/${theme_id}/library`
+            `organization/${organization_id}/company/${company_id}/application/${application_id}/themes`
         );
     },
 
@@ -94,7 +79,7 @@ export const URLS = {
     ) => {
         return urlJoin(
             THEME_URL(),
-            `/company/${company_id}/application/${application_id}/${theme_id}/${page_value}`
+            `organization/${organization_id}/company/${company_id}/application/${application_id}/${theme_id}/${page_value}`
         );
     },
 
@@ -107,7 +92,7 @@ export const URLS = {
     },
 
     SETUP_COMPANY: (company_id: number) => {
-        return urlJoin(MIXMASTER_URL('platform'), `/company/${company_id}/setup`);
+        return urlJoin(MIXMASTER_URL('partner'), `organization/${organization_id}/company/${company_id}/setup`);
     },
 
 
@@ -127,7 +112,10 @@ export const URLS = {
 
 
     // Preview URL
-    GET_DEVELOPMENT_ACCOUNTS: (organization_id: string, page_no: number, page_size: number): string => {
+    GET_DEVELOPMENT_ACCOUNTS: (page_no: number, page_size: number): string => {
         return urlJoin(MIXMASTER_URL('partner'), `/organization/${organization_id}/accounts?page_size=${page_size}&page_no=${page_no}`);
+    },
+    GET_LIVE_ACCOUNTS: (page_no: number, page_size: number): string => {
+        return urlJoin(MIXMASTER_URL('partner'), `/organization/${organization_id}/accounts/access-request?page_size=${page_size}&page_no=${page_no}&request_status=accepted`);
     }
 };

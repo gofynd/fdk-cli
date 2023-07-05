@@ -74,8 +74,6 @@ ___
 | [sync](#theme-sync)     | Sync theme to application |
 | [pull](#theme-pull)     | Pull latest theme code |
 | [pull-config](#theme-pull-config)     | Pull latest theme config |
-| [publish](#theme-publish)     | Publish theme to library |
-| [unpublish](#theme-unpublish)     | Unpublish theme |
 | [open](#theme-open)    | preview theme |
 | [package](#theme-package)    | Create a zip file of theme |
 
@@ -146,7 +144,7 @@ After setting the environment the user has to login to the cli. They can use the
 <div id="login"></div>
 
 #### **login**
-This command allows user to login with email or password
+This command allows user to login via partner panel
 #### **Syntax**
 ```sh
 fdk login
@@ -154,18 +152,12 @@ fdk login
 #### **Command Options**
 | Option        | Description           | 
 | ------------- |-------------| 
-| --email, -e   | Email |
-| --mobile, -m    | Mobile |
 | --help    | Show help |
 | --verbose, -v | enable debug mode |
 
 #### **Example**
 ```sh
-fdk login -e [your-email]
-```
-
-```sh
-fdk login -m [your-mobile]
+fdk login
 ```
 
 <div id="user"></div>
@@ -202,16 +194,13 @@ fdk theme new [options]
 #### **Command Options**
 | Option        | Description           | 
 | ------------- |-------------| 
-| --token, -t    | Theme token |
 | --name, -n    | Theme name |
 | --help    | Show help |
 | --verbose, -v | enable debug mode |
 
-You can find the theme token under the themes panel of Fynd Platform. [Reference](https://hdn-1.addsale.com/x0/company/1/applications/000000000000000000000001/theme/pictures/free/original/theme-image-1628752638519.png)
-
 #### **Example**
 ```sh
-fdk theme new -t [theme-token] -n [your-theme-name] 
+fdk theme new -n [your-theme-name] 
 ```
 
 ___
@@ -228,16 +217,12 @@ fdk theme init [options]
 #### **Command Options**
 | Option        | Description           | 
 | ------------- |-------------| 
-| --token, -t   | Theme token |
 | --help    | Show help |
 | --verbose, -v | enable debug mode |
 
-You can find the theme token under the themes panel of Fynd Platform. [Reference](https://hdn-1.addsale.com/x0/company/1/applications/000000000000000000000001/theme/pictures/free/original/theme-image-1628752713854.png)
-
-
 #### **Example**
 ```sh
-fdk theme init -t [your-theme-token]
+fdk theme init
 ```
 ___
 
@@ -253,18 +238,16 @@ fdk theme context [options]
 #### **Command Options**
 | Option        | Description           | 
 | ------------- |-------------| 
-| --token, -t    | Theme token |
 | --name, -n    | Context name |
 | --help    | Show help |
 | --verbose, -v | enable debug mode |
 
-You can find the theme token under the theme panel of Fynd Platform. [Reference](https://hdn-1.addsale.com/x0/company/1/applications/000000000000000000000001/theme/pictures/free/original/theme-image-1628752713854.png)
-
 #### **Example**
 ```sh
-fdk theme context -t [your-theme-token] -n [context-name] 
+fdk theme context -n [context-name] 
 ```
 ___
+
 <div id="theme-context-list"></div>
 
 #### **context-list**
@@ -340,24 +323,7 @@ This command is used to pull latest theme config.
 fdk theme pull-config
 ```
 ___
-<div id="theme-publish"></div>
 
-#### publish
-This command is used to publish your theme.
-#### **Syntax**
-```sh
-fdk theme publish
-```
-___
-<div id="theme-unpublish"></div>
-
-#### **unpublish**
-This command is used to unpublish your theme.
-#### **Syntax**
-```sh
-fdk theme unpublish
-```
-___
 <div id="theme-package"></div>
 
 #### **package**

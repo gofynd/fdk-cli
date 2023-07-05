@@ -1,0 +1,50 @@
+{
+    "auth_token": {
+        "access_token": "pr-4fb094006ed3a6d749b69875be0418b83238d078",
+        "token_type": "Bearer",
+        "expires_in": 7199,
+        "scope": [
+            "organization/*"
+        ],
+        "current_user": {
+            "id": "0f2f6aa3abbe0f86c4ef8c5c",
+            "emails": [
+                {
+                    "email": "jinalvirani@gofynd.com",
+                    "primary": true,
+                    "verified": true,
+                    "active": true
+                },
+                {
+                    "email": "jinalvirani@fynd.com",
+                    "primary": false,
+                    "verified": true,
+                    "active": true
+                },
+                {
+                    "email": "jinalvirani@uniket.store",
+                    "primary": false,
+                    "verified": true,
+                    "active": true
+                }
+            ],
+            "gender": null,
+            "first_name": "Jinal",
+            "last_name": "Virani",
+            "phone_numbers": [
+                {
+                    "verified": true,
+                    "country_code": 91,
+                    "primary": true,
+                    "phone": "7405028057",
+                    "active": true
+                }
+            ],
+            "profile_pic_url": "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/misc/default-assets/original/default-platform-profile.png"
+        },
+        "redirect_urls": [
+            "https://localhost"
+        ]
+    },
+    "organization": "60afe92972b7a964de57a1d4"
+}
