@@ -1,55 +1,112 @@
 import CommandError from './CommandError';
 import Logger from './Logger';
-import AuthService from './api/services/auth.service';
 import inquirer from 'inquirer';
 import ConfigStore, { CONFIG_KEYS } from './Config';
+import { ALLOWD_ENV } from '../helper/constants';
+import open from 'open';
+import express from 'express';
+var cors = require('cors');
+const port = 7071;
+import chalk from 'chalk';
+import { AVAILABLE_ENVS } from './Env';
+function getLocalBaseUrl(isTesting = false) {
+    return `http${isTesting ? '' : 's'}://localhost`;
+}
+async function checkTokenExpired(auth_token) {
+    const { expiry_time } = auth_token
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+    if (currentTimestamp > expiry_time) {
+        return true;
+    }
+    else{
+        return false
+    }
+}
+
+export const getApp = async ({isTesting = false}) => {
+    const app = require('https-localhost')(getLocalBaseUrl(isTesting));
+    let certs = null;
+
+    if(!isTesting){
+        certs = await app.getCerts();
+    }
+
+    app.use(cors());
+    app.use(express.json());
+
+    app.post('/token', async (req, res) => {
+        try {
+            if(Auth.isOrganizationChange)
+                ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
+            const expiryTimestamp = Math.floor(Date.now() / 1000) + req.body.auth_token.expires_in;
+            req.body.auth_token.expiry_time = expiryTimestamp;
+            ConfigStore.set(CONFIG_KEYS.AUTH_TOKEN, req.body.auth_token);
+            ConfigStore.set(CONFIG_KEYS.ORGANIZATION, req.body.organization);
+            Auth.stopSever();
+            if (Auth.isOrganizationChange) Logger.info('Organization changed successfully');
+            else Logger.info('User logged in successfully');
+            res.status(200).json({ message: 'success' });
+        } catch (err) {
+            console.log(err);
+        }
+    });
+
+    return { app, certs };
+};
+
+export const startServer = async ({isTesting = false}) => {
+    if (Auth.server) return Auth.server
+
+    const { app, certs } = await getApp({isTesting});
+    const serverIn = isTesting ? require('http').createServer(app) : require('https').createServer(certs, app);
+    Auth.server = serverIn.listen(port, err => {
+        if (err) console.log(err);
+    });
+
+    return Auth.server;
+};
 
 export default class Auth {
+    static server = null;
+    static isOrganizationChange = false;
     constructor() {}
-    public static async loginUserWithEmail(email: string, password: string) {
-        try {
-            const requestData = {
-                username: email,
-                password,
-                'g-recaptcha-response': '_skip_',
-            };
-            const { data, headers } = await AuthService.loginUserWithEmailAndPassword(requestData);
-            delete data.user.roles;
-            const cookie = headers['set-cookie'][0];
-            ConfigStore.set(CONFIG_KEYS.COOKIE, cookie);
-            ConfigStore.set(CONFIG_KEYS.USER, data.user);
-            Logger.info('User logged in successfully');
-        } catch (error) {
-            throw new CommandError(error.message, error.code);
-        }
-    }
-    public static async loginInWithMobile(mobile: string) {
-        try {
-            let requestData: any = {
-                mobile,
-                country_code: '91',
-                'g-recaptcha-response': '_skip_',
-            };
-
-            const { data: otpResponse } = await AuthService.sendMobileOtp(requestData);
+    public static async login() {
+        console.log(chalk.green('Current env: ', ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)));
+        const isLoggedIn = await Auth.isAlreadyLoggedIn();
+        await startServer({});
+        if (isLoggedIn) {
             const questions = [
                 {
-                    type: 'text',
-                    name: 'otp',
-                    message: 'Enter OTP: ',
+                    type: 'list',
+                    name: 'confirmChangeOrg',
+                    message: 'You are already logged In. Do you wish to change the organization?',
+                    choices: ['Yes', 'No'],
                 },
             ];
             await inquirer.prompt(questions).then(async answers => {
-                if (answers.otp.length !== 6) throw new CommandError('Invalid OTP');
-                requestData.otp = answers.otp;
-                requestData.request_id = otpResponse.request_id;
-                const { data, headers } = await AuthService.verifyMobileOtp(requestData);
-                delete data.user.roles;
-                const cookie = headers['set-cookie'][0];
-                ConfigStore.set(CONFIG_KEYS.COOKIE, cookie);
-                ConfigStore.set(CONFIG_KEYS.USER, data.user);
-                Logger.info('User logged in successfully');
+                if (answers.confirmChangeOrg === 'No') {
+                    Auth.isOrganizationChange = false;
+                    await Auth.stopSever();
+                    return;
+                } else {
+                    Auth.isOrganizationChange = true;
+                }
             });
+        }
+        const env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+        try {
+            let domain = null;
+            if(AVAILABLE_ENVS[env] ){
+                let partnerDomain = AVAILABLE_ENVS[env].replace("api.", "partners.")
+                domain = `https://${partnerDomain}`;
+            }
+            else {
+                let partnerDomain = env.replace("api.", "partners.")
+                domain =`https://${partnerDomain}`
+            }
+            await open(
+                `${domain}/organizations/?fdk-cli=true&callback=${getLocalBaseUrl()}:${port}`
+            );
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
@@ -76,7 +133,7 @@ export default class Auth {
     }
     public static getUserInfo() {
         try {
-            const user = ConfigStore.get(CONFIG_KEYS.USER);
+            const { current_user: user } = ConfigStore.get(CONFIG_KEYS.AUTH_TOKEN);
             const activeEmail =
                 user.emails.find(e => e.active && e.primary)?.email || 'Not primary email set';
             Logger.info(`Name: ${user.first_name} ${user.last_name}`);
@@ -85,4 +142,18 @@ export default class Auth {
             throw new CommandError(error.message);
         }
     }
+    private static isAlreadyLoggedIn = async () => {
+        const auth_token = ConfigStore.get(CONFIG_KEYS.AUTH_TOKEN);
+        if (auth_token && auth_token.access_token){
+            const isTokenExpired = await checkTokenExpired(auth_token)
+            if(!isTokenExpired)
+                return true;
+            else 
+                return false;
+        }
+        else return false;
+    };
+    static stopSever = async () => {
+        Auth.server.close(() => {});
+    };
 }

@@ -108,13 +108,26 @@ export default {
 
 
   // Preview URL
-  getDevelopmentAccounts: async (organization_id: string, page_no: number, page_size: number) => {
+  getDevelopmentAccounts: async (page_no: number, page_size: number) => {
     try {
       let axiosOptions = Object.assign(
         {},
         getCommonHeaderOptions()
       )
-      let response = await ApiClient.get(URLS.GET_DEVELOPMENT_ACCOUNTS(organization_id, page_no, page_size), axiosOptions);
+      let response = await ApiClient.get(URLS.GET_DEVELOPMENT_ACCOUNTS(page_no, page_size), axiosOptions);
+      return response.data;
+
+    } catch(error) {
+      throw error;
+    }
+  },
+  getLiveAccounts: async (page_no: number, page_size: number) => {
+    try {
+      let axiosOptions = Object.assign(
+        {},
+        getCommonHeaderOptions()
+      )
+      let response = await ApiClient.get(URLS.GET_LIVE_ACCOUNTS(page_no, page_size), axiosOptions);
       return response.data;
 
     } catch(error) {
