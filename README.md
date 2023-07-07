@@ -114,11 +114,15 @@ This command sets the active environment to the value provided by the user.
 
 #### **Syntax**
 ```sh
-fdk env set -n [env-name]
+fdk env set [options]
 ```
 #### **Example**
 ```sh
 fdk env set -n fynd
+```
+#### **Example**
+```sh
+fdk env set -u api.fynd.com
 ```
 #### **Command Options**
 | Option        | Description | Required |
@@ -348,6 +352,9 @@ Set the active environment before running extension commands
 ```sh
 fdk env set -n fynd
 ```
+```sh
+fdk env set -u api.fynd.com
+```
 
 
 <div id="extension-init"></div>
@@ -481,7 +488,7 @@ run the cli commands in debug mode using `--verbose` flag.
 
 #### **Example**
 ```sh
-fdk login -e <your_email> --verbose
+fdk login --verbose
 ```
 
 above command will log the curl command in the console
