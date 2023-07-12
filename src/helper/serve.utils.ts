@@ -280,7 +280,6 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 
 	app.use(webpackDevMiddleware(compiler, {
 		publicPath: baseWebpackConfig.output.publicPath,
-		serverSideRender: true,
 		writeToDisk: true,
 		stats: "none",
 	}));
@@ -392,10 +391,12 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 				socket.on('reload',function(){
 					try {
 						window.APP_DATA.themeBundleUMDURL = '/themeBundle.umd.js';
+						window.APP_DATA.isServerRendered = false;
+						window.webpackChunkthemeBundle = [];
 						if (window.fpi) {
 							window.APP_DATA.reduxData = window.fpi.store.getState();
 						}
-						window.loadApp();
+						window.loadApp().catch(console.log);
 					} catch(e) { console.log( e );}
 				});
 				</script>
