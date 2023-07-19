@@ -100,7 +100,7 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
             }
             if (THEME_COMMANDS.findIndex(c => themeCommand.includes(c)) !== -1) {
                 const activeContextEnv = getActiveContext().env;
-                if (activeContextEnv !== Env.getEnvValue()) {
+                if (activeContextEnv !== Env.getEnvValue() && !Env.getEnvValue().includes(activeContextEnv)) {
                     throw new CommandError(COMMON_LOG_MESSAGES.contextMismatch);
                 }
             }

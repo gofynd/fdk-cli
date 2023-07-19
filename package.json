@@ -1,6 +1,6 @@
 {
   "name": "@gofynd/fdk-cli",
-  "version": "3.0.2",
+  "version": "3.0.2-alpha.29",
   "main": "index.js",
   "license": "MIT",
   "bin": {
@@ -63,6 +63,7 @@
     "archiver": "^5.3.0",
     "async": "^3.2.0",
     "axios": "^0.21.1",
+    "axios-retry": "^3.5.1",
     "boxen": "^5.0.1",
     "chalk": "^4.1.1",
     "cheerio": "^1.0.0-rc.9",

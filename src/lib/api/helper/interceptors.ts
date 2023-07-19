@@ -49,6 +49,11 @@ function interceptorFn(options) {
                     try {
                         data = (await AuthenticationService.getOauthToken(company_id)).data || {};
                     } catch (error) {
+
+                        if(error && error.config && error.config["axios-retry"]){
+                            throw error
+                        }
+                        
                         ConfigStore.delete(CONFIG_KEYS.USER);
                         ConfigStore.delete(CONFIG_KEYS.COOKIE);
                         throw error;
@@ -114,7 +119,9 @@ export function responseInterceptor() {
 
 export function responseErrorInterceptor() {
     return error => {
-        
+        if(error?.config?.retrying){
+            throw error
+        }
         // Request made and server responded
         if (error.response) {
             Debug(`Error Response  :  ${JSON.stringify(error.response.data)}`);
