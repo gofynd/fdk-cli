@@ -44,15 +44,14 @@ export function devBuild({ buildFolder, imageCdnUrl, isProd } : DevBuild) {
     const THEME_ENTRY_FILE = path.join('theme', 'index.js');
 
     return new Promise((resolve, reject) => {
-        let b = exec(`node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle ${THEME_ENTRY_FILE}`,
+        let b = exec(`NODE_OPTIONS=--openssl-legacy-provider node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle ${THEME_ENTRY_FILE}`,
             {
                 cwd: process.cwd(),
                 env: {
                     ...process.env,
                     IMAGE_CDN_URL: imageCdnUrl,
                     NODE_ENV: (isProd && "production") || "development",
-                    VUE_CLI_SERVICE_CONFIG_PATH: path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH),
-                    NODE_OPTIONS:"--openssl-legacy-provider"
+                    VUE_CLI_SERVICE_CONFIG_PATH: path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH)
                 }
             });
 
