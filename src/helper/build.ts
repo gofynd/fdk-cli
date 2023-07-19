@@ -9,7 +9,7 @@ export function build({ buildFolder, imageCdnUrl, assetCdnUrl, assetHash = '' })
     const spinner = new Spinner('Building assets using vue-cli-service');
     return new Promise((resolve, reject) => {
         spinner.start();
-        let b = exec(`node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle --filename ${assetHash}_themeBundle ${THEME_ENTRY_FILE}`,
+        let b = exec(`NODE_OPTIONS=--openssl-legacy-provider node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle --filename ${assetHash}_themeBundle ${THEME_ENTRY_FILE}`,
             {
                 cwd: process.cwd(),
                 env: {
