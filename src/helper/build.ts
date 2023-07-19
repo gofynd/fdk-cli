@@ -19,7 +19,6 @@ export function build({ buildFolder, imageCdnUrl, assetCdnUrl, assetHash = '' })
                     ASSET_HASH: assetHash,
                     NODE_ENV: "production",
                     VUE_CLI_SERVICE_CONFIG_PATH: path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH),
-                    NODE_OPTIONS:"--openssl-legacy-provider"
                 }
             });
 
@@ -53,7 +52,6 @@ export function devBuild({ buildFolder, imageCdnUrl, isProd } : DevBuild) {
                     IMAGE_CDN_URL: imageCdnUrl,
                     NODE_ENV: (isProd && "production") || "development",
                     VUE_CLI_SERVICE_CONFIG_PATH: path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH),
-                    NODE_OPTIONS:"--openssl-legacy-provider"
                 }
             });
 
