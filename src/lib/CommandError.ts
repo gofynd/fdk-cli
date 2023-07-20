@@ -34,6 +34,10 @@ export const ErrorCodes = {
   NO_DEVELOPMENT_COMPANY: {
     message: "Development account not found",
     code: 'FDK-0008'
+  },
+  NETWORK_ERROR: {
+    message: "Network issue",
+    code: 'FDK-0009'
   }
 };
 

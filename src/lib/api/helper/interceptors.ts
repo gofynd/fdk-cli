@@ -6,6 +6,7 @@ import Debug from '../../Debug';
 import CommandError, { ErrorCodes } from '../../CommandError';
 import AuthenticationService from '../services/auth.service';
 import ConfigStore, { CONFIG_KEYS } from '../../Config';
+import { MAX_RETRY } from '../../../helper/constants';
 
 function getTransformer(config) {
     const { transformRequest } = config;
@@ -53,9 +54,10 @@ function interceptorFn(options) {
                         if(error && error.config && error.config["axios-retry"]){
                             throw error
                         }
-                        
-                        ConfigStore.delete(CONFIG_KEYS.USER);
-                        ConfigStore.delete(CONFIG_KEYS.COOKIE);
+                        if(!!error.cause && error.cause !== ErrorCodes.NETWORK_ERROR.code) {
+                            ConfigStore.delete(CONFIG_KEYS.USER);
+                            ConfigStore.delete(CONFIG_KEYS.COOKIE);
+                        }
                         throw error;
                     }
 
@@ -103,7 +105,7 @@ function interceptorFn(options) {
             }
             return config;
         } catch (error) {
-            throw new Error(error);
+            throw error;
         }
     };
 }
@@ -127,10 +129,20 @@ export function responseErrorInterceptor() {
             Debug(`Error Response  :  ${JSON.stringify(error.response.data)}`);
             throw new CommandError(`${error.response.data.message}`, ErrorCodes.API_ERROR.code);
         } else if (error.request) {
-            // The request was made but no error.response was received
-            Debug(`\nError => Code: ${error.code} Message: ${error.message}\n`);
+            // Check if axios already tried 3 times and then getting into error interceptor
+            // then directly send error network error
+            if(error.config?.["axios-retry"]?.retryCount === MAX_RETRY){
+                Debug(`\nError => Code: ${error.code} Message: ${error.message}\n`);
+                throw new Error(
+                    'Not received response from the server, possibly some network issue, please retry!!', { cause: ErrorCodes.NETWORK_ERROR.code }
+                );
+            }
+
+            // If axios haven't tried 3(MAX_RETRY) times, then throw whatever error you got from last API call try
+            throw error
+        } else if(error.cause === ErrorCodes.NETWORK_ERROR.code) {
             throw new Error(
-                'Not received response from the server, possibly some network issue, please retry!!'
+                'Not received response from the server, possibly some network issue, please retry!!', { cause: ErrorCodes.NETWORK_ERROR.code }
             );
         } else {
             throw new Error('There was an issue in setting up the request, Please raise issue');
