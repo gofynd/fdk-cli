@@ -272,8 +272,9 @@ describe('Theme Commands', () => {
         }
     });
 
-    afterAll(() => {
-        fs.rmdirSync(path.join(__dirname, '..', '..', 'test-theme'), { recursive: true });
+    afterAll(async () => {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        fs.rm(path.join(__dirname, '..', '..', 'test-theme'), { recursive: true });
         process.chdir(path.join(__dirname, '..', '..'));
         rimraf.sync(path.join(__dirname, 'theme-test-cli.json')) // remove configstore
     });
@@ -353,7 +354,7 @@ describe('Theme Commands', () => {
         process.chdir(`../`);
         expect(fs.existsSync(filePath)).toBe(true);
     });
-
+    
     it('should successfully generate .zip file of theme', async () => {
         await createTheme();
         let filepath = path.join(process.cwd(),'package.json');
