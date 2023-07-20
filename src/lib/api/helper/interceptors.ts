@@ -121,9 +121,6 @@ export function responseInterceptor() {
 
 export function responseErrorInterceptor() {
     return error => {
-        if(error?.config?.retrying){
-            throw error
-        }
         // Request made and server responded
         if (error.response) {
             Debug(`Error Response  :  ${JSON.stringify(error.response.data)}`);
@@ -134,6 +131,7 @@ export function responseErrorInterceptor() {
             if(error.config?.["axios-retry"]?.retryCount === MAX_RETRY){
                 Debug(`\nError => Code: ${error.code} Message: ${error.message}\n`);
                 throw new Error(
+                    // @ts-ignore
                     'Not received response from the server, possibly some network issue, please retry!!', { cause: ErrorCodes.NETWORK_ERROR.code }
                 );
             }
@@ -142,6 +140,7 @@ export function responseErrorInterceptor() {
             throw error
         } else if(error.cause === ErrorCodes.NETWORK_ERROR.code) {
             throw new Error(
+                // @ts-ignore
                 'Not received response from the server, possibly some network issue, please retry!!', { cause: ErrorCodes.NETWORK_ERROR.code }
             );
         } else {
