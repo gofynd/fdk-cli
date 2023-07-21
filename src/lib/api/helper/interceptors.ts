@@ -50,10 +50,6 @@ function interceptorFn(options) {
                     try {
                         data = (await AuthenticationService.getOauthToken(company_id)).data || {};
                     } catch (error) {
-
-                        if(error && error.config && error.config["axios-retry"]){
-                            throw error
-                        }
                         if(!!error.cause && error.cause !== ErrorCodes.NETWORK_ERROR.code) {
                             ConfigStore.delete(CONFIG_KEYS.USER);
                             ConfigStore.delete(CONFIG_KEYS.COOKIE);
