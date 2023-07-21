@@ -19,7 +19,7 @@ const axiosRetryConfig = {
     },
     shouldResetTimeout: true,
     onRetry(retryCount, error, requestConfig) {
-        console.log(chalk.red("\nPlease check your internet connection. Retrying..."));
+        console.log(chalk.red("\nNetworking fluctuation detected. Retrying request..."));
     },
     retryDelay(retryCount, error) {
         return 2000
