@@ -118,6 +118,8 @@ function getErrorMessage(error){
         return error.response.data
     if(error.response.message)
         return error.response.message
+    if(error.message)
+        return error.message
     return "Something went wrong";
 }
 

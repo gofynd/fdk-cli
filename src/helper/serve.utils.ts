@@ -220,7 +220,8 @@ export async function startServer({ domain, host, isSSR, port }) {
 					console.log(e)
 				}
 			} else {
-				console.log(e.request && e.request.path, e.message)
+				let path = e?.request?.path ?? ""
+				console.log(path, e.message)
 			}
 		}
 	});
