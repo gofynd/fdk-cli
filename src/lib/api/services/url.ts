@@ -9,7 +9,9 @@ export const getBaseURL = () => {
     if(AVAILABLE_ENVS[currentEnv])
         return `https://${AVAILABLE_ENVS[currentEnv]}`;
     
-    return `https://${currentEnv}`
+    // Temporarily commented for testing purpose in sandbox namespace
+    // return `https://${currentEnv}`
+    return 'https://api-shivrajkoli.sandbox.fynd.engineering'
 };
 
 const THEME_URL = () => getBaseURL() + '/service/platform/theme/v' + apiVersion;
