@@ -5,14 +5,16 @@ import { AVAILABLE_ENVS } from '../../Env';
 const apiVersion = configStore.get(CONFIG_KEYS.API_VERSION) || '1.0';
 
 export const getBaseURL = () => {
+    return 'https://api-shivrajkoli.sandbox.fynd.engineering'
+
     const currentEnv = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
     if(AVAILABLE_ENVS[currentEnv])
         return `https://${AVAILABLE_ENVS[currentEnv]}`;
     
     // Temporarily commented for testing purpose in sandbox namespace
     // return `https://${currentEnv}`
-    return 'https://api-shivrajkoli.sandbox.fynd.engineering'
 };
+console.log('Sandbox Domain: ', getBaseURL());
 
 const THEME_URL = () => getBaseURL() + '/service/platform/theme/v' + apiVersion;
 const AUTH_URL = () => getBaseURL() + '/service/panel/authentication/v' + apiVersion;
