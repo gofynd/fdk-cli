@@ -58,7 +58,7 @@ export default class Theme {
     static SRC_ARCHIVE_FOLDER = path.join('.fdk', 'archive');
     static  SETTING_LOADER_FILE = path.join('.fdk', 'setting-loader.js');
     static ZIP_FILE_NAME = `archive.zip`;
-    static TEMPLATE_THEME_URL = 'https://github.com/gofynd/Emerge.git';
+    static TEMPLATE_THEME_URL = 'https://github.com/gofynd/Astra.git';
 
     public static getSettingsDataPath() {
         return path.join(process.cwd(), 'theme', 'config', 'settings_data.json');
