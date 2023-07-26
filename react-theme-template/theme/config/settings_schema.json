@@ -1,274 +1,151 @@
 {
-    "props": [
-      {
-        "type": "header",
-        "category": "Colors",
-        "value": "Header"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "header_bg_color",
-        "label": "Background ",
-        "default": "#ffffff"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "header_text_color",
-        "label": "Text ",
-        "default": "#000000"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "header_border_color",
-        "label": "Border ",
-        "default": "#ffffff"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "header_icon_color",
-        "label": "Icons ",
-        "default": "#ffffff"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "header_cart_notification_bg_color",
-        "label": "Notification background ",
-        "default": "#ffffff"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "header_cart_notification_text_color",
-        "label": "Notification text ",
-        "default": "#000000"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "header_nav_hover_color",
-        "label": "Navigation hover color",
-        "default": "#000000"
-      },
-      {
-        "type": "header",
-        "category": "Colors",
-        "value": "Buttons"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "button_primary_color",
-        "label": "Primary ",
-        "default": "#ffffff"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "button_primary_label_color",
-        "label": "Primary label ",
-        "default": "#000000"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "button_add_to_cart_color",
-        "label": "Add to cart/Buy Now  ",
-        "default": "#000000"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "button_add_to_cart_label_color",
-        "label": "Add to cart/Buy Now label ",
-        "default": "#ffffff"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "button_secondary_color",
-        "label": "Secondary  ",
-        "default": "#000000"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "button_secondary_label_color",
-        "label": "Secondary label ",
-        "default": "#000000"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "button_tertiary_color",
-        "label": "Tertiary  ",
-        "default": "#000000"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "button_tertiary_label_color",
-        "label": "Tertiary label ",
-        "default": "#000000"
-      },
-      {
-        "type": "header",
-        "category": "Colors",
-        "value": "Text"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "text_heading_link_color",
-        "label": "Heading and link",
-        "default": "#000000"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "text_body_color",
-        "label": "Body ",
-        "default": "#000000"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "text_price_color",
-        "label": "Price ",
-        "default": "#000000"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "text_sale_price_color",
-        "label": "Sale price ",
-        "default": "#fb406b"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "text_strikethrough_price_color",
-        "label": "Strikethrough price ",
-        "default": "#9b9b9b"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "tax_label_color",
-        "label": "Price (tax incl.) label",
-        "default": "#9B9B9B"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "text_discount_color",
-        "label": "Discount ",
-        "default": "#ee478d"
-      },
-      {
-        "type": "header",
-        "category": "Colors",
-        "value": "Footer"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "footer_bg_color",
-        "label": "Background ",
-        "default": "#ffffff"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "footer_text_color",
-        "label": "Text ",
-        "default": "#000000"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "footer_border_color",
-        "label": "Border ",
-        "default": "#e1e1e1"
-      },
-      {
-        "type": "color",
-        "category": "Colors",
-        "id": "footer_nav_hover_color",
-        "label": "Navigation hover color",
-        "default": "#000000"
-      },
-      {
-        "type": "header",
-        "category": "Colors",
-        "value": ""
-      },
-      {
-        "type": "header",
-        "category": "Colors",
-        "value": ""
-      },
-      {
-        "type": "select",
-        "id": "menu_position",
-        "default": "left",
-        "options": [
-          {
-            "text": "Left",
-            "value": "left"
-          },
-          {
-            "text": "Bottom",
-            "value": "bottom"
-          }
-        ],
-        "category": "Header",
-        "label": "Menu"
-      },
-      {
-        "type": "checkbox",
-        "id": "disable_cart",
-        "default": false,
-        "category": "Cart",
-        "label": "Disable Cart"
-      },
-      {
-        "type": "header",
-        "category": "Footer",
-        "value": "Artwork"
-      },
-      {
-        "type": "checkbox",
-        "id": "enable_artwork",
-        "default": false,
-        "category": "Footer",
-        "label": "Enable Footer Artwork"
-      },
-      {
-        "type": "image_picker",
-        "id": "artwork",
-        "default": "",
-        "category": "Footer",
-        "label": "Footer Artwork (Desktop)"
-      },
-      {
-        "type": "image_picker",
-        "id": "artwork_mweb",
-        "default": "",
-        "category": "Footer",
-        "label": "Footer Artwork (Mobile)"
-      },
-      {
-        "type": "checkbox",
-        "id":"backtotopbutton",
-        "category":"Back to Top",
-        "default":true,
-        "label":"scroll back to the top of the page",
-        "info":"Back To Top button to come back on top after scrolling down on the product listing, collection listing, brand/category/collection landing page."
-      }
-    ]
-  }
+  "props": [
+    {
+      "type": "select",
+      "id": "header_layout",
+      "default": "single",
+      "category": "Header",
+      "label": "Layout",
+      "options": [
+        {
+          "text": "Single Row Navigation",
+          "value": "single"
+        },
+        {
+          "text": "Double Row Navigation",
+          "value": "double"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "logo_menu_alignment",
+      "default": "layout_1",
+      "category": "Header",
+      "label": "Desktop Logo & Menu Alignment",
+      "options": [
+        {
+          "text": "Logo left, Menu centre",
+          "value": "layout_1"
+        },
+        {
+          "text": "Logo left, Menu left",
+          "value": "layout_2"
+        },
+        {
+          "text": "Logo left, Menu right",
+          "value": "layout_3"
+        },
+        {
+          "text": "Logo Centre",
+          "value": "layout_4"
+        }
+      ]
+    },
+    {
+      "type": "header",
+      "category": "Sections",
+      "value": "Section Margins"
+    },
+    {
+      "type": "range",
+      "category": "Sections",
+      "id": "section_margin_bottom",
+      "min": 0,
+      "max": 200,
+      "step": 1,
+      "unit": "px",
+      "label": "Bottom Margin",
+      "default": 0,
+      "info": "Bottom margin for section"
+    },
+    {
+      "type": "header",
+      "category": "Radius Configuration",
+      "value": "Border Radius"
+    },
+    {
+      "type": "range",
+      "category": "Radius Configuration",
+      "id": "image_border_radius",
+      "min": 0,
+      "max": 30,
+      "unit": "px",
+      "label": "Image Border Radius",
+      "default": 24,
+      "info": "Border radius for Image"
+    },
+    {
+      "type": "range",
+      "category": "Radius Configuration",
+      "id": "button_border_radius",
+      "min": 0,
+      "max": 30,
+      "unit": "px",
+      "label": "Button Border Radius",
+      "default": 4,
+      "info": "Border radius for Button"
+    },
+    {
+      "type": "checkbox",
+      "id": "disable_cart",
+      "default": false,
+      "category": "Cart",
+      "label": "Disable Cart"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "default": "",
+      "category": "Footer",
+      "label": "Logo"
+    },
+    {
+      "type": "text",
+      "id": "footer_description",
+      "label": "Description",
+      "category": "Footer"
+    },
+    {
+      "type": "image_picker",
+      "id": "payments_logo",
+      "default": "",
+      "category": "Footer",
+      "label": "Bottom Bar Image"
+    },
+    {
+      "type": "font",
+      "id": "font_header",
+      "category": "Typography",
+      "default": false,
+      "label": "Font Header"
+    },
+    {
+      "type": "font",
+      "id": "font_body",
+      "category": "Typography",
+      "default": false,
+      "label": "Font Body"
+    },
+    {
+      "type": "header",
+      "category": "Image Container",
+      "value": "Image Container"
+    },
+    {
+      "type": "color",
+      "id": "img_container_bg",
+      "category": "Image Container",
+      "label": "Container Background Color",
+      "info": "This color will be used as the container background color of the Product/Collection/Category/Brand images wherever applicable"
+    },
+    {
+      "type": "checkbox",
+      "id": "img_fill",
+      "category": "Image Container",
+      "default": false,
+      "label": "Fit image to the container",
+      "info": "If the image aspect ratio is different from the container, the image will be clipped to fit the container. The aspect ratio of the image will be maintained"
+    }
+  ]
+}

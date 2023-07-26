@@ -8,6 +8,10 @@ module.exports = {
 					'less-loader',
 				],
 			},
+			{
+				test: /\.svg$/,
+				use: ['@svgr/webpack'],
+			},
 		],
 	},
 };

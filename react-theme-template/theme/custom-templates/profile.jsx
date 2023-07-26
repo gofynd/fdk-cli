@@ -1,4 +1,5 @@
 import React from 'react';
+import { loginGuard } from '../helper/auth-guard';
 
 function Profile({ fpi }) {
 	console.info(!!fpi);

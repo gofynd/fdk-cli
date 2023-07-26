@@ -1,6 +1,8 @@
 import Profile from './profile';
 import Cart from './cart';
 
+
+
 export default {
 	profile: {
 		component: Profile,
@@ -8,4 +10,5 @@ export default {
 	cart: {
 		component: Cart,
 	},
+
 };
