@@ -49,7 +49,7 @@ export function devBuild({ buildFolder, imageCdnUrl, isProd } : DevBuild) {
                 cwd: process.cwd(),
                 env: {
                     ...process.env,
-                    IMAGE_CDN_URL: imageCdnUrl,
+                    // IMAGE_CDN_URL: imageCdnUrl,
                     NODE_ENV: (isProd && "production") || "development",
                     VUE_CLI_SERVICE_CONFIG_PATH: path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH)
                 }

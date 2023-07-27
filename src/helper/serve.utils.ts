@@ -162,6 +162,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 					socket.on('reload',function(){
 						location.reload();
 					});
+					window.__webpack_public_path__ = 'https://manish.com';
 					</script>
 				`);
 			$('head').append(`

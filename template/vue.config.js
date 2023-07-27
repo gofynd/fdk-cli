@@ -28,19 +28,19 @@ module.exports = {
     // disable eslint
     config.module.rules.delete('eslint');
 
-    const imagesRule = config.module.rule('images');
-    imagesRule.uses.clear();
-    imagesRule
-      .test(/\.(jpe?g|png|gif|webp)$/)
-      .use('file-loader')
-      .loader('file-loader')
-      .tap(options => {
-        return {
-          name: '[name].[contenthash].[ext]',
-          publicPath: process.env.IMAGE_CDN_URL,
-          outputPath: 'assets/images'
-        };
-      });
+    // const imagesRule = config.module.rule('images');
+    // imagesRule.uses.clear();
+    // imagesRule
+    //   .test(/\.(jpe?g|png|gif|webp)$/)
+    //   .use('file-loader')
+    //   .loader('file-loader')
+    //   .tap(options => {
+    //     return {
+    //       name: '[name].[contenthash].[ext]',
+    //       publicPath: process.env.IMAGE_CDN_URL,
+    //       outputPath: 'assets/images'
+    //     };
+    //   });
 
     // append variables.less before every style
     const types = ['vue-modules', 'vue', 'normal-modules', 'normal']
