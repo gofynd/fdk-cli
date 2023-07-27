@@ -1,7 +1,4 @@
 const path = require('path');
-const webpack = require('webpack');
-
-const ASSET_PATH = "https://manish.com"
 
 function addStyleResource(rule) {
   rule.use('style-resource')
@@ -15,17 +12,6 @@ function addStyleResource(rule) {
 }
 
 module.exports = {
-
-  output: {
-    publicPath: ASSET_PATH,
-  },
-
-  plugins: [
-    // This makes it possible for us to safely use env vars on our code
-    new webpack.DefinePlugin({
-      'process.env.ASSET_PATH': JSON.stringify(ASSET_PATH),
-    }),
-  ],
   chainWebpack: config => {
     //vue-svg-loader
     const svgRule = config.module.rule('svg');
@@ -52,7 +38,7 @@ module.exports = {
     //     return {
     //       name: '[name].[contenthash].[ext]',
     //       publicPath: process.env.IMAGE_CDN_URL,
-    //       outputPath: 'assets/images'
+    //       outputPath: 'assets/images',
     //     };
     //   });
 
