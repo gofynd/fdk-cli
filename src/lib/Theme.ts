@@ -13,7 +13,7 @@ import {
     findExportedVariable,
 } from '../helper/utils';
 import CommandError, { ErrorCodes } from './CommandError';
-import Logger from './Logger';
+import Logger, { COMMON_LOG_MESSAGES } from './Logger';
 import ConfigurationService from './api/services/configuration.service';
 import fs from 'fs-extra';
 import path from 'path';
@@ -228,7 +228,12 @@ export default class Theme {
                 shouldDelete = false;
                 throw new CommandError(`Folder ${options.name} already exists`);
             }
-            const themeType = await Theme.selectThemeType();
+            // const themeType = await Theme.selectThemeType();
+            // In Future You can use the selection Theme Type
+            const themeType = options.type;
+            if(themeType !== "vue2" && themeType !== "react"){
+                throw new CommandError(COMMON_LOG_MESSAGES.invalidThemeType);
+            }
             const configObj = await Theme.selectCompanyAndStore();
             const { data: appConfig } = await ConfigurationService.getApplicationDetails(configObj);
 
