@@ -99,7 +99,8 @@ async function createThemeFromZip() {
 
 async function createTheme() {
     const inquirerMock = mockFunction(inquirer.prompt);
-    inquirerMock.mockResolvedValue({ 
+    inquirerMock.mockResolvedValue({
+        themeType:"vue2", 
         showCreateFolder: 'Yes',
         accountType: 'development', 
         selectedCompany: 'cli-test',
