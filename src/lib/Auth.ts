@@ -96,12 +96,13 @@ export default class Auth {
         const env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
         try {
             let domain = null;
-            if (AVAILABLE_ENVS[env]) {
-                let partnerDomain = AVAILABLE_ENVS[env].replace('api', 'partners');
+            if(AVAILABLE_ENVS[env] ){
+                let partnerDomain = AVAILABLE_ENVS[env].replace("api", "partners")
                 domain = `https://${partnerDomain}`;
-            } else {
-                let partnerDomain = env.replace('api', 'partners');
-                domain = `https://${partnerDomain}`;
+            }
+            else {
+                let partnerDomain = env.replace("api", "partners")
+                domain =`https://${partnerDomain}`
             }
             await open(
                 `${domain}/organizations/?fdk-cli=true&callback=${getLocalBaseUrl()}:${port}`
