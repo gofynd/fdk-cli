@@ -155,6 +155,9 @@ export async function startServer({ domain, host, isSSR, port }) {
 
 			let $ = cheerio.load(html);
 			$('head').prepend(`
+			<script>
+			__webpack_public_path__ = window.__webpack_public_path__;
+			</script>
 					<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
 					<script>
 					var socket = io();
@@ -162,8 +165,6 @@ export async function startServer({ domain, host, isSSR, port }) {
 					socket.on('reload',function(){
 						location.reload();
 					});
-					window.resourceBasePath = 'https://manish.com';
-					__webpack_public_path__.p = myRuntimePublicPath
 					</script>
 				`);
 			$('head').append(`

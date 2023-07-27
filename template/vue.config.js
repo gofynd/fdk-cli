@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 
 const ASSET_PATH = "https://manish.com"
 
@@ -14,9 +15,11 @@ function addStyleResource(rule) {
 }
 
 module.exports = {
+
   output: {
     publicPath: ASSET_PATH,
   },
+
   plugins: [
     // This makes it possible for us to safely use env vars on our code
     new webpack.DefinePlugin({
