@@ -377,7 +377,12 @@ export default class Theme {
                 domainURL =`https://${currentContext.env}`
             const url = new URL(domainURL);
             const hostName = url.hostname;
-            let domain = hostName.replace('api.', '');
+            // replace "api" with "platform"
+            // When you set env, we are setting api url of that environment. Like api.fyndx1.de
+            // now if you want to open fyndx1's platform, you need to open platform.fyndx1.de So here we are replacing api with platform.
+            // also we need to take care of sandbox URLs. Sandbox have different url pattern. Like api-namespace.sandbox.fynd.engineering & platform-namespace.sandbox.fynd.engineering
+            // Here also by replacing api with platform will work on sandbox.
+            let domain = hostName.replace('api', 'platform');
             var b5 = Box(
                 chalk.green.bold('Your Theme was pushed successfully\n') +
                     chalk.white('\n') +
@@ -386,7 +391,7 @@ export default class Theme {
                     chalk.white('\n') +
                     chalk.white('\n') +
                     chalk.white('Customize this theme in Theme Editor:\n') +
-                    chalk.green(terminalLink('',`https://platform.${domain}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`)),
+                    chalk.green(terminalLink('',`https://${domain}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`)),
                 {
                     padding: 1,
                     margin: 1,

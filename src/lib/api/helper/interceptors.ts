@@ -112,13 +112,25 @@ export function responseInterceptor() {
     }
 }
 
+function getErrorMessage(error){
+    if(error?.response?.data?.message)
+        return error.response.data.message
+    if(error.response.data)
+        return error.response.data
+    if(error.response.message)
+        return error.response.message
+    if(error.message)
+        return error.message
+    return "Something went wrong";
+}
+
 export function responseErrorInterceptor() {
     return error => {
         
         // Request made and server responded
         if (error.response) {
             Debug(`Error Response  :  ${JSON.stringify(error.response.data)}`);
-            throw new CommandError(`${error.response.data.message}`, ErrorCodes.API_ERROR.code);
+            throw new CommandError(`${getErrorMessage(error)}`, ErrorCodes.API_ERROR.code);
         } else if (error.request) {
             // The request was made but no error.response was received
             Debug(`\nError => Code: ${error.code} Message: ${error.message}\n`);
