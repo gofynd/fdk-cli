@@ -71,7 +71,7 @@ export default class Auth {
     static isOrganizationChange = false;
     constructor() {}
     public static async login() {
-        console.log(chalk.green('Current env: ', ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)));
+        Logger.info(chalk.green('Current env: ', ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)));
         const isLoggedIn = await Auth.isAlreadyLoggedIn();
         await startServer({});
         if (isLoggedIn) {

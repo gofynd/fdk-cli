@@ -242,64 +242,6 @@ export default class Theme {
             } else if (themeType === 'react') {
                 await Theme.createReactTheme(options, appConfig, configObj, targetDirectory);
             }
-
-            // Logger.info('Cloning template files');
-            // await Theme.cloneTemplate(options, targetDirectory);
-            // shouldDelete = true;
-
-            // Logger.info('Creating Theme');
-            // let available_sections = await Theme.getAvailableSections();
-
-            // const themeData = {
-            //     name: options.name,
-            //     available_sections,
-            //     version: "1.0.0"
-            // };
-            // const { data: theme } = await ThemeService.createTheme({ ...configObj, ...themeData });
-
-            // let context: any = {
-            //     name: options.name,
-            //     application_id: appConfig._id,
-            //     domain: appConfig.domain.name,
-            //     company_id: appConfig.company_id,
-            //     theme_id: theme._id,
-            //     application_token: appConfig.token
-            // };
-            // process.chdir(path.join('.', dir_name));
-
-            // Logger.info('Saving context');
-            // await createContext(context);
-
-            // Logger.info('Installing dependencies');
-            // let spinner = new Spinner("Installing npm packages")
-            // try {
-            //     spinner.start();
-            //     await installNpmPackages()
-            //     spinner.succeed();
-            // } catch(error) {
-            //     spinner.fail();
-            //     throw new CommandError(error.message);
-            // }
-
-            // let packageJSON = await fs.readJSON(path.join(process.cwd(), 'package.json'));
-            // packageJSON.name = Theme.sanitizeThemeName(options.name);
-            // packageJSON.version = "1.0.0"
-            // await fs.writeJSON(`${process.cwd()}/package.json`, packageJSON, {
-            //     spaces: 2,
-            // });
-
-            // await Theme.syncTheme(true);
-            // var b5 = Box(
-            //     chalk.green.bold('DONE ') +
-            //         chalk.green.bold('Project ready\n') +
-            //         chalk.yellowBright.bold('NOTE ') +
-            //         chalk.green.bold('cd ' + targetDirectory + ' to continue ...'),
-            //     {
-            //         padding: 1,
-            //         margin: 1,
-            //     }
-            // );
-            // console.log(b5.toString());
         } catch (error) {
             if (shouldDelete) await Theme.cleanUp(targetDirectory);
             throw new CommandError(error.message, error.code);
@@ -599,117 +541,6 @@ export default class Theme {
                 break;
         }
     };
-    // private static syncVueTheme = async (currentContext: ThemeContextInterface, isNew = false) => {
-    //     try {
-    //         currentContext.domain
-    //             ? Logger.warn('Syncing Theme to: ' + currentContext.domain)
-    //             : Logger.warn('Please add domain to context');
-    //         let { data: theme } = await ThemeService.getThemeById(currentContext);
-
-    //         // Merge with latest platform config
-    //         await Theme.matchWithLatestPlatformConfig(theme, (isNew));
-    //         Theme.clearPreviousBuild();
-
-    //         Logger.info('Reading Files');
-    //         let themeContent: any = readFile(`${process.cwd()}/config.json`);
-
-    //         try {
-    //             themeContent = JSON.parse(themeContent);
-    //         } catch (e) {
-    //             throw new CommandError(`Invalid config.json`);
-    //         }
-
-    //         let available_sections = await Theme.getAvailableSectionsForSync();
-    //         await Theme.validateAvailableSections(available_sections);
-
-    //         // Create index.js with section file imports
-    //         await Theme.createSectionsIndexFile(available_sections);
-
-    //         const imageCdnUrl = await Theme.getImageCdnBaseUrl();
-    //         const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
-    //         Theme.createVueConfig();
-    //         const assetHash = shortid.generate();
-
-    //         Logger.info('Building Assets');
-    //         // Building .js & .css bundles using vue-cli
-    //         await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl, assetHash });
-
-    //         // Check if build folder exists, as during build, vue fails with non-error code even when it errors out
-    //         if (!fs.existsSync(path.join(process.cwd(), Theme.BUILD_FOLDER))) {
-    //             throw new Error('Build Failed');
-    //         }
-
-    //         let [androidImages, iosImages, desktopImages, thumbnailImages] =
-    //             await Theme.uploadThemePreviewImages();
-
-    //         Logger.info('Uploading theme assets/images');
-    //         await Theme.assetsImageUploader();
-
-    //         Logger.info('Uploading theme assets/fonts');
-    //         await Theme.assetsFontsUploader();
-
-    //         Logger.info('Creating theme source code zip file');
-    //         await Theme.copyThemeSourceToFdkFolder();
-
-    //         // Remove temp source folder
-    //         rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
-
-    //         Logger.info('Uploading theme source code zip file');
-    //         let srcCdnUrl = await Theme.uploadThemeSrcZip();
-
-    //         Logger.info('Uploading bundle files');
-    //         let pArr = await Theme.uploadThemeBundle({ assetHash });
-    //         let [cssUrls, commonJsUrl, umdJsUrls] = await Promise.all(pArr);
-
-    //         // Set new theme data
-    //         const newTheme = await Theme.setThemeData(
-    //             theme,
-    //             cssUrls,
-    //             commonJsUrl,
-    //             umdJsUrls,
-    //             srcCdnUrl,
-    //             desktopImages,
-    //             iosImages,
-    //             androidImages,
-    //             thumbnailImages,
-    //             available_sections
-    //         );
-
-    //         // extract page level settings schema
-    //         Logger.info('Updating Available pages');
-    //         await Theme.updateAvailablePages({ newTheme, assetHash });
-    //         Logger.info('Updating theme');
-    //         await ThemeService.updateTheme(newTheme);
-
-    //         Logger.info('Theme syncing DONE');
-    //         let domainURL = null;
-    //         if(AVAILABLE_ENVS[currentContext.env])
-    //             domainURL = `https://${AVAILABLE_ENVS[currentContext.env]}`;
-    //         else
-    //             domainURL =`https://${currentContext.env}`
-    //         const url = new URL(domainURL);
-    //         const hostName = url.hostname;
-    //         let domain = hostName.replace('api.', '');
-    //         var b5 = Box(
-    //             chalk.green.bold('Your Theme was pushed successfully\n') +
-    //             chalk.white('\n') +
-    //             chalk.white('View your theme:\n') +
-    //             chalk.green(terminalLink('', `https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true`)) +
-    //             chalk.white('\n') +
-    //             chalk.white('\n') +
-    //             chalk.white('Customize this theme in Theme Editor:\n') +
-    //             chalk.green(terminalLink('', `https://platform.${domain}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`)),
-    //             {
-    //                 padding: 1,
-    //                 margin: 1,
-    //                 borderColor: 'green',
-    //             }
-    //         );
-    //         console.log(b5.toString());
-    //     } catch (error) {
-    //         throw new CommandError(error.message, error.code);
-    //     }
-    // };
     private static syncReactTheme = async (currentContext: ThemeContextInterface) => {
         try {
             currentContext.domain
@@ -791,10 +622,13 @@ export default class Theme {
             await ThemeService.updateTheme(newTheme);
 
             Logger.info('Theme syncing DONE');
-            let domainURL = `https://${AVAILABLE_ENVS[currentContext.env]}`;
+            let domainURL = null;
+            if (AVAILABLE_ENVS[currentContext.env])
+                domainURL = `https://${AVAILABLE_ENVS[currentContext.env]}`;
+            else domainURL = `https://${currentContext.env}`;
             const url = new URL(domainURL);
             const hostName = url.hostname;
-            let domain = hostName.replace('api.', '');
+            let domain = hostName.replace('api', 'platform');
             var b5 = Box(
                 chalk.green.bold('Your Theme was pushed successfully\n') +
                     chalk.white('\n') +
@@ -952,7 +786,6 @@ export default class Theme {
             const currentContext = getActiveContext();
             switch (currentContext.theme_type) {
                 case 'react':
-                    console.log('Serving React Theme...');
                     await Theme.serveReactTheme(options);
                     break;
                 case 'vue2':
