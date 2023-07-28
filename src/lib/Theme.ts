@@ -536,7 +536,8 @@ export default class Theme {
             });
             // start dev server
             Logger.info(chalk.bold.blueBright(`Starting server`));
-            await startServer({ domain, host, isSSR, port });
+            // await startServer({ domain, host, isSSR, port });
+            await startServer({ domain: "http://localdev.fyndx1.de:8087/", host, isSSR, port });
 
             // open browser
             await open(getFullLocalUrl(port));
