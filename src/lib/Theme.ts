@@ -61,11 +61,23 @@ export default class Theme {
     static TEMPLATE_THEME_URL = 'https://github.com/gofynd/Emerge.git';
 
     public static getSettingsDataPath() {
-        return path.join(process.cwd(), 'theme', 'config', 'settings_data.json');
+        let settings_path = path.join(process.cwd(), 'theme', 'config', 'settings_data.json')
+        if (fs.existsSync(settings_path)) 
+            return settings_path
+        settings_path = path.join(process.cwd(), 'config', 'settings_data.json')
+        if (fs.existsSync(settings_path)) 
+            return settings_path
+        throw "Settings path not exist";
     }
 
     public static getSettingsSchemaPath() {
-        return path.join(process.cwd(), 'theme', 'config', 'settings_schema.json');
+        let settings_schema_path = path.join(process.cwd(), 'theme', 'config', 'settings_schema.json')
+        if (fs.existsSync(settings_schema_path)) 
+            return settings_schema_path
+        settings_schema_path = path.join(process.cwd(), 'config', 'settings_schema.json')
+        if (fs.existsSync(settings_schema_path)) 
+            return settings_schema_path
+        throw "Settings schema path not exist";
     }
 
     public static async writeSettingJson(path, jsonObject) {
@@ -1244,6 +1256,73 @@ export default class Theme {
         }
     }
 
+    public static restructTheme = async () => {
+        const non_theme_itmes = [
+            'README.md',
+            'config.json',
+            'node_modules',
+            'pages.json',
+            'assets.json',
+            'debug.log',
+            'package-lock.json',
+            'babel.config.js',
+            'fdk.config.js',
+            'package.json',
+            'themedeploy.sh',
+            "theme",
+            ".fdk",
+            ".git",
+            ".gitignore",
+            ".husky"
+        ]
+        const theme_items = [
+            "assets",
+            "constants.json",
+            "helper",
+            "settings.json",
+            "components",
+            "custom-templates",
+            "index.js",
+            "templates",
+            "config",
+            "global",
+            "sections"
+        ];
+        const destinationFolder = path.join(process.cwd(), "theme");
+        const sourceFolder = path.join(process.cwd());
+
+        // Check if the destination folder exists, if not, create it
+        if (!fs.existsSync(destinationFolder)) {
+            fs.mkdirSync(destinationFolder, { recursive: true });
+        }
+          
+        theme_items.forEach((fileOrFolder) => {
+            const sourcePath = path.join(sourceFolder, fileOrFolder);
+            const destinationPath = path.join(destinationFolder, fileOrFolder);
+        
+            // Check if the file or folder exists in the source directory
+            if (fs.existsSync(sourcePath)) {
+            // Move the file or folder to the destination directory
+                fs.renameSync(sourcePath, destinationPath);
+            console.log(`${fileOrFolder} moved to ${destinationFolder}`);
+            } else {
+            // console.log(`${fileOrFolder} does not exist in ${sourceFolder}`);
+            }
+        });
+        
+        const files = fs.readdirSync(sourceFolder);
+        const extra_files = []
+        files.forEach(item => {
+            if(!non_theme_itmes.includes(item)){
+                extra_files.push(item);
+            }
+        })
+        if(extra_files.length > 0){
+            console.log('\n❌ Please check below files and move to theme folder if it\'s related to theme.');
+            console.log('--------------------------');
+            console.log(extra_files.join(", "), '\n');
+        }
+    }
     
     public static generateThemeZip = async () => {
         // Generate production build so that we can get assets and available sections in config file while creating zip

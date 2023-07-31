@@ -48,5 +48,8 @@ export default function themeCommandBuilder() {
     // TODO: Improve this to remove hidden files
     theme.command('package').description('generate zip file of theme').asyncAction(Theme.generateThemeZip);
 
+    // Restructure theme code
+    theme.command('restructure').description('restructure of theme folder').asyncAction(Theme.restructTheme);
+
     return theme;
 }
