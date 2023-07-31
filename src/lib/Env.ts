@@ -8,7 +8,6 @@ import { isValidDomain } from '../helper/utils';
 
 export const AVAILABLE_ENVS = {
     // Fynd
-    fyndx0: 'api.fyndx0.de',
     fyndx1: 'api.fyndx1.de',
     fyndx5: 'api.fyndx5.de',
     fynd: 'api.fynd.com',
