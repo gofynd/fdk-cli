@@ -1268,70 +1268,43 @@ export default class Theme {
     }
 
     public static restructTheme = async () => {
-        const non_theme_itmes = [
-            'README.md',
-            'config.json',
-            'node_modules',
-            'pages.json',
-            'assets.json',
-            'debug.log',
-            'package-lock.json',
-            'babel.config.js',
-            'fdk.config.js',
-            'package.json',
-            'themedeploy.sh',
-            "theme",
-            ".fdk",
-            ".git",
-            ".gitignore",
-            ".husky"
-        ]
-        const theme_items = [
-            "assets",
-            "constants.json",
-            "helper",
-            "settings.json",
-            "components",
-            "custom-templates",
-            "index.js",
-            "templates",
-            "config",
-            "global",
-            "sections"
-        ];
         const destinationFolder = path.join(process.cwd(), "theme");
         const sourceFolder = path.join(process.cwd());
+        const babelFilePath = path.join(process.cwd(), "babel.config.js");
+        const fdkConfigFilePath = path.join(process.cwd(), "fdk.config.js");
+        const files = fs.readdirSync(sourceFolder);
 
         // Check if the destination folder exists, if not, create it
         if (!fs.existsSync(destinationFolder)) {
             fs.mkdirSync(destinationFolder, { recursive: true });
         }
-          
-        theme_items.forEach((fileOrFolder) => {
+        
+        const outer_items = ["package.json", "theme", "babel.config.js", "fdk.config.js", ".fdk", ".git", ".gitignore", ".husky"]
+        const moved_files = []
+        files.forEach((fileOrFolder) => {
+            if(outer_items.includes(fileOrFolder)) return;
             const sourcePath = path.join(sourceFolder, fileOrFolder);
             const destinationPath = path.join(destinationFolder, fileOrFolder);
-        
-            // Check if the file or folder exists in the source directory
-            if (fs.existsSync(sourcePath)) {
             // Move the file or folder to the destination directory
-                fs.renameSync(sourcePath, destinationPath);
-            console.log(chalk.green(`${fileOrFolder} moved to ${destinationFolder}`));
-            } else {
-            // console.log(`${fileOrFolder} does not exist in ${sourceFolder}`);
-            }
+            fs.renameSync(sourcePath, destinationPath);
+            moved_files.push(fileOrFolder)
         });
-        
-        const files = fs.readdirSync(sourceFolder);
-        const extra_files = []
-        files.forEach(item => {
-            if(!non_theme_itmes.includes(item)){
-                extra_files.push(item);
-            }
-        })
-        if(extra_files.length > 0){
-            console.log(chalk.red('\n❌ Please check below files and move to theme folder if it\'s related to theme.'));
-            console.log('--------------------------');
-            console.log(extra_files.join(", "), '\n');
+        Logger.info(`\n✔ ${moved_files.join(", ")} files are moved to theme folder`);
+
+
+        // Check if babal config exist
+        if (!fs.existsSync(babelFilePath)) {
+            const babelContent = fs.readFileSync(path.join(Theme.TEMPLATE_DIRECTORY, 'babel.config.js'));
+            fs.writeFileSync(babelFilePath, babelContent);
+            Logger.info("✔ babel.config.js added");
+            
+        }
+
+        // Check if fdk config exist
+        if (!fs.existsSync(fdkConfigFilePath)) {
+            const fdkConfigContent = fs.readFileSync(path.join(Theme.TEMPLATE_DIRECTORY, 'vue.config.js'));
+            fs.writeFileSync(fdkConfigFilePath, fdkConfigContent);
+            Logger.info("✔ fdk.config.js added")
         }
     }
     
