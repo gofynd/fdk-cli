@@ -97,11 +97,11 @@ export default class Auth {
         try {
             let domain = null;
             if(AVAILABLE_ENVS[env] ){
-                let partnerDomain = AVAILABLE_ENVS[env].replace("api.", "partners.")
+                let partnerDomain = AVAILABLE_ENVS[env].replace("api", "partners")
                 domain = `https://${partnerDomain}`;
             }
             else {
-                let partnerDomain = env.replace("api.", "partners.")
+                let partnerDomain = env.replace("api", "partners")
                 domain =`https://${partnerDomain}`
             }
             await open(
