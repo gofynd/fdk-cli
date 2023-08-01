@@ -48,6 +48,10 @@ export const ErrorCodes = {
     message: "Theme not found",
     code: 'FDK-00011'
   },
+  DOWNGRADE_CLI_VERSION:{
+    message: "API call to version v2.0 is unavailable in current cli version. In order to continue, please use lower cli version.",
+    code: 'FDK-00012'
+  },
 
   // generic 
   ECONN_RESET:{
