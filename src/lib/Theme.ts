@@ -28,7 +28,7 @@ import shortid from 'shortid';
 import ThemeService from './api/services/theme.service';
 import UploadService from './api/services/upload.service';
 import ExtensionService from "./api/services/extension.service";
-import { build, devBuild } from '../helper/build';
+import { THEME_ENTRY_FILE, build, devBuild } from '../helper/build';
 import { archiveFolder, extractArchive } from '../helper/archive';
 import urlJoin from 'url-join';
 import { getFullLocalUrl, startServer, reload, getPort } from '../helper/serve.utils';
@@ -392,6 +392,17 @@ export default class Theme {
             await fs.writeJSON(path.join(process.cwd(), 'package.json'), packageJSON, {
                 spaces: 2,
             });
+            if (!fs.existsSync(path.join(process.cwd(), THEME_ENTRY_FILE))) {
+                let restructureSpinner = new Spinner("Restructuring folder structure");
+                try{
+                    restructureSpinner.start();
+                    this.restructTheme();
+                    restructureSpinner.succeed();
+                }catch(err){
+                    spinner.fail();
+                    console.log(chalk.red("Please check your folder structure"));
+                }
+            }
         } catch (error) {
             if (shouldDelete) await Theme.cleanUp(targetDirectory);
             throw new CommandError(error.message, error.code);
@@ -1304,7 +1315,7 @@ export default class Theme {
             if (fs.existsSync(sourcePath)) {
             // Move the file or folder to the destination directory
                 fs.renameSync(sourcePath, destinationPath);
-            console.log(`${fileOrFolder} moved to ${destinationFolder}`);
+            console.log(chalk.green(`${fileOrFolder} moved to ${destinationFolder}`));
             } else {
             // console.log(`${fileOrFolder} does not exist in ${sourceFolder}`);
             }
@@ -1318,7 +1329,7 @@ export default class Theme {
             }
         })
         if(extra_files.length > 0){
-            console.log('\n❌ Please check below files and move to theme folder if it\'s related to theme.');
+            console.log(chalk.red('\n❌ Please check below files and move to theme folder if it\'s related to theme.'));
             console.log('--------------------------');
             console.log(extra_files.join(", "), '\n');
         }
