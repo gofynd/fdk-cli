@@ -612,7 +612,9 @@ export default class Theme {
                 [
                     'https://hdn-1.addsale.com/x0/company/1/applications/000000000000000000000004/theme/pictures/free/original/desktop.png',
                 ],
-                available_sections
+                available_sections,
+                {}
+                // This allowDefaultProps has to be Changed and handle like how it is handled in vue suggested by Shivraj Koli
             );
 
             Logger.info('Updating Available pages');
@@ -728,6 +730,12 @@ export default class Theme {
             let pArr = await Theme.uploadThemeBundle({ assetHash });
             let [cssUrls, commonJsUrl, umdJsUrls] = await Promise.all(pArr);
 
+            // extract page level settings schema
+            Logger.info('Updating Available pages');
+            const { pagesToSave, allowedDefaultProps } = await Theme.updateAvailablePages({
+                assetHash,
+            });
+
             // Set new theme data
             const newTheme = await Theme.setThemeData(
                 theme,
@@ -739,12 +747,10 @@ export default class Theme {
                 iosImages,
                 androidImages,
                 thumbnailImages,
-                available_sections
+                available_sections,
+                allowedDefaultProps
             );
 
-            // extract page level settings schema
-            Logger.info('Updating Available pages');
-            await Theme.updateAvailablePages({ newTheme, assetHash });
             Logger.info('Updating theme');
             await ThemeService.updateTheme(newTheme);
 
@@ -755,6 +761,11 @@ export default class Theme {
             else domainURL = `https://${currentContext.env}`;
             const url = new URL(domainURL);
             const hostName = url.hostname;
+            // replace "api" with "platform"
+            // When you set env, we are setting api url of that environment. Like api.fyndx1.de
+            // now if you want to open fyndx1's platform, you need to open platform.fyndx1.de So here we are replacing api with platform.
+            // also we need to take care of sandbox URLs. Sandbox have different url pattern. Like api-namespace.sandbox.fynd.engineering & platform-namespace.sandbox.fynd.engineering
+            // Here also by replacing api with platform will work on sandbox.
             let domain = hostName.replace('api', 'platform');
             var b5 = Box(
                 chalk.green.bold('Your Theme was pushed successfully\n') +
@@ -769,9 +780,11 @@ export default class Theme {
                     chalk.white('\n') +
                     chalk.white('\n') +
                     chalk.white('Customize this theme in Theme Editor:\n') +
-                    chalk.green(terminalLink('',
-                    `https://${domain}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`
-                    )
+                    chalk.green(
+                        terminalLink(
+                            '',
+                            `https://${domain}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`
+                        )
                     ),
                 {
                     padding: 1,
@@ -1545,7 +1558,8 @@ export default class Theme {
         iosImages,
         androidImages,
         thumbnailImages,
-        available_sections
+        available_sections,
+        allowedDefaultProps
     ) => {
         // Need to Verify The Use of These Four Values
         // desktopImages,
@@ -1578,7 +1592,7 @@ export default class Theme {
             theme.assets.common_js = theme.assets.commonJs || {};
             theme.assets.common_js.link = commonJsUrl;
             theme.assets.css = theme.assets.css || {};
-            theme.assets.css.links = cssUrls;
+            theme.assets.css.links = cssUrls.filter(x => x.endsWith('_themeBundle.css'));
             theme.assets.css.link = '';
             // TODO Issue here
             theme = {
@@ -1596,7 +1610,29 @@ export default class Theme {
             theme.config = theme.config || {};
             theme.config.global_schema = globalConfigSchema;
             theme.config.current = globalConfigData.current || 'default';
-            theme.config.list = globalConfigData.list || [{ name: 'default' }];
+
+            // Modify list to update deleted page's prop
+            let newList = null;
+            if (globalConfigData.list && Object.keys(allowedDefaultProps).length > 0) {
+                newList = globalConfigData.list.map(listItem => {
+                    if (!listItem.page) return listItem;
+
+                    // delete extra props from all list (Default, Blue, Dark)
+                    listItem.page.forEach(pageData => {
+                        // allowedDefaultProps object have deleted page name as key
+                        // If current page is not deleted page, then no changes needed
+                        if (!allowedDefaultProps[pageData.page]) return pageData;
+
+                        Object.keys(pageData.settings.props).forEach(prop => {
+                            if (!allowedDefaultProps[pageData.page].includes(prop)) {
+                                delete pageData.settings.props[prop];
+                            }
+                        });
+                    });
+                    return listItem;
+                });
+            }
+            theme.config.list = newList || [{ name: 'default' }];
             theme.config.preset = globalConfigData.preset || [];
             theme.version = packageJSON.version;
             theme.customized = true;
@@ -1606,23 +1642,50 @@ export default class Theme {
             throw new CommandError(`Failed to set theme data `);
         }
     };
-    private static updateAvailablePages = async ({ newTheme: theme, assetHash }) => {
+    // Remove extra param "newTheme"
+    private static updateAvailablePages = async ({ assetHash }) => {
         const spinner = new Spinner('Adding/updating available pages');
         try {
             spinner.start();
+            // Get all available pages before syncing
             const allPages = (await ThemeService.getAllAvailablePage()).data.pages;
+            // All available System page
             const systemPagesDB = allPages.filter(x => x.type == 'system');
+            // All available Custom page
             const customPagesDB = allPages.filter(x => x.type == 'custom');
             const pagesToSave = [];
 
             // extract system page level settings schema
-            let systemPages = fs
+            let systemPagesLocally = fs
                 .readdirSync(path.join(process.cwd(), 'theme', 'templates', 'pages'))
                 .filter(o => o != 'index.js');
-            await asyncForEach(systemPages, async fileName => {
+
+            // Check if any themefied system page is empty or not
+            await asyncForEach(systemPagesLocally, async fileName => {
+                let $ = cheerio.load(
+                    readFile(path.join(process.cwd(), 'theme', 'templates', 'pages', fileName))
+                );
+                let templateText = $('template').text();
+
+                if (!templateText) {
+                    throw new CommandError(
+                        `${path.join(
+                            'theme',
+                            'templates',
+                            'pages',
+                            fileName
+                        )} file is empty. Either delete this page OR themefy it accordingly`,
+                        ErrorCodes.NOT_KNOWN.code
+                    );
+                }
+            });
+
+            await asyncForEach(systemPagesLocally, async fileName => {
                 let pageName = fileName.replace('.vue', '');
                 // SYSTEM Pages
                 let systemPage = systemPagesDB.find(p => p.value == pageName);
+
+                // If this system page was not available previously
                 if (!systemPage) {
                     Logger.info('Creating System Page: ', pageName);
                     const pageData = {
@@ -1635,18 +1698,81 @@ export default class Theme {
                     };
                     systemPage = (await ThemeService.createAvailabePage(pageData)).data;
                 }
+
+                // Get page settings props
                 systemPage.props =
                     (
                         Theme.extractSettingsFromFile(
                             path.join(process.cwd(), 'theme', 'templates', 'pages', fileName)
                         ) || {}
                     ).props || [];
+
+                // Check if any section tag available in file
                 systemPage.sections_meta = Theme.extractSectionsFromFile(
                     path.join(process.cwd(), 'theme', 'templates', 'pages', fileName)
                 );
+                // set page type to system page
                 systemPage.type = 'system';
                 pagesToSave.push(systemPage);
             });
+
+            // remove .vue from file name
+            const allLocalSystemPageNames = systemPagesLocally.map(name =>
+                name.replace('.vue', '')
+            );
+            // Delete system pages that were available before sync but now deleted
+            const systemPagesToDelete = systemPagesDB.filter(
+                x => !allLocalSystemPageNames.includes(x.value)
+            );
+
+            const allowedDefaultProps = {};
+
+            if (systemPagesToDelete.length > 0) {
+                // Reseting props in system pages
+
+                // Get default values of all deleted system pages
+                const default_props_arr = await Promise.all(
+                    systemPagesToDelete.map(page => ThemeService.getDefaultPageDetails(page.value))
+                );
+
+                const default_props = {};
+
+                // Create object with page value as a `key` and page details as `value`
+                default_props_arr.forEach(res => {
+                    default_props[res.data.value] = res.data;
+                });
+
+                /**
+                 * Update deleted page props with default props. Also filter out
+                 * default props from existing props to keep current values intact
+                 */
+                await Promise.all(
+                    systemPagesToDelete.map(async page => {
+                        // To fetch deleted system page details
+                        const { data: deletedPage } = await ThemeService.getAvailablePage(
+                            page.value
+                        );
+
+                        // default page values for a system page
+                        const defaultPage = default_props[page.value];
+                        if (defaultPage) {
+                            allowedDefaultProps[defaultPage.value] = deletedPage.props.map(prop => {
+                                // If both `id` and `type` values match for current prop and default prop we will confirm this is a default prop
+                                for (let i = 0; i < defaultPage.props.length; i++) {
+                                    if (
+                                        prop.id === defaultPage.props[i].id &&
+                                        prop.type === defaultPage.props[i].type
+                                    )
+                                        return prop.id;
+                                }
+                            });
+                            return ThemeService.updateAvailablePage(defaultPage);
+                        } else {
+                            // show something in CLI
+                        }
+                    })
+                );
+            }
 
             // extract custom page level settings schema
             const bundleFiles = await fs.readFile(
@@ -1716,7 +1842,7 @@ export default class Theme {
             // await ThemeService.updateTheme(theme);
             await ThemeService.updateAllAvailablePages({ pages: pagesToSave });
             spinner.succeed();
-            return pagesToSave;
+            return { pagesToSave, allowedDefaultProps };
         } catch (err) {
             spinner.fail();
             throw new CommandError(err.message, err.code);
@@ -2246,8 +2372,7 @@ export default class Theme {
     };
 
     private static cloneTemplate = async (options, targetDirectory, appConfig) => {
-        const defaultTheme = 
-        await ThemeService.getDefaultTheme({
+        const defaultTheme = await ThemeService.getDefaultTheme({
             company_id: appConfig.company_id,
             application_id: appConfig._id,
         });

@@ -95,7 +95,24 @@ export default {
       throw error;
     }
   },
-  getAllAvailablePage: async() => {
+  getDefaultPageDetails: async pageValue => {
+    try {
+      const activeContext = getActiveContext();
+      const axiosOption = Object.assign({}, getCommonHeaderOptions());
+      const res = await ApiClient.get(
+        URLS.PAGE_DEFAULT_VALUES(
+          activeContext.application_id,
+          activeContext.company_id,
+          pageValue
+        ),
+        axiosOption
+      );
+      return res;
+    } catch (error) {
+      throw error;
+    }
+  },
+  getAllAvailablePage: async () => {
     try {
       const activeContext = getActiveContext();
       const axiosOption = Object.assign({}, getCommonHeaderOptions());

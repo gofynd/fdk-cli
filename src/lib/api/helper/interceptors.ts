@@ -111,6 +111,8 @@ function getErrorMessage(error){
         return error.response.data
     if(error.response.message)
         return error.response.message
+    if(error.message)
+        return error.message
     return "Something went wrong";
 }
 
@@ -124,7 +126,7 @@ export function responseErrorInterceptor() {
         }
         else if (error.response) {
             Debug(`Error Response  :  ${JSON.stringify(error.response.data)}`);
-            throw new CommandError(getErrorMessage(error), ErrorCodes.API_ERROR.code);
+            throw new CommandError(`${getErrorMessage(error)}`, ErrorCodes.API_ERROR.code);
         } else if (error.request) {
             if(error.code == 'ERR_FR_MAX_BODY_LENGTH_EXCEEDED'){
                 throw new CommandError(`${ErrorCodes.LARGE_PAYLOAD.message}`, ErrorCodes.LARGE_PAYLOAD.code);

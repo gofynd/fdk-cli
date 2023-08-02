@@ -6,10 +6,10 @@ const apiVersion = configStore.get(CONFIG_KEYS.API_VERSION) || '1.0';
 const organization_id = configStore.get(CONFIG_KEYS.ORGANIZATION);
 
 export const getBaseURL = () => {
+
     const currentEnv = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
     if(AVAILABLE_ENVS[currentEnv])
         return `https://${AVAILABLE_ENVS[currentEnv]}`;
-    
     return `https://${currentEnv}`
 };
 
@@ -85,6 +85,14 @@ export const URLS = {
             THEME_URL(),
             `organization/${organization_id}/company/${company_id}/application/${application_id}/${theme_id}/${page_value}`
         );
+    },
+
+    PAGE_DEFAULT_VALUES: (
+        application_id: string,
+        company_id: number,
+        page_value: string
+        ) => {
+        return urlJoin(THEME_URL(), `/company/${company_id}/application/${application_id}/page/${page_value}/system`)
     },
 
     SETUP_COMPANY: (company_id: number) => {
