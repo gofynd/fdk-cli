@@ -416,13 +416,14 @@ export default class Theme {
             await Theme.createSectionsIndexFile(available_sections);
             
             const imageCdnUrl = await Theme.getImageCdnBaseUrl();
+            const namespace =  await Theme.getImageCdnNamespace()
             const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
             Theme.createVueConfig();
             const assetHash = shortid.generate();
 
             Logger.info('Building Assets');
             // Building .js & .css bundles using vue-cli
-            await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl, assetHash });
+            await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl, assetHash, namespace });
 
             // Check if build folder exists, as during build, vue fails with non-error code even when it errors out
             if (!fs.existsSync(path.join(process.cwd(), Theme.BUILD_FOLDER))) {
@@ -811,6 +812,26 @@ export default class Theme {
         }
     };
 
+    private static getImageCdnNamespace = async () => {
+        let namespace = '';
+        try {
+            let startData = {
+                file_name: 'test.jpg',
+                content_type: 'image/jpeg',
+                size: '1',
+            };
+            let startAssetData = (
+                await UploadService.startUpload(startData, 'application-theme-images')
+            ).data;
+            const relative = startAssetData.cdn.relative_url;
+            const filename = startAssetData.file_name;
+            return relative.replace(`/${filename}`, "")
+        } catch (err) {
+            console.log(err);
+            throw new CommandError(`Failed in getting image CDN base url`, err.code);
+        }
+    };
+
     private static getAssetCdnBaseUrl = async () => {
         let assetCdnUrl = '';
         try {
@@ -1130,7 +1151,7 @@ export default class Theme {
         const assetHash = shortid.generate();
         Logger.info('Building Assets');
         // Building .js & .css bundles using vue-cli
-        await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl, assetHash });
+        await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl, assetHash, namespace: "" });
         let pArr = await Theme.uploadThemeBundle({ assetHash });
         let [cssUrls, commonJsUrl, umdJsUrls] = await Promise.all(pArr);
         

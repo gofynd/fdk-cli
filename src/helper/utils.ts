@@ -117,7 +117,10 @@ export const evaluateModule = code => {
     var script = new vm.Script(NativeModule.wrap(code), {
         displayErrors: true,
     });
-    var compiledWrapper = script.runInNewContext();
+    const context = vm.createContext({
+      fynd_platform_cdn: "/syncing/"
+});
+    var compiledWrapper = script.runInNewContext(context);
     var m = { exports: {} } as any;
 
     compiledWrapper.call(m.exports, m.exports, requireFile, m);
