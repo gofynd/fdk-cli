@@ -2,6 +2,7 @@ import { exec } from 'child_process'
 import path from 'path'
 import Theme from '../lib/Theme';
 import Spinner from './spinner';
+import fs from 'fs-extra';
 
 export function build({ buildFolder, imageCdnUrl, assetCdnUrl, assetHash = '' }) {
     const VUE_CLI_PATH = path.join('.', 'node_modules', '@vue', 'cli-service', 'bin', 'vue-cli-service.js');
@@ -14,8 +15,8 @@ export function build({ buildFolder, imageCdnUrl, assetCdnUrl, assetHash = '' })
                 cwd: process.cwd(),
                 env: {
                     ...process.env,
-                    IMAGE_CDN_URL: imageCdnUrl,
-                    ASSET_CDN_URL: assetCdnUrl,
+                    // IMAGE_CDN_URL: imageCdnUrl,
+                    // ASSET_CDN_URL: assetCdnUrl,
                     ASSET_HASH: assetHash,
                     NODE_ENV: "production",
                     VUE_CLI_SERVICE_CONFIG_PATH: path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH)
@@ -42,6 +43,8 @@ interface DevBuild {
 export function devBuild({ buildFolder, imageCdnUrl, isProd } : DevBuild) {
     const VUE_CLI_PATH = path.join('.', 'node_modules', '@vue', 'cli-service', 'bin', 'vue-cli-service.js');
     const THEME_ENTRY_FILE = path.join('theme', 'index.js');
+
+    fs.appendFileSync(THEME_ENTRY_FILE, '__webpack_public_path__ = fynd_platform_cdn;');
 
     return new Promise((resolve, reject) => {
         let b = exec(`node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle ${THEME_ENTRY_FILE}`,
