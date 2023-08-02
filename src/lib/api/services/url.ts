@@ -70,6 +70,10 @@ export const URLS = {
         );
     },
 
+    GET_DEFAULT_THEME: (company_id: number, application_id: string)=> {
+      return urlJoin(THEME_URL(), `organization/${organization_id}/company/${company_id}/application/${application_id}/default_theme`);
+    },
+
     // AVAILABLE_PAGE
     AVAILABLE_PAGE: (
         application_id: string,

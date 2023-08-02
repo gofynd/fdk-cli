@@ -129,7 +129,7 @@ export default class Theme {
                 config['theme_id'] = selectedTheme;
                 return config;
             } catch (error) {
-                console.log(error);
+                Logger.error(error);
                 throw new CommandError(error.message, error.code);
             }
         });
@@ -186,7 +186,7 @@ export default class Theme {
                     companyListOptions[answers.selectedCompany].company_id;
                 applicationList = await ConfigurationService.getApplications(selectedCompany);
             } catch (error) {
-                console.log(error);
+                Logger.error(error);
                 throw new CommandError(error.message, error.code);
             }
         });
@@ -210,7 +210,7 @@ export default class Theme {
             try {
                 selectedApplication = applicationListOptions[answers.selectedApplication]._id;
             } catch (error) {
-                console.log(error);
+                Logger.error(error);
                 throw new CommandError(error.message, error.code);
             }
         });
@@ -231,7 +231,7 @@ export default class Theme {
             // const themeType = await Theme.selectThemeType();
             // In Future You can use the selection Theme Type
             const themeType = options.type;
-            if(themeType !== "vue2" && themeType !== "react"){
+            if (themeType !== 'vue2' && themeType !== 'react') {
                 throw new CommandError(COMMON_LOG_MESSAGES.invalidThemeType);
             }
             const configObj = await Theme.selectCompanyAndStore();
@@ -252,7 +252,7 @@ export default class Theme {
         let shouldDelete = false;
         try {
             Logger.info('Cloning template files');
-            await Theme.cloneTemplate(options, targetDirectory);
+            await Theme.cloneTemplate(options, targetDirectory, appConfig);
             shouldDelete = true;
             Logger.info('Creating Theme');
             let available_sections = await Theme.getAvailableSections();
@@ -308,7 +308,7 @@ export default class Theme {
                     margin: 1,
                 }
             );
-            console.log(b5.toString());
+            Logger.info(b5.toString());
         } catch (error) {
             if (shouldDelete) await Theme.cleanUp(targetDirectory);
             throw new CommandError(error.message, error.code);
@@ -390,9 +390,9 @@ export default class Theme {
                     margin: 1,
                 }
             );
-            console.log(b5.toString());
+            Logger.info(b5.toString());
         } catch (error) {
-            console.log(error);
+            Logger.error(error);
             // if (shouldDelete) await Theme.cleanUp(targetDirectory);
             // throw new CommandError(error.message, error.code);
         }
@@ -459,7 +459,7 @@ export default class Theme {
                     preset,
                 });
             } catch (error) {
-                console.log({ error });
+                Logger.error({ error });
             }
 
             await Theme.writeSettingJson(
@@ -654,9 +654,9 @@ export default class Theme {
                     borderColor: 'green',
                 }
             );
-            console.log(b5.toString());
+            Logger.info(b5.toString());
         } catch (error) {
-            console.log(error);
+            Logger.error(error);
             throw new CommandError(error.message, error.code);
         }
     };
@@ -769,14 +769,17 @@ export default class Theme {
                     chalk.white('\n') +
                     chalk.white('\n') +
                     chalk.white('Customize this theme in Theme Editor:\n') +
-                    chalk.green(terminalLink('',`https://${domain}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`)),
+                    chalk.green(terminalLink('',
+                    `https://${domain}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`
+                    )
+                    ),
                 {
                     padding: 1,
                     margin: 1,
                     borderColor: 'green',
                 }
             );
-            console.log(b5.toString());
+            Logger.info(b5.toString());
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
@@ -841,12 +844,12 @@ export default class Theme {
 
             // open browser
             await open(getFullLocalUrl(port));
-            console.log(chalk.bold.green(`Watching files for changes`));
+            Logger.info(chalk.bold.green(`Watching files for changes`));
             let watcher = chokidar.watch(path.resolve(process.cwd(), 'theme'), {
                 persistent: true,
             });
             watcher.on('change', async () => {
-                console.log(chalk.bold.green(`building`));
+                Logger.info(chalk.bold.green(`building`));
                 await devBuild({
                     buildFolder: Theme.BUILD_FOLDER,
                     imageCdnUrl: urlJoin(getFullLocalUrl(port), 'assets/images'),
@@ -910,7 +913,7 @@ export default class Theme {
                 isHMREnabled,
             });
 
-            console.log(chalk.bold.green(`Watching files for changes`));
+            Logger.info(chalk.bold.green(`Watching files for changes`));
             devReactWatch(
                 {
                     buildFolder: Theme.BUILD_FOLDER,
@@ -919,13 +922,13 @@ export default class Theme {
                     isHMREnabled,
                 },
                 () => {
-                    console.log(chalk.bold.green(`reloading`));
+                    Logger.info(chalk.bold.green(`reloading`));
                     reload();
                 }
             );
 
             // open browser
-            console.log(chalk.bold.green(`opening browser here`));
+            Logger.info(chalk.bold.green(`opening browser here`));
             await open(getFullLocalUrl(port));
         } catch (error) {
             throw new CommandError(error.message, error.code);
@@ -1038,7 +1041,7 @@ export default class Theme {
         const imported = require(sectionPath)?.sections?.default;
 
         if (!imported) {
-            console.log('Error occured');
+            Logger.error('Error occured');
         }
 
         const allSections = Object.entries<{ settings: any; Component: any }>(imported).map(
@@ -1076,7 +1079,7 @@ export default class Theme {
                 const settings = JSON.parse(data);
                 return settings || {};
             } catch (error) {
-                console.log(error);
+                Logger.error(error);
                 throw new Error(
                     `Invalid settings JSON object in ${path}. Validate JSON from https://jsonlint.com/`
                 );
@@ -1094,7 +1097,7 @@ export default class Theme {
                 const settings = JSON.parse(data);
                 return settings || {};
             } catch (error) {
-                console.log(error);
+                Logger.error(error);
                 throw new Error(
                     `Invalid settings JSON object in ${path}. Validate JSON from https://jsonlint.com/`
                 );
@@ -1351,7 +1354,7 @@ export default class Theme {
             ).data;
             return (imageCdnUrl = path.dirname(startAssetData.cdn.url));
         } catch (err) {
-            console.log(err);
+            Logger.error(err);
             throw new CommandError(`Failed in getting image CDN base url`, err.code);
         }
     };
@@ -1737,7 +1740,6 @@ export default class Theme {
                 // SYSTEM Pages
                 let systemPage = systemPagesDB.find(p => p.value == pageName);
                 if (!systemPage) {
-                    Logger.info('Creating System Page: ', pageName);
                     const pageData = {
                         value: pageName,
                         props: [],
@@ -1750,7 +1752,7 @@ export default class Theme {
                         systemPage = (await ThemeService.createAvailabePage(pageData)).data;
                     } catch (error) {
                         systemPage = {};
-                        console.log(error);
+                        Logger.error(error);
                     }
                 }
                 systemPage.props =
@@ -1777,9 +1779,8 @@ export default class Theme {
             );
 
             const customTemplates = require(sectionPath)?.customTemplates?.default;
-            console.log({ customTemplates });
             if (!customTemplates) {
-                console.log('Error occured');
+                Logger.error('Custom Templates Not Available');
             }
 
             const customFiles = {};
@@ -1807,9 +1808,6 @@ export default class Theme {
                 }
             };
             customRoutes(customTemplates);
-
-            console.log({ customFiles });
-
             // Delete custom pages removed from code
             const pagesToDelete = customPagesDB.filter(x => !customFiles[x.value]);
             await Promise.all(
@@ -1838,13 +1836,10 @@ export default class Theme {
                 customPage.type = 'custom';
                 pagesToSave.push(customPage);
             }
-            // Logger.info('Updating theme');
-            // await ThemeService.updateTheme(theme);
             await ThemeService.updateAllAvailablePages({ pages: pagesToSave });
             spinner.succeed();
             return pagesToSave;
         } catch (err) {
-            console.log(err);
             spinner.fail();
             throw new CommandError(err.message, err.code);
         }
@@ -2153,9 +2148,8 @@ export default class Theme {
             );
 
             const customTemplates = require(sectionPath)?.customTemplates?.default;
-            console.log({ customTemplates });
             if (!customTemplates) {
-                console.log('Error occured');
+                Logger.error(`Custom Templates Not Available`);
             }
             const customFiles = {};
             const customRoutes = (ctTemplates, parentKey = null) => {
@@ -2251,9 +2245,19 @@ export default class Theme {
         }
     };
 
-    private static cloneTemplate = async (options, targetDirectory) => {
+    private static cloneTemplate = async (options, targetDirectory, appConfig) => {
+        const defaultTheme = 
+        await ThemeService.getDefaultTheme({
+            company_id: appConfig.company_id,
+            application_id: appConfig._id,
+        });
+        if (!defaultTheme) {
+            throw new CommandError(`Default Theme Not Available`);
+        }
+        const themeName = defaultTheme.name;
         const spinner = new Spinner(`Cloning template files`);
-        const url = options.url || Theme.TEMPLATE_THEME_URL;
+        // const url = options.url || Theme.TEMPLATE_THEME_URL;
+        const url = `https://github.com/gofynd/${themeName}.git`;
         try {
             spinner.start();
             const git = simpleGit();
