@@ -6,10 +6,10 @@ const apiVersion = configStore.get(CONFIG_KEYS.API_VERSION) || '1.0';
 const organization_id = configStore.get(CONFIG_KEYS.ORGANIZATION);
 
 export const getBaseURL = () => {
-
     const currentEnv = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
     if(AVAILABLE_ENVS[currentEnv])
         return `https://${AVAILABLE_ENVS[currentEnv]}`;
+    
     return `https://${currentEnv}`
 };
 
