@@ -97,7 +97,10 @@ const configureWebpack = (config) => {
     loader:set
   }) 
   const isCommonJs = config.output.libraryTarget === "commonjs2";
-  const plugins = [new FDKPlugin()]
+  const plugins = [];
+  if(process.env.BUILD_TYPE === 'sync') {
+    plugins.push(new FDKPlugin())
+  }
   if(isCommonJs) {
     plugins.push(
       new webpack.optimize.LimitChunkCountPlugin({
