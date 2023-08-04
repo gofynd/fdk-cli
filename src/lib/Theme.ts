@@ -600,18 +600,6 @@ export default class Theme {
                 'https://example-host.com/temp-common-js-file.js',
                 umdJsUrls,
                 srcCdnUrl,
-                [
-                    'https://hdn-1.addsale.com/x0/company/1/applications/000000000000000000000004/theme/pictures/free/original/desktop.png',
-                ],
-                [
-                    'https://hdn-1.addsale.com/x0/company/1/applications/000000000000000000000004/theme/pictures/free/original/desktop.png',
-                ],
-                [
-                    'https://hdn-1.addsale.com/x0/company/1/applications/000000000000000000000004/theme/pictures/free/original/desktop.png',
-                ],
-                [
-                    'https://hdn-1.addsale.com/x0/company/1/applications/000000000000000000000004/theme/pictures/free/original/desktop.png',
-                ],
                 available_sections,
                 {}
                 // This allowDefaultProps has to be Changed and handle like how it is handled in vue suggested by Shivraj Koli
@@ -702,10 +690,6 @@ export default class Theme {
                 throw new Error('Build Failed');
             }
 
-            // Upload Theme Preview Images Needs to be Added Here
-            let [androidImages, iosImages, desktopImages, thumbnailImages] =
-                await Theme.uploadThemePreviewImages();
-
             Logger.info('Uploading theme assets/images');
             await Theme.assetsImageUploader();
 
@@ -743,10 +727,6 @@ export default class Theme {
                 commonJsUrl,
                 umdJsUrls,
                 srcCdnUrl,
-                desktopImages,
-                iosImages,
-                androidImages,
-                thumbnailImages,
                 available_sections,
                 allowedDefaultProps
             );
@@ -1266,75 +1246,6 @@ export default class Theme {
         fs.writeFileSync(path.join(process.cwd(), Theme.SETTING_LOADER_FILE), settingLoader);
     }
 
-    private static uploadThemePreviewImages = async () => {
-        let androidImages = [];
-        let iosImages = [];
-        let desktopImages = [];
-        let thumbnailImages = [];
-        try {
-            const androidImageFolder = path.resolve(process.cwd(), 'theme/config/images/android');
-            androidImages = glob.sync('**/**.**', { cwd: androidImageFolder });
-            Logger.info('Uploading android images');
-            let pArr = androidImages
-                .map(async img => {
-                    const assetPath = path.join(process.cwd(), 'theme/config/images/android', img);
-                    let res = await UploadService.uploadFile(assetPath, 'application-theme-images');
-                    return res.start.cdn.url;
-                })
-                .filter(o => o);
-            androidImages = await Promise.all(pArr);
-            const iosImageFolder = path.resolve(process.cwd(), 'theme/config/images/ios');
-            iosImages = glob.sync('**/**.**', { cwd: iosImageFolder });
-            Logger.info('Uploading ios image');
-            pArr = iosImages
-                .map(async img => {
-                    const assetPath = path.join(process.cwd(), 'theme/config/images/ios', img);
-                    let res = await UploadService.uploadFile(assetPath, 'application-theme-images');
-                    return res.start.cdn.url;
-                })
-                .filter(o => o);
-            iosImages = await Promise.all(pArr);
-            const desktopImageFolder = path.resolve(process.cwd(), 'theme/config/images/desktop');
-            desktopImages = glob.sync('**/**.**', { cwd: desktopImageFolder });
-            Logger.info('Uploading desktop images');
-            pArr = desktopImages
-                .map(async img => {
-                    const assetPath = path.join(process.cwd(), 'theme/config/images/desktop', img);
-                    let res = await UploadService.uploadFile(assetPath, 'application-theme-images');
-                    return res.start.cdn.url;
-                })
-                .filter(o => o);
-            desktopImages = await Promise.all(pArr);
-            const thumbnailImageFolder = path.resolve(
-                process.cwd(),
-                'theme',
-                'config',
-                'images',
-                'thumbnail'
-            );
-            thumbnailImages = glob.sync('**/**.**', { cwd: thumbnailImageFolder });
-            Logger.info('Uploading thumbnail images');
-            pArr = thumbnailImages
-                .map(async img => {
-                    const assetPath = path.join(
-                        process.cwd(),
-                        'theme',
-                        'config',
-                        'images',
-                        'thumbnail',
-                        img
-                    );
-                    let res = await UploadService.uploadFile(assetPath, 'application-theme-images');
-                    return res.start.cdn.url;
-                })
-                .filter(o => o);
-            thumbnailImages = await Promise.all(pArr);
-            return [androidImages, iosImages, desktopImages, thumbnailImages];
-        } catch (err) {
-            throw new CommandError(err.message, err.code);
-        }
-    };
-
     private static assetsImageUploader = async () => {
         try {
             const cwd = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'assets', 'images');
@@ -1554,10 +1465,6 @@ export default class Theme {
         commonJsUrl,
         umdJsUrls,
         srcCdnUrl,
-        desktopImages,
-        iosImages,
-        androidImages,
-        thumbnailImages,
         available_sections,
         allowedDefaultProps
     ) => {
@@ -1592,7 +1499,11 @@ export default class Theme {
             theme.assets.common_js = theme.assets.commonJs || {};
             theme.assets.common_js.link = commonJsUrl;
             theme.assets.css = theme.assets.css || {};
-            theme.assets.css.links = cssUrls.filter(x => x.endsWith('_themeBundle.css'));
+            if(theme.theme_type === 'vue2') {
+                theme.assets.css.links = cssUrls.filter(x => x.endsWith('_themeBundle.css'));
+            } else {
+                theme.assets.css.links = cssUrls; // theme_type = 'react'
+            }
             theme.assets.css.link = '';
             // TODO Issue here
             theme = {
