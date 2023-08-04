@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.5 (67469) - http://www.bohemiancoding.com/sketch -->
+    <title>cross-grey</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M7.5,15 C3.35786,15 0,11.64214 0,7.5 C0,3.35786 3.35786,0 7.5,0 C11.64214,0 15,3.35786 15,7.5 C15,11.64214 11.64214,15 7.5,15 Z" id="path-grey-1"></path>
+    </defs>
+    <g id="cross-grey" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="grey_cross" transform="translate(4.464419, 4.447812)">
+            <g id="Group-3">
+                <mask id="mask-2" fill="white">
+                    <use xlink:href="#path-grey-1"></use>
+                </mask>
+                <g id="Clip-2"></g>
+                <polygon id="Fill-1" fill="#C9C9C9" mask="url(#mask-2)" points="-5 -5 20 -5 20 20 -5 20"></polygon>
+            </g>
+            <path d="M5.135,5.135 L9.865,9.865 M9.865,5.135 L5.135,9.865" id="Stroke-4" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+    </g>
+</svg>

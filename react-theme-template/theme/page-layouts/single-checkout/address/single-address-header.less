@@ -1,0 +1,145 @@
+.addressHeaderContainer {
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px 8px 0 0;
+
+  .selectedAddressSection {
+    display: flex;
+    padding: 6px 16px;
+    justify-content: space-between;
+    width: 100%;
+
+    .deliverTo {
+      display: flex;
+      flex-direction: column;
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 140%;
+      align-self: center;
+      margin-right: 5px;
+
+      .deliverToName {
+        font-weight: 600;
+        margin-bottom: 5px;
+        line-height: 140%;
+      }
+    }
+
+    .changeButton {
+      align-self: center;
+
+      button {
+        padding: 12px 16px;
+        background: white;
+        border: 1px solid var(--primaryColor);
+        color: var(--primaryColor);
+        border-radius: 4px;
+      }
+    }
+  }
+
+  .wrapper {
+    display: flex;
+
+    .checkMark {
+      align-self: center;
+    }
+
+    .one {
+      align-self: center;
+    }
+
+    .headerWrapper {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      padding-left: 15px;
+    }
+
+    .addressHeading {
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 140%;
+    }
+
+    .addressString {
+      font-size: 12px;
+      color: #1f1f1f;
+      font-weight: 400;
+      line-height: 140%;
+    }
+  }
+
+  .buttonWrapper {
+    display: flex;
+    align-items: center;
+
+    .addBtn {
+      font-weight: 600;
+      font-size: 12px;
+      padding: 12px 16px;
+      border-radius: 5px;
+      color: var(--primaryColor);
+      background-color: white;
+      border: 1px solid var(--primaryColor);
+      text-transform: uppercase;
+      text-align: center;
+      line-height: 140%;
+      cursor: pointer;
+    }
+
+    .addBtn.headerEdit {
+      padding: 12px 16px;
+    }
+  }
+}
+
+.addressSelectedHeaderContainer {
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+
+  .leftSelected {
+    display: flex;
+  }
+
+  .deliverAdd {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    padding-left: 15px;
+
+    .title {
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 140%;
+    }
+  }
+
+  .address {
+    font-size: 12px;
+    color: #1f1f1f;
+    font-weight: 400;
+    line-height: 140%;
+  }
+
+  .rightSelected {
+    font-weight: 600;
+    font-size: 12px;
+    padding: 12px 16px;
+    border-radius: 5px;
+    color: var(--buttonPrimary);
+    background-color: #fff;
+    border: 1px solid var(--buttonPrimary);
+    text-transform: uppercase;
+    text-align: center;
+    line-height: 140%;
+    cursor: pointer;
+  }
+}

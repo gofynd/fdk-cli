@@ -13,7 +13,7 @@ export default {
         },
         getCommonHeaderOptions()
       );
-      const res = await ApiClient.post(URLS.CREATE_THEME(data.application_id, data.company_id), axiosOption);
+      const res = await ApiClient.post(URLS.CREATE_THEME(data.company_id, data.application_id), axiosOption);
       return res;
     } catch (error) {
       throw error;
@@ -215,19 +215,14 @@ export default {
       throw error;
     }
   },
-  publishTheme: async () => {
+  getAllThemes: async (data) => {
     try {
-      const activeContext = getActiveContext();
-      const axiosOption = Object.assign(
-        {},
-        getCommonHeaderOptions()
-      );
-      const res = await ApiClient.put(
-        URLS.THEME_BY_ID(
-          activeContext.application_id,
-          activeContext.company_id,
-          activeContext.theme_id
-        ) + '/publish',
+      const axiosOption = Object.assign({}, getCommonHeaderOptions());
+      const res = await ApiClient.get(
+        URLS.GET_ALL_THEME(
+          data.company_id,
+          data.application_id
+        ),
         axiosOption
       );
       return res;
@@ -235,24 +230,17 @@ export default {
       throw error;
     }
   },
-  unPublishTheme: async () => {
-    try {
-      const activeContext = getActiveContext();
-      const axiosOption = Object.assign(
-        {},
-        getCommonHeaderOptions()
-      );
-      const res = await ApiClient.put(
-        URLS.THEME_BY_ID(
-          activeContext.application_id,
-          activeContext.company_id,
-          activeContext.theme_id
-        ) + '/unpublish',
+  getDefaultTheme: async (data)=> {
+    try{
+      const axiosOption = Object.assign({}, getCommonHeaderOptions());
+      const res = await ApiClient.get(
+        URLS.GET_DEFAULT_THEME(data.company_id, data.application_id),
         axiosOption
       );
-      return res;
-    } catch (error) {
-      throw error;
+      return res?.data;
     }
-  },
+    catch(err){
+      throw err;
+    }
+  }
 };

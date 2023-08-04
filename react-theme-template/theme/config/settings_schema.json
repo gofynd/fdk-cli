@@ -1,0 +1,151 @@
+{
+  "props": [
+    {
+      "type": "select",
+      "id": "header_layout",
+      "default": "single",
+      "category": "Header",
+      "label": "Layout",
+      "options": [
+        {
+          "text": "Single Row Navigation",
+          "value": "single"
+        },
+        {
+          "text": "Double Row Navigation",
+          "value": "double"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "logo_menu_alignment",
+      "default": "layout_1",
+      "category": "Header",
+      "label": "Desktop Logo & Menu Alignment",
+      "options": [
+        {
+          "text": "Logo left, Menu centre",
+          "value": "layout_1"
+        },
+        {
+          "text": "Logo left, Menu left",
+          "value": "layout_2"
+        },
+        {
+          "text": "Logo left, Menu right",
+          "value": "layout_3"
+        },
+        {
+          "text": "Logo Centre",
+          "value": "layout_4"
+        }
+      ]
+    },
+    {
+      "type": "header",
+      "category": "Sections",
+      "value": "Section Margins"
+    },
+    {
+      "type": "range",
+      "category": "Sections",
+      "id": "section_margin_bottom",
+      "min": 0,
+      "max": 200,
+      "step": 1,
+      "unit": "px",
+      "label": "Bottom Margin",
+      "default": 0,
+      "info": "Bottom margin for section"
+    },
+    {
+      "type": "header",
+      "category": "Radius Configuration",
+      "value": "Border Radius"
+    },
+    {
+      "type": "range",
+      "category": "Radius Configuration",
+      "id": "image_border_radius",
+      "min": 0,
+      "max": 30,
+      "unit": "px",
+      "label": "Image Border Radius",
+      "default": 24,
+      "info": "Border radius for Image"
+    },
+    {
+      "type": "range",
+      "category": "Radius Configuration",
+      "id": "button_border_radius",
+      "min": 0,
+      "max": 30,
+      "unit": "px",
+      "label": "Button Border Radius",
+      "default": 4,
+      "info": "Border radius for Button"
+    },
+    {
+      "type": "checkbox",
+      "id": "disable_cart",
+      "default": false,
+      "category": "Cart",
+      "label": "Disable Cart"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "default": "",
+      "category": "Footer",
+      "label": "Logo"
+    },
+    {
+      "type": "text",
+      "id": "footer_description",
+      "label": "Description",
+      "category": "Footer"
+    },
+    {
+      "type": "image_picker",
+      "id": "payments_logo",
+      "default": "",
+      "category": "Footer",
+      "label": "Bottom Bar Image"
+    },
+    {
+      "type": "font",
+      "id": "font_header",
+      "category": "Typography",
+      "default": false,
+      "label": "Font Header"
+    },
+    {
+      "type": "font",
+      "id": "font_body",
+      "category": "Typography",
+      "default": false,
+      "label": "Font Body"
+    },
+    {
+      "type": "header",
+      "category": "Image Container",
+      "value": "Image Container"
+    },
+    {
+      "type": "color",
+      "id": "img_container_bg",
+      "category": "Image Container",
+      "label": "Container Background Color",
+      "info": "This color will be used as the container background color of the Product/Collection/Category/Brand images wherever applicable"
+    },
+    {
+      "type": "checkbox",
+      "id": "img_fill",
+      "category": "Image Container",
+      "default": false,
+      "label": "Fit image to the container",
+      "info": "If the image aspect ratio is different from the container, the image will be clipped to fit the container. The aspect ratio of the image will be maintained"
+    }
+  ]
+}

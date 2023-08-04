@@ -21,9 +21,21 @@ import {
     AUTHENTICATION_COMMANDS, 
     ENVIRONMENT_COMMANDS, 
     EXTENSION_COMMANDS, 
-    PARTNER_COMMANDS 
+    PARTNER_COMMANDS,
+    ALL_THEME_COMMANDS
 } from './helper/constants';
 const packageJSON = require('../package.json');
+
+async function checkTokenExpired(auth_token) {
+    const { expiry_time } = auth_token
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+    if (currentTimestamp > expiry_time) {
+        return true;
+    }
+    else{
+        return false
+    }
+}
 
 // asyncAction is a wrapper for all commands/actions to be executed after commander is done
 // parsing the command input
@@ -93,10 +105,14 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
                 !(ENVIRONMENT_COMMANDS.findIndex(c => envCommand.includes(c)) !== -1) &&
                 !(EXTENSION_COMMANDS.findIndex(c => extensionCommand.includes(c)) !== -1) &&
                 !(PARTNER_COMMANDS.findIndex(c => partnerCommand.includes(c)) !== -1) &&
-                !configStore.get(CONFIG_KEYS.COOKIE)  && !(parent.args.includes('theme') &&
-                parent.args.includes('package'))
+                !configStore.get(CONFIG_KEYS.AUTH_TOKEN)
             ) {
                 throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
+            }
+            if(ALL_THEME_COMMANDS.findIndex(c => themeCommand.includes(c)) !== -1 || THEME_COMMANDS.findIndex(c => themeCommand.includes(c)) !== -1){
+                const isTokenExpired = await checkTokenExpired(configStore.get(CONFIG_KEYS.AUTH_TOKEN))
+                if(isTokenExpired)
+                    throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
             }
             if (THEME_COMMANDS.findIndex(c => themeCommand.includes(c)) !== -1) {
                 const activeContextEnv = getActiveContext().env;
@@ -106,9 +122,7 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
                 }
             }
             if (
-                parent.args.includes('theme') &&
-                !parent.args.includes('new') &&
-                !parent.args.includes('init')
+                parent.args.includes('theme')            
             ) {
                 if (!isAThemeDirectory()) {
                     const answer = await promptForFDKFolder();
@@ -129,7 +143,7 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
             } else {
                 Logger.error(err);
             }
-            Debug(err.stack);
+            Debug(err);
             process.exit(1);
         }
     });
