@@ -15,7 +15,7 @@ const context = process.cwd();
 // Return Array of Configurations
 
 const baseConfig = (ctx) => {
-	const { buildPath, NODE_ENV, assetBasePath = '', imageCdnUrl = '', context, localThemePort = 5500 } = ctx;
+	const { buildPath, NODE_ENV, assetBasePath = '', imageCdnUrl = '', context, localThemePort = 5500, isHMREnabled = true } = ctx;
 
 	const assetNormalizedBasePath = assetBasePath[assetBasePath.length - 1] === '/' ? assetBasePath : assetBasePath + '/';
 	const imageCDNNormalizedBasePath = imageCdnUrl[imageCdnUrl.length - 1] === '/' ? imageCdnUrl : imageCdnUrl + '/';
@@ -25,7 +25,7 @@ const baseConfig = (ctx) => {
 	return {
 			mode: isLocal ? 'development' : 'production',
 			entry: { 
-				themeBundle: isLocal ? 
+				themeBundle: (isLocal && isHMREnabled) ? 
 					[ require.resolve('webpack-hot-middleware/client'), path.resolve(context, 'theme/index.jsx') ] : 
 					[ path.resolve(context, 'theme/index.jsx') ]
 			},
@@ -68,7 +68,7 @@ const baseConfig = (ctx) => {
 										'@babel/preset-react',
 									],
 									plugins: [
-										...(isLocal ? [require.resolve('react-refresh/babel')] : []),
+										...((isLocal && isHMREnabled) ? [require.resolve('react-refresh/babel')] : []),
 									],
 								},
 							},
@@ -152,8 +152,8 @@ const baseConfig = (ctx) => {
 				new MiniCssExtractPlugin({
 					filename: isLocal ? '[name].css' : '[name].[contenthash].css',
 				}),
-				...(isLocal ? [new webpack.HotModuleReplacementPlugin()] : []),
-				...(isLocal ? [new ReactRefreshWebpackPlugin({
+				...((isLocal && isHMREnabled) ? [new webpack.HotModuleReplacementPlugin()] : []),
+				...((isLocal && isHMREnabled) ? [new ReactRefreshWebpackPlugin({
 					overlay: false,
 				})] : []),
 				new webpack.ProvidePlugin({
@@ -223,10 +223,70 @@ const baseSectionConfig = ({ buildPath, context}) => {
 		plugins: [],
 	}
 }
+const baseCustomTemplateConfig = ({ buildPath, context}) => {
+	return {
+		mode: 'production',
+		entry: path.resolve(context, 'theme/custom-templates/index.jsx'),
+		module: {
+			rules: [
+				{
+					test: /\.(jsx|js)$/,
+					exclude: /node_modules/,
+					use: [
+						{
+							loader: 'babel-loader',
+							options: {
+								presets: [
+									[
+										'@babel/preset-env',
+										{
+											targets: 'defaults',
+										},
+									],
+									'@babel/preset-react',
+								],
+							},
+						},
+					],
+				},
+				{
+					test: /\.css$/i,
+					use: ['css-loader'],
+				},
+				{
+					test: /\.less$/i,
+					use: ['css-loader'],
+				  },
+			],
+		},
+		resolve: {
+			extensions: ['', '.js', '.jsx'],
+		},
+		externals: {
+			react: 'React',
+			'react-router-dom': 'globalThis',
+			'fdk-core/components': 'globalThis',
+			'fdk-core/utils': 'globalThis',
+			'react-helmet-async': 'globalThis',
+			'styled-components': 'globalThis',
+		},
+		output: {
+			filename: 'custom-templates.commonjs.js',
+			path: path.resolve(buildPath, 'custom-templates'),
+			library: {
+				name: 'customTemplates',
+				type: 'commonjs',
+			},
+			globalObject: 'typeof self !== "undefined" ? self : this',
+		},
+		plugins: [],
+	}
+}
 
 export default (ctx, extendedWebpackConfig): Configuration[] => {
 	const baseWebpackConfig = baseConfig(ctx);
 	const sectionBaseConfig = baseSectionConfig(ctx);
+	const customTemplateConfig = baseCustomTemplateConfig(ctx);
 
 	const mergedSectionConfig = mergeWithRules({
 		module: {
@@ -246,8 +306,18 @@ export default (ctx, extendedWebpackConfig): Configuration[] => {
 		},
 	  })(baseWebpackConfig, extendedWebpackConfig);
 
+	const mergedCustomTemplateConfig = mergeWithRules({
+		module: {
+		  rules: {
+			test: "match",
+			use: "append",
+		  },
+		},
+	  })(customTemplateConfig, extendedWebpackConfig);
+
 	return [
 		mergedBaseConfig,
 		mergedSectionConfig,
+		mergedCustomTemplateConfig
 	]
 }

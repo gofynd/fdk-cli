@@ -6,6 +6,7 @@ import { getCommonHeaderOptions } from './utils';
 export default {
   createTheme: async data => {
     try {
+      console.log({data})
       const axiosOption = Object.assign(
         {},
         {
@@ -14,8 +15,10 @@ export default {
         getCommonHeaderOptions()
       );
       const res = await ApiClient.post(URLS.CREATE_THEME(data.application_id, data.company_id), axiosOption);
+      console.log({ res })
       return res;
     } catch (error) {
+      console.log(error)
       throw error;
     }
   },

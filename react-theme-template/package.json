@@ -39,7 +39,7 @@
     "babel-loader": "^9.1.0",
     "buffer": "^6.0.3",
     "fdk-client-javascript": "github:gofynd/fdk-client-javascript#0.1.37",
-    "fdk-store": "gitlab:fynd/regrowth/fynd-platform/themes/shadowfire#develop",
+    "fdk-store": "https://github.com/gofynd/fdk-store.git#ci",
     "isomorphic-fetch": "^3.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

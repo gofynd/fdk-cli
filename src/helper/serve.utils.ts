@@ -247,7 +247,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 }
 
 
-export async function startReactServer({ domain, host, isSSR, port }) {
+export async function startReactServer({ domain, host, isHMREnabled, port }) {
 	const currentContext = getActiveContext();
 	const app = require('https-localhost')(getLocalBaseUrl());
 	const certs = await app.getCerts();
@@ -261,30 +261,35 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 		});
 	});
 
-	let webpackConfigFromTheme = {};
-	const themeWebpackConfigPath = path.join(process.cwd(), Theme.REACT_CLI_CONFIG_PATH);
-
-	if (fs.existsSync(themeWebpackConfigPath)) {
-		({ default: webpackConfigFromTheme }  = await import(themeWebpackConfigPath));
+	if(isHMREnabled) {
+		let webpackConfigFromTheme = {};
+		const themeWebpackConfigPath = path.join(process.cwd(), Theme.REACT_CLI_CONFIG_PATH);
+	
+		if (fs.existsSync(themeWebpackConfigPath)) {
+			({ default: webpackConfigFromTheme }  = await import(themeWebpackConfigPath));
+		}
+	
+		const ctx = {
+			buildPath: path.resolve(process.cwd(), Theme.BUILD_FOLDER),
+			NODE_ENV: "development",
+			localThemePort: port,
+			context: process.cwd(),
+			isHMREnabled,
+		}
+		const [ baseWebpackConfig ] = createBaseWebpackConfig(ctx, webpackConfigFromTheme);
+	
+		const compiler = webpack(baseWebpackConfig);
+	
+		app.use(webpackDevMiddleware(compiler, {
+			publicPath: baseWebpackConfig.output.publicPath,
+			writeToDisk: true,
+			stats: "none",
+		}));
+	
+		app.use(webpackHotMiddleware(compiler));
 	}
 
-	const ctx = {
-		buildPath: path.resolve(process.cwd(), Theme.BUILD_FOLDER),
-		NODE_ENV: "development",
-		localThemePort: port,
-		context: process.cwd(),
-	}
-	const [ baseWebpackConfig ] = createBaseWebpackConfig(ctx, webpackConfigFromTheme);
 
-	const compiler = webpack(baseWebpackConfig);
-
-	app.use(webpackDevMiddleware(compiler, {
-		publicPath: baseWebpackConfig.output.publicPath,
-		writeToDisk: true,
-		stats: "none",
-	}));
-
-	app.use(webpackHotMiddleware(compiler));
 
 	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
 
@@ -302,7 +307,7 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 				res.set(publicCache[url].headers);
 				return res.send(publicCache[url].body);
 			}
-			const networkRes = await axios.get(urlJoin(domain, 'public', url));
+			const networkRes = await axios.get(urlJoin(domain, 'public', url, `?themeId=${currentContext.theme_id}`));
 			publicCache[url] = publicCache[url] || {};
 			publicCache[url].body = networkRes.data;
 			publicCache[url].headers = networkRes.headers;
@@ -319,8 +324,6 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 	  
 	applyProxy(app);
 
-	const uploadedFiles = {};
-
 	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
 	
 	app.get('/*', async (req, res) => {
@@ -335,6 +338,7 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 		const skyfireUrl = new URL(urlJoin(domain, req.originalUrl));
 		const reqChunkUrl = new URL(urlJoin(domain, '__required_chunks'));
 		skyfireUrl.searchParams.set('themeId', currentContext.theme_id);
+		reqChunkUrl.searchParams.set('themeId', currentContext.theme_id);
 		reqChunkUrl.searchParams.set('url', req.originalUrl);
 		const response = await axios.get(reqChunkUrl.toString()); 
 		const requiredFiles = [
@@ -370,7 +374,6 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 		
 		await Promise.all(promises);
 
-		
 		const {data: html} = await axios.post(
 			skyfireUrl.toString(), 
 			{
@@ -389,15 +392,25 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 				<script>
 				var socket = io();
 				socket.on('reload',function(){
-					try {
-						window.APP_DATA.themeBundleUMDURL = '/themeBundle.umd.js';
-						window.APP_DATA.isServerRendered = false;
-						window.webpackChunkthemeBundle = [];
-						if (window.fpi) {
-							window.APP_DATA.reduxData = window.fpi.store.getState();
-						}
-						window.loadApp().catch(console.log);
-					} catch(e) { console.log( e );}
+					${isHMREnabled 
+						? 
+						`
+						try {
+							window.APP_DATA.themeBundleUMDURL = '/themeBundle.umd.js';
+							window.APP_DATA.isServerRendered = false;
+							window.APP_DATA.forceRender = true;
+							window.webpackChunkthemeBundle = [];
+							// document.getElementById('app').innerHTML='';
+							if (window.fpi) {
+								window.APP_DATA.reduxData = window.fpi.store.getState();
+							}
+							window.loadApp().catch(console.log);
+						} catch(e) { console.log( e );}
+					` : 
+					`
+						window.location.reload();
+					`}
+					
 				});
 				</script>
 			`);
@@ -410,7 +423,7 @@ export async function startReactServer({ domain, host, isSSR, port }) {
 			if (err) {
 				return reject(err);
 			}
-			Logger.info(`Starting starter at port -- ${port} in ${isSSR? 'SSR': 'Non-SSR'} mode`);
+			Logger.info(`Starting server at port -- ${port}`);
 			Logger.info(`************* Using Debugging build`);
 			resolve(true);
 		});

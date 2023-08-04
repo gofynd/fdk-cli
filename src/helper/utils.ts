@@ -7,6 +7,11 @@ import { COMMON_LOG_MESSAGES } from '../lib/Logger';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
 import { createDirectory } from './file.utils';
 import execa from 'execa';
+import * as babel from '@babel/core';
+import * as fsNode from 'fs';
+import * as acorn from 'acorn';
+import * as walk from 'acorn-walk';
+import * as escodegen from 'escodegen';
 import Debug from '../lib/Debug';
 
 const FDK_PATH = () => path.join(process.cwd(), '.fdk');
@@ -268,4 +273,62 @@ export function debounce<T extends (...args: any[]) => void>(func: T, delay: num
 export const isValidDomain = (domain) => {
   const domainRegex = /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   return domainRegex.test(domain);
+}
+
+export function transformJSXToJS(jsxCode: any) {
+  const options = {
+    presets: ['@babel/preset-react'],
+  };
+
+  try {
+    const result = babel.transformSync(jsxCode, options);
+    return result?.code;
+  } catch (error) {
+    console.error('Error transforming JSX to JS:', error);
+    return null;
+  }
+}
+
+export function findExportedVariable(filePath: string, variableName: string): any {
+
+  // Read the JavaScript file content
+  const fileContent = fsNode.readFileSync(filePath, 'utf8');
+  const parsedContents = transformJSXToJS(fileContent) || '';
+
+  // Parse the JavaScript code into an Abstract Syntax Tree (AST)
+  const ast = acorn.parse(parsedContents, { 
+    ecmaVersion: 'latest',
+    sourceType: 'module'
+   });
+
+  let exportedVariableNode: any = null;
+
+  // Traverse the AST to find the exported settings object
+  walk.simple(ast, {
+    ExportNamedDeclaration(node: any) {
+      if (node.declaration && node.declaration.type === 'VariableDeclaration') {
+        const declarator = node.declaration.declarations.find(
+          (decl: any) => decl.id.name === variableName
+        );
+
+        if (declarator && declarator.init) {
+          exportedVariableNode = declarator.init;
+        }
+      }
+    },
+  });
+
+  if (exportedVariableNode) {
+    // Use escodegen to generate the code corresponding to the settings object
+    const code = escodegen.generate(exportedVariableNode, {
+        format: {
+          json: true,
+        }
+    });
+    return vm.runInNewContext(code);
+
+  } else {
+    return null;
+  }
+
 }

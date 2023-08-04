@@ -10,7 +10,7 @@ import {
     ThemeContextInterface,
     parseBundleFilename,
     transformSectionFileName,
-    debounce,
+    findExportedVariable,
 } from '../helper/utils';
 import CommandError, { ErrorCodes } from './CommandError';
 import Logger from './Logger';
@@ -156,10 +156,13 @@ export default class Theme {
             await devReactBuild({
                 buildFolder: Theme.BUILD_FOLDER,
                 runOnLocal: true,
+                isHMREnabled: false,
             });
 
-            const available_sections = await Theme.getAvailableReactSectionsForSync();
+            Logger.info('Theme built...')
 
+            const available_sections = await Theme.getAvailableReactSectionsForSync();
+            Logger.info('available_sectionsnp built...')
             const themeData = {
                 information: {
                     name: options.name,
@@ -169,7 +172,7 @@ export default class Theme {
             };
 
             const { data: theme } = await ThemeService.createTheme({ ...configObj, ...themeData });
-
+            Logger.info('ThemeService.createTheme...')
             const context: any = {
                 name: options.name,
                 application_id: appConfig._id,
@@ -470,7 +473,8 @@ export default class Theme {
                 buildFolder: Theme.BUILD_FOLDER,
                 runOnLocal: false,
                 assetBasePath,
-                imageCdnUrl
+                imageCdnUrl,
+                isHMREnabled: false,
             });
 
             Logger.info('Uploading theme assets/images');
@@ -484,6 +488,7 @@ export default class Theme {
             let pArr = await Theme.uploadReactThemeBundle({ buildPath });
             let [cssUrls, umdJsUrls] = await Promise.all(pArr);
 
+            console.log({umdJsUrls})
             // Set new theme data
             const newTheme = await Theme.setThemeData(
                 theme,
@@ -497,6 +502,9 @@ export default class Theme {
                 ['https://hdn-1.addsale.com/x0/company/1/applications/000000000000000000000004/theme/pictures/free/original/desktop.png'],
                 available_sections
             );
+
+            Logger.info('Updating Available pages');
+            await Theme.updateAvailablePagesForReact();
 
             Logger.info('Updating theme');
             await ThemeService.updateTheme(newTheme);
@@ -719,12 +727,13 @@ export default class Theme {
     };
     public static serveReactTheme = async options => {
         try {
-            const isSSR =
-                typeof options['ssr'] === 'boolean'
-                    ? options['ssr']
-                    : options['ssr'] == 'true'
+            const isHMREnabled =
+                typeof options['hmr'] === 'boolean'
+                    ? options['hmr']
+                    : options['hmr'] == 'true'
                         ? true
                         : false;
+
             const DEFAULT_PORT = 5001;
             const serverPort =
                 typeof options['port'] === 'string'
@@ -740,7 +749,7 @@ export default class Theme {
                         `PORT: ${serverPort} is busy, Switching to PORT: ${port}`
                     )
                 );
-            !isSSR ? Logger.warn('Disabling SSR') : null;
+
             let { data: appInfo } = await ConfigurationService.getApplicationDetails();
             let domain = Array.isArray(appInfo.domains)
                 ? `https://${appInfo.domains.filter(d => d.is_primary)[0].name}`
@@ -756,6 +765,7 @@ export default class Theme {
                 buildFolder: Theme.BUILD_FOLDER,
                 runOnLocal: true,
                 localThemePort: port,
+                isHMREnabled,
             });
 
 
@@ -767,7 +777,7 @@ export default class Theme {
                 domain,
                 host,
                 port,
-                isSSR,
+                isHMREnabled,
             });
 
            
@@ -776,6 +786,7 @@ export default class Theme {
                 buildFolder: Theme.BUILD_FOLDER,
                 runOnLocal: true,
                 localThemePort: port,
+                isHMREnabled,
             }, () => {
                     console.log(chalk.bold.green(`reloading`));
                     reload();
@@ -938,6 +949,34 @@ export default class Theme {
             try {
                 return settingsText ? JSON.parse(settingsText) : {};
             } catch (err) {
+                throw new Error(`Invalid settings JSON object in ${path}. Validate JSON from https://jsonlint.com/`);
+            }
+        } catch (error) {
+            throw new Error(`Invalid settings JSON object in ${path}. Validate JSON from https://jsonlint.com/`);
+        }
+    }
+    private static extractSettingsFromReactFile(path: string) {
+        try {
+            const data = findExportedVariable(path, 'settings');
+            try {
+                const settings = JSON.parse(data);
+                return settings || {};
+            } catch (error) {
+                console.log(error)
+                throw new Error(`Invalid settings JSON object in ${path}. Validate JSON from https://jsonlint.com/`);
+            }
+        } catch (error) {
+            throw new Error(`Invalid settings JSON object in ${path}. Validate JSON from https://jsonlint.com/`);
+        }
+    }
+    private static extractSectionsFromReactFile(path: string) {
+        try {
+            const data = findExportedVariable(path, 'sections');
+            try {
+                const settings = JSON.parse(data);
+                return settings || {};
+            } catch (error) {
+                console.log(error)
                 throw new Error(`Invalid settings JSON object in ${path}. Validate JSON from https://jsonlint.com/`);
             }
         } catch (error) {
@@ -1512,6 +1551,134 @@ export default class Theme {
             spinner.succeed();
             return pagesToSave;
         } catch (err) {
+            spinner.fail();
+            throw new CommandError(err.message, err.code);
+        }
+    };
+    private static updateAvailablePagesForReact = async () => {
+        const spinner = new Spinner("Adding/updating available pages");
+        try {
+            spinner.start();
+            const allPages = (await ThemeService.getAllAvailablePage()).data.pages;
+            const systemPagesDB = allPages.filter(x => x.type == 'system');
+            const customPagesDB = allPages.filter(x => x.type == 'custom');
+            const pagesToSave = [];
+
+            // extract system page level settings schema
+            let systemPages = fs
+                .readdirSync(path.join(process.cwd(), 'theme', 'pages'))
+                .filter(o => o != 'index.jsx');
+            await asyncForEach(systemPages, async fileName => {
+                let pageName = fileName.replace('.jsx', '');
+                // SYSTEM Pages
+                let systemPage = systemPagesDB.find(p => p.value == pageName);
+                if (!systemPage) {
+                    Logger.info('Creating System Page: ', pageName);
+                    const pageData = {
+                        value: pageName,
+                        props: [],
+                        sections: [],
+                        sections_meta: [],
+                        type: 'system',
+                        text: pageNameModifier(pageName),
+                    };
+                    try {
+                        
+                        systemPage = (await ThemeService.createAvailabePage(pageData)).data;
+                    } catch (error) {
+                        systemPage = {}
+                        console.log(error)
+                    }
+                }
+                systemPage.props =
+                    (
+                        Theme.extractSettingsFromReactFile(
+                            path.join(process.cwd(), 'theme', 'pages', fileName)
+                        ).props || []
+                    ) || [];
+                    systemPage.sections_meta = (
+                        Theme.extractSectionsFromReactFile(
+                            path.join(process.cwd(), 'theme', 'pages', fileName)
+                        ) || []
+                    ) || [];
+
+                systemPage.type = 'system';
+                pagesToSave.push(systemPage);
+            });
+            
+            const sectionPath = path.resolve(process.cwd(), Theme.BUILD_FOLDER, 'custom-templates/custom-templates.commonjs.js');
+
+            const customTemplates = require(sectionPath)?.customTemplates?.default;
+            console.log({customTemplates})
+            if (!customTemplates) {
+                console.log('Error occured');
+            }
+            
+            const customFiles = {};
+            const customRoutes = (ctTemplates, parentKey = null) => {
+                for (let key in ctTemplates) {
+                    let settingProps;
+                    const routerPath = (parentKey && `${parentKey}/${key}`) || `c/${key}`;
+                    const value = routerPath.replace(/\//g, ':::');
+                    if (ctTemplates[key].settings ) {
+                        settingProps = ctTemplates[key].settings.props
+                    }
+                    customFiles[value] = {
+                        fileSetting: settingProps,
+                        value,
+                        text: pageNameModifier(key),
+                        path: routerPath,
+                    };
+
+                    if (
+                        ctTemplates[key].children &&
+                        Object.keys(ctTemplates[key].children).length
+                    ) {
+                        customRoutes(ctTemplates[key].children, routerPath);
+                    }
+                }
+            };
+            customRoutes(customTemplates);
+
+            console.log({customFiles})
+
+            // Delete custom pages removed from code
+            const pagesToDelete = customPagesDB.filter(x => !customFiles[x.value]);
+            await Promise.all(
+                pagesToDelete.map(page => {
+                    return ThemeService.deleteAvailablePage(page.value);
+                })
+            )
+            for (let key in customFiles) {
+                const customPageConfig = customFiles[key];
+                let customPage = customPagesDB.find(p => p.value == key);
+                if (!customPage) {
+                    Logger.log('Creating Custom Page: ', key);
+                    const pageData = {
+                        value: customPageConfig.value,
+                        text: customPageConfig.text,
+                        path: customPageConfig.path,
+                        props: [],
+                        sections: [],
+                        sections_meta: [],
+                        type: 'custom',
+                    };
+                    customPage = (await ThemeService.createAvailabePage(pageData)).data;
+                }
+                customPage.props = customPageConfig.fileSetting || []
+                customPage.sections_meta = []
+                customPage.type = 'custom';
+                pagesToSave.push(customPage);
+            }
+
+            console.log({pagesToSave})
+            // Logger.info('Updating theme');
+            // await ThemeService.updateTheme(theme);
+            await ThemeService.updateAllAvailablePages({ pages: pagesToSave });
+            spinner.succeed();
+            return pagesToSave;
+        } catch (err) {
+            console.log(err)
             spinner.fail();
             throw new CommandError(err.message, err.code);
         }

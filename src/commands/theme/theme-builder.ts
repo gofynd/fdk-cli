@@ -25,6 +25,7 @@ export default function themeCommandBuilder() {
         .command('serve')
         .description('Serve theme')
         .option('--ssr <boolean>', 'Server side rendering', true)
+        .option('--hmr <boolean>', 'Enable HMR Support', true)
         .option('--port <number>', 'Custom port')
         .asyncAction(Theme.serveTheme);
 

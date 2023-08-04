@@ -39,17 +39,18 @@ export function build({ buildFolder, imageCdnUrl, assetCdnUrl, assetHash = '' })
     });
 }
 interface DevBuild {
-    buildFolder: string,
-    imageCdnUrl: string,
-    isProd: boolean
+    buildFolder: string;
+    imageCdnUrl: string;
+    isProd: boolean;
 }
 
 interface DevReactBuild {
-    buildFolder: string,
-    runOnLocal?: boolean,
-    assetBasePath?: string,
-    imageCdnUrl?: string,
-    localThemePort?: string,
+    buildFolder: string;
+    runOnLocal?: boolean;
+    assetBasePath?: string;
+    imageCdnUrl?: string;
+    localThemePort?: string;
+    isHMREnabled: boolean;
 }
 
 export function devBuild({ buildFolder, imageCdnUrl, isProd } : DevBuild) {
@@ -80,7 +81,7 @@ export function devBuild({ buildFolder, imageCdnUrl, isProd } : DevBuild) {
     });
 }
 
-export async function devReactBuild({ buildFolder, runOnLocal, assetBasePath, localThemePort, imageCdnUrl } : DevReactBuild) {
+export async function devReactBuild({ buildFolder, runOnLocal, assetBasePath, localThemePort, imageCdnUrl, isHMREnabled } : DevReactBuild) {
     const buildPath = path.join(process.cwd(), buildFolder);
     try {
         // Clean the build directory
@@ -99,9 +100,10 @@ export async function devReactBuild({ buildFolder, runOnLocal, assetBasePath, lo
             imageCdnUrl: imageCdnUrl,
             localThemePort: localThemePort,
             context: process.cwd(),
+            isHMREnabled,
         }
         const baseWebpackConfig = createBaseWebpackConfig(ctx, webpackConfigFromTheme);
-        return await new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             webpack(baseWebpackConfig, (err, stats) => {
                 console.log(err)
                 console.log(stats.toString());
@@ -116,7 +118,7 @@ export async function devReactBuild({ buildFolder, runOnLocal, assetBasePath, lo
     }
 }
 
-export async function devReactWatch({ buildFolder, runOnLocal, assetBasePath, localThemePort, imageCdnUrl } : DevReactBuild, callback: Function) {
+export async function devReactWatch({ buildFolder, runOnLocal, assetBasePath, localThemePort, imageCdnUrl, isHMREnabled } : DevReactBuild, callback: Function) {
     const buildPath = path.join(process.cwd(), buildFolder);
     try {
         let webpackConfigFromTheme = {};
@@ -132,6 +134,7 @@ export async function devReactWatch({ buildFolder, runOnLocal, assetBasePath, lo
             imageCdnUrl: imageCdnUrl,
             localThemePort: localThemePort,
             context: process.cwd(),
+            isHMREnabled,
         }
         
         const baseWebpackConfig = createBaseWebpackConfig(ctx, webpackConfigFromTheme);
