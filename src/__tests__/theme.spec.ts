@@ -285,7 +285,11 @@ describe('Theme Commands', () => {
             appConfig.company_id,
             appConfig.application_id,
         )}`)
-        .reply(200, themeList.items)
+        .reply(200, themeList.items);
+
+        mock.onGet(
+            `${URLS.GET_DEFAULT_THEME(appConfig.company_id, appConfig.application_id)}`
+        ).reply(200, { name: 'Emerge' });
         
         // user login
         configStore.set(CONFIG_KEYS.USER, data.user)

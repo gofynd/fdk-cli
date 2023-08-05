@@ -71,6 +71,10 @@ export const URLS = {
         );
     },
 
+    GET_DEFAULT_THEME: (company_id: number, application_id: string)=> {
+      return urlJoin(THEME_URL(), `organization/${organization_id}/company/${company_id}/application/${application_id}/default_theme`);
+    },
+
     // AVAILABLE_PAGE
     AVAILABLE_PAGE: (
         application_id: string,
@@ -82,6 +86,14 @@ export const URLS = {
             THEME_URL(),
             `organization/${organization_id}/company/${company_id}/application/${application_id}/${theme_id}/${page_value}`
         );
+    },
+
+    PAGE_DEFAULT_VALUES: (
+        application_id: string,
+        company_id: number,
+        page_value: string
+        ) => {
+        return urlJoin(THEME_URL(), `organization/${organization_id}/company/${company_id}/application/${application_id}/page/${page_value}/system`)
     },
 
     SETUP_COMPANY: (company_id: number) => {

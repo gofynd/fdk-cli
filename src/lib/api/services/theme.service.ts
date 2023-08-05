@@ -95,7 +95,24 @@ export default {
       throw error;
     }
   },
-  getAllAvailablePage: async() => {
+  getDefaultPageDetails: async pageValue => {
+    try {
+      const activeContext = getActiveContext();
+      const axiosOption = Object.assign({}, getCommonHeaderOptions());
+      const res = await ApiClient.get(
+        URLS.PAGE_DEFAULT_VALUES(
+          activeContext.application_id,
+          activeContext.company_id,
+          pageValue
+        ),
+        axiosOption
+      );
+      return res;
+    } catch (error) {
+      throw error;
+    }
+  },
+  getAllAvailablePage: async () => {
     try {
       const activeContext = getActiveContext();
       const axiosOption = Object.assign({}, getCommonHeaderOptions());
@@ -225,6 +242,19 @@ export default {
     catch(error)
     {
       throw error
+    }
+  },
+  getDefaultTheme: async (data)=> {
+    try{
+      const axiosOption = Object.assign({}, getCommonHeaderOptions());
+      const res = await ApiClient.get(
+        URLS.GET_DEFAULT_THEME(data.company_id, data.application_id),
+        axiosOption
+      );
+      return res?.data;
+    }
+    catch(err){
+      throw err;
     }
   }
 };
