@@ -1185,16 +1185,16 @@ export default class Theme {
         try {
             Logger.error('Cleaning up');
             spinner.start();
-            // if (fs.existsSync(targetDirectory)) {
-            //     if (fs.existsSync(`${path.join(targetDirectory, '.fdk', 'context.json')}`)) {
-            //         const contexts = await fs.readJSON(
-            //             `${path.join(targetDirectory, '.fdk', 'context.json')}`
-            //         );
-            //         const activeContext = contexts.theme.active_context;
-            //         await ThemeService.deleteThemeById(contexts.theme.contexts[activeContext]);
-            //     }
-            //     // rimraf.sync(targetDirectory);
-            // }
+            if (fs.existsSync(targetDirectory)) {
+                if (fs.existsSync(`${path.join(targetDirectory, '.fdk', 'context.json')}`)) {
+                    const contexts = await fs.readJSON(
+                        `${path.join(targetDirectory, '.fdk', 'context.json')}`
+                    );
+                    const activeContext = contexts.theme.active_context;
+                    await ThemeService.deleteThemeById(contexts.theme.contexts[activeContext]);
+                }
+                rimraf.sync(targetDirectory);
+            }
             spinner.succeed();
         } catch (error) {
             spinner.fail();
