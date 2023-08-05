@@ -9,6 +9,7 @@ var cors = require('cors');
 const port = 7071;
 import chalk from 'chalk';
 import { AVAILABLE_ENVS } from './Env';
+import ThemeService from './api/services/theme.service';
 function getLocalBaseUrl(isTesting = false) {
     return `http${isTesting ? '' : 's'}://localhost`;
 }
@@ -66,11 +67,16 @@ export const startServer = async ({ isTesting = false }) => {
     return Auth.server;
 };
 
+async function checkVersionCompatibility() {
+    const response = await ThemeService.checkCompatibleVersion();
+}
+
 export default class Auth {
     static server = null;
     static isOrganizationChange = false;
     constructor() {}
     public static async login() {
+        await checkVersionCompatibility();
         Logger.info(chalk.green('Current env: ', ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)));
         const isLoggedIn = await Auth.isAlreadyLoggedIn();
         await startServer({});

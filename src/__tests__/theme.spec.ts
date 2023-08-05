@@ -128,6 +128,7 @@ describe('Theme Commands', () => {
         program = await init('fdk');
         const mock = new MockAdapter(axios);
         const mockInstance = new MockAdapter(uninterceptedApiClient.axiosInstance);
+        mock.onGet(`${URLS.IS_VERSION_COMPATIBLE()}`).reply(200);
         mock.onGet(
             `${URLS.GET_APPLICATION_DETAILS(appConfig.company_id, appConfig.application_id)}`
         ).reply(200, appConfig);

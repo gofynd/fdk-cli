@@ -230,6 +230,20 @@ export default {
       throw error;
     }
   },
+  checkCompatibleVersion: async() =>{
+    try{
+      let axiosOptions = Object.assign(
+        {},
+        getCommonHeaderOptions()
+      )
+      let response = await ApiClient.get(URLS.IS_VERSION_COMPATIBLE(), axiosOptions);
+      return response.data;
+    }
+    catch(error)
+    {
+      throw error
+    }
+  },
   getDefaultTheme: async (data)=> {
     try{
       const axiosOption = Object.assign({}, getCommonHeaderOptions());
