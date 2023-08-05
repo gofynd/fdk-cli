@@ -13,6 +13,7 @@ export const getBaseURL = () => {
     return `https://${currentEnv}`
 };
 
+const BLITZKRIEG_URL =() => getBaseURL() + '/service/partner/theme';
 const THEME_URL = () => getBaseURL() + '/service/partner/theme/v' + apiVersion;
 const AUTH_URL = () => getBaseURL() + '/service/panel/authentication/v' + apiVersion;
 const CONFIGURATION_URL = () => getBaseURL() + '/service/partner/partners/v' + apiVersion;
@@ -109,5 +110,9 @@ export const URLS = {
     },
     GET_LIVE_ACCOUNTS: (page_no: number, page_size: number): string => {
         return urlJoin(MIXMASTER_URL('partner'), `/organization/${organization_id}/accounts/access-request?page_size=${page_size}&page_no=${page_no}&request_status=accepted`);
+    },
+    
+    IS_VERSION_COMPATIBLE: () =>{
+        return urlJoin(BLITZKRIEG_URL(), '/_compatibility')
     }
 };
