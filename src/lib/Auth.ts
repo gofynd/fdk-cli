@@ -131,7 +131,9 @@ export default class Auth {
             ];
             await inquirer.prompt(questions).then(answers => {
                 if (answers.confirmLogout === 'Yes') {
+                    const currentEnv = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
                     ConfigStore.clear();
+                    ConfigStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, currentEnv);
                     Logger.info(`User logged out successfully`);
                 }
             });

@@ -80,7 +80,7 @@ export default class Env {
             throw new CommandError(COMMON_LOG_MESSAGES.EnvNotSet);
         }
         const msg = AVAILABLE_ENVS[ctx]
-            ? `Active Environment: ${chalk.bold(ctx)}, URL: ${chalk.bold(AVAILABLE_ENVS[ctx])}`
+            ? `Active Environment: ${chalk.bold(ctx)}\nAPI URL: ${chalk.bold(AVAILABLE_ENVS[ctx])}`
             : `Currently using Platform URL: ${chalk.bold(ctx)}`;
         Logger.info(msg);
     }
