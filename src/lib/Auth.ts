@@ -110,9 +110,11 @@ export default class Auth {
                 let partnerDomain = env.replace("api", "partners")
                 domain =`https://${partnerDomain}`
             }
-            await open(
-                `${domain}/organizations/?fdk-cli=true&callback=${getLocalBaseUrl()}:${port}`
-            );
+            if(Auth.isOrganizationChange || !isLoggedIn){
+                await open(
+                    `${domain}/organizations/?fdk-cli=true&callback=${getLocalBaseUrl()}:${port}`
+                );
+            }
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
@@ -129,7 +131,9 @@ export default class Auth {
             ];
             await inquirer.prompt(questions).then(answers => {
                 if (answers.confirmLogout === 'Yes') {
+                    const currentEnv = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
                     ConfigStore.clear();
+                    ConfigStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, currentEnv);
                     Logger.info(`User logged out successfully`);
                 }
             });
