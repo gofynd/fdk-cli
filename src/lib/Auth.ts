@@ -110,9 +110,11 @@ export default class Auth {
                 let partnerDomain = env.replace("api", "partners")
                 domain =`https://${partnerDomain}`
             }
-            await open(
-                `${domain}/organizations/?fdk-cli=true&callback=${getLocalBaseUrl()}:${port}`
-            );
+            if(Auth.isOrganizationChange || !isLoggedIn){
+                await open(
+                    `${domain}/organizations/?fdk-cli=true&callback=${getLocalBaseUrl()}:${port}`
+                );
+            }
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }

@@ -13,7 +13,7 @@ export const getBaseURL = () => {
     return `https://${currentEnv}`
 };
 
-const BLITZKRIEG_URL =() => getBaseURL() + '/service/partner/theme';
+const BLITZKRIEG_PANEL_URL =() => getBaseURL() + '/service/panel/theme';
 const THEME_URL = () => getBaseURL() + '/service/partner/theme/v' + apiVersion;
 const AUTH_URL = () => getBaseURL() + '/service/panel/authentication/v' + apiVersion;
 const CONFIGURATION_URL = () => getBaseURL() + '/service/partner/partners/v' + apiVersion;
@@ -125,6 +125,6 @@ export const URLS = {
     },
     
     IS_VERSION_COMPATIBLE: () =>{
-        return urlJoin(BLITZKRIEG_URL(), '/_compatibility')
+        return urlJoin(BLITZKRIEG_PANEL_URL(), '/_compatibility')
     }
 };
