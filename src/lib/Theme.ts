@@ -605,7 +605,6 @@ export default class Theme {
                 srcCdnUrl,
                 available_sections,
                 allowedDefaultProps,
-                // This allowDefaultProps has to be Changed and handle like how it is handled in vue suggested by Shivraj Koli
             );
 
 
@@ -1544,7 +1543,7 @@ export default class Theme {
                     return listItem;
                 });
             }
-            theme.config.list = newList || [{ name: 'default' }];
+            theme.config.list = newList;
             theme.config.preset = globalConfigData.preset || [];
             theme.version = packageJSON.version;
             theme.customized = true;
