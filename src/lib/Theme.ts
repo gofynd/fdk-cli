@@ -1524,7 +1524,7 @@ export default class Theme {
             theme.config.current = globalConfigData.current || 'default';
 
             // Modify list to update deleted page's prop
-            let newList = null;
+            let newList = globalConfigData.list;
             if (globalConfigData.list && Object.keys(allowedDefaultProps).length > 0) {
                 newList = globalConfigData.list.map(listItem => {
                     if (!listItem.page) return listItem;
