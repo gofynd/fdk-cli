@@ -36,8 +36,8 @@ export const URLS = {
     GET_APPLICATION_DETAILS: (company_id: number, application_id: string) => {
         return urlJoin(CONFIGURATION_URL(), `/organization/${organization_id}/company/${company_id}/application/${application_id}`);
     },
-    GET_APPLICATION_LIST: (company_id: number) => {
-        return urlJoin(MIXMASTER_URL('partner'), `/organization/${organization_id}/company/${company_id}/application`);
+    GET_APPLICATION_LIST: (company_id: number, page_no: number, page_size: number) => {
+        return urlJoin(MIXMASTER_URL('partner'), `/organization/${organization_id}/company/${company_id}/application?page_size=${page_size}&page_no=${page_no}`);
     },
 
     //ASSETS

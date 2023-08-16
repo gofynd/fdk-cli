@@ -276,6 +276,8 @@ describe('Theme Commands', () => {
         mock.onGet(
             `${URLS.GET_APPLICATION_LIST(
                 appConfig.company_id,
+                1,
+                100
             )}`
         ).reply(200, appList);
         

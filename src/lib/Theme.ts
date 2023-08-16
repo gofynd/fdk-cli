@@ -184,7 +184,7 @@ export default class Theme {
                 selectedCompany =
                     companyListOptions[answers.selectedCompany]?.company?.uid ||
                     companyListOptions[answers.selectedCompany].company_id;
-                applicationList = await ConfigurationService.getApplications(selectedCompany);
+                applicationList = await ConfigurationService.getApplications(selectedCompany, 1, 100);
             } catch (error) {
                 Logger.error(error);
                 throw new CommandError(error.message, error.code);

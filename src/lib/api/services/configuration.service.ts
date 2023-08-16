@@ -17,11 +17,11 @@ export default {
       throw error;
     }
   },
-  getApplications: async (company_id: number) => {
+  getApplications: async (company_id: number,page_no: number, page_size: number) => {
     try {
       const axiosOption = Object.assign({}, getCommonHeaderOptions());
       const res = await ApiClient.get(
-        URLS.GET_APPLICATION_LIST(company_id),
+        URLS.GET_APPLICATION_LIST(company_id, page_no, page_size),
         axiosOption
       );
       return res;
