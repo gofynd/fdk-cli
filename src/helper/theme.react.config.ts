@@ -20,8 +20,8 @@ const baseConfig = (ctx) => {
 	const assetNormalizedBasePath = assetBasePath[assetBasePath.length - 1] === '/' ? assetBasePath : assetBasePath + '/';
 	const imageCDNNormalizedBasePath = imageCdnUrl[imageCdnUrl.length - 1] === '/' ? imageCdnUrl : imageCdnUrl + '/';
 	const isLocal = NODE_ENV === 'development';
-    const localBasePath = `https://127.0.0.1:${localThemePort}/`
-    const localImageBasePath = `https://127.0.0.1:${localThemePort}/assets/images/`
+    const localBasePath = `https://localhost:${localThemePort}/`
+    const localImageBasePath = `https://localhost:${localThemePort}/assets/images/`
 	return {
 			mode: isLocal ? 'development' : 'production',
 			entry: { 
