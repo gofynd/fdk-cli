@@ -593,6 +593,9 @@ export default class Theme {
             let pArr = await Theme.uploadReactThemeBundle({ buildPath });
             let [cssUrls, umdJsUrls] = await Promise.all(pArr);
 
+            Logger.info('Updating Available pages');
+            const { allowedDefaultProps } = await Theme.updateAvailablePagesForReact();
+
             // Set new theme data
             const newTheme = await Theme.setThemeData(
                 theme,
@@ -601,12 +604,9 @@ export default class Theme {
                 umdJsUrls,
                 srcCdnUrl,
                 available_sections,
-                {}
-                // This allowDefaultProps has to be Changed and handle like how it is handled in vue suggested by Shivraj Koli
+                allowedDefaultProps,
             );
 
-            Logger.info('Updating Available pages');
-            await Theme.updateAvailablePagesForReact();
 
             Logger.info('Updating theme');
             await ThemeService.updateTheme(newTheme);
@@ -1523,7 +1523,7 @@ export default class Theme {
             theme.config.current = globalConfigData.current || 'default';
 
             // Modify list to update deleted page's prop
-            let newList = null;
+            let newList = globalConfigData.list;
             if (globalConfigData.list && Object.keys(allowedDefaultProps).length > 0) {
                 newList = globalConfigData.list.map(listItem => {
                     if (!listItem.page) return listItem;
@@ -1543,7 +1543,7 @@ export default class Theme {
                     return listItem;
                 });
             }
-            theme.config.list = newList || [{ name: 'default' }];
+            theme.config.list = newList;
             theme.config.preset = globalConfigData.preset || [];
             theme.version = packageJSON.version;
             theme.customized = true;
@@ -1767,7 +1767,7 @@ export default class Theme {
             const systemPagesDB = allPages.filter(x => x.type == 'system');
             const customPagesDB = allPages.filter(x => x.type == 'custom');
             const pagesToSave = [];
-
+    
             // extract system page level settings schema
             let systemPages = fs
                 .readdirSync(path.join(process.cwd(), 'theme', 'pages'))
@@ -1804,22 +1804,81 @@ export default class Theme {
                     ) ||
                     [] ||
                     [];
-
+    
                 systemPage.type = 'system';
                 pagesToSave.push(systemPage);
             });
-
+    
+            // remove .jsx from file name
+            const allLocalSystemPageNames = systemPages.map(name =>
+                name.replace('.jsx', '')
+            );
+    
+            // Delete system pages that were available before sync but now deleted
+            const systemPagesToDelete = systemPagesDB.filter(
+                x => !allLocalSystemPageNames.includes(x.value)
+            );
+    
+            const allowedDefaultProps = {};
+    
+            if (systemPagesToDelete.length > 0) {
+                // Reseting props in system pages
+    
+                // Get default values of all deleted system pages
+                const default_props_arr = await Promise.all(
+                    systemPagesToDelete.map(page => ThemeService.getDefaultPageDetails(page.value))
+                );
+    
+                const default_props = {};
+    
+                // Create object with page value as a `key` and page details as `value`
+                default_props_arr.forEach(res => {
+                    default_props[res.data.value] = res.data;
+                });
+    
+                /**
+                 * Update deleted page props with default props. Also filter out
+                 * default props from existing props to keep current values intact
+                 */
+                await Promise.all(
+                    systemPagesToDelete.map(async page => {
+                        // To fetch deleted system page details
+                        const { data: deletedPage } = await ThemeService.getAvailablePage(
+                            page.value
+                        );
+    
+                        // default page values for a system page
+                        const defaultPage = default_props[page.value];
+                        if (defaultPage) {
+                            allowedDefaultProps[defaultPage.value] = deletedPage.props.map(prop => {
+                                // If both `id` and `type` values match for current prop and default prop we will confirm this is a default prop
+                                for (let i = 0; i < defaultPage.props.length; i++) {
+                                    if (
+                                        prop.id === defaultPage.props[i].id &&
+                                        prop.type === defaultPage.props[i].type
+                                    )
+                                        return prop.id;
+                                }
+                            });
+                            return ThemeService.updateAvailablePage(defaultPage);
+                        } else {
+                            // show something in CLI
+                        }
+                    })
+                );
+            }
+    
             const sectionPath = path.resolve(
                 process.cwd(),
                 Theme.BUILD_FOLDER,
                 'custom-templates/custom-templates.commonjs.js'
             );
-
+    
             const customTemplates = require(sectionPath)?.customTemplates?.default;
             if (!customTemplates) {
                 Logger.error('Custom Templates Not Available');
             }
-
+    
             const customFiles = {};
             const customRoutes = (ctTemplates, parentKey = null) => {
                 for (let key in ctTemplates) {
@@ -1835,7 +1894,7 @@ export default class Theme {
                         text: pageNameModifier(key),
                         path: routerPath,
                     };
-
+    
                     if (
                         ctTemplates[key].children &&
                         Object.keys(ctTemplates[key].children).length
@@ -1875,7 +1934,7 @@ export default class Theme {
             }
             await ThemeService.updateAllAvailablePages({ pages: pagesToSave });
             spinner.succeed();
-            return pagesToSave;
+            return { pagesToSave, allowedDefaultProps };
         } catch (err) {
             spinner.fail();
             throw new CommandError(err.message, err.code);
