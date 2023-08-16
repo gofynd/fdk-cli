@@ -3,9 +3,7 @@
 # Fynd Development Kit
 [![NPM Version][npm-image]][npm-url]
 [![NPM Downloads][downloads-image]][downloads-url]
-[![NPM License][license-image]][license-url]
-[![Build Status](https://travis-ci.org/gofynd/fdk-cli.svg?branch=master)](https://travis-ci.org/gofynd/fdk-cli)
-[![Coverage Status](https://coveralls.io/repos/github/gofynd/fdk-cli/badge.svg?branch=master&&kill_cache=1)](https://coveralls.io/github/gofynd/fdk-cli?branch=master)
+[![Coverage Status][coveralls-badge]]([coveralls-url]) <br/>
 Fynd development Kit (FDK CLI) is a cli tool developed by Fynd to create and update themes, extensions and various other components of the [Fynd Platform](https://platform.fynd.com/).
 ### Quick Links
 | [Fynd Platform](https://platform.fynd.com/) | [Fynd Partners](https://partners.fynd.com/) | [Documentation](https://documentation.fynd.com/) | [Other Projects](#other-fynd-projects) | [Contributing](#contributing) | 
@@ -548,11 +546,8 @@ ___
 [npm-url]: https://www.npmjs.com/package/@gofynd/fdk-cli
 [downloads-image]: https://img.shields.io/npm/dm/@gofynd/fdk-cli
 [downloads-url]: https://www.npmjs.com/package/@gofynd/fdk-cli
-[coveralls-image]: https://img.shields.io/coveralls/github/gofynd/fdk-cli?color=success
-[coveralls-url]: https://coveralls.io/github/gofynd/fdk-cli
-[travis-url]: https://travis-ci.org/gofynd/fdk-cli/
-[license-image]: https://img.shields.io/npm/l/@gofynd/fdk-cli?color=success
-[license-url]: https://github.com/gofynd/fdk-cli/blob/master/LICENSE
+[coveralls-badge]: https://coveralls.io/repos/github/gofynd/fdk-cli/badge.svg?branch=master&&kill_cache=1
+[coveralls-url]: https://coveralls.io/github/gofynd/fdk-cli?branch=master
 
 ___
 
