@@ -146,6 +146,7 @@ const ProductDescriptionPdp = ({ fpi, slug }) => {
                           return (
                             singleImage?.type === "image" && (
                               <div
+                                key={index}
                                 className={`${styles.imageContainer} ${
                                   currentImageIndex === index && styles.selected
                                 }`}
@@ -252,6 +253,7 @@ const ProductDescriptionPdp = ({ fpi, slug }) => {
                           sizes.map((singleSize, index) => {
                             return (
                               <p
+                                key={singleSize?.display}
                                 className={styles.singleSizes}
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -336,7 +338,7 @@ const ProductDescriptionPdp = ({ fpi, slug }) => {
                         e.stopPropagation();
                         setActiveTab(index);
                       }}
-                      key={index}
+                      key={singleAttributes.title}
                     >
                       {singleAttributes.title}
                     </h5>
@@ -353,7 +355,7 @@ const ProductDescriptionPdp = ({ fpi, slug }) => {
                       (singleAttribute) => {
                         if (singleAttribute?.type === "text") {
                           return (
-                            <li>
+                            <li key={singleAttribute?.key}>
                               {`${singleAttribute?.key} : ${singleAttribute?.value}`}
                             </li>
                           );
