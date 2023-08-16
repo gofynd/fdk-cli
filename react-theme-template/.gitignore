@@ -1,4 +1,3 @@
-/dist*
-/**/node_modules
-published-artifacts.json
+/dist
 .fdk
+/node_modules

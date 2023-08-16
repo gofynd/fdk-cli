@@ -5,6 +5,7 @@ import SvgWrapper from '../components/svgWrapper/SvgWrapper';
 import Loader from '../components/loader/loader';
 import useProductListing from '../page-layouts/plp/useProductListing';
 import styles from '../styles/product-listing.less';
+import PageNotFound from '../components/page-not-found/page-not-found';
 
 const ProductListing = ({ fpi }) => {
   const {
@@ -36,9 +37,10 @@ const ProductListing = ({ fpi }) => {
       <div className={styles.productListingContainer}>
         <div className={styles.listDataContainer}>
           <div className={styles.categoriesListContainer}>
-            {filters?.map((singleFilter) => {
+            {filters?.map((singleFilter,index) => {
               return (
                 <CategoriesFilter
+                  key={index}
                   categoryName={singleFilter?.key?.display}
                   categoryNameValue={singleFilter?.key?.name}
                   categoryValues={singleFilter?.values}
@@ -84,6 +86,7 @@ const ProductListing = ({ fpi }) => {
                     {sort_on?.map((singleSort) => {
                       return (
                         <div
+                          key={singleSort?.display}
                           className={styles.singleSortContainer}
                           onClick={() => {
                             setSortOnOpen(!sortOnOpen);
@@ -120,10 +123,11 @@ const ProductListing = ({ fpi }) => {
               </div>
             </div>
             <div className={styles.productListingContainer}>
-              {items?.length > 0 &&
+              {items?.length > 0 ?
                 items.map((singleProduct) => {
                   return (
                     <div
+                      key={singleProduct.slug}
                       className={`${
                         currentGrid === 'twogrid'
                           ? styles.twoProducts
@@ -155,7 +159,7 @@ const ProductListing = ({ fpi }) => {
                       </div>
                     </div>
                   );
-                })}
+                }):<PageNotFound title={'No Products Found'}></PageNotFound>}
             </div>
             <div className={styles.paginationListingContainer}>
               <SvgWrapper

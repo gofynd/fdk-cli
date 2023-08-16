@@ -5,7 +5,6 @@ export function Component({ props }) {
   const { bannerImage } = props;
   return bannerImage?.value ? <ImageBanner bannerImage={bannerImage} /> : null;
 }
-
 export const settings = {
   label: 'Banner Image',
   props: [

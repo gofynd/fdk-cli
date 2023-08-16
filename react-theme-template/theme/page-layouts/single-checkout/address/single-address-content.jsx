@@ -33,6 +33,7 @@ function SingleAddressContent({ allAddress, addressLoading }) {
                 return (
                   <>
                     <div
+                      key={index}
                       className={styles.addressContent}
                       onClick={() => {
                         setselectedAddId(item.id);
@@ -108,6 +109,7 @@ function SingleAddressContent({ allAddress, addressLoading }) {
             ? getOtherAdd.map((item, index) => {
                 return (
                   <div
+                  key={item.id}
                     className={styles.addressContent}
                     onClick={() => {
                       setselectedAddId(item.id);

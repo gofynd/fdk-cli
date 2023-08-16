@@ -4,6 +4,7 @@ import { FDKLink } from "fdk-core/components";
 import SvgWrapper from "../../components/svgWrapper/SvgWrapper";
 import Loader from "../../components/loader/loader";
 import useCart from "./useCart";
+import { useNavigate } from "react-router-dom";
 import { useLoggedInUser } from "../../helper/hooks";
 
 const Cart = ({ fpi }) => {
@@ -14,6 +15,9 @@ const Cart = ({ fpi }) => {
   const [isError, setisError] = useState(false);
   const [errorMsg, seterrorMsg] = useState(false);
   const { loggedIn: isloggedIn } = useLoggedInUser(fpi);
+	const navigate = useNavigate();
+
+  
 
   const handlePincode = () => {
     fpi.logistic
@@ -21,7 +25,7 @@ const Cart = ({ fpi }) => {
         pincode: `${pincode}`,
       })
       .then((res) => {
-
+        console.log("RES",res);
         if (res.payload.success) {
           localStorage?.setItem("pincode", pincode);
           fpi?.cart?.getCartItems({ b: true, i: true, areaCode: `${pincode}` });
@@ -39,6 +43,11 @@ const Cart = ({ fpi }) => {
       setpincode(input);
     }
   };
+
+  const redirectToLogin = () => {
+    console.log("here");
+    navigate('/auth/login');
+  }
 
   const {
     cartItemCount,
@@ -126,7 +135,7 @@ const Cart = ({ fpi }) => {
                 singleItemDetails?.product?.images[0]?.url;
               const currentSize = singleItem?.split("_")[1];
               return (
-                <div className={styles.cartItemsListContainer}>
+                <div className={styles.cartItemsListContainer} key={itemIndex}>
                   <div className={styles.eachItemContainer}>
                     <div className={styles.itemImageContainer}>
                       <FDKLink
@@ -292,7 +301,9 @@ const Cart = ({ fpi }) => {
                 </span>
               </div>
             </div>
-            {/* <button className={styles.priceSummaryLoginButton}>LOGIN</button> */}
+            {!isloggedIn && <button className={styles.priceSummaryLoginButton}
+            onClick={redirectToLogin}
+            >LOGIN</button>}
             {!isloggedIn && (
               <button
                 className={styles.priceSummaryGuestButton}
@@ -301,12 +312,12 @@ const Cart = ({ fpi }) => {
                 CONTINUE AS GUEST
               </button>
             )}
-            <button
+           {isloggedIn && <button
               className={styles.priceSummaryLoginButton}
               onClick={gotoCheckout}
             >
               checkout
-            </button>
+            </button>}
           </div>
         )}
 
@@ -321,8 +332,8 @@ const Cart = ({ fpi }) => {
                 <div className={styles.sizeModalImage}>
                   <img
                     src={
-                      sizeModalItemValue?.product?.images?.length > 0 &&
-                      sizeModalItemValue?.product?.images[0]?.url
+                      sizeModalItemValue?.product?.images?.length > 0 ?
+                      sizeModalItemValue?.product?.images[0]?.url:undefined
                     }
                   />
                 </div>
@@ -369,6 +380,7 @@ const Cart = ({ fpi }) => {
                         singleSize?.value;
                       return (
                         <div
+                          key={singleSize?.display}
                           className={`${styles.singleSize}`}
                           onClick={(e) => {
                             e.stopPropagation();

@@ -1,4 +1,5 @@
 import React from 'react';
+import { getGlobalConfigValue } from '../helper/utils';
 
 const styles = {
 	section: {
@@ -16,14 +17,18 @@ const styles = {
 	},
 };
 
-export function Component({ props, blocks }) {
+export function Component({ props, blocks ,globalConfig}) {
 	const { title } = props;
 	if (!blocks?.length) {
 		return null;
 	}
+	let margin_bottom = getGlobalConfigValue(
+    globalConfig,
+    "section_margin_bottom"
+  );
 
 	return (
-		<div style={styles.section}>
+		<div style={{ ...styles.section, marginBottom: `${margin_bottom}px`}} >
 			<h1 style={styles.title}>{title.value}</h1>
 			<div style={styles.swipeGallery}>
 				{
