@@ -512,7 +512,6 @@ ___
 <div id="debugMode"></div>
 
 #### Debug
-``
 Add the `--verbose` flag to the command you want to run in debug mode.
 
 
