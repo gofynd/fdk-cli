@@ -447,7 +447,9 @@
       {
         "sections": [
           {
+            "label": "",
             "blocks": [],
+            "source": "themeBundle",
             "predicate": {
               "screen": {
                 "mobile": true,
@@ -463,300 +465,170 @@
                 "exact_url": ""
               }
             },
-            "name": "hero_image",
+            "name": "banner-image",
             "props": {
-              "heading": {
-                "value": "What your Brand Says",
-                "type": "text"
-              },
-              "description": {
-                "value": "Add highlights of your brands",
-                "type": "text"
-              },
-              "overlay_option": {
-                "type": "select",
-                "value": "no_overlay"
-              },
-              "button_text": {
-                "value": "Shop Now",
-                "type": "text"
-              },
-              "button_link": {
-                "type": "url",
-                "value": ""
-              },
-              "invert_button_color": {
-                "type": "checkbox",
-                "value": false
-              },
-              "desktop_banner": {
-                "value": "",
-                "type": "image_picker"
-              },
-              "text_placement_desktop": {
-                "type": "select",
-                "value": "top_left"
-              },
-              "text_alignment_desktop": {
-                "type": "select",
-                "value": "left"
-              },
-              "mobile_banner": {
-                "value": "",
-                "type": "image_picker"
-              },
-              "text_placement_mobile": {
-                "type": "select",
-                "value": "top_left"
-              },
-              "text_alignment_mobile": {
-                "type": "select",
-                "value": "left"
-              }
-            }
-          },
-          {
-            "blocks": [],
-            "predicate": {
-              "screen": {
-                "mobile": true,
-                "desktop": true,
-                "tablet": true
-              },
-              "user": {
-                "authenticated": true,
-                "anonymous": true
-              },
-              "route": {
-                "selected": "none",
-                "exact_url": ""
-              }
-            },
-            "name": "featured_collection",
-            "props": {
-              "heading": {
-                "value": "Featured Collection",
-                "type": "text"
-              },
-              "description": {
-                "value": "Featured Collection description here",
-                "type": "text"
-              },
-              "desktop_layout": {
-                "type": "select",
-                "value": "banner_horizontal_carousel"
-              },
-              "mobile_layout": {
-                "type": "select",
-                "value": "horizontal_scroll"
-              },
-              "cta_button_text": {
-                "value": "VIEW ALL",
-                "type": "text"
-              }
-            }
-          },
-          {
-            "blocks": [
-              {
-                "type": "image_slide",
-                "name": "Slide",
-                "props": {
-                  "image": {
-                    "type": "image_picker",
-                    "value": ""
-                  },
-                  "mobile_image": {
-                    "type": "image_picker",
-                    "value": ""
-                  },
-                  "redirect_link": {
-                    "type": "url",
-                    "value": ""
-                  }
-                }
-              },
-              {
-                "type": "image_slide",
-                "name": "Slide",
-                "props": {
-                  "image": {
-                    "type": "image_picker",
-                    "value": ""
-                  },
-                  "mobile_image": {
-                    "type": "image_picker",
-                    "value": ""
-                  },
-                  "redirect_link": {
-                    "type": "url",
-                    "value": ""
-                  }
-                }
-              },
-              {
-                "type": "image_slide",
-                "name": "Slide",
-                "props": {
-                  "image": {
-                    "type": "image_picker",
-                    "value": ""
-                  },
-                  "mobile_image": {
-                    "type": "image_picker",
-                    "value": ""
-                  },
-                  "redirect_link": {
-                    "type": "url",
-                    "value": ""
-                  }
-                }
-              }
-            ],
-            "predicate": {
-              "screen": {
-                "mobile": true,
-                "desktop": true,
-                "tablet": true
-              },
-              "user": {
-                "authenticated": true,
-                "anonymous": true
-              },
-              "route": {
-                "selected": "none",
-                "exact_url": ""
-              }
-            },
-            "name": "image_slideshow",
-            "props": {
-              "autoplay": {
-                "value": true,
-                "type": "checkbox"
-              },
-              "slide_interval": {
-                "value": 2,
-                "type": "range"
-              }
-            }
-          },
-          {
-            "blocks": [
-              {
-                "type": "collection",
-                "name": "Collection Item",
-                "collection": {
-                  "image": {
-                    "type": "collection",
-                    "value": ""
-                  }
-                }
-              },
-              {
-                "type": "collection",
-                "name": "Collection Item",
-                "props": {
-                  "collection": {
-                    "type": "collection",
-                    "value": ""
-                  }
-                }
-              },
-              {
-                "type": "collection",
-                "name": "Collection Item",
-                "props": {
-                  "collection": {
-                    "type": "collection",
-                    "value": ""
-                  }
-                }
-              }
-            ],
-            "predicate": {
-              "screen": {
-                "mobile": true,
-                "desktop": true,
-                "tablet": true
-              },
-              "user": {
-                "authenticated": true,
-                "anonymous": true
-              },
-              "route": {
-                "selected": "none",
-                "exact_url": ""
-              }
-            },
-            "name": "collections_listing",
-            "props": {
-              "heading": {
-                "value": "Top Collections",
-                "type": "text"
-              },
-              "description": {
-                "value": "We stay on top so you can be on top",
-                "type": "textarea"
-              },
-              "layout_desktop": {
-                "type": "select",
-                "value": "horizontal"
-              },
-              "layout_mobile": {
-                "type": "select",
-                "value": "horizontal"
-              },
-              "button_text": {
+              "bannerImage": {
                 "type": "text",
-                "value": "Shop Now"
+                "value": "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/original/marketplaces/uniket/Uniket_Home/Images/Offer_H_1_5x-100.webp"
               }
-            }
+            },
+            "preset": {}
           },
           {
+            "label": "",
             "blocks": [
               {
-                "type": "gallery_image",
-                "name": "Image",
+                "type": "gallery",
                 "props": {
-                  "image": {
-                    "type": "image_picker",
-                    "value": ""
+                  "productImage": {
+                    "type": "text",
+                    "value": "https://plus.unsplash.com/premium_photo-1664202526559-e21e9c0fb46a?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=400&ixid=MnwxfDB8MXxyYW5kb218MHx8fHx8fHx8MTY5MTIzMDEzNw&ixlib=rb-4.0.3&q=80&w=300"
                   },
-                  "link": {
-                    "type": "url",
-                    "value": ""
+                  "productTitle": {
+                    "type": "text",
+                    "value": "TShirt"
+                  },
+                  "productMRP": {
+                    "type": "text",
+                    "value": "100"
+                  },
+                  "productDiscountedPrice": {
+                    "type": "text",
+                    "value": "90"
+                  },
+                  "productId": {
+                    "type": "text",
+                    "value": "tshirt-7521000"
                   }
                 }
               },
               {
-                "type": "gallery_image",
-                "name": "Image",
+                "type": "gallery",
                 "props": {
-                  "image": {
-                    "type": "image_picker",
-                    "value": ""
+                  "productImage": {
+                    "type": "text",
+                    "value": "https://plus.unsplash.com/premium_photo-1664202526559-e21e9c0fb46a?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=400&ixid=MnwxfDB8MXxyYW5kb218MHx8fHx8fHx8MTY5MTIzMDEzNw&ixlib=rb-4.0.3&q=80&w=300"
                   },
-                  "link": {
-                    "type": "url",
-                    "value": ""
+                  "productTitle": {
+                    "type": "text",
+                    "value": "  White TShirt"
+                  },
+                  "productMRP": {
+                    "type": "text",
+                    "value": "50"
+                  },
+                  "productDiscountedPrice": {
+                    "type": "text",
+                    "value": "40"
+                  },
+                  "productId": {
+                    "type": "text",
+                    "value": "white-tshirt-7520963"
                   }
                 }
               },
               {
-                "type": "gallery_image",
-                "name": "Image",
+                "type": "gallery",
                 "props": {
-                  "image": {
-                    "type": "image_picker",
-                    "value": ""
+                  "productImage": {
+                    "type": "text",
+                    "value": "https://plus.unsplash.com/premium_photo-1664202526559-e21e9c0fb46a?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=400&ixid=MnwxfDB8MXxyYW5kb218MHx8fHx8fHx8MTY5MTIzMDEzNw&ixlib=rb-4.0.3&q=80&w=300"
                   },
-                  "link": {
-                    "type": "url",
-                    "value": ""
+                  "productTitle": {
+                    "type": "text",
+                    "value": "Black T-shirt"
+                  },
+                  "productMRP": {
+                    "type": "text",
+                    "value": "100"
+                  },
+                  "productDiscountedPrice": {
+                    "type": "text",
+                    "value": "90"
+                  },
+                  "productId": {
+                    "type": "text",
+                    "value": "black-t-shirt-7520951"
+                  }
+                }
+              },
+              {
+                "type": "gallery",
+                "props": {
+                  "productImage": {
+                    "type": "text",
+                    "value": "https://plus.unsplash.com/premium_photo-1664202526559-e21e9c0fb46a?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=400&ixid=MnwxfDB8MXxyYW5kb218MHx8fHx8fHx8MTY5MTIzMDEzNw&ixlib=rb-4.0.3&q=80&w=300"
+                  },
+                  "productTitle": {
+                    "type": "text",
+                    "value": "TShirt"
+                  },
+                  "productMRP": {
+                    "type": "text",
+                    "value": "100"
+                  },
+                  "productDiscountedPrice": {
+                    "type": "text",
+                    "value": "90"
+                  },
+                  "productId": {
+                    "type": "text",
+                    "value": "tshirt-7521000"
+                  }
+                }
+              },
+              {
+                "type": "gallery",
+                "props": {
+                  "productImage": {
+                    "type": "text",
+                    "value": "https://plus.unsplash.com/premium_photo-1664202526559-e21e9c0fb46a?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=400&ixid=MnwxfDB8MXxyYW5kb218MHx8fHx8fHx8MTY5MTIzMDEzNw&ixlib=rb-4.0.3&q=80&w=300"
+                  },
+                  "productTitle": {
+                    "type": "text",
+                    "value": "  White TShirt"
+                  },
+                  "productMRP": {
+                    "type": "text",
+                    "value": "50"
+                  },
+                  "productDiscountedPrice": {
+                    "type": "text",
+                    "value": "40"
+                  },
+                  "productId": {
+                    "type": "text",
+                    "value": "white-tshirt-7520963"
+                  }
+                }
+              },
+              {
+                "type": "gallery",
+                "props": {
+                  "productImage": {
+                    "type": "text",
+                    "value": "https://plus.unsplash.com/premium_photo-1664202526559-e21e9c0fb46a?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=400&ixid=MnwxfDB8MXxyYW5kb218MHx8fHx8fHx8MTY5MTIzMDEzNw&ixlib=rb-4.0.3&q=80&w=300"
+                  },
+                  "productTitle": {
+                    "type": "text",
+                    "value": "Black T-shirt"
+                  },
+                  "productMRP": {
+                    "type": "text",
+                    "value": "100"
+                  },
+                  "productDiscountedPrice": {
+                    "type": "text",
+                    "value": "90"
+                  },
+                  "productId": {
+                    "type": "text",
+                    "value": "black-t-shirt-7520951"
                   }
                 }
               }
             ],
+            "source": "themeBundle",
             "predicate": {
               "screen": {
                 "mobile": true,
@@ -772,129 +644,126 @@
                 "exact_url": ""
               }
             },
-            "name": "image_gallery",
+            "name": "best-collection-section",
+            "props": {
+              "collectionHeading": {
+                "value": "Best Selling Collection",
+                "type": "text"
+              },
+              "collectionSubHeading": {
+                "type": "text",
+                "value": "Quality products that lasts a Lifetime"
+              }
+            },
+            "preset": {}
+          },
+          {
+            "label": "",
+            "blocks": [],
+            "source": "themeBundle",
+            "predicate": {
+              "screen": {
+                "mobile": true,
+                "desktop": true,
+                "tablet": true
+              },
+              "user": {
+                "authenticated": true,
+                "anonymous": true
+              },
+              "route": {
+                "selected": "none",
+                "exact_url": ""
+              }
+            },
+            "name": "banner-image",
+            "props": {
+              "bannerImage": {
+                "type": "text",
+                "value": "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/x5/company/261/applications/64410d95bdb39c39d1ce3397/theme/pictures/free/resize-w:850/theme-image-1685421246809.jpeg?dpr=2"
+              }
+            },
+            "preset": {}
+          },
+          {
+            "label": "",
+            "blocks": [
+              {
+                "type": "gallery",
+                "props": {
+                  "url": {
+                    "type": "text",
+                    "value": "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/original/marketplaces/uniket/Uniket_Home/Images/_New_arrivals__2x-100_(2).webp"
+                  },
+                  "alt": {
+                    "type": "text",
+                    "value": "Image Alt"
+                  },
+                  "width": {
+                    "type": "text",
+                    "value": "50"
+                  }
+                }
+              },
+              {
+                "type": "gallery",
+                "props": {
+                  "url": {
+                    "type": "text",
+                    "value": "https://cdn.pixelbin.io/v2/fynd-marketplace/original/images/Uniket-Republic-day-sale/images/Dazzer_2x_(1).webp"
+                  },
+                  "alt": {
+                    "type": "text",
+                    "value": "Image Alt"
+                  },
+                  "width": {
+                    "type": "text",
+                    "value": "50"
+                  }
+                }
+              },
+              {
+                "type": "gallery",
+                "props": {
+                  "url": {
+                    "type": "text",
+                    "value": "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/original/marketplaces/uniket/Uniket_Home/Images/Imcolus_New_arrival_2x-100.webp"
+                  },
+                  "alt": {
+                    "type": "text",
+                    "value": "Image Alt"
+                  },
+                  "width": {
+                    "type": "text",
+                    "value": "100"
+                  }
+                }
+              }
+            ],
+            "source": "themeBundle",
+            "predicate": {
+              "screen": {
+                "mobile": true,
+                "desktop": true,
+                "tablet": true
+              },
+              "user": {
+                "authenticated": true,
+                "anonymous": true
+              },
+              "route": {
+                "selected": "none",
+                "exact_url": ""
+              }
+            },
+            "name": "swipe-gallery",
             "props": {
               "title": {
                 "type": "text",
-                "value": "A True Style"
-              },
-              "cta_text": {
-                "type": "text",
-                "value": "Be exclusive, Be Devine, Be yourself"
-              },
-              "mobile_layout": {
-                "value": "grid",
-                "type": "select"
-              },
-              "desktop_layout": {
-                "value": "grid",
-                "type": "select"
-              },
-              "item_count": {
-                "value": 3,
-                "type": "range"
-              },
-              "cta_link": {
-                "type": "url",
-                "value": ""
-              }
-            }
-          },
-          {
-            "blocks": [
-              {
-                "type": "testimonial",
-                "name": "Testimonial",
-                "props": {
-                  "author_testimonial": {
-                    "type": "textarea",
-                    "value": "Add customer reviews and testimonials to showcase your store’s happy customers."
-                  },
-                  "author_name": {
-                    "type": "text",
-                    "value": "Author’s name"
-                  },
-                  "author_description": {
-                    "type": "text",
-                    "value": "Author’s Description"
-                  },
-                  "author_image": {
-                    "type": "image_picker",
-                    "value": ""
-                  }
-                }
-              },
-              {
-                "type": "testimonial",
-                "name": "Testimonial",
-                "props": {
-                  "author_testimonial": {
-                    "type": "textarea",
-                    "value": "Add customer reviews and testimonials to showcase your store’s happy customers."
-                  },
-                  "author_name": {
-                    "type": "text",
-                    "value": "Author’s name"
-                  },
-                  "author_description": {
-                    "type": "text",
-                    "value": "Author’s Description"
-                  },
-                  "author_image": {
-                    "type": "image_picker",
-                    "value": ""
-                  }
-                }
-              },
-              {
-                "type": "testimonial",
-                "name": "Testimonial",
-                "props": {
-                  "author_testimonial": {
-                    "type": "textarea",
-                    "value": "Add customer reviews and testimonials to showcase your store’s happy customers."
-                  },
-                  "author_name": {
-                    "type": "text",
-                    "value": "Author’s name"
-                  },
-                  "author_description": {
-                    "type": "text",
-                    "value": "Author’s Description"
-                  },
-                  "author_image": {
-                    "type": "image_picker",
-                    "value": ""
-                  }
-                }
-              }
-            ],
-            "predicate": {
-              "screen": {
-                "mobile": true,
-                "desktop": true,
-                "tablet": true
-              },
-              "user": {
-                "authenticated": true,
-                "anonymous": true
-              },
-              "route": {
-                "selected": "none",
-                "exact_url": ""
+                "value": "Top Selling Products"
               }
             },
-            "name": "testimonials",
-            "props": {
-              "autoplay": {
-                "value": false,
-                "type": "checkbox"
-              },
-              "title": {
-                "value": "What People Are Saying About Us ",
-                "type": "text"
-              }
-            }
+            "preset": {}
           }
         ],
         "value": "home"
