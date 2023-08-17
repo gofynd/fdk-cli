@@ -91,7 +91,7 @@ function SingleShipmentContent() {
         <div className={styles.parent}>
           {shipments?.shipments?.length &&
             shipments.shipments.map((item, index) => (
-              <React.Fragment key={index}>
+              <React.Fragment key={index+2000}>
                 <div className={styles.reviewContentContainer}>
                   <div className={styles.shipmentWrapper}>
                     <div className={styles.shipmentHeading}>
@@ -117,7 +117,7 @@ function SingleShipmentContent() {
                     </div>
                     <div className={styles.item}>
                       {getShipmentItems(item).map((product, index) => (
-                        <div className={styles.itemWrapper} key={index}>
+                        <div className={styles.itemWrapper} key={product.item.product.name}>
                           {product.item.coupon_message.length > 0 && (
                             <div className={styles.couponRibbon}>
                               <SvgWrapper
@@ -150,7 +150,7 @@ function SingleShipmentContent() {
                                 {product.articles.map((article, index) => (
                                   <div
                                     className={styles.sizeQuantity}
-                                    key={index}
+                                    key={article.article.size + index}
                                   >
                                     <div className={styles.size}>
                                       Size: {article.article.size}

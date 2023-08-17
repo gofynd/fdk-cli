@@ -153,9 +153,7 @@ function CheckoutPaymentContent() {
       numberValidation = cardValidator?.number(cardnumber_mask.value);
     });
 
-    expirationdate_mask.on("accept", () => {
-
-    });
+    expirationdate_mask.on("accept", () => {});
   };
 
   const getTrimmedCardNumber = (number) => {
@@ -356,7 +354,7 @@ function CheckoutPaymentContent() {
         id: cart_id,
         is_redirection: false,
       };
-      setisLoading(true)
+      setisLoading(true);
       let confirmedPayment = fpi.payment.confirmPayment(payload);
 
       addParamsToLocation({
@@ -400,7 +398,7 @@ function CheckoutPaymentContent() {
         id: cart_id,
         is_redirection: false,
       };
-      setisLoading(true)
+      setisLoading(true);
       let confirmedPayment = fpi.payment.confirmPayment(payload);
       addParamsToLocation({
         ...getQueryParams(),
@@ -804,7 +802,7 @@ function CheckoutPaymentContent() {
                 {options().map((opt, index) => (
                   <div
                     className={styles.linkWrapper}
-                    key={index}
+                    key={opt.display_name}
                     onClick={() => setNavigationTab(opt.name)}
                   >
                     <div
@@ -839,8 +837,11 @@ function CheckoutPaymentContent() {
                         {selectedTabData &&
                           selectedTabData.list &&
                           selectedTabData.list.map((card, index) => (
-                            <label key={index}>
-                              <input
+                            <label
+                              key={card.card_id}
+                              onClick={() => setSelectedCard(card)}
+                            >
+                              {/* <input
                                 type="radio"
                                 name="card"
                                 value={card}
@@ -848,7 +849,7 @@ function CheckoutPaymentContent() {
                                 onChange={(e) =>
                                   setSelectedCard(e.target.value)
                                 }
-                              />
+                              /> */}
                               <div
                                 className={`${styles.cardItem} ${getCardBorder(
                                   card
@@ -860,12 +861,16 @@ function CheckoutPaymentContent() {
                                       {(!selectedCard ||
                                         selectedCard.card_id !==
                                           card.card_id) && (
-                                        <img src="regular" alt="" />
+                                        <SvgWrapper
+                                          svgSrc={"radio"}
+                                        ></SvgWrapper>
                                       )}
                                       {selectedCard &&
                                         selectedCard.card_id ===
                                           card.card_id && (
-                                          <img src="radio-selected" alt="" />
+                                          <SvgWrapper
+                                            svgSrc={"radio-selected"}
+                                          ></SvgWrapper>
                                         )}
                                     </div>
                                     <div className={styles.cardMiddle}>
@@ -988,7 +993,7 @@ function CheckoutPaymentContent() {
                     >
                       <div className={styles.addCardHeader}>
                         <button onClick={hideNewCard}>
-                          <img src="arrow_back" alt="back" />
+                          <SvgWrapper svgSrc={'back'}></SvgWrapper>
                         </button>
                         <div className={styles.newCardHeaderText}>
                           Pay Using Credit/Debit Card
@@ -1110,7 +1115,7 @@ function CheckoutPaymentContent() {
                       </div>
                       <div className={styles.walletOption}>
                         {selectedTabData.list.map((wlt, index) => (
-                          <label
+                          <lable
                             key={index}
                             onClick={(e) => setselectedWallet(wlt)}
                           >
@@ -1148,7 +1153,7 @@ function CheckoutPaymentContent() {
                                 {wlt.display_name}
                               </div>
                             </div>
-                          </label>
+                          </lable>
                         ))}
                       </div>
                       <div className={styles.walletPay}>
@@ -1198,7 +1203,10 @@ function CheckoutPaymentContent() {
                       <div className={styles.nbHeader}>Select a Bank</div>
                       <div className={styles.nbOption}>
                         {topFiveBank.map((nb, index) => (
-                          <label key={index} onClick={() => setselectedNB(nb)}>
+                          <label
+                            key={nb.display_name}
+                            onClick={() => setselectedNB(nb)}
+                          >
                             {/* <input
                         type="radio"
                         name="net-banking"
@@ -1252,7 +1260,7 @@ function CheckoutPaymentContent() {
                               </div>
                               <div className={styles.nbMiddle}>
                                 {/* <fdk-inline-svg src="otherNB" /> */}
-                                <img src="" alt="other" srcset="" />
+                                {/* <img src="" alt="other" srcset="" /> */}
                               </div>
                               <div className={styles.nbRight}>Other Banks</div>
                             </div>
@@ -1264,7 +1272,7 @@ function CheckoutPaymentContent() {
                             onChange={selectBank}
                           >
                             {restBanks.map((nb, index) => (
-                              <option key={index} value={JSON.stringify(nb)}>
+                              <option key={nb.display_name} value={JSON.stringify(nb)}>
                                 {nb.display_name}
                               </option>
                             ))}
@@ -1321,7 +1329,7 @@ function CheckoutPaymentContent() {
                             <>
                               {!payLater.isDisabled && (
                                 <label
-                                  key={index}
+                                  key={payLater.id}
                                   id={payLater.id}
                                   onClick={() => setselectedPayLater(payLater)}
                                 >
@@ -1381,7 +1389,7 @@ function CheckoutPaymentContent() {
                       <div className={styles.cardlessOption}>
                         {selectedTabData.list.map((emi, index) => (
                           <label
-                            key={index}
+                            key={emi.display_name}
                             onClick={() => setselectedCardless(emi)}
                           >
                             {/* <input

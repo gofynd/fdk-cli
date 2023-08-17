@@ -31,6 +31,7 @@ import appliedcoupon from "../assets/images/applied-coupon-small.svg";
 import shippinglogo from "../assets/images/shipping-logo.svg";
 import crossbold from "../assets/images/cross-bold.svg";
 import truecheck from "../assets/images/true-check.svg";
+import back from "../assets/images/back.svg";
 
 export const svgTitleComponentsMappings = {
   "arrow-down": ArrowDown,
@@ -65,5 +66,6 @@ export const svgTitleComponentsMappings = {
   checkmark: checkmark,
   "applied-coupon-small": appliedcoupon,
   "shipping-logo": shippinglogo,
-  "cross-bold":crossbold
+  "cross-bold": crossbold,
+  "back":back
 };

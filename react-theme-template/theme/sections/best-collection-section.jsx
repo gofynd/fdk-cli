@@ -1,10 +1,16 @@
 import React from 'react';
 import BestCollectionSection from '../components/best-collection-section/best-collection-section.jsx';
+import { getGlobalConfigValue } from '../helper/utils.js';
 
-export function Component({ props, blocks }) {
+export function Component({ props,blocks, globalConfig }) {
+  let margin_bottom = getGlobalConfigValue(
+    globalConfig,
+    "section_margin_bottom"
+  );
   const { collectionHeading, collectionSubHeading } = props;
   return blocks?.length > 0 ? (
     <BestCollectionSection
+    style={{ marginBottom: `${margin_bottom}px` }}
       heading={collectionHeading}
       subHeading={collectionSubHeading}
       products={blocks}

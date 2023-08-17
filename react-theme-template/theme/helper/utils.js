@@ -1,5 +1,6 @@
-export const getGlobalConfigValue = (globalConfig, id) =>
-  globalConfig?.props?.[id] || '';
+export const getGlobalConfigValue = (globalConfig, id) => {
+return (globalConfig?.props?.[id] ) ?? '';
+}
 
 export const getSocialIcon = (title) =>
   title && typeof title === 'string' ? `footer-${title.toLowerCase()}` : '';

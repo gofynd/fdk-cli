@@ -2,9 +2,12 @@ import React from 'react';
 import { SectionRenderer } from 'fdk-core/components';
 import { useGlobalStore } from 'fdk-core/utils';
 import Loader from '../components/loader/loader';
+import { getThemeGlobalConfig } from '../helper/theme';
 
 function Home({ numberOfSections, fpi }) {
   const page = useGlobalStore(fpi.getters.PAGE) || {};
+  const THEME = useGlobalStore(fpi.getters.THEME);
+  const globalConfig = getThemeGlobalConfig(THEME?.config);
   const { sections = [], loading, error } = page || {};
 
   if (error) {
@@ -20,7 +23,11 @@ function Home({ numberOfSections, fpi }) {
   }
   return (
     <div className='wrapper'>
-      <SectionRenderer sections={sections} />
+      <SectionRenderer
+        sections={sections}
+        fpi={fpi}
+        globalConfig={globalConfig}
+      />
     </div>
   );
 }

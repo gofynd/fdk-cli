@@ -39,7 +39,7 @@
     "babel-loader": "^9.1.0",
     "buffer": "^6.0.3",
     "card-validator": "8.1.1",
-    "fdk-store": "https://github.com/gofynd/fdk-store.git#ci",
+    "fdk-store": "https://github.com/gofynd/fdk-store.git#v1.0.3",
     "imask": "^6.4.3",
     "isomorphic-fetch": "^3.0.0",
     "react": "^18.2.0",
