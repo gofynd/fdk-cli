@@ -32,8 +32,22 @@ To see the available extension commands, enter:
 ```sh
 fdk extension
 ```
-See the [Command overview](#commands-overview) for a listing of all available commands, or the [Command reference](#commands-reference) for syntax details and usage examples of the commands.
-<div id="commands-overview"><div/>
+See the [Command overview](#commands-overview) for a listing of all available commands, or the [Command reference](#commands-reference) for syntax details and usage examples of the commands. 
+
+<div id="debugMode"></div>
+
+
+## Debug Mode
+Add the `--verbose` flag to the command you want to run in debug mode.
+
+This will create `debug.log` file at the current working directory. In case you encounter any issues, this log file can be shared with maintainers for effective issue resolution.
+#### **Example**
+```sh
+fdk login -e <your_email> --verbose
+```
+
+<div id="commands-overview"></div>
+
 
 # Commands Overview
 All FDK CLI commands start with fdk. The general syntax for the commands is as follows:
@@ -507,21 +521,6 @@ fdk partner connect [options]
 ```sh
 fdk partner connect
 ```
-___
-
-<div id="debugMode"></div>
-
-#### Debug
-Add the `--verbose` flag to the command you want to run in debug mode.
-
-
-#### **Example**
-```sh
-fdk login -e <your_email> --verbose
-```
-
-above command will create `debug.log` file at the current working directory.
-
 ___
 
 <div id="OtherProjects"></div>
