@@ -35,6 +35,7 @@ import ExtensionService from './api/services/extension.service';
 import { build, devBuild, devReactBuild, devReactWatch } from '../helper/build';
 import { archiveFolder, extractArchive } from '../helper/archive';
 import urlJoin from 'url-join';
+inquirer.registerPrompt('search-list', require('inquirer-search-list'));
 import {
     getFullLocalUrl,
     startServer,
@@ -117,7 +118,7 @@ export default class Theme {
         });
         const themeListQuestions = [
             {
-                type: 'list',
+                type: 'search-list',
                 name: 'selectedTheme',
                 message: 'Select Theme',
                 choices: Object.keys(themeListOptions),
@@ -173,7 +174,7 @@ export default class Theme {
         });
         const companyListQuestions = [
             {
-                type: 'list',
+                type: 'search-list',
                 name: 'selectedCompany',
                 message: 'Select company',
                 choices: Object.keys(companyListOptions),
@@ -199,7 +200,7 @@ export default class Theme {
         });
         const applicationListQuestions = [
             {
-                type: 'list',
+                type: 'search-list',
                 name: 'selectedApplication',
                 message: 'Select sales channel',
                 choices: Object.keys(applicationListOptions),
