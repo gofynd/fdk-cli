@@ -1,9 +1,14 @@
 <img src="https://res.cloudinary.com/dwzm9bysq/image/upload/v1576497695/addsale/applications/0.1914751846702707/media/company/pan/FDK_mdmpbd.png" height="200"></img>
 
 # Fynd Development Kit
+<div>
+
 [![NPM Version][npm-image]][npm-url]
 [![NPM Downloads][downloads-image]][downloads-url]
-[![Coverage Status][coveralls-badge]]([coveralls-url]) <br/>
+[![Coverage Status][coveralls-badge]]([coveralls-url])
+
+</div>
+
 Fynd development Kit (FDK CLI) is a cli tool developed by Fynd to create and update themes, extensions and various other components of the [Fynd Platform](https://platform.fynd.com/).
 ### Quick Links
 | [Fynd Platform](https://platform.fynd.com/) | [Fynd Partners](https://partners.fynd.com/) | [Documentation](https://documentation.fynd.com/) | [Other Projects](#other-fynd-projects) | [Contributing](CONTRIBUTING.md) | 
@@ -506,26 +511,17 @@ ___
 
 <div id="debugMode"></div>
 
-#### Log Curl
+#### Debug
+``
+Add the `--verbose` flag to the command you want to run in debug mode.
 
-To print the curl command in the console for all network calls,
-run the cli commands in debug mode using `--verbose` flag.
 
 #### **Example**
 ```sh
 fdk login -e <your_email> --verbose
 ```
 
-above command will log the curl command in the console
-```sh
-************** CURL **************
-METHOD: POST | PATH: https://api.fynd.com/service/panel/authentication/v1.0/auth/login/password
-curl --include --request POST 'https://api.fynd.com/service/panel/authentication/v1.0/auth/login/password' --header 'content-type: application/json' --header 'x-fp-cli: 1.0.144' --header 'x-fp-date: 20230227T174059Z' --header 'x-fp-signature: v1.1:ab4fa30b4f12e2d968110ed809863f6f404621e03eb8a98c8a4fe228c8262684' --header 'x-debug: true' --data-raw '{"username":"email@fynd.com","password":"password@123","g-recaptcha-response":"_skip_"}'
-************** END OF CURL **************
-
-
-User logged in successfully
-```
+above command will create `debug.log` file at the current working directory.
 
 ___
 
