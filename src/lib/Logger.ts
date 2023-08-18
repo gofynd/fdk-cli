@@ -101,5 +101,8 @@ export const COMMON_LOG_MESSAGES = {
   )}`,
   contextMismatch: `Active Environment and Active Context Environment doesn't match.\n${chalk.yellow(
     'Use `fdk theme context-list` to switch context OR `fdk env set -n <env-name>` to change active environment.'
+  )}`,
+  invalidThemeType: `${chalk.yellow(
+    `Theme Type can be react or vue2 only`
   )}`
 };

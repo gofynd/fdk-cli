@@ -8,7 +8,6 @@ import { isValidDomain } from '../helper/utils';
 
 export const AVAILABLE_ENVS = {
     // Fynd
-    fyndx0: 'api.fyndx0.de',
     fyndx1: 'api.fyndx1.de',
     fyndx5: 'api.fyndx5.de',
     fynd: 'api.fynd.com',
@@ -81,7 +80,7 @@ export default class Env {
             throw new CommandError(COMMON_LOG_MESSAGES.EnvNotSet);
         }
         const msg = AVAILABLE_ENVS[ctx]
-            ? `Active Environment: ${chalk.bold(ctx)}, URL: ${chalk.bold(AVAILABLE_ENVS[ctx])}`
+            ? `Active Environment: ${chalk.bold(ctx)}\nAPI URL: ${chalk.bold(AVAILABLE_ENVS[ctx])}`
             : `Currently using Platform URL: ${chalk.bold(ctx)}`;
         Logger.info(msg);
     }

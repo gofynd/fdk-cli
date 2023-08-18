@@ -1,0 +1,104 @@
+.addressContentConitainer {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  background: #fff;
+  border-radius: 0 0 8px 8px;
+  border: 1px solid #f0f0f0;
+  border-top: 0 solid #f0f0f0;
+
+  .heading {
+    font-weight: 600;
+    font-size: 12px;
+    color: #4d4d4e;
+    margin: 12px 0;
+    line-height: 140%;
+  }
+
+  .addressContent {
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    gap: 4px;
+    border: 1px solid var(--buttonPrimary);
+
+    .errorMsg {
+      color: red;
+      margin: 5px auto;
+    }
+
+    .addressContentTop {
+      display: flex;
+      justify-content: space-between;
+
+      .addressContentTopLeft {
+        display: flex;
+        gap: 5px;
+
+        .phnumber {
+          margin-left: 10px;
+          font-style: normal;
+          font-weight: 600;
+          font-size: 14px;
+          /* margin-right: 8px; */
+          align-self: center;
+          line-height: 140%;
+        }
+
+        .lable {
+          padding: 4px 12px;
+          background: #f3f3f5;
+          border-radius: 4px;
+          align-self: center;
+          font-size: 12px;
+          font-weight: 500;
+          line-height: 140%;
+        }
+      }
+
+      .addressContentTopRight {
+        display: flex;
+        gap: 5px;
+
+        .edit,
+        .remove {
+          border: none;
+          color: var(--buttonPrimary);
+          font-style: normal;
+          font-weight: 600;
+          font-size: 12px;
+          background-color: #fff;
+          text-align: center;
+          text-transform: uppercase;
+          line-height: 140%;
+          cursor: pointer;
+        }
+      }
+    }
+
+    .addressMid,
+    .phEnd {
+      margin-left: 35px;
+      margin-top: 10px;
+    }
+
+    .deliverToThis {
+      padding: 14px;
+      border-radius: 5px;
+      background-color: var(--buttonPrimary);
+      border: none;
+      width: 100%;
+      font-weight: 600;
+      font-size: 14px;
+      line-height: 140%;
+      text-transform: uppercase;
+      /* display: block; */
+      text-align: center;
+      color: #fff;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+  }
+}

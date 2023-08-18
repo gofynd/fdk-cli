@@ -1,0 +1,567 @@
+.cartMainContainer {
+  width: 100%;
+  padding: 1rem 10vw;
+  display: flex;
+  gap: 1rem;
+  background-color: #fff9f3;
+  .cartItemDetailsContainer {
+    display: flex;
+    flex-direction: column;
+    flex-basis: 65%;
+    .cartPincodeContainer {
+      background-color: #fff;
+      border-radius: 8px;
+      border: 1px solid #f0f0f0;
+      line-height: 140%;
+      padding: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      .pinCodeDetailsContainer {
+        .pincodeHeading {
+          font-size: 16px;
+          font-weight: 400;
+        }
+        .pinCode {
+          font-size: 16px;
+          font-weight: 600;
+          color: #1f1f1f;
+        }
+      }
+      .changePinCodeButton {
+        border: 1px solid var(--buttonPrimary);
+        border-radius: 4px;
+        color: var(--buttonPrimary);
+        height: 100%;
+        text-transform: uppercase;
+        padding: 0 16px;
+        padding-bottom: 12px;
+        padding-top: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        letter-spacing: 0.02em;
+      }
+      .pinCodeModal {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1001;
+        overflow-y: auto;
+        overflow-x: hidden;
+        background-color: rgba(0, 0, 0, 0.5019607843137255);
+        font-size: 0.875rem;
+
+        .modalContainer {
+          background-color: #fff;
+          min-width: 400px;
+          min-height: 100px;
+          max-width: 720px;
+          max-height: 720px;
+          overflow: auto;
+          border: 1px solid #f0f0f0;
+          border-radius: 8px;
+          .modalHeader {
+            border-bottom: 1px solid #f0f0f0;
+            position: relative;
+            padding: 0 24px;
+            padding-bottom: 16px;
+            padding-top: 16px;
+            align-items: center;
+            display: flex;
+            div {
+              .modalHeading {
+                color: #1f1f1f;
+                line-height: 140%;
+                font-size: 18px;
+                font-weight: 600;
+              }
+            }
+            .modalCloseIcon {
+              position: absolute;
+              top: 24px;
+              right: 24px;
+              cursor: pointer;
+              span {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+              }
+            }
+          }
+          .modalBody {
+            padding: 24px;
+            .modalPincodeContainer {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              .modalPincodeInput {
+                width: 100%;
+                input {
+                  box-sizing: border-box;
+                  border: 1px solid #e2e2e2;
+                  border-radius: 4px;
+                  color: #4d4d4e;
+                  padding: 16px;
+                  font-size: 14px;
+                  font-weight: 400;
+                  width: 100%;
+                }
+              }
+              .modalChangePinCodeButton {
+                border: 1px solid var(--buttonPrimary);
+                border-radius: 4px;
+                background-color: var(--buttonPrimary);
+                color: #fff;
+                height: 100%;
+                text-transform: uppercase;
+                padding: 0 24px;
+                padding-bottom: 14px;
+                padding-top: 14px;
+                margin-left: 16px;
+                font-size: 16px;
+                font-weight: 600;
+                text-align: center;
+                cursor: pointer;
+              }
+            }
+          }
+        }
+      }
+    }
+    .cartItemDetailsContainer {
+      background-color: #fff;
+      border-radius: 8px 8px 0 0;
+      border: 1px solid #f0f0f0;
+      padding: 24px;
+      margin-top: 16px;
+      // justify-content: space-between;
+      // align-items: center;
+      // display: flex;
+      width: 100%;
+      .bagDetailsContainer {
+        .bagCountHeading {
+          color: #1f1f1f;
+          line-height: 140%;
+          font-size: 18px;
+          font-weight: 600;
+        }
+        .bagCount {
+          color: #4d4d4e;
+          line-height: 140%;
+          margin-left: 12px;
+          font-size: 14px;
+          font-weight: 500;
+        }
+      }
+    }
+    .cartItemsListContainer {
+      border-radius: 0 0 8px 8px;
+      padding: 24px;
+      background-color: #fff;
+      border: 1px solid #f0f0f0;
+      border-top: 0 solid #f0f0f0;
+      .eachItemContainer {
+        display: flex;
+        .itemImageContainer {
+          width: 18%;
+          box-sizing: border-box;
+          display: flex;
+          a {
+            img {
+              width: 100%;
+              border-radius: 4px;
+            }
+          }
+        }
+        .eachItemDetailsContainer {
+          position: relative;
+          line-height: 140%;
+          box-sizing: border-box;
+          margin-left: 24px;
+          width: 100%;
+          .removeItemSvgContainer {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            cursor: pointer;
+          }
+          .itemBrand {
+            color: #1f1f1f;
+            font-size: 18px;
+            font-weight: 600;
+          }
+          .itemName {
+            color: #1f1f1f;
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: 400;
+          }
+          .itemSellerName {
+            color: #4d4d4e;
+            padding-right: 90px;
+            margin-top: 10px;
+            font-size: 14px;
+            font-weight: 400px;
+          }
+          .itemSizeQuantityContainer {
+            display: flex;
+            align-items: center;
+            margin-top: 16px;
+            position: relative;
+            flex-wrap: wrap;
+            .itemSizeQuantitySubContainer {
+              display: flex;
+              align-items: center;
+              .sizeContainer {
+                min-width: 80px;
+                max-width: 160px;
+                height: 32px;
+                background: #fff;
+                border: 1px solid #e2e2e2;
+                border-radius: 4px;
+                line-height: 140%;
+                padding: 0 16px;
+                justify-content: space-between;
+                align-items: center;
+                display: flex;
+                cursor: pointer;
+                .sizeName {
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                  margin-right: 3px;
+                  font-size: 14px;
+                  font-weight: 600;
+                }
+                .itemSvg {
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  cursor: pointer;
+                }
+              }
+              .quantityIncreaseDecreaseContainer {
+                margin-left: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #e2e2e2;
+                border-radius: 4px;
+                height: 32px;
+                .decreaseCount,
+                .increaseCount {
+                  .svgContainer {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                  }
+                }
+                .decreaseCount {
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  background-color: #fbfbfc;
+                  border: none;
+                  cursor: pointer;
+                  width: 42px;
+                  padding: 0;
+                  height: 100%;
+                  color: #1f1f1f;
+                  border-radius: 4px 0 0 4px;
+                }
+                .increaseCount {
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  background-color: #fbfbfc;
+                  border: none;
+                  cursor: pointer;
+                  width: 42px;
+                  padding: 0;
+                  height: 100%;
+                  color: #1f1f1f;
+                  border-radius: 0 4px 4px 0;
+                }
+                .count {
+                  width: 38px;
+                  height: 100%;
+                  border-left: 1px solid #e2e2e2;
+                  border-right: 1px solid #e2e2e2;
+                  background-color: #fff;
+                  text-align: center;
+                  align-items: center;
+                  display: flex;
+                  justify-content: center;
+                }
+              }
+            }
+          }
+          .itemPriceContainer {
+            margin-top: 16px;
+            align-items: center;
+            display: flex;
+            .itemPrice {
+              display: flex;
+              flex-wrap: wrap;
+              align-items: center;
+              .effectivePrice {
+                margin-right: 12px;
+                font-size: 18px;
+                font-weight: 600;
+              }
+              .markedPrice {
+                text-decoration: line-through;
+                margin-right: 12px;
+                font-size: 14px;
+                color: #41434c;
+              }
+              .discount {
+                color: #0d5e25;
+                margin-right: 12px;
+                font-size: 14px;
+                font-weight: 500;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  .cartItemPriceSummaryDetails {
+    flex-basis: 35%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    .priceSummaryContainer {
+      background-color: #fff;
+      border-radius: 8px;
+      border: 1px solid #f0f0f0;
+      line-height: 140%;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      .priceSummaryHeading {
+        color: #4d4d4e;
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .priceEffective {
+        color: #4d4d4e;
+        margin-top: 16px;
+        font-size: 16px;
+        font-weight: 500;
+        display: flex;
+        justify-content: space-between;
+      }
+      .totalPrice {
+        color: #1f1f1f;
+        border-top: 1px solid #f0f0f0;
+        margin: 24px -24px 0;
+        .totalPriceSubContainer {
+          padding: 24px 24px 0px 24px;
+          font-size: 16px;
+          font-weight: 700;
+          display: flex;
+          justify-content: space-between;
+        }
+      }
+      .discountPreviewContiner {
+        background-color: #fff9dc;
+        border-radius: 8px;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px 0;
+        margin-top: 12px;
+        font-size: 16px;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        .svgContainer {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        .discountPreviewMessage {
+          margin-left: 4px;
+          font-weight: 400;
+        }
+        .discountPreviewAmount {
+          margin-left: 4px;
+          font-weight: 600;
+        }
+      }
+    }
+    .priceSummaryLoginButton {
+      background: var(--buttonPrimary);
+      cursor: pointer;
+      border-radius: 4px;
+      text-transform: uppercase;
+      color: #fff;
+      width: 100%;
+      height: 48px;
+      border: none;
+      line-height: 140%;
+      padding: 20px;
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .priceSummaryGuestButton {
+      cursor: pointer;
+      background: #fff;
+      border-radius: 4px;
+      text-transform: uppercase;
+      color: var(--buttonPrimary);
+      width: 100%;
+      height: 48px;
+      border: 1px solid var(--buttonPrimary);
+      line-height: 140%;
+      padding: 20px;
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+  .sizeModalContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1001;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background-color: rgba(0, 0, 0, 0.5019607843137255);
+    font-size: 0.875rem;
+    display: none;
+    transition: all 0.25s ease-in-out;
+    .modalContainer {
+      background-color: #fff;
+      min-width: 400px;
+      min-height: 100px;
+      max-width: 400px;
+      max-height: 720px;
+      overflow: auto;
+      border: 1px solid #f0f0f0;
+      border-radius: 8px;
+      .sizeModalHeader {
+        background-color: #f8f8f8;
+        border-bottom: 1px solid #f0f0f0;
+        position: relative;
+        padding: 0 24px;
+        padding-bottom: 16px;
+        padding-top: 16px;
+        display: flex;
+        align-items: center;
+        .sizeModalDiv {
+          display: flex;
+          .sizeModalImage {
+            width: 18%;
+            img {
+              width: 100%;
+              border-radius: 4px;
+            }
+          }
+          .sizeModalContent {
+            color: #1f1f1f;
+            line-height: 140%;
+            margin-left: 16px;
+            display: flex;
+            flex-direction: column;
+            div {
+              .sizeModalBrand {
+                margin-right: 20px;
+                margin-bottom: 8px;
+                font-size: 16px;
+                font-weight: 600;
+              }
+              .sizeModalName {
+                margin-right: 20px;
+                font-size: 16px;
+                font-weight: 400;
+              }
+            }
+            .sizeDiscount {
+              margin-top: 16px;
+              font-size: 14px;
+              font-weight: 600;
+            }
+          }
+        }
+        .modalCloseIcon {
+          position: absolute;
+          top: 24px;
+          right: 24px;
+          cursor: pointer;
+          span {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+        }
+      }
+      .sizeModalBody {
+        padding: 24px 0 24px 24px;
+        .sizeSelectHeading {
+          font-size: 14px;
+          font-weight: 600;
+        }
+        .sizeHorizontalList {
+          display: flex;
+          flex-wrap: wrap;
+          .singleSize {
+            margin-right: 24px;
+            margin-top: 12px;
+            .singleSizeDetails {
+              color: var(--buttonPrimary);
+              border-color: var(--buttonPrimary);
+              background: #fff;
+              border: 1px solid #e2e2e2;
+              border-radius: 4px;
+              padding: 0px 20px;
+              padding-bottom: 14px;
+              padding-top: 14px;
+              display: inline-block;
+              cursor: pointer;
+            }
+            .singleSizeSelected {
+              color: var(--buttonPrimary);
+              border-color: var(--buttonPrimary);
+            }
+          }
+        }
+      }
+      .sizeModalFooter {
+        border-top: 1px solid #f0f0f0;
+        padding: 24px;
+        .updateSizeButton {
+          border-radius: 4px;
+          text-transform: capitalize;
+          color: #fff;
+          background-color: var(--buttonPrimary);
+          padding: 14px 0;
+          text-align: center;
+          cursor: pointer;
+        }
+      }
+    }
+  }
+  .selected {
+    display: flex;
+  }
+}

@@ -111,6 +111,8 @@ function getErrorMessage(error){
         return error.response.data
     if(error.response.message)
         return error.response.message
+    if(error.message)
+        return error.message
     return "Something went wrong";
 }
 
@@ -122,9 +124,15 @@ export function responseErrorInterceptor() {
             ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
             throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
         }
+        else if(error.response && (error.response.status === 404 && error.response.config.url.includes('/_compatibility'))){
+            throw new CommandError(
+                ErrorCodes.DOWNGRADE_CLI_VERSION.message, 
+                ErrorCodes.DOWNGRADE_CLI_VERSION.code
+            )
+        }
         else if (error.response) {
             Debug(`Error Response  :  ${JSON.stringify(error.response.data)}`);
-            throw new CommandError(getErrorMessage(error), ErrorCodes.API_ERROR.code);
+            throw new CommandError(`${getErrorMessage(error)}`, ErrorCodes.API_ERROR.code);
         } else if (error.request) {
             if(error.code == 'ERR_FR_MAX_BODY_LENGTH_EXCEEDED'){
                 throw new CommandError(`${ErrorCodes.LARGE_PAYLOAD.message}`, ErrorCodes.LARGE_PAYLOAD.code);
