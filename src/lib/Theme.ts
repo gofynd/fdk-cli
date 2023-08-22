@@ -536,6 +536,7 @@ export default class Theme {
                 spaces: 2,
             });
             if (!fs.existsSync(path.join(process.cwd(), THEME_ENTRY_FILE))) {
+                Logger.info("Restructuring folder structure");
                 let restructureSpinner = new Spinner("Restructuring folder structure");
                 try{
                     restructureSpinner.start();
@@ -543,6 +544,7 @@ export default class Theme {
                     restructureSpinner.succeed();
                 }catch(err){
                     spinner.fail();
+                    Logger.error("Failed restructuring: Please check your folder structure");
                     console.log(chalk.red("Please check your folder structure"));
                 }
             }
