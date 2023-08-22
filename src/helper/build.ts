@@ -7,9 +7,10 @@ import createBaseWebpackConfig from '../helper/theme.react.config';
 import fs from 'fs';
 import rimraf from 'rimraf';
 
+export const THEME_ENTRY_FILE = path.join('theme', 'index.js');
+
 export function build({ buildFolder, imageCdnUrl, assetCdnUrl, assetHash = '' }) {
     const VUE_CLI_PATH = path.join('.', 'node_modules', '@vue', 'cli-service', 'bin', 'vue-cli-service.js');
-    const THEME_ENTRY_FILE = path.join('theme', 'index.js');
     const spinner = new Spinner('Building assets using vue-cli-service');
     return new Promise((resolve, reject) => {
         spinner.start();
@@ -56,8 +57,6 @@ interface DevReactBuild {
 
 export function devBuild({ buildFolder, imageCdnUrl, isProd } : DevBuild) {
     const VUE_CLI_PATH = path.join('.', 'node_modules', '@vue', 'cli-service', 'bin', 'vue-cli-service.js');
-    const THEME_ENTRY_FILE = path.join('theme', 'index.js');
-
     return new Promise((resolve, reject) => {
         let b = exec(`node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle ${THEME_ENTRY_FILE}`,
             {

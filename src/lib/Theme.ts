@@ -32,7 +32,7 @@ import shortid from 'shortid';
 import ThemeService from './api/services/theme.service';
 import UploadService from './api/services/upload.service';
 import ExtensionService from './api/services/extension.service';
-import { build, devBuild, devReactBuild, devReactWatch } from '../helper/build';
+import { THEME_ENTRY_FILE, build, devBuild, devReactBuild, devReactWatch } from '../helper/build';
 import { archiveFolder, extractArchive } from '../helper/archive';
 import urlJoin from 'url-join';
 inquirer.registerPrompt('search-list', require('inquirer-search-list'));
@@ -75,11 +75,23 @@ export default class Theme {
     static TEMPLATE_THEME_URL = 'https://github.com/gofynd/Astra.git';
 
     public static getSettingsDataPath() {
-        return path.join(process.cwd(), 'theme', 'config', 'settings_data.json');
+        let settings_path = path.join(process.cwd(), 'theme', 'config', 'settings_data.json')
+        if (fs.existsSync(settings_path)) 
+            return settings_path
+        settings_path = path.join(process.cwd(), 'config', 'settings_data.json')
+        if (fs.existsSync(settings_path)) 
+            return settings_path
+        throw "Settings path not exist";
     }
 
     public static getSettingsSchemaPath() {
-        return path.join(process.cwd(), 'theme', 'config', 'settings_schema.json');
+        let settings_schema_path = path.join(process.cwd(), 'theme', 'config', 'settings_schema.json')
+        if (fs.existsSync(settings_schema_path)) 
+            return settings_schema_path
+        settings_schema_path = path.join(process.cwd(), 'config', 'settings_schema.json')
+        if (fs.existsSync(settings_schema_path)) 
+            return settings_schema_path
+        throw "Settings schema path not exist";
     }
 
     public static async writeSettingJson(path, jsonObject) {
@@ -523,6 +535,19 @@ export default class Theme {
             await fs.writeJSON(path.join(process.cwd(), 'package.json'), packageJSON, {
                 spaces: 2,
             });
+            if (!fs.existsSync(path.join(process.cwd(), THEME_ENTRY_FILE))) {
+                Logger.info("Restructuring folder structure");
+                let restructureSpinner = new Spinner("Restructuring folder structure");
+                try{
+                    restructureSpinner.start();
+                    this.restructTheme();
+                    restructureSpinner.succeed();
+                }catch(err){
+                    spinner.fail();
+                    Logger.error("Failed restructuring: Please check your folder structure");
+                    console.log(chalk.red("Please check your folder structure"));
+                }
+            }
         } catch (error) {
             if (shouldDelete) await Theme.cleanUp(targetDirectory);
             throw new CommandError(error.message, error.code);
@@ -2297,6 +2322,47 @@ export default class Theme {
         }
     };
 
+    public static restructTheme = async () => {
+        const destinationFolder = path.join(process.cwd(), "theme");
+        const sourceFolder = path.join(process.cwd());
+        const babelFilePath = path.join(process.cwd(), "babel.config.js");
+        const fdkConfigFilePath = path.join(process.cwd(), "fdk.config.js");
+        const files = fs.readdirSync(sourceFolder);
+
+        // Check if the destination folder exists, if not, create it
+        if (!fs.existsSync(destinationFolder)) {
+            fs.mkdirSync(destinationFolder, { recursive: true });
+        }
+        
+        const outer_items = ["package.json", "theme", "babel.config.js", "fdk.config.js", ".fdk", ".git", ".gitignore", ".husky"]
+        const moved_files = []
+        files.forEach((fileOrFolder) => {
+            if(outer_items.includes(fileOrFolder)) return;
+            const sourcePath = path.join(sourceFolder, fileOrFolder);
+            const destinationPath = path.join(destinationFolder, fileOrFolder);
+            // Move the file or folder to the destination directory
+            fs.renameSync(sourcePath, destinationPath);
+            moved_files.push(fileOrFolder)
+        });
+        Logger.info(`\n✔ ${moved_files.join(", ")} files are moved to theme folder`);
+
+
+        // Check if babal config exist
+        if (!fs.existsSync(babelFilePath)) {
+            const babelContent = fs.readFileSync(path.join(Theme.TEMPLATE_DIRECTORY, 'babel.config.js'));
+            fs.writeFileSync(babelFilePath, babelContent);
+            Logger.info("✔ babel.config.js added");
+            
+        }
+
+        // Check if fdk config exist
+        if (!fs.existsSync(fdkConfigFilePath)) {
+            const fdkConfigContent = fs.readFileSync(path.join(Theme.TEMPLATE_DIRECTORY, 'vue.config.js'));
+            fs.writeFileSync(fdkConfigFilePath, fdkConfigContent);
+            Logger.info("✔ fdk.config.js added")
+        }
+    }
+    
     public static generateThemeZip = async () => {
         // Generate production build so that we can get assets and available sections in config file while creating zip
         const activeContext = getActiveContext();
