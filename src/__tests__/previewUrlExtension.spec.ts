@@ -19,6 +19,7 @@ const COMPANY_ID = "1"
 const PORT = "3000"
 const COOKIE = "mockcookies"
 const AUTH_TOKEN = "mockngrokauthtoken"
+const LOGIN_AUTH_TOKEN = "loginauthtoken"
 
 const EXPECTED_PREVIEW_URL = "https://platform.fynd.com/company/1/extensions/mockextensionapikey"
 const EXPECTED_NGROK_URL = "https://test_url.ngrok.io"
@@ -70,7 +71,7 @@ describe('Extension preview-url command', () => {
     .reply(200, {id: ORGANIZATION_ID})
     
     mockAxios
-    .onGet(`${URLS.GET_DEVELOPMENT_ACCOUNTS(ORGANIZATION_ID, 1, 9999)}`)
+    .onGet(`${URLS.GET_DEVELOPMENT_ACCOUNTS(1, 9999)}`)
     .reply(200, {items: [{company: {uid: COMPANY_ID, name: "cli-test"}}]})
     
     mockAxios
@@ -107,7 +108,7 @@ describe('Extension preview-url command', () => {
 
 
   it("should successfully return preview url", async () => {
-    configStore.set(CONFIG_KEYS.COOKIE, COOKIE);
+    configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);
 
     const promptSpy = jest.spyOn(inquirer, 'prompt')
       .mockResolvedValueOnce({partner_access_token: TOKEN})
@@ -130,7 +131,7 @@ describe('Extension preview-url command', () => {
 
 
   it("should successfully return preview url without any prompt", async () => {
-    configStore.set(CONFIG_KEYS.COOKIE, COOKIE);
+    configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);
     configStore.set(CONFIG_KEYS.NGROK_AUTHTOKEN, AUTH_TOKEN);
     configStore.set(CONFIG_KEYS.PARTNER_ACCESS_TOKEN, TOKEN);
 
@@ -152,7 +153,7 @@ describe('Extension preview-url command', () => {
 
 
   it("should prompt for ngrok url and return preview url", async () => {
-    configStore.set(CONFIG_KEYS.COOKIE, COOKIE);
+    configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);
     configStore.set(CONFIG_KEYS.PARTNER_ACCESS_TOKEN, TOKEN);
 
     jest.spyOn(inquirer, 'prompt')
@@ -175,7 +176,7 @@ describe('Extension preview-url command', () => {
 
 
   it("should prompt ngrok url and update it's value on configstore", async () => {
-    configStore.set(CONFIG_KEYS.COOKIE, COOKIE);
+    configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);
     configStore.set(CONFIG_KEYS.PARTNER_ACCESS_TOKEN, TOKEN);
     configStore.set(CONFIG_KEYS.NGROK_AUTHTOKEN, AUTH_TOKEN);
 

@@ -106,7 +106,7 @@ export default class ExtensionPreviewURL {
 
 
   private async getCompanyId() {
-    let developmentCompanyData = await ExtensionService.getDevelopmentAccounts(this.organizationInfo.id, 1, 9999);
+    let developmentCompanyData = await ExtensionService.getDevelopmentAccounts(1, 9999);
 
     let choices = [];
     developmentCompanyData.items.map((data) => {

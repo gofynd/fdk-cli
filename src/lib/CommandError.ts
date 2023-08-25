@@ -21,6 +21,7 @@ export const ErrorCodes = {
     message: 'Invalid options passed',
     code: 'FDK-0005',
   },
+
   
   // Extension
   INVALID_KEYS: {
@@ -34,6 +35,32 @@ export const ErrorCodes = {
   NO_DEVELOPMENT_COMPANY: {
     message: "Development account not found",
     code: 'FDK-0008'
+  },
+  NO_COMPANY_FOUND: {
+    message: "Company not found",
+    code: 'FDK-0009'
+  },
+  NO_APP_FOUND: {
+    message: "Sales channel not found",
+    code: 'FDK-00010'
+  },
+  NO_THEME_FOUND: {
+    message: "Theme not found",
+    code: 'FDK-00011'
+  },
+  DOWNGRADE_CLI_VERSION:{
+    message: "API call to version v2.0 is unavailable in current cli version. In order to continue, please use lower cli version.",
+    code: 'FDK-00012'
+  },
+
+  // generic 
+  ECONN_RESET:{
+    message: 'Connection is reset by the client',
+    code: 'FDK-0009'
+  },
+  LARGE_PAYLOAD: {
+    message: 'File is too large to upload, please optimize it and retry!',
+    code: 'FDK-0010'
   }
 };
 

@@ -8,10 +8,23 @@ import configStore, { CONFIG_KEYS } from '../lib/Config';
 import { createDirectory } from './file.utils';
 import execa from 'execa';
 import Debug from '../lib/Debug';
+import * as babel from '@babel/core';
+import * as fsNode from 'fs';
+import * as acorn from 'acorn';
+import * as walk from 'acorn-walk';
+import * as escodegen from 'escodegen';
 
 const FDK_PATH = () => path.join(process.cwd(), '.fdk');
 const CONTEXT_PATH = () => path.join(FDK_PATH(), 'context.json');
 const DEFAULT_CONTEXT = { theme: {active_context: '', contexts: {}}, partners: {} };
+
+export type ThemeType = 'react' | 'vue2' | null ;
+
+export type ParsedFile = {
+  contentType: 'text/javascript' | 'text/css';
+  extension: string;
+  componentName: string;
+};
 export interface ThemeContextInterface {
   name?: string;
   application_id?: string;
@@ -20,6 +33,7 @@ export interface ThemeContextInterface {
   company_id?: number;
   domain?: string;
   env?: string;
+  theme_type: ThemeType;
 }
 
 export const transformRequestOptions = params => {
@@ -192,4 +206,128 @@ export const installNpmPackages = async (targetDir: string = process.cwd()) => {
             reject({ message: 'Node Modules Installation Failed' });
         })
     })
+}
+
+/**
+ * Parses a react-theme bundled file to extract information like component name, content-type, etc.
+ *
+ * @param fileName File name to be parsed
+ * @returns {ParsedFile} Object containing file meta details like extension, contentType, etc
+ */
+ export function parseBundleFilename(fileName: string): ParsedFile {
+	const splitVal = fileName.split('.');
+	const componentName = splitVal[0];
+	const extension = splitVal[splitVal.length -1];
+
+	const contentTypes = {
+		js: 'text/javascript',
+		css: 'text/css',
+	};
+
+	return { 
+    contentType: contentTypes[extension] || '', 
+    extension, 
+    componentName 
+  };
+}
+
+/**
+ * Transform a section name into PascalCase form and adds Section as suffix.
+ *
+ * @param fileName Section file name to transform
+ * @returns [sectionTransformedName, sectionRawName] - Array of section names in raw camelCase and in PascalCase
+ */
+export function transformSectionFileName(fileName: string): [string, string] {
+  if (!fileName) {
+    return ['', ''];
+  }
+	const splitVal = fileName.split('.');
+	const sectionRawName = splitVal[0];
+
+  const sectionTransformedName = `${sectionRawName.split('-').map((sub) => `${sub[0].toUpperCase()}${sub.slice(1)}`).join('')}Section`;
+
+	return [sectionTransformedName, sectionRawName];
+}
+
+/**
+ * Helper function to create a debounced version of any function.
+ *
+ * @param func Function that needs to be debounced
+ * @param delay delay in milliseconds
+ * @returns Debounced function
+ */
+export function debounce<T extends (...args: any[]) => void>(func: T, delay: number): (...args: Parameters<T>) => void {
+  let timeoutId: ReturnType<typeof setTimeout>;
+
+  return function(this: any, ...args: Parameters<T>) {
+    const context = this;
+
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      func.apply(context, args);
+    }, delay);
+  };
+}
+
+export const isValidDomain = (domain) => {
+  const domainRegex = /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return domainRegex.test(domain);
+}
+
+export function transformJSXToJS(jsxCode: any) {
+  const options = {
+    presets: ['@babel/preset-react'],
+  };
+
+  try {
+    const result = babel.transformSync(jsxCode, options);
+    return result?.code;
+  } catch (error) {
+    console.error('Error transforming JSX to JS:', error);
+    return null;
+  }
+}
+
+export function findExportedVariable(filePath: string, variableName: string): any {
+
+  // Read the JavaScript file content
+  const fileContent = fsNode.readFileSync(filePath, 'utf8');
+  const parsedContents = transformJSXToJS(fileContent) || '';
+
+  // Parse the JavaScript code into an Abstract Syntax Tree (AST)
+  const ast = acorn.parse(parsedContents, { 
+    ecmaVersion: 'latest',
+    sourceType: 'module'
+   });
+
+  let exportedVariableNode: any = null;
+
+  // Traverse the AST to find the exported settings object
+  walk.simple(ast, {
+    ExportNamedDeclaration(node: any) {
+      if (node.declaration && node.declaration.type === 'VariableDeclaration') {
+        const declarator = node.declaration.declarations.find(
+          (decl: any) => decl.id.name === variableName
+        );
+
+        if (declarator && declarator.init) {
+          exportedVariableNode = declarator.init;
+        }
+      }
+    },
+  });
+
+  if (exportedVariableNode) {
+    // Use escodegen to generate the code corresponding to the settings object
+    const code = escodegen.generate(exportedVariableNode, {
+        format: {
+          json: true,
+        }
+    });
+    return vm.runInNewContext(code);
+
+  } else {
+    return null;
+  }
+
 }

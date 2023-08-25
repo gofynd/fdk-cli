@@ -6,6 +6,7 @@ import Debug from '../../Debug';
 import CommandError, { ErrorCodes } from '../../CommandError';
 import AuthenticationService from '../services/auth.service';
 import ConfigStore, { CONFIG_KEYS } from '../../Config';
+import { COMMON_LOG_MESSAGES } from '../../../lib/Logger';
 
 function getTransformer(config) {
     const { transformRequest } = config;
@@ -43,19 +44,10 @@ function interceptorFn(options) {
                 // set cookie
                 const cookie = ConfigStore.get(CONFIG_KEYS.COOKIE);
                 config.headers['Cookie'] = cookie || '';
-                if (pathname.startsWith('/service/platform')) {
-                    const company_id = getCompanyId(pathname);
-                    let data;
-                    try {
-                        data = (await AuthenticationService.getOauthToken(company_id)).data || {};
-                    } catch (error) {
-                        ConfigStore.delete(CONFIG_KEYS.USER);
-                        ConfigStore.delete(CONFIG_KEYS.COOKIE);
-                        throw error;
-                    }
-
-                    if (data.access_token) {
-                        config.headers['Authorization'] = 'Bearer ' + data.access_token;
+                if (pathname.startsWith('/service/partner')) {
+                    const auth_token = ConfigStore.get(CONFIG_KEYS.AUTH_TOKEN);
+                    if (auth_token && auth_token.access_token) {
+                        config.headers['Authorization'] = 'Bearer ' + auth_token.access_token;
                     }
                 }
                 let queryParam = '';
@@ -112,21 +104,46 @@ export function responseInterceptor() {
     }
 }
 
+function getErrorMessage(error){
+    if(error?.response?.data?.message)
+        return error.response.data.message
+    if(error.response.data)
+        return error.response.data
+    if(error.response.message)
+        return error.response.message
+    if(error.message)
+        return error.message
+    return "Something went wrong";
+}
+
 export function responseErrorInterceptor() {
     return error => {
+        
         // Request made and server responded
-        if (error.response) {
+        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+            ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
+            throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
+        }
+        else if(error.response && (error.response.status === 404 && error.response.config.url.includes('/_compatibility'))){
+            throw new CommandError(
+                ErrorCodes.DOWNGRADE_CLI_VERSION.message, 
+                ErrorCodes.DOWNGRADE_CLI_VERSION.code
+            )
+        }
+        else if (error.response) {
             Debug(`Error Response  :  ${JSON.stringify(error.response.data)}`);
-            throw new CommandError(`${error?.response?.data?.message ?? error.message}`, ErrorCodes.API_ERROR.code, error?.response?.data?.stack ?? error.stack);
+            throw new CommandError(`${getErrorMessage(error)}`, ErrorCodes.API_ERROR.code, error?.response?.data?.stack ?? error.stack);
         } else if (error.request) {
+            if(error.code == 'ERR_FR_MAX_BODY_LENGTH_EXCEEDED'){
+                throw new CommandError(`${ErrorCodes.LARGE_PAYLOAD.message}`, ErrorCodes.LARGE_PAYLOAD.code);
+            }
             // The request was made but no error.response was received
-            throw new Error(
-                'Not received response from the server, possibly some network issue, please retry!!'
-            );
+            Debug(`\nError => Code: ${error.code} Message: ${error.message}\n`);
+            throw new CommandError(`${ErrorCodes.ECONN_RESET.message}`, ErrorCodes.ECONN_RESET.code);
         } else {
             throw new Error('There was an issue in setting up the request, Please raise issue');
         }
-    } 
+    }
 }
 
 export { interceptorFn as addSignatureFn };
