@@ -7,11 +7,12 @@ export const PARTNER_COMMANDS = ['connect']
 export const STATUS_COMMANDS = ['check'];
 
 export const SERVICE_URL = {
-    theme: '/service/platform/theme',
+    theme: '/service/partner/theme',
     authentication: '/service/panel/authentication',
-    configuration: '/service/platform/configuration',
-    assets: '/service/platform/assets',
+    configuration: '/service/partner/partners',
+    assets: '/service/partner/assets',
     partners: '/service/platform/partners',
+    blitzkriegPanel: '/service/panel/theme',
     partnersDynamic: (serverType: string) => `/service/${serverType}/partners`,
 };
 // todo: We will change this later, as of now we don't want to show the deprecation warning

@@ -13,5 +13,8 @@ export const getCommonHeaderOptions = () => {
 
 export const getBaseURL = () => {
     const currentEnv = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
-    return `https://${AVAILABLE_ENVS[currentEnv]}`;
+    if(AVAILABLE_ENVS[currentEnv])
+        return `https://${AVAILABLE_ENVS[currentEnv]}`;
+    
+    return `https://${currentEnv}`
 };
