@@ -85,7 +85,6 @@ function applyProxy(app: any) {
 
 export async function startServer({ domain, host, isSSR, port }) {
 	const currentContext = getActiveContext();
-	const currentDomain = `https://${currentContext.domain}`;
 	const app = require('https-localhost')(getLocalBaseUrl());
 	const certs = await app.getCerts();
 	const server = require('https').createServer(certs, app);
@@ -96,7 +95,6 @@ export async function startServer({ domain, host, isSSR, port }) {
 		socket.on('disconnect', function () {
 			sockets = sockets.filter((s) => s !== socket);
 		});
-
 
         // When error occurs on browser after app has been served
         // We will send socket event to CLI and find file location
@@ -128,9 +126,10 @@ export async function startServer({ domain, host, isSSR, port }) {
                     pos.source.split('themeBundle/')[1] + ':' + pos.line + ':' + pos.column;
 
                 // Log in CLI
-                if (pos)
-                    console.log(chalk.bgRed('\nError at ' + pathToFile + (pos.name ? ` @${pos.name}` : '') + '\n'));
-
+                if (pos){
+					console.log(`\n${chalk.red.bold(message)}`);
+                    console.log(chalk.bgRed.bold('Error at ' + process.cwd() + "/" + pathToFile + (pos.name ? ` @${pos.name}` : '') + '\n'));
+				}
                 // ========================
 
                 // Generate HTML to show overlay error
@@ -342,7 +341,7 @@ export async function startServer({ domain, host, isSSR, port }) {
                     if (pos) {
                         pathToFile =
                             pos.source.split('themeBundle/')[1] + ':' + pos.line + ':' + pos.column;
-                        console.log(chalk.bgRed('\nError at ' + pathToFile + ' @' + pos.name));
+                        console.log(chalk.bgRed('\nError at ' + process.cwd() + "/" + pathToFile + ' @' + pos.name));
                     }
                 }
             }
