@@ -43,7 +43,7 @@ Add the `--verbose` flag to the command you want to run in debug mode.
 This will create `debug.log` file at the current working directory. In case you encounter any issues, this log file can be shared with maintainers for effective issue resolution.
 #### **Example**
 ```sh
-fdk login -e <your_email> --verbose
+fdk login --verbose
 ```
 
 <div id="commands-overview"></div>
@@ -60,7 +60,7 @@ This command can be broken down as follows:
 | ------------- |-------------| 
 | module     | theme |
 | method     | init |
-| options     | --email email@gmail.com |
+| options     | --verbose |
 
 ## Commands
 ___
@@ -161,11 +161,11 @@ fdk env get
 ```
 ___
 ### Authentication Commands
-After setting the environment the user has to login to the cli. They can use their email ID or phone number to login.
+After setting the environment the user has to login to the cli.
 <div id="login"></div>
 
 #### **login**
-This command allows user to login via partner panel
+This command allows user to login via partner panel.
 #### **Syntax**
 ```sh
 fdk login
@@ -213,11 +213,11 @@ This command is used to create a new theme for your application
 fdk theme new [options]
 ```
 #### **Command Options**
-| Option        | Description           | 
-| ------------- |-------------| 
-| --name, -n    | Theme name |
-| --help    | Show help |
-| --verbose, -v | enable debug mode |
+| Option        | Description | Required |
+| ------------- |-------------|----------|
+| --name, -n    | Theme name | Yes |
+| --help    | Show help | No |
+| --verbose, -v | enable debug mode | No |
 
 #### **Example**
 ```sh
@@ -236,7 +236,7 @@ This command is used to initialize an exisiting theme on your local system.
 fdk theme init [options]
 ```
 #### **Command Options**
-| Option        | Description           | 
+| Option        | Description | 
 | ------------- |-------------| 
 | --help    | Show help |
 | --verbose, -v | enable debug mode |
@@ -257,11 +257,11 @@ This command is used to add a new context.
 fdk theme context [options]
 ```
 #### **Command Options**
-| Option        | Description           | 
-| ------------- |-------------| 
-| --name, -n    | Context name |
-| --help    | Show help |
-| --verbose, -v | enable debug mode |
+| Option        | Description | Required | 
+| ------------- |-------------| -------- |
+| --name, -n    | Context name | Yes |
+| --help    | Show help | No |
+| --verbose, -v | enable debug mode | No |
 
 #### **Example**
 ```sh
