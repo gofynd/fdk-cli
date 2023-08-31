@@ -1,6 +1,6 @@
 {
   "name": "@gofynd/fdk-cli",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "main": "index.js",
   "license": "MIT",
   "bin": {
@@ -19,6 +19,7 @@
   "scripts": {
     "clean": "rimraf ./dist",
     "build": "npm run clean && tsc && npm run copy-files",
+    "build:sourcemap": "npm run clean && tsc -p ./tsconfig.sourcemap.json && npm run copy-files",
     "copy-files": "copyfiles -u 1 src/**/*.html dist/",
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build",
@@ -59,6 +60,7 @@
   "dependencies": {
     "@babel/core": "7.14.3",
     "@babel/plugin-transform-modules-commonjs": "^7.14.0",
+    "@sentry/node": "^7.64.0",
     "@types/open": "^6.2.1",
     "archiver": "^5.3.0",
     "async": "^3.2.0",

@@ -139,3 +139,6 @@ csv/
 #python virtual environment
 *env/*
 *venv/*
+
+# Sentry Auth Token
+.sentryclirc

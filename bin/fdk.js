@@ -3,6 +3,13 @@
 'use strict';
 
 const chalk = require('chalk');
+const Sentry = require("@sentry/node");
+const packageJson = require("../package.json");
+
+Sentry.init({
+  dsn: "https://bcc2fa6cc7de7c5bbfde279c632887ae@o4505759429165056.ingest.sentry.io/4505759431917568", // TODO: update with gofynd org DSN
+  release: packageJson.version
+})
 
 const currentNodeVersion = process.versions.node;
 const semver = currentNodeVersion.split('.');

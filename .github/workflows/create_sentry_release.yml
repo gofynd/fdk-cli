@@ -1,0 +1,35 @@
+name: Create Sentry.io release
+
+on: 
+  workflow_call:
+    inputs:
+      release_environment:
+        type: string
+        required: true
+
+
+jobs:
+  create-sentry-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v3
+      
+      - name: get version
+        id: fdk-cli-version
+        uses: martinbeentjes/npm-get-version-action@v1.3.1
+
+      - run: npm install
+      - run: build:sourcemap
+
+      - name: create sentry.io release
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        with:
+          environment: ${{ inputs.release_environment }}
+          sourcemaps: './dist'
+          version: ${{ steps.fdk-cli-version.outputs.current-version }}

@@ -9,8 +9,16 @@ jobs:
   call-workflow:
     uses: ./.github/workflows/call_test_cases.yml
 
-  publish-test-release:
+  create-sentry-release:
     needs: call-workflow
+    uses: ./.github/workflows/create_sentry_release.yml
+    with:
+      release_environment: development
+
+  publish-test-release:
+    needs: 
+      - call-workflow
+      - create-sentry-release
     runs-on: ubuntu-latest
 
     steps:
