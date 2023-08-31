@@ -859,7 +859,9 @@ export default class Theme {
             });
             // start dev server
             Logger.info(chalk.bold.blueBright(`Starting server`));
-            await startServer({ domain, host, isSSR, port });
+            // todo: Remove next line and uncomment line followed by that
+            await startServer({ domain: "http://localdev.sandbox.fynd.engineering:8087", host, isSSR, port });
+            // await startServer({ domain, host, isSSR, port });
 
             // open browser
             await open(getFullLocalUrl(port));

@@ -98,14 +98,23 @@ export async function startServer({ domain, host, isSSR, port }) {
 
         // When error occurs on browser after app has been served
         // We will send socket event to CLI and find file location
-        socket.on('explain-error', async function ({ stack: errorStack, name, message, info }) {
+        socket.on('explain-error', async function ({ stack: errorStack, name, message, info, isServerSide }) {
             const stack = stackTraceParser(errorStack);
+			if(isSSR){
+				// 'ReferenceError: manish is not defined\n 
+				// at VueComponent.throwError (webpack://themeBundle/./theme/templates/pages/home.vue?./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options:17:14)\n    
+				// at click (webpack://themeBundle/./theme/templates/pages/home.vue?./node_modules/cache-loader/dist/cjs.js?%7B%22cacheDirectory%22:%22node_modules/.cache/vue-loader%22,%22cacheIdentifier%22:%220af8f5f4-vue-loader-template%22%7D!./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/babel-loader/lib!./node_modules/vue-loader/lib/loaders/templateLoader.js??ref--6!./node_modules/vue-loader/lib??vue-loader-options:13:20)\n    
+				// at invokeWithErrorHandling (https://localhost:5002/public/app.js:94212:30)\n    
+				// at HTMLButtonElement.invoker (https://localhost:5002/public/app.js:92032:20)\n    
+				// at original_1._wrapper (https://localhost:5002/public/app.js:98484:35)'
+                const bundleFile = stack[0].file.split('/').pop() + '.map';
+			} else
+			// webpack://themeBundle/./theme/templates/pages/home.vue?./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options'
             if (stack[0]) {
                 // To show error in CLI
                 // ======================
                 // Check in which bundle file error occuring and get map file
                 const bundleFile = stack[0].file.split('/').pop() + '.map';
-
                 // Get bundle file from local machine
                 const mapContent = JSON.parse(
                     fs.readFileSync(`${BUILD_FOLDER}/${bundleFile}`, {
@@ -122,8 +131,8 @@ export async function startServer({ domain, host, isSSR, port }) {
                     column: stack[0].column,
                 });
 
-                const pathToFile =
-                    pos.source.split('themeBundle/')[1] + ':' + pos.line + ':' + pos.column;
+				const filePath = pos.source.split('themeBundle/')[1].split("?")[0]
+                const pathToFile = filePath + ':' + pos.line + ':' + pos.column;
 
                 // Log in CLI
                 if (pos){
