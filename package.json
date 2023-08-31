@@ -1,6 +1,6 @@
 {
   "name": "@gofynd/fdk-cli",
-  "version": "3.0.4-alpha.7",
+  "version": "3.0.4-alpha.8",
   "main": "index.js",
   "license": "MIT",
   "bin": {
@@ -53,7 +53,7 @@
     "copyfiles": "^2.4.1",
     "del-cli": "^3.0.1",
     "jest": "^27.5.1",
-    "source-map-support": "^0.5.19",
+    "source-map-support": "^0.5.21",
     "supertest": "^6.3.3",
     "ts-jest": "^27.1.4",
     "ts-node": "^9.1.1",
