@@ -128,7 +128,15 @@ const chainWebpack = (config) => {
   } 
   config
     .optimization.splitChunks({
-      automaticNameDelimiter: "_"
+      automaticNameDelimiter: "_",
+      cacheGroups: {
+        styles: {
+          name: "styles",
+          test: m => m.constructor.name === 'CssModule',
+          chunks: "all",
+          enforce: true,
+        }
+      }
     })
 }
 
