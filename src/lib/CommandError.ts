@@ -49,7 +49,7 @@ export const ErrorCodes = {
     code: 'FDK-00011'
   },
   DOWNGRADE_CLI_VERSION:{
-    message: "API call to version v2.0 is unavailable in current cli version. In order to continue, please use lower cli version.",
+    message: "API call to version v2.0 is unavailable in current cli version.\n\nIn order to continue, Please use `npm install -g @gofynd/fdk-cli@3.0.4` command.",
     code: 'FDK-00012'
   },
 
