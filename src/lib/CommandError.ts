@@ -22,7 +22,7 @@ export const ErrorCodes = {
     code: 'FDK-0005',
   },
 
-  
+
   // Extension
   INVALID_KEYS: {
     message: 'Invalid API Key/API Secret passed',
@@ -48,13 +48,13 @@ export const ErrorCodes = {
     message: "Theme not found",
     code: 'FDK-00011'
   },
-  DOWNGRADE_CLI_VERSION:{
-    message: "API call to version v2.0 is unavailable in current cli version.\n\nIn order to continue, Please use `npm install -g @gofynd/fdk-cli@3.0.4` command.",
+  DOWNGRADE_CLI_VERSION: {
+    message: "Seems like current Fynd Platform version is not compatible with installed CLI version.\n\nIn order to continue with current FP version, Please use previous version of CLI `npm install -g @gofynd/fdk-cli@3.0.4` command.",
     code: 'FDK-00012'
   },
 
   // generic 
-  ECONN_RESET:{
+  ECONN_RESET: {
     message: 'Connection is reset by the client',
     code: 'FDK-0009'
   },
