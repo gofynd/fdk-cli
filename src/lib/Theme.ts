@@ -158,12 +158,14 @@ export default class Theme {
             },
         ];
         let config = {};
+        let company_type;
         let companyList;
         let selectedCompany;
         let applicationList;
         let selectedApplication;
         await inquirer.prompt(accountTypeQuestions).then(async answers => {
             try {
+                company_type = answers.accountType;
                 if (answers.accountType === 'development') {
                     companyList = await ExtensionService.getDevelopmentAccounts(1, 9999);
                 } else {
@@ -177,7 +179,7 @@ export default class Theme {
         const companyListOptions = {};
         if (!companyList.items.length) {
             throw new CommandError(
-                ErrorCodes.NO_COMPANY_FOUND.message,
+                ErrorCodes.NO_COMPANY_FOUND.message(company_type),
                 ErrorCodes.NO_COMPANY_FOUND.code
             );
         }
