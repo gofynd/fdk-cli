@@ -13,6 +13,10 @@ export const getBaseURL = () => {
     return `https://${currentEnv}`
 };
 
+export const getProjectURL = (project) => {
+    return getBaseURL().replace('api', project)
+}
+
 const BLITZKRIEG_PANEL_URL =() => getBaseURL() + '/service/panel/theme';
 const THEME_URL = () => getBaseURL() + '/service/partner/theme/v' + apiVersion;
 const AUTH_URL = () => getBaseURL() + '/service/panel/authentication/v' + apiVersion;

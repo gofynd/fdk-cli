@@ -43,7 +43,7 @@ import {
     getPort,
     startReactServer,
 } from '../helper/serve.utils';
-import { getBaseURL } from './api/services/url';
+import { getBaseURL, getProjectURL } from './api/services/url';
 import open from 'open';
 import chokidar from 'chokidar';
 import { downloadFile } from '../helper/download';
@@ -121,7 +121,7 @@ export default class Theme {
         const themeList = await ThemeService.getAllThemes(config);
         if (!themeList.data.length) {
             throw new CommandError(
-                ErrorCodes.NO_THEME_FOUND.message(getBaseURL().replace('api', 'partners')),
+                ErrorCodes.NO_THEME_FOUND.message(getProjectURL('partners')),
                 ErrorCodes.NO_THEME_FOUND.code
             );
         }
@@ -179,7 +179,7 @@ export default class Theme {
         const companyListOptions = {};
         if (!companyList.items.length) {
             throw new CommandError(
-                ErrorCodes.NO_COMPANY_FOUND.message(company_type, getBaseURL().replace('api', 'partners')),
+                ErrorCodes.NO_COMPANY_FOUND.message(company_type, getProjectURL('partners')),
                 ErrorCodes.NO_COMPANY_FOUND.code
             );
         }
@@ -206,7 +206,7 @@ export default class Theme {
             }
         });
         if (!applicationList.data.items.length) {
-            throw new CommandError(ErrorCodes.NO_APP_FOUND.message(getBaseURL().replace('api', 'partners')), ErrorCodes.NO_APP_FOUND.code);
+            throw new CommandError(ErrorCodes.NO_APP_FOUND.message(getProjectURL('partners')), ErrorCodes.NO_APP_FOUND.code);
         }
         const applicationListOptions = {};
         applicationList.data.items.forEach(application => {
