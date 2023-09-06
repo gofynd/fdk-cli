@@ -118,7 +118,7 @@ function getErrorMessage(error){
 
 export function responseErrorInterceptor() {
     return error => {
-        
+
         // Request made and server responded
         if (error.response && (error.response.status === 401 || error.response.status === 403)) {
             ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
@@ -132,7 +132,7 @@ export function responseErrorInterceptor() {
         }
         else if (error.response) {
             Debug(`Error Response  :  ${JSON.stringify(error.response.data)}`);
-            throw new CommandError(`${getErrorMessage(error)}`, ErrorCodes.API_ERROR.code);
+            throw new CommandError(`${getErrorMessage(error)}`, ErrorCodes.API_ERROR.code, error?.response);
         } else if (error.request) {
             if(error.code == 'ERR_FR_MAX_BODY_LENGTH_EXCEEDED'){
                 throw new CommandError(`${ErrorCodes.LARGE_PAYLOAD.message}`, ErrorCodes.LARGE_PAYLOAD.code);
