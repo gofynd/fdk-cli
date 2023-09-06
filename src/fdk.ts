@@ -64,9 +64,11 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
 
             initializeLogger();
             const latest = await checkCliVersionAsync();
-            Debug(`Latest version: ${latest} | ${semver.lt(packageJSON.version, latest)}`);
+            const isCurrentLessThanLatest = semver.lt(packageJSON.version, latest)
+            Debug(`Latest version: ${latest} | ${isCurrentLessThanLatest}`);
 
             const versionChange = semver.diff(packageJSON.version, latest);
+            const allowed_update_version_types = ["patch", "minor", "major"]
             const major = versionChange === 'major';
             const color = major ? 'red' : 'green';
 
@@ -76,7 +78,7 @@ Install fdk-cli globally using the package manager of your choice.
 ${major ? `\nNote: You need to update \`${packageJSON.name}\` first inorder to use it.` : ''}
 Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
 
-            if (latest && semver.lt(packageJSON.version, latest)) {
+            if (allowed_update_version_types.includes(versionChange) && isCurrentLessThanLatest) {
                 console.log(
                     boxen(
                         major ? chalk.red(logMessage) : chalk.green(logMessage),
@@ -84,7 +86,7 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
                     )
                 );
 
-                if (semver.diff(packageJSON.version, latest) === 'major') {
+                if (major) {
                     process.exit(1);
                 }
             }
