@@ -13,8 +13,13 @@ export const getBaseURL = () => {
     return `https://${currentEnv}`
 };
 
-export const getProjectURL = (project) => {
-    return getBaseURL().replace('api', project)
+export const getPlatformUrls = () => {
+    return {
+        platform: getBaseURL().replace('api', 'platform'),
+        partners: getBaseURL().replace('api', 'partners'),
+        administrator: getBaseURL().replace('api', 'administrator'),
+        marketplace: getBaseURL().replace('api', 'themes'),
+    }
 }
 
 const BLITZKRIEG_PANEL_URL =() => getBaseURL() + '/service/panel/theme';

@@ -43,7 +43,7 @@ import {
     getPort,
     startReactServer,
 } from '../helper/serve.utils';
-import { getBaseURL, getProjectURL } from './api/services/url';
+import { getBaseURL, getPlatformUrls } from './api/services/url';
 import open from 'open';
 import chokidar from 'chokidar';
 import { downloadFile } from '../helper/download';
@@ -121,7 +121,7 @@ export default class Theme {
         const themeList = await ThemeService.getAllThemes(config);
         if (!themeList.data.length) {
             throw new CommandError(
-                ErrorCodes.NO_THEME_FOUND.message(getProjectURL('partners')),
+                ErrorCodes.NO_THEME_FOUND.message(getPlatformUrls().partners),
                 ErrorCodes.NO_THEME_FOUND.code
             );
         }
@@ -179,7 +179,7 @@ export default class Theme {
         const companyListOptions = {};
         if (!companyList.items.length) {
             throw new CommandError(
-                ErrorCodes.NO_COMPANY_FOUND.message(company_type, getProjectURL('partners')),
+                ErrorCodes.NO_COMPANY_FOUND.message(company_type, getPlatformUrls().partners),
                 ErrorCodes.NO_COMPANY_FOUND.code
             );
         }
@@ -206,7 +206,7 @@ export default class Theme {
             }
         });
         if (!applicationList.data.items.length) {
-            throw new CommandError(ErrorCodes.NO_APP_FOUND.message(getProjectURL('partners')), ErrorCodes.NO_APP_FOUND.code);
+            throw new CommandError(ErrorCodes.NO_APP_FOUND.message(getPlatformUrls().partners), ErrorCodes.NO_APP_FOUND.code);
         }
         const applicationListOptions = {};
         applicationList.data.items.forEach(application => {
@@ -640,13 +640,6 @@ export default class Theme {
             await ThemeService.updateTheme(newTheme);
 
             Logger.info('Theme syncing DONE');
-            let domainURL = null;
-            if (AVAILABLE_ENVS[currentContext.env])
-                domainURL = `https://${AVAILABLE_ENVS[currentContext.env]}`;
-            else domainURL = `https://${currentContext.env}`;
-            const url = new URL(domainURL);
-            const hostName = url.hostname;
-            let domain = hostName.replace('api', 'platform');
             var b5 = Box(
                 chalk.green.bold('Your Theme was pushed successfully\n') +
                     chalk.white('\n') +
@@ -663,7 +656,7 @@ export default class Theme {
                     chalk.green(
                         terminalLink(
                             '',
-                            `https://platform.${domain}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`
+                            `${getPlatformUrls().platform}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`
                         )
                     ),
                 {
@@ -763,18 +756,6 @@ export default class Theme {
             await ThemeService.updateTheme(newTheme);
 
             Logger.info('Theme syncing DONE');
-            let domainURL = null;
-            if (AVAILABLE_ENVS[currentContext.env])
-                domainURL = `https://${AVAILABLE_ENVS[currentContext.env]}`;
-            else domainURL = `https://${currentContext.env}`;
-            const url = new URL(domainURL);
-            const hostName = url.hostname;
-            // replace "api" with "platform"
-            // When you set env, we are setting api url of that environment. Like api.fyndx1.de
-            // now if you want to open fyndx1's platform, you need to open platform.fyndx1.de So here we are replacing api with platform.
-            // also we need to take care of sandbox URLs. Sandbox have different url pattern. Like api-namespace.sandbox.fynd.engineering & platform-namespace.sandbox.fynd.engineering
-            // Here also by replacing api with platform will work on sandbox.
-            let domain = hostName.replace('api', 'platform');
             var b5 = Box(
                 chalk.green.bold('Your Theme was pushed successfully\n') +
                     chalk.white('\n') +
@@ -791,7 +772,7 @@ export default class Theme {
                     chalk.green(
                         terminalLink(
                             '',
-                            `https://${domain}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`
+                            `${getPlatformUrls().platform}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`
                         )
                     ),
                 {
