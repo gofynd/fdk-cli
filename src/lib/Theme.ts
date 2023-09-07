@@ -612,6 +612,9 @@ export default class Theme {
             Logger.info('Uploading theme assets/images');
             await Theme.assetsImageUploader();
 
+            Logger.info('Uploading theme assets/fonts');
+            await Theme.assetsFontsUploader();
+            
             let available_sections = await Theme.getAvailableReactSectionsForSync();
             await Theme.validateAvailableSections(available_sections);
 
