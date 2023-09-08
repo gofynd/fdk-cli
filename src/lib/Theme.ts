@@ -722,6 +722,8 @@ export default class Theme {
             Logger.info('Uploading theme assets/fonts');
             await Theme.assetsFontsUploader();
 
+            // Remove temp source folder
+            rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
             Logger.info('Creating theme source code zip file');
             await Theme.copyFolders(path.join(process.cwd()), Theme.SRC_FOLDER);
             await archiveFolder({
@@ -729,9 +731,6 @@ export default class Theme {
                 destFolder: Theme.SRC_ARCHIVE_FOLDER,
                 zipFileName: Theme.ZIP_FILE_NAME,
             });
-
-            // Remove temp source folder
-            rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
 
             Logger.info('Uploading theme source code zip file');
             let srcCdnUrl = await Theme.uploadThemeSrcZip();
@@ -801,6 +800,8 @@ export default class Theme {
             Logger.info(b5.toString());
         } catch (error) {
             throw new CommandError(error.message, error.code);
+        } finally {
+            rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
         }
     };
     public static serveTheme = async options => {
@@ -2014,7 +2015,7 @@ export default class Theme {
     };
     public static copyFolders = async (from, to) => {
         try {
-            fs.mkdir(to);
+            await fs.mkdir(to);
             const files = await fs.readdir(from);
             const nonHiddenFiles = files.filter(file => !file.startsWith('.'));
 
