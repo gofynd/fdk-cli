@@ -59,7 +59,6 @@ interface DevReactBuild {
 
 export function devBuild({ buildFolder, imageCdnUrl, isProd } : DevBuild) {
     const VUE_CLI_PATH = path.join('.', 'node_modules', '@vue', 'cli-service', 'bin', 'vue-cli-service.js');
-    const THEME_ENTRY_FILE = path.join('theme', 'index.js');
     const isNodeVersionIsGreaterThan18 = +process.version.split(".")[0].slice(1) >= 18;
 
     return new Promise((resolve, reject) => {
