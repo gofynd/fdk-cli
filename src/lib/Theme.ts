@@ -583,6 +583,8 @@ export default class Theme {
             const buildPath = path.join(process.cwd(), Theme.BUILD_FOLDER);
 
             Logger.info('Creating theme source code zip file');
+            // Remove temp source folder
+            rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
             await Theme.copyFolders(path.join(process.cwd()), Theme.SRC_FOLDER);
             await archiveFolder({
                 srcFolder: Theme.SRC_FOLDER,
@@ -591,8 +593,6 @@ export default class Theme {
             });
             // await Theme.copyReactThemeSourceToFdkFolder();
 
-            // Remove temp source folder
-            rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
 
             Logger.info('Uploading theme source code zip file');
             let srcCdnUrl = await Theme.uploadThemeSrcZip();
@@ -674,6 +674,8 @@ export default class Theme {
         } catch (error) {
             Logger.error(error);
             throw new CommandError(error.message, error.code);
+        } finally {
+            rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
         }
     };
     private static syncVueTheme = async (currentContext: ThemeContextInterface, isNew = false) => {
