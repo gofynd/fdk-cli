@@ -1,0 +1,188 @@
+.formContainer {
+  display: flex;
+  flex-wrap: wrap;
+  box-sizing: border-box;
+  width: 100%;
+  justify-content: space-between;
+  padding: 24px;
+
+  .formItemDiv {
+    position: relative;
+    width: 47%;
+
+    @media only screen and (max-width: 1470px) {
+      width: 100%;
+    }
+
+    .formInputBox {
+      font-size: 0.8rem;
+      outline: none;
+      border: 1px solid grey;
+      border-radius: 5px;
+      padding: 0 0.7rem;
+      height: 48px;
+      color: grey;
+      transition: 0.1s ease-out;
+      box-sizing: border-box;
+      width: 100%;
+      background-color: transparent;
+    }
+
+    .formInputBox:focus {
+      border-color: var(--buttonPrimary);
+    }
+
+    .formLabel {
+      position: absolute;
+      font-size: 0.8rem;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: #fff;
+      color: grey;
+      padding: 0 0.3rem;
+      margin: 0 0.5rem;
+      transition: 0.1s ease-out;
+      transform-origin: left top;
+      pointer-events: none;
+      top: 0;
+      transform: translateY(-50%) scale(0.9);
+
+      .formReq {
+        color: red;
+      }
+    }
+
+    .formInputBox:focus + .formLabel {
+      color: var(--buttonPrimary);
+    }
+
+    .formError {
+      padding: 5px 0 7px;
+      margin-bottom: 7px;
+      visibility: hidden;
+      color: #ee485d;
+      width: max-content;
+    }
+
+    .visible {
+      visibility: visible;
+    }
+  }
+
+  .formItemDiv:nth-child(odd) {
+    margin-right: 24px;
+
+    @media only screen and (max-width: 1470px) {
+      margin-right: 0px;
+    }
+  }
+
+  .secondContainer {
+    width: 100%;
+
+    input[type="radio"] {
+      display: none;
+    }
+
+    .type {
+      margin-bottom: 10px;
+    }
+  }
+
+  .addressTypeHeader {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .addressType {
+    margin-top: 20px;
+    position: relative;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+
+    .addressTypes {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      padding: 4px 12px;
+      gap: 10px;
+      height: 40px;
+      border: 1px solid #e2e2e2;
+      border-radius: 4px;
+    }
+
+    .selectedDiv {
+      border: 1px solid var(--buttonPrimary);
+    }
+
+    input[type="radio"] {
+      margin-left: 0;
+      margin-right: 10px;
+    }
+
+    label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      gap: 5px;
+
+      &:hover {
+        font-weight: 400;
+      }
+    }
+  }
+}
+
+.formContainer2 {
+  display: flex;
+  flex-wrap: wrap;
+  box-sizing: border-box;
+  width: 100%;
+  justify-content: space-between;
+  padding: 0;
+}
+
+.defaultAddress {
+  input {
+    accent-color: var(--buttonPrimary);
+  }
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.deliverBtnDivEdit {
+  width: 100%;
+}
+
+.deliverBtn {
+  padding: 14px;
+  border-radius: 5px;
+  background-color: var(--buttonPrimary);
+  border: none;
+  margin-top: 24px;
+  width: 100%;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+.contactInfo {
+  width: 100%;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+}
+
+.deliveryInfo {
+  margin-left: 24px;
+  font-weight: 600;
+  font-size: 12px;
+  margin-top: 24px;
+}

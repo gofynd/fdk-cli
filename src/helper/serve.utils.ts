@@ -7,7 +7,7 @@ import express from 'express';
 import _ from 'lodash';
 import { SourceMapConsumer } from 'source-map';
 import {
-    getActiveContext,
+    getActiveContext,parseBundleFilename
 } from './utils';
 import urlJoin from 'url-join';
 import { parse as stackTraceParser}  from 'stacktrace-parser';
@@ -20,6 +20,10 @@ import Configstore, { CONFIG_KEYS } from '../lib/Config';
 import { createProxyMiddleware, fixRequestBody } from 'http-proxy-middleware';
 import { addSignatureFn }  from '../lib/api/helper/interceptors';
 const { transformRequest } = axios.defaults;
+import webpackDevMiddleware from 'webpack-dev-middleware';
+import webpackHotMiddleware from 'webpack-hot-middleware';
+import webpack from 'webpack';
+import createBaseWebpackConfig from '../helper/theme.react.config';
 
 const BUILD_FOLDER = './.fdk/dist';
 let port = 5001;
@@ -44,46 +48,9 @@ export function getPort(port) {
 	return detect(port);
 }
 
-export async function startServer({ domain, host, isSSR, port }) {
+function applyProxy(app: any) {
 	const currentContext = getActiveContext();
 	const currentDomain = `https://${currentContext.domain}`;
-	const app = require('https-localhost')(getLocalBaseUrl());
-	const certs = await app.getCerts();
-	const server = require('https').createServer(certs, app);
-	const io = require('socket.io')(server);
-
-	io.on('connection', function (socket) {
-		sockets.push(socket);
-		socket.on('disconnect', function () {
-			sockets = sockets.filter((s) => s !== socket);
-		});
-	});
-
-	app.use('/public', async (req, res, done) => {
-		try {
-			const { url } = req;
-			if (publicCache[url]) {
-				res.set(publicCache[url].headers);
-				return res.send(publicCache[url].body);
-			}
-			const networkRes = await axios.get(urlJoin(domain, 'public', url));
-			publicCache[url] = publicCache[url] || {};
-			publicCache[url].body = networkRes.data;
-			publicCache[url].headers = networkRes.headers;
-			res.set(publicCache[url].headers);
-			return res.send(publicCache[url].body);
-		} catch(e) {
-			console.log("Error loading file ", url)
-		}
-	});
-
-	app.get('/_healthz', (req, res) => {
-		res.json({ ok: 'ok' });
-	});
-
-	// parse application/x-www-form-urlencoded
-	app.use(express.json());
-	  
 	const options = {
 		target: currentDomain, // target host
 		changeOrigin: true, // needed for virtual hosted sites
@@ -114,6 +81,49 @@ export async function startServer({ domain, host, isSSR, port }) {
 		req.headers['x-fp-date'] = config.headers['x-fp-date'];
 		next();
 	  }, corsProxy);
+}
+
+export async function startServer({ domain, host, isSSR, port }) {
+	const currentContext = getActiveContext();
+	const currentDomain = `https://${currentContext.domain}`;
+	const app = require('https-localhost')(getLocalBaseUrl());
+	const certs = await app.getCerts();
+	const server = require('https').createServer(certs, app);
+	const io = require('socket.io')(server);
+
+	io.on('connection', function (socket) {
+		sockets.push(socket);
+		socket.on('disconnect', function () {
+			sockets = sockets.filter((s) => s !== socket);
+		});
+	});
+
+	app.use('/public', async (req, res, done) => {
+		const { url } = req;
+		try {
+			if (publicCache[url]) {
+				res.set(publicCache[url].headers);
+				return res.send(publicCache[url].body);
+			}
+			const networkRes = await axios.get(urlJoin(domain, 'public', url));
+			publicCache[url] = publicCache[url] || {};
+			publicCache[url].body = networkRes.data;
+			publicCache[url].headers = networkRes.headers;
+			res.set(publicCache[url].headers);
+			return res.send(publicCache[url].body);
+		} catch(e) {
+			console.log("Error loading file ", url)
+		}
+	});
+
+	app.get('/_healthz', (req, res) => {
+		res.json({ ok: 'ok' });
+	});
+
+	// parse application/x-www-form-urlencoded
+	app.use(express.json());
+	  
+    applyProxy(app);
 
 	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
 	app.get(['/__webpack_hmr', 'manifest.json'], async (req, res, next) => {
@@ -131,8 +141,8 @@ export async function startServer({ domain, host, isSSR, port }) {
 		let themeUrl = "";
 		if (isSSR) {
             const BUNDLE_PATH = path.join(process.cwd(), '/.fdk/dist/themeBundle.common.js');
-            const User = Configstore.get(CONFIG_KEYS.USER);
-            themeUrl = (await UploadService.uploadFile(BUNDLE_PATH, 'fdk-cli-dev-files', User._id))
+            const User = Configstore.get(CONFIG_KEYS.AUTH_TOKEN);
+            themeUrl = (await UploadService.uploadFile(BUNDLE_PATH, 'fdk-cli-dev-files', User.current_user._id))
                 .start.cdn.url;
 		} else {
 			jetfireUrl.searchParams.set('__csr', 'true');
@@ -220,7 +230,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 					console.log(e)
 				}
 			} else {
-				console.log(e.request && e.request.path, e.message)
+				console.log(e?.request?.path ?? "", e.message)
 			}
 		}
 	});
@@ -231,6 +241,191 @@ export async function startServer({ domain, host, isSSR, port }) {
 				return reject(err);
 			}
 			Logger.info(`Starting starter at port -- ${port} in ${isSSR? 'SSR': 'Non-SSR'} mode`);
+			Logger.info(`************* Using Debugging build`);
+			resolve(true);
+		});
+	});
+}
+
+export async function startReactServer({ domain, host, isHMREnabled, port }) {
+	const currentContext = getActiveContext();
+	const app = require('https-localhost')(getLocalBaseUrl());
+	const certs = await app.getCerts();
+	const server = require('https').createServer(certs, app);
+	const io = require('socket.io')(server);
+
+	io.on('connection', function (socket) {
+		sockets.push(socket);
+		socket.on('disconnect', function () {
+			sockets = sockets.filter((s) => s !== socket);
+		});
+	});
+
+	if(isHMREnabled){
+
+	let webpackConfigFromTheme = {};
+	const themeWebpackConfigPath = path.join(process.cwd(), Theme.REACT_CLI_CONFIG_PATH);
+
+	if (fs.existsSync(themeWebpackConfigPath)) {
+		({ default: webpackConfigFromTheme }  = await import(themeWebpackConfigPath));
+	}
+
+	const ctx = {
+		buildPath: path.resolve(process.cwd(), Theme.BUILD_FOLDER),
+		NODE_ENV: "development",
+		localThemePort: port,
+		context: process.cwd(),
+		isHMREnabled
+	}
+	const [ baseWebpackConfig ] = createBaseWebpackConfig(ctx, webpackConfigFromTheme);
+
+	const compiler = webpack(baseWebpackConfig);
+
+	app.use(webpackDevMiddleware(compiler, {
+		publicPath: baseWebpackConfig.output.publicPath,
+		serverSideRender: true,
+		writeToDisk: true,
+		stats: "none",
+	}));
+
+	app.use(webpackHotMiddleware(compiler));
+	}
+	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
+
+	app.use((request, response, next) => {
+		if (request.url.indexOf('.hot-update.json') !== -1) {
+			return response.json({"c":["themeBundle"],"r":[],"m":[]});
+		}
+		next();
+	})
+
+	app.use('/public', async (req, res, done) => {
+		const { url } = req;
+		try {
+			if (publicCache[url]) {
+				res.set(publicCache[url].headers);
+				return res.send(publicCache[url].body);
+			}
+			const networkRes = await axios.get(urlJoin(domain, 'public', url, `?themeId=${currentContext.theme_id}`));
+			publicCache[url] = publicCache[url] || {};
+			publicCache[url].body = networkRes.data;
+			publicCache[url].headers = networkRes.headers;
+			res.set(publicCache[url].headers);
+			return res.send(publicCache[url].body);
+		} catch(e) {
+			console.log("Error loading file ", url, e);
+			return res.status(500).send(e.message);
+		}
+	});
+
+	// parse application/x-www-form-urlencoded
+	app.use(express.json());
+
+	applyProxy(app);
+
+	const uploadedFiles = {};
+
+	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
+
+	app.get('/*', async (req, res) => {
+		const BUNDLE_DIR = path.join(process.cwd(), path.join('.fdk', 'dist'));
+		if (req.originalUrl == '/favicon.ico' || req.originalUrl == '/.webp') {
+			return res.status(404).send('Not found');
+		}
+		// While build is not complete
+		if(!fs.existsSync(path.join(BUNDLE_DIR, 'themeBundle.umd.js'))) {
+			return res.sendFile(path.join(__dirname,'../../','/dist/helper','/loader.html'));
+		} 
+		const skyfireUrl = new URL(urlJoin(domain, req.originalUrl));
+		const reqChunkUrl = new URL(urlJoin(domain, '__required_chunks'));
+		skyfireUrl.searchParams.set('themeId', currentContext.theme_id);
+		reqChunkUrl.searchParams.set('themeId', currentContext.theme_id);
+		reqChunkUrl.searchParams.set('url', req.originalUrl);
+		const response = await axios.get(reqChunkUrl.toString()); 
+		const requiredFiles = [
+			'themeBundle',
+			...(response.data || [])
+		];
+
+
+		const User = Configstore.get(CONFIG_KEYS.AUTH_TOKEN);;
+		const buildFiles = fs.readdirSync(BUNDLE_DIR);
+
+		const promises = [];
+		const themeURLs: any = {};
+		for (let fileName of buildFiles) {
+			const { extension, componentName } = parseBundleFilename(fileName);
+			if (
+				['js', 'css'].includes(extension) &&
+				requiredFiles.indexOf(componentName) !== -1 &&
+				fileName.indexOf('hot-update') === -1
+				) {
+
+				const promise = UploadService.uploadFile(path.join(BUNDLE_DIR, fileName), 'fdk-cli-dev-files', User.current_user._id).then(response => {
+					const url = response.complete.cdn.url;
+					themeURLs[componentName] = themeURLs[componentName] || {};
+					themeURLs[componentName][extension] = url;
+
+				});
+				promises.push(promise);
+
+			}
+
+		}
+
+		await Promise.all(promises);
+
+
+		const {data: html} = await axios.post(
+			skyfireUrl.toString(), 
+			{
+				themeURLs,
+				cliMeta: {
+					port,
+				}
+			}
+			).catch((error) => {
+			console.log(error);
+			return { data: error}
+		});
+		let $ = cheerio.load(html);
+		$('head').prepend(`
+				<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+				<script>
+				var socket = io();
+				socket.on('reload',function(){
+					${isHMREnabled 
+						? 
+						`
+						try {
+							window.APP_DATA.themeBundleUMDURL = '/themeBundle.umd.js';
+							window.APP_DATA.isServerRendered = false;
+							window.APP_DATA.forceRender = true;
+							window.webpackChunkthemeBundle = [];
+							// document.getElementById('app').innerHTML='';
+							if (window.fpi) {
+								window.APP_DATA.reduxData = window.fpi.store.getState();
+							}
+							window.loadApp().catch(console.log);
+						} catch(e) { console.log( e );}
+					` : 
+					`
+						window.location.reload();
+					`}
+					
+				});
+				</script>
+			`);
+		res.send($.html({ decodeEntities: false }));
+
+	});
+
+	return new Promise((resolve, reject) => {
+		server.listen(port, (err) => {
+			if (err) {
+				return reject(err);
+			}
+			Logger.info(`Starting server at port -- ${port}`);
 			Logger.info(`************* Using Debugging build`);
 			resolve(true);
 		});

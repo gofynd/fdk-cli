@@ -14,7 +14,7 @@ export default {
             );
             const res = await ApiClient.post(URLS.LOGIN_USER(), axiosOption);
             return res;
-        } catch(error) {
+        } catch (error) {
             throw error;
         }
     },
@@ -29,7 +29,7 @@ export default {
             );
             const res = await ApiClient.post(URLS.SEND_OTP(), axiosOption);
             return res;
-        } catch(error) {
+        } catch (error) {
             throw error;
         }
     },
@@ -44,20 +44,8 @@ export default {
             );
             const res = await ApiClient.post(URLS.VERIFY_OTP(), axiosOption);
             return res;
-        } catch(error) {
+        } catch (error) {
             throw error;
         }
     },
-    getOauthToken: async (company_id) => {
-        try {
-            const axiosOption = Object.assign({}, getCommonHeaderOptions());
-            const res = await ApiClient.get(
-                URLS.OAUTH_TOKEN(company_id),
-                axiosOption
-            );
-            return res;
-        } catch(error) {
-            throw error;
-        }
-    }
 }

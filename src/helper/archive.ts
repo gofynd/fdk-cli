@@ -53,7 +53,7 @@ export function archiveFolder({ srcFolder, destFolder, zipFileName }) {
 export function extractArchive({ zipPath, destFolderPath }) {
     return new Promise(async (resolve, reject) => {
         try {
-            createDirectory(destFolderPath);
+            createDirectory(destFolderPath, false);
             await extract(zipPath, { dir: destFolderPath })
             resolve(true)
         } catch (e) {
