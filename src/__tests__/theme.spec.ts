@@ -316,8 +316,9 @@ describe('Theme Commands', () => {
         }
     });
 
-    afterAll(() => {
-        fs.rmdirSync(path.join(__dirname, '..', '..', 'test-theme'), { recursive: true });
+    afterAll(async () => {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        fs.rm(path.join(__dirname, '..', '..', 'test-theme'), { recursive: true });
         process.chdir(path.join(__dirname, '..', '..'));
         rimraf.sync(path.join(__dirname, 'theme-test-cli.json')) // remove configstore
     });
