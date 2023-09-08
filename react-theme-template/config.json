@@ -1,0 +1,38 @@
+{
+    "theme": {
+      "colors": {
+        "primary_color": "#f8973d",
+        "secondary_color": "#f8973d",
+        "accent_color": "#FFFFFF",
+        "link_color": "#f63420",
+        "button_secondary_color": "#000000",
+        "bg_color": "#F8F8F8"
+      },
+      "styles": {},
+      "font": {
+        "variants": {
+          "light": {
+            "name": "300",
+            "file": "https://fonts.gstatic.com/s/montserrat/v24/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCs16Ew-Y3tcoqK5.ttf"
+          },
+          "regular": {
+            "name": "400",
+            "file": ""
+          },
+          "medium": {
+            "name": "500",
+            "file": "https://fonts.gstatic.com/s/montserrat/v24/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtZ6Ew-Y3tcoqK5.ttf"
+          },
+          "semi_bold": {
+            "name": "600",
+            "file": "https://fonts.gstatic.com/s/montserrat/v24/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCu170w-Y3tcoqK5.ttf"
+          },
+          "bold": {
+            "name": "700",
+            "file": "https://fonts.gstatic.com/s/montserrat/v24/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCuM70w-Y3tcoqK5.ttf"
+          }
+        },
+        "family": "Montserrat"
+      }
+    }
+  }

@@ -8,6 +8,7 @@ export default function themeCommandBuilder() {
         .alias('add')
         .description('Create Theme')
         .requiredOption('-n, --name [name]', 'Theme name')
+        .option('--type <string>', 'Theme Type', 'vue2')
         .asyncAction(Theme.createTheme);
 
     theme
@@ -21,6 +22,7 @@ export default function themeCommandBuilder() {
         .command('serve')
         .description('Serve theme')
         .option('--ssr <boolean>', 'Server side rendering', true)
+        .option('--hmr <boolean>', 'Enable HMR Support', true)
         .option('--port <number>', 'Custom port')
         .asyncAction(Theme.serveTheme);
 

@@ -14,7 +14,8 @@ export default function environmentCommandBuilder() {
 
     env
         .command('set')
-        .requiredOption('-n, --name [env-name]', 'Environment name')
+        .option('-n, --name [env-name]', 'Environment name')
+        .option('-u, --url [api-domain]', 'API domain')
         .description('Set new environment')
         .asyncAction(Env.setNewEnvs);
 

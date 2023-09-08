@@ -7,9 +7,13 @@ const organization_id = configStore.get(CONFIG_KEYS.ORGANIZATION);
 
 export const getBaseURL = () => {
     const currentEnv = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
-    return `https://${AVAILABLE_ENVS[currentEnv]}`;
+    if(AVAILABLE_ENVS[currentEnv])
+        return `https://${AVAILABLE_ENVS[currentEnv]}`;
+    
+    return `https://${currentEnv}`
 };
 
+const BLITZKRIEG_PANEL_URL =() => getBaseURL() + '/service/panel/theme';
 const THEME_URL = () => getBaseURL() + '/service/partner/theme/v' + apiVersion;
 const AUTH_URL = () => getBaseURL() + '/service/panel/authentication/v' + apiVersion;
 const CONFIGURATION_URL = () => getBaseURL() + '/service/partner/partners/v' + apiVersion;
@@ -67,6 +71,10 @@ export const URLS = {
         );
     },
 
+    GET_DEFAULT_THEME: (company_id: number, application_id: string)=> {
+      return urlJoin(THEME_URL(), `organization/${organization_id}/company/${company_id}/application/${application_id}/default_theme`);
+    },
+
     // AVAILABLE_PAGE
     AVAILABLE_PAGE: (
         application_id: string,
@@ -78,6 +86,14 @@ export const URLS = {
             THEME_URL(),
             `organization/${organization_id}/company/${company_id}/application/${application_id}/${theme_id}/${page_value}`
         );
+    },
+
+    PAGE_DEFAULT_VALUES: (
+        application_id: string,
+        company_id: number,
+        page_value: string
+        ) => {
+        return urlJoin(THEME_URL(), `organization/${organization_id}/company/${company_id}/application/${application_id}/page/${page_value}/system`)
     },
 
     SETUP_COMPANY: (company_id: number) => {
@@ -106,5 +122,9 @@ export const URLS = {
     },
     GET_LIVE_ACCOUNTS: (page_no: number, page_size: number): string => {
         return urlJoin(MIXMASTER_URL('partner'), `/organization/${organization_id}/accounts/access-request?page_size=${page_size}&page_no=${page_no}&request_status=accepted`);
+    },
+    
+    IS_VERSION_COMPATIBLE: () =>{
+        return urlJoin(BLITZKRIEG_PANEL_URL(), '/_compatibility')
     }
 };
