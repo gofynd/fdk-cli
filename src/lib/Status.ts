@@ -10,7 +10,8 @@ export default class Status {
 
     private static checkService = async options => {
         const { name } = options;
-        let services = Object.keys(SERVICE_URL);
+        const { partnersDynamic, ...availableServiceURL } = SERVICE_URL
+        let services = Object.keys(availableServiceURL);
 
         if (name) {
             if (!services.includes(name)) {
