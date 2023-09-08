@@ -7,7 +7,10 @@ import { init } from '../fdk';
 const tokenData = require('./fixtures/partnertoken.json');
 const request = require('supertest')
 import { startServer, getApp } from '../lib/Auth';
+import { URLS } from '../lib/api/services/url';
 import Logger from '../lib/Logger';
+import MockAdapter from 'axios-mock-adapter';
+import axios from 'axios';
 
 jest.mock('inquirer');
 let program;
@@ -35,7 +38,7 @@ jest.mock('configstore', () => {
 
 async function login() {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
-    const app = await startServer();
+    const app = await startServer({isTesting: true});
     const req = request(app)
     await program.parseAsync([
         'ts-node',
@@ -49,6 +52,8 @@ describe('Auth Commands', () => {
     beforeAll(async () => {
         setEnv();
         program = await init('fdk');
+        const mock = new MockAdapter(axios);
+        mock.onGet(`${URLS.IS_VERSION_COMPATIBLE()}`).reply(200);
         await login();
     });
 

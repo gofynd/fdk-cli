@@ -1,0 +1,230 @@
+.reviewContentContainer {
+  .shipmentWrapper {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 24px;
+
+    .shipmentHeading {
+      display: flex;
+      justify-content: space-between;
+      border: 1px solid #f0f0f0;
+      border-radius: 8px 8px 0px 0px;
+      padding: 16px 24px;
+
+      .headerLeft {
+        display: flex;
+        padding: 4px 12px 4px 0px;
+
+        .shipmentNumber {
+          font-weight: 600;
+          font-size: 14px;
+          color: #1f1f1f;
+          margin-right: 8px;
+          line-height: 140%;
+        }
+
+        .itemCount {
+          font-weight: 400;
+          font-size: 14px;
+          color: #1f1f1f;
+          line-height: 140%;
+        }
+      }
+      .deliveryDateWrapper {
+        display: flex;
+        height: 20px;
+        align-self: center;
+        .shippingLogo {
+        }
+        .deliveryDate {
+          font-weight: 600;
+          font-size: 12px;
+          text-align: right;
+          color: var(--primaryColor);
+          align-self: center;
+          margin-left: 8px;
+          line-height: 140%;
+        }
+      }
+    }
+    .item {
+      display: flex;
+      flex-direction: column;
+      border-width: 0px 1px 1px 1px;
+      border-style: solid;
+      border-color: #f0f0f0;
+      border-radius: 0px 0px 8px 8px;
+      padding: 24px;
+
+      .couponRibbon {
+        display: flex;
+        color: #d4803c;
+        line-height: 140%;
+        background: #fff0e4;
+        border-radius: 4px;
+        width: fit-content;
+        font-weight: 600;
+        font-size: 12px;
+        padding: 4px 12px;
+        margin-bottom: 16px;
+        span {
+          margin-left: 6px;
+        }
+        .ribbonMsg {
+          align-self: center;
+        }
+      }
+      .itemWrapper {
+        display: flex;
+        .leftImg {
+          width: 125px;
+          img {
+            max-width: 110px;
+            max-height: 170px;
+            cursor: pointer;
+          }
+        }
+        .rightDetails {
+          display: flex;
+          flex-direction: column;
+          margin-left: 14px;
+          .productDetails {
+            display: flex;
+            flex-direction: column;
+            .brandName {
+              font-weight: 600;
+              font-size: 14px;
+              color: #1f1f1f;
+              line-height: 140%;
+            }
+            .productName {
+              font-weight: 400;
+              font-size: 14px;
+              color: #1f1f1f;
+              margin-top: 8px;
+              line-height: 140%;
+            }
+            .sizeInfo {
+              display: flex;
+              flex-direction: column;
+              font-weight: 400;
+              font-size: 12px;
+              color: #4d4d4e;
+              margin-top: 8px;
+              line-height: 140%;
+              .sizeQuantity {
+                display: flex;
+                margin-bottom: 4px;
+                line-height: 140%;
+                flex-wrap: wrap;
+                .size {
+                  margin-right: 12px;
+                  line-height: 140%;
+                }
+              }
+            }
+          }
+          .paymentInfo {
+            display: flex;
+            margin-top: 25px;
+            flex-wrap: wrap;
+
+            .priceWrapper {
+              display: flex;
+              margin-right: 12px;
+              .effectivePrice {
+                font-weight: 700;
+                font-size: 16px;
+                color: #1f1f1f;
+                margin-right: 12px;
+                align-self: center;
+                line-height: 140%;
+              }
+              .markedPrice {
+                font-weight: 400;
+                font-size: 12px;
+                text-decoration-line: line-through;
+                color: #4d4d4e;
+                margin-right: 8px;
+                align-self: center;
+                line-height: 140%;
+              }
+              .discount {
+                font-weight: 500;
+                font-size: 12px;
+                color: #0d5e25;
+                align-self: center;
+                line-height: 140%;
+              }
+            }
+            .offersWarning {
+              display: flex;
+
+              .limitedQnty {
+                padding: 4px 12px;
+                background: #fbeaea;
+                border-radius: 4px;
+                font-weight: 500;
+                font-size: 10px;
+                line-height: 140%;
+                color: #d93131;
+                width: fit-content;
+              }
+              .appliedOffer {
+                display: flex;
+                padding: 4px 8px;
+                background: #e9fbe4;
+                border-radius: 4px;
+                font-weight: 500;
+                font-size: 12px;
+                line-height: 140%;
+                color: #0d5e25;
+                margin-right: 12px;
+                width: fit-content;
+                .offerInfoIcon {
+                  margin-left: 6px;
+                  cursor: pointer;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .proceedBtnWrapper {
+    .viewPriceDetails {
+      display: none;
+    }
+  }
+}
+
+.parent {
+  border: 1px solid #f0f0f0;
+  border-top: 0 solid #f0f0f0;
+  border-radius: 0 0 8px 8px;
+  background: #fff;
+  padding: 24px;
+}
+
+.proceedBtn {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 14px;
+  border-radius: 5px;
+  background-color: var(--primaryColor);
+  border: none;
+  width: 100%;
+  color: #fff;
+  text-transform: uppercase;
+  line-height: 140%;
+  display: flex;
+  justify-content: center;
+
+  span {
+    align-self: center;
+    margin-left: 3px;
+  }
+}

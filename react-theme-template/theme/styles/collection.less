@@ -1,0 +1,90 @@
+.imageCarouselContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem 0rem;
+  .imageCarouselHeading {
+    font-size: 32px;
+    margin-bottom: 16px;
+    font-weight: 700;
+    font-family: Playfair Display !important;
+    letter-spacing: 0.03em;
+    color: var(--textHeading);
+    line-height: 42px;
+  }
+  .imageCarouselSubHeading {
+    color: var(--textBody);
+    font-size: 18px;
+    line-height: 18px;
+  }
+  .carouselContainer {
+    display: flex;
+    overflow: auto;
+    gap: 1.5rem;
+    width: 90vw;
+    margin: 1rem 0px 1rem 0px;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    .productContainer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      .productImage {
+        width: 300px;
+        height: 365px;
+        object-fit: cover !important;
+        border-radius: 1.5rem;
+        margin: 1rem 0px 0.3rem 0px;
+        transition: all 0.5s ease-in-out;
+        overflow: hidden;
+        &:hover {
+          transform: scale(1.05);
+        }
+      }
+      .productHeading {
+        font-size: 20px;
+        line-height: 24px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        color: var(--textHeading);
+        margin-top: 1rem;
+      }
+      .productPricing {
+        font-size: 14px;
+        line-height: 18px;
+        letter-spacing: 0.05em;
+        color: var(--textBody);
+        text-align: center;
+        .ruppeeIcon {
+          position: relative;
+          top: 1px;
+        }
+        .productOriginalPrice {
+          text-decoration: line-through;
+          margin-left: 8px;
+          color: var(--textLabel);
+          .ruppeeIcon {
+            position: relative;
+            top: 1px;
+          }
+        }
+      }
+    }
+  }
+  .prevNextButtonContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    margin-top: 1rem;
+    svg {
+      height: 24px;
+      width: 24px;
+    }
+  }
+}

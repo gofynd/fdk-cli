@@ -9,31 +9,34 @@ var cors = require('cors');
 const port = 7071;
 import chalk from 'chalk';
 import { AVAILABLE_ENVS } from './Env';
-function getLocalBaseUrl() {
-    return 'https://localhost';
+import ThemeService from './api/services/theme.service';
+function getLocalBaseUrl(isTesting = false) {
+    return `http${isTesting ? '' : 's'}://localhost`;
 }
 async function checkTokenExpired(auth_token) {
-    const { expiry_time } = auth_token
+    const { expiry_time } = auth_token;
     const currentTimestamp = Math.floor(Date.now() / 1000);
     if (currentTimestamp > expiry_time) {
         return true;
-    }
-    else{
-        return false
+    } else {
+        return false;
     }
 }
 
-export const getApp = async () => {
-    const app = require('https-localhost')(getLocalBaseUrl());
-    const certs = await app.getCerts();
+export const getApp = async ({ isTesting = false }) => {
+    const app = require('https-localhost')(getLocalBaseUrl(isTesting));
+    let certs = null;
+
+    if (!isTesting) {
+        certs = await app.getCerts();
+    }
 
     app.use(cors());
     app.use(express.json());
 
     app.post('/token', async (req, res) => {
         try {
-            if(Auth.isOrganizationChange)
-                ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
+            if (Auth.isOrganizationChange) ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
             const expiryTimestamp = Math.floor(Date.now() / 1000) + req.body.auth_token.expires_in;
             req.body.auth_token.expiry_time = expiryTimestamp;
             ConfigStore.set(CONFIG_KEYS.AUTH_TOKEN, req.body.auth_token);
@@ -50,24 +53,33 @@ export const getApp = async () => {
     return { app, certs };
 };
 
-export const startServer = async () => {
-    const { app, certs } = await getApp();
-    const serverIn = require('https').createServer(certs, app);
-    if (!Auth.server)
-        Auth.server = serverIn.listen(port, err => {
-            if (err) console.log(err);
-        });
+export const startServer = async ({ isTesting = false }) => {
+    if (Auth.server) return Auth.server;
+
+    const { app, certs } = await getApp({ isTesting });
+    const serverIn = isTesting
+        ? require('http').createServer(app)
+        : require('https').createServer(certs, app);
+    Auth.server = serverIn.listen(port, err => {
+        if (err) console.log(err);
+    });
+
     return Auth.server;
 };
+
+async function checkVersionCompatibility() {
+    const response = await ThemeService.checkCompatibleVersion();
+}
 
 export default class Auth {
     static server = null;
     static isOrganizationChange = false;
     constructor() {}
     public static async login() {
-        console.log(chalk.green('Current env: ', ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)));
+        await checkVersionCompatibility();
+        Logger.info(chalk.green('Current env: ', ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)));
         const isLoggedIn = await Auth.isAlreadyLoggedIn();
-        await startServer();
+        await startServer({});
         if (isLoggedIn) {
             const questions = [
                 {
@@ -91,16 +103,18 @@ export default class Auth {
         try {
             let domain = null;
             if(AVAILABLE_ENVS[env] ){
-                let partnerDomain = AVAILABLE_ENVS[env].replace("api.", "partners.")
+                let partnerDomain = AVAILABLE_ENVS[env].replace("api", "partners")
                 domain = `https://${partnerDomain}`;
             }
             else {
-                let partnerDomain = env.replace("api.", "partners.")
+                let partnerDomain = env.replace("api", "partners")
                 domain =`https://${partnerDomain}`
             }
-            await open(
-                `${domain}/organizations/?fdk-cli=true&callback=${getLocalBaseUrl()}:${port}`
-            );
+            if(Auth.isOrganizationChange || !isLoggedIn){
+                await open(
+                    `${domain}/organizations/?fdk-cli=true&callback=${getLocalBaseUrl()}:${port}`
+                );
+            }
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
@@ -117,7 +131,9 @@ export default class Auth {
             ];
             await inquirer.prompt(questions).then(answers => {
                 if (answers.confirmLogout === 'Yes') {
+                    const currentEnv = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
                     ConfigStore.clear();
+                    ConfigStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, currentEnv);
                     Logger.info(`User logged out successfully`);
                 }
             });
@@ -138,14 +154,11 @@ export default class Auth {
     }
     private static isAlreadyLoggedIn = async () => {
         const auth_token = ConfigStore.get(CONFIG_KEYS.AUTH_TOKEN);
-        if (auth_token && auth_token.access_token){
-            const isTokenExpired = await checkTokenExpired(auth_token)
-            if(!isTokenExpired)
-                return true;
-            else 
-                return false;
-        }
-        else return false;
+        if (auth_token && auth_token.access_token) {
+            const isTokenExpired = await checkTokenExpired(auth_token);
+            if (!isTokenExpired) return true;
+            else return false;
+        } else return false;
     };
     static stopSever = async () => {
         Auth.server.close(() => {});

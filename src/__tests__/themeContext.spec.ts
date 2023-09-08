@@ -53,7 +53,7 @@ afterAll(() => {
 });
 async function login() {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
-    const app = await startServer();
+    const app = await startServer({isTesting: true});
     const req = request(app)
     await program.parseAsync([
         'ts-node',
@@ -68,6 +68,7 @@ describe('Theme Context Commands', () => {
         setEnv();
         program = await init('fdk');
         const mock = new MockAdapter(axios);
+        mock.onGet(`${URLS.IS_VERSION_COMPATIBLE()}`).reply(200);
         mock.onGet(
             `${URLS.GET_APPLICATION_DETAILS(appConfig.company_id, appConfig.application_id)}`
         ).reply(200, appConfig);

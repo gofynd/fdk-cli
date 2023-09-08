@@ -87,7 +87,7 @@ async function createThemeFromZip() {
               "company_id": 1,
               "theme_id": "622894659baaca3be88c9d65",
               "application_token": "8DXpyVsKD",
-              "env": "fyndx0"
+              "env": "fyndx1"
             },
           }
         },
@@ -128,6 +128,7 @@ describe('Theme Commands', () => {
         program = await init('fdk');
         const mock = new MockAdapter(axios);
         const mockInstance = new MockAdapter(uninterceptedApiClient.axiosInstance);
+        mock.onGet(`${URLS.IS_VERSION_COMPATIBLE()}`).reply(200);
         mock.onGet(
             `${URLS.GET_APPLICATION_DETAILS(appConfig.company_id, appConfig.application_id)}`
         ).reply(200, appConfig);
@@ -284,13 +285,17 @@ describe('Theme Commands', () => {
             appConfig.company_id,
             appConfig.application_id,
         )}`)
-        .reply(200, themeList.items)
+        .reply(200, themeList.items);
+
+        mock.onGet(
+            `${URLS.GET_DEFAULT_THEME(appConfig.company_id, appConfig.application_id)}`
+        ).reply(200, { name: 'Emerge' });
         
         // user login
         configStore.set(CONFIG_KEYS.USER, data.user)
         
         process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
-        const app = await startServer();
+        const app = await startServer({isTesting: true});
         const req = request(app)
         await program.parseAsync([
             'ts-node',
