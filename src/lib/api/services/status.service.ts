@@ -20,7 +20,11 @@ export default {
 
         const allPrmoises = [];
         serviceEndpoints.forEach(endpoint => {
-            allPrmoises.push(axiosInstance.get(endpoint.url, { data: endpoint.name }));
+            allPrmoises.push(axiosInstance.get(endpoint.url, {
+                headers: {
+                    "x-service-name": endpoint.name
+                }
+            }));
         });
 
         const results: PromiseSettledResult<any>[] = await Promise.allSettled(allPrmoises);
@@ -30,7 +34,7 @@ export default {
         results.forEach(result => {
             if (result.status === 'fulfilled') {
             } else {
-                const serviceName = result.reason.config.data;
+                const serviceName = result.reason.config.headers["x-service-name"];
                 failedServices.push(serviceName.charAt(0).toUpperCase() + serviceName.slice(1));
             }
         });
