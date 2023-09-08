@@ -115,6 +115,36 @@ export default class Theme {
             throw new CommandError(`Error reading ${path} file.!!!`);
         }
     }
+    public static async validateSectionWithDB(available_sections_in_db, available_sections){
+        // validate available section
+        const db_section_names = available_sections_in_db.map(section => section.name)
+        const local_section_names = available_sections.map(section => section.name)
+        const mismatched_sections = _.difference(db_section_names, local_section_names)
+
+        if(mismatched_sections.length > 0){
+            const questions = [
+                {
+                    type: 'confirm',
+                    name: 'proceed',
+                    message: `Certain theme sections are unavailable in your code. Proceeding with the sync may result in potential side effects and issues. Would you like to continue?`,
+                },
+            ];
+
+            const log_section_details = mismatched_sections.map(name => `❌ ${name} section is not present in your code`).join("\n")
+
+            // Show which section is not present and in which page it is set as an preset section.
+            // Ex. ❌ hero_image section used in home page is not available
+            console.log('\n' + chalk.yellow(log_section_details) + '\n');
+
+            await inquirer.prompt(questions).then(async answers => {
+                if (answers.proceed) {
+                    Logger.info('Proceeding without unavailable sections...');
+                } else {
+                    throw new Error(`Please review the sections. Some of the sections that were available in the theme are missing from your code.`)
+                }
+            });
+        }
+    }
 
     public static async selectTheme(config) {
         const themeListOptions = {};
@@ -570,10 +600,15 @@ export default class Theme {
     private static syncReactTheme = async (currentContext: ThemeContextInterface) => {
         try {
             currentContext.domain
-                ? Logger.warn('Syncing Theme to: ' + currentContext.domain)
-                : Logger.warn('Please add domain to context');
+            ? Logger.warn('Syncing Theme to: ' + currentContext.domain)
+            : Logger.warn('Please add domain to context');
             let { data: theme } = await ThemeService.getThemeById(currentContext);
 
+            let available_sections = await Theme.getAvailableReactSectionsForSync();
+            await Theme.validateAvailableSections(available_sections);
+            await Theme.validateSectionWithDB(theme.available_sections, available_sections);
+
+            
             // Clear previosu builds
             Theme.clearPreviousBuild();
 
@@ -612,8 +647,6 @@ export default class Theme {
             Logger.info('Uploading theme assets/images');
             await Theme.assetsImageUploader();
 
-            let available_sections = await Theme.getAvailableReactSectionsForSync();
-            await Theme.validateAvailableSections(available_sections);
 
             Logger.info('Uploading bundle files');
             let pArr = await Theme.uploadReactThemeBundle({ buildPath });
@@ -696,38 +729,9 @@ export default class Theme {
                 throw new CommandError(`Invalid config.json`);
             }
 
-            const available_sections_in_db = theme.available_sections
             let available_sections = await Theme.getAvailableSectionsForSync();
             await Theme.validateAvailableSections(available_sections);
-
-            // validate available section
-            const db_section_names = available_sections_in_db.map(section => section.name)
-            const local_section_names = available_sections.map(section => section.name)
-            const mismatched_sections = _.difference(db_section_names, local_section_names)
-
-            if(mismatched_sections.length > 0){
-                const questions = [
-                    {
-                        type: 'confirm',
-                        name: 'proceed',
-                        message: `Certain theme sections are unavailable in your code. Proceeding with the sync may result in potential side effects and issues. Would you like to continue?`,
-                    },
-                ];
-
-                const log_section_details = mismatched_sections.map(name => `❌ ${name} section is not present in your code`).join("\n")
-
-                // Show which section is not present and in which page it is set as an preset section.
-                // Ex. ❌ hero_image section used in home page is not available
-                console.log('\n' + chalk.yellow(log_section_details) + '\n');
-
-                await inquirer.prompt(questions).then(async answers => {
-                    if (answers.proceed) {
-                        Logger.info('Proceeding without unavailable sections...');
-                    } else {
-                        throw new Error(`Please review the sections. Some of the sections that were available in the theme are missing from your code.`)
-                    }
-                });
-            }
+            await Theme.validateSectionWithDB(theme.available_sections, available_sections);
             
             // Create index.js with section file imports
             await Theme.createSectionsIndexFile(available_sections);
