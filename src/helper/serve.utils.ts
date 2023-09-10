@@ -7,10 +7,10 @@ import express from 'express';
 import _ from 'lodash';
 import { SourceMapConsumer } from 'source-map';
 import {
-    getActiveContext,parseBundleFilename
+	getActiveContext, parseBundleFilename
 } from './utils';
 import urlJoin from 'url-join';
-import { parse as stackTraceParser}  from 'stacktrace-parser';
+import { parse as stackTraceParser } from 'stacktrace-parser';
 import Theme from '../lib/Theme';
 import glob from 'glob';
 import detect from 'detect-port';
@@ -18,7 +18,7 @@ import chalk from 'chalk';
 import UploadService from '../lib/api/services/upload.service';
 import Configstore, { CONFIG_KEYS } from '../lib/Config';
 import { createProxyMiddleware, fixRequestBody } from 'http-proxy-middleware';
-import { addSignatureFn }  from '../lib/api/helper/interceptors';
+import { addSignatureFn } from '../lib/api/helper/interceptors';
 const { transformRequest } = axios.defaults;
 import webpackDevMiddleware from 'webpack-dev-middleware';
 import webpackHotMiddleware from 'webpack-hot-middleware';
@@ -37,7 +37,7 @@ export function reload() {
 }
 
 export function getLocalBaseUrl() {
-	return "https://localhost";
+	return "http://127.0.0.1";
 }
 
 export function getFullLocalUrl(port) {
@@ -57,17 +57,17 @@ function applyProxy(app: any) {
 		cookieDomainRewrite: 'localhost', // rewrite cookies to localhost
 		onProxyReq: fixRequestBody,
 		onError: error => Logger.error(error)
-	  };
+	};
 
-	  // proxy to solve CORS issue
-	  const corsProxy = createProxyMiddleware(options);
-	  app.use(['/service', '/ext'], async (req,res,next) => {
+	// proxy to solve CORS issue
+	const corsProxy = createProxyMiddleware(options);
+	app.use(['/service', '/ext'], async (req, res, next) => {
 		// generating new signature for proxy server
 		req.transformRequest = transformRequest;
-		req.originalUrl = req.originalUrl.startsWith('/service') ? req.originalUrl.replace('/service','/api/service'): req.originalUrl;
+		req.originalUrl = req.originalUrl.startsWith('/service') ? req.originalUrl.replace('/service', '/api/service') : req.originalUrl;
 		req.url = req.originalUrl;
 		// don't send body for GET request
-		if(!_.isEmpty(req.body)){
+		if (!_.isEmpty(req.body)) {
 			req.data = req.body;
 		}
 		req.baseURL = currentDomain;
@@ -80,15 +80,15 @@ function applyProxy(app: any) {
 		req.headers['x-fp-signature'] = config.headers['x-fp-signature'];
 		req.headers['x-fp-date'] = config.headers['x-fp-date'];
 		next();
-	  }, corsProxy);
+	}, corsProxy);
 }
 
 export async function startServer({ domain, host, isSSR, port }) {
 	const currentContext = getActiveContext();
-	const currentDomain = `https://${currentContext.domain}`;
-	const app = require('https-localhost')(getLocalBaseUrl());
-	const certs = await app.getCerts();
-	const server = require('https').createServer(certs, app);
+	// const currentDomain = `https://${currentContext.domain}`;
+	const app = express();
+	// const port = 3000
+	const server = require('http').createServer(app);
 	const io = require('socket.io')(server);
 
 	io.on('connection', function (socket) {
@@ -102,7 +102,9 @@ export async function startServer({ domain, host, isSSR, port }) {
 		const { url } = req;
 		try {
 			if (publicCache[url]) {
-				res.set(publicCache[url].headers);
+				for (const [key, value] of Object.entries(publicCache[url].headers)) {
+					res.header(key, `${value}`);
+				}
 				return res.send(publicCache[url].body);
 			}
 			const networkRes = await axios.get(urlJoin(domain, 'public', url));
@@ -110,8 +112,9 @@ export async function startServer({ domain, host, isSSR, port }) {
 			publicCache[url].body = networkRes.data;
 			publicCache[url].headers = networkRes.headers;
 			res.set(publicCache[url].headers);
+			console.log("HEADERS>>>>>>>>>>", url, ">>>", publicCache[url].headers);
 			return res.send(publicCache[url].body);
-		} catch(e) {
+		} catch (e) {
 			console.log("Error loading file ", url)
 		}
 	});
@@ -122,8 +125,8 @@ export async function startServer({ domain, host, isSSR, port }) {
 
 	// parse application/x-www-form-urlencoded
 	app.use(express.json());
-	  
-    applyProxy(app);
+
+	applyProxy(app);
 
 	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
 	app.get(['/__webpack_hmr', 'manifest.json'], async (req, res, next) => {
@@ -131,7 +134,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 	})
 	app.get('/*', async (req, res) => {
 		const BUNDLE_PATH = path.join(process.cwd(), path.join('.fdk', 'dist', 'themeBundle.common.js'));
-		if(!fs.existsSync(BUNDLE_PATH)) return res.sendFile(path.join(__dirname,'../../','/dist/helper','/loader.html'));
+		if (!fs.existsSync(BUNDLE_PATH)) return res.sendFile(path.join(__dirname, '../../', '/dist/helper', '/loader.html'));
 		if (req.originalUrl == '/favicon.ico' || req.originalUrl == '/.webp') {
 			return res.status(404).send('Not found');
 		}
@@ -140,15 +143,15 @@ export async function startServer({ domain, host, isSSR, port }) {
 		jetfireUrl.searchParams.set('themeId', currentContext.theme_id);
 		let themeUrl = "";
 		if (isSSR) {
-            const BUNDLE_PATH = path.join(process.cwd(), '/.fdk/dist/themeBundle.common.js');
-            const User = Configstore.get(CONFIG_KEYS.AUTH_TOKEN);
-            themeUrl = (await UploadService.uploadFile(BUNDLE_PATH, 'fdk-cli-dev-files', User.current_user._id))
-                .start.cdn.url;
+			const BUNDLE_PATH = path.join(process.cwd(), '/.fdk/dist/themeBundle.common.js');
+			const User = Configstore.get(CONFIG_KEYS.AUTH_TOKEN);
+			themeUrl = (await UploadService.uploadFile(BUNDLE_PATH, 'fdk-cli-dev-files', User.current_user._id))
+				.start.cdn.url;
 		} else {
 			jetfireUrl.searchParams.set('__csr', 'true');
 		}
 		try {
-			
+
 			// Bundle directly passed on with POST request body.
 			const { data: html } = await axios({
 				method: 'POST',
@@ -240,7 +243,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 			if (err) {
 				return reject(err);
 			}
-			Logger.info(`Starting starter at port -- ${port} in ${isSSR? 'SSR': 'Non-SSR'} mode`);
+			Logger.info(`Starting starter at port -- ${port} in ${isSSR ? 'SSR' : 'Non-SSR'} mode`);
 			Logger.info(`************* Using Debugging build`);
 			resolve(true);
 		});
@@ -249,9 +252,8 @@ export async function startServer({ domain, host, isSSR, port }) {
 
 export async function startReactServer({ domain, host, isHMREnabled, port }) {
 	const currentContext = getActiveContext();
-	const app = require('https-localhost')(getLocalBaseUrl());
-	const certs = await app.getCerts();
-	const server = require('https').createServer(certs, app);
+	const app = express();
+	const server = require('http').createServer(app);
 	const io = require('socket.io')(server);
 
 	io.on('connection', function (socket) {
@@ -261,40 +263,40 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 		});
 	});
 
-	if(isHMREnabled){
+	if (isHMREnabled) {
 
-	let webpackConfigFromTheme = {};
-	const themeWebpackConfigPath = path.join(process.cwd(), Theme.REACT_CLI_CONFIG_PATH);
+		let webpackConfigFromTheme = {};
+		const themeWebpackConfigPath = path.join(process.cwd(), Theme.REACT_CLI_CONFIG_PATH);
 
-	if (fs.existsSync(themeWebpackConfigPath)) {
-		({ default: webpackConfigFromTheme }  = await import(themeWebpackConfigPath));
-	}
+		if (fs.existsSync(themeWebpackConfigPath)) {
+			({ default: webpackConfigFromTheme } = await import(themeWebpackConfigPath));
+		}
 
-	const ctx = {
-		buildPath: path.resolve(process.cwd(), Theme.BUILD_FOLDER),
-		NODE_ENV: "development",
-		localThemePort: port,
-		context: process.cwd(),
-		isHMREnabled
-	}
-	const [ baseWebpackConfig ] = createBaseWebpackConfig(ctx, webpackConfigFromTheme);
+		const ctx = {
+			buildPath: path.resolve(process.cwd(), Theme.BUILD_FOLDER),
+			NODE_ENV: "development",
+			localThemePort: port,
+			context: process.cwd(),
+			isHMREnabled
+		}
+		const [baseWebpackConfig] = createBaseWebpackConfig(ctx, webpackConfigFromTheme);
 
-	const compiler = webpack(baseWebpackConfig);
+		const compiler = webpack(baseWebpackConfig);
 
-	app.use(webpackDevMiddleware(compiler, {
-		publicPath: baseWebpackConfig.output.publicPath,
-		serverSideRender: true,
-		writeToDisk: true,
-		stats: "none",
-	}));
+		app.use(webpackDevMiddleware(compiler, {
+			publicPath: baseWebpackConfig.output.publicPath,
+			serverSideRender: true,
+			writeToDisk: true,
+			stats: "none",
+		}));
 
-	app.use(webpackHotMiddleware(compiler));
+		app.use(webpackHotMiddleware(compiler));
 	}
 	app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
 
 	app.use((request, response, next) => {
 		if (request.url.indexOf('.hot-update.json') !== -1) {
-			return response.json({"c":["themeBundle"],"r":[],"m":[]});
+			return response.json({ "c": ["themeBundle"], "r": [], "m": [] });
 		}
 		next();
 	})
@@ -312,7 +314,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 			publicCache[url].headers = networkRes.headers;
 			res.set(publicCache[url].headers);
 			return res.send(publicCache[url].body);
-		} catch(e) {
+		} catch (e) {
 			console.log("Error loading file ", url, e);
 			return res.status(500).send(e.message);
 		}
@@ -333,15 +335,15 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 			return res.status(404).send('Not found');
 		}
 		// While build is not complete
-		if(!fs.existsSync(path.join(BUNDLE_DIR, 'themeBundle.umd.js'))) {
-			return res.sendFile(path.join(__dirname,'../../','/dist/helper','/loader.html'));
-		} 
+		if (!fs.existsSync(path.join(BUNDLE_DIR, 'themeBundle.umd.js'))) {
+			return res.sendFile(path.join(__dirname, '../../', '/dist/helper', '/loader.html'));
+		}
 		const skyfireUrl = new URL(urlJoin(domain, req.originalUrl));
 		const reqChunkUrl = new URL(urlJoin(domain, '__required_chunks'));
 		skyfireUrl.searchParams.set('themeId', currentContext.theme_id);
 		reqChunkUrl.searchParams.set('themeId', currentContext.theme_id);
 		reqChunkUrl.searchParams.set('url', req.originalUrl);
-		const response = await axios.get(reqChunkUrl.toString()); 
+		const response = await axios.get(reqChunkUrl.toString());
 		const requiredFiles = [
 			'themeBundle',
 			...(response.data || [])
@@ -359,7 +361,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 				['js', 'css'].includes(extension) &&
 				requiredFiles.indexOf(componentName) !== -1 &&
 				fileName.indexOf('hot-update') === -1
-				) {
+			) {
 
 				const promise = UploadService.uploadFile(path.join(BUNDLE_DIR, fileName), 'fdk-cli-dev-files', User.current_user._id).then(response => {
 					const url = response.complete.cdn.url;
@@ -376,17 +378,17 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 		await Promise.all(promises);
 
 
-		const {data: html} = await axios.post(
-			skyfireUrl.toString(), 
+		const { data: html } = await axios.post(
+			skyfireUrl.toString(),
 			{
 				themeURLs,
 				cliMeta: {
 					port,
 				}
 			}
-			).catch((error) => {
+		).catch((error) => {
 			console.log(error);
-			return { data: error}
+			return { data: error }
 		});
 		let $ = cheerio.load(html);
 		$('head').prepend(`
@@ -394,9 +396,9 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 				<script>
 				var socket = io();
 				socket.on('reload',function(){
-					${isHMREnabled 
-						? 
-						`
+					${isHMREnabled
+				?
+				`
 						try {
 							window.APP_DATA.themeBundleUMDURL = '/themeBundle.umd.js';
 							window.APP_DATA.isServerRendered = false;
@@ -408,8 +410,8 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 							}
 							window.loadApp().catch(console.log);
 						} catch(e) { console.log( e );}
-					` : 
-					`
+					` :
+				`
 						window.location.reload();
 					`}
 					

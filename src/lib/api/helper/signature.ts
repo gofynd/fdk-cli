@@ -46,7 +46,7 @@ class RequestSigner {
       request = url.parse(request);
     }
 
-    let headers = request.headers = (request.headers || { });
+    let headers = request.headers = (request.headers || {});
     this.request = request;
 
     if (!request.method && request.body) {
@@ -75,7 +75,7 @@ class RequestSigner {
 
     if (request.signQuery) {
 
-      this.parsedPath.query = query = this.parsedPath.query || { };
+      this.parsedPath.query = query = this.parsedPath.query || {};
 
       if (query['x-fp-date']) {
         this.datetime = query['x-fp-date'];
@@ -127,7 +127,6 @@ class RequestSigner {
   signature() {
     let kCredentials = "1234567";
     let strTosign = this.stringToSign();
-    // console.log(strTosign);
     return `v1.1:${hmac(kCredentials, strTosign, 'hex')}`;
   }
 
@@ -160,7 +159,7 @@ class RequestSigner {
         obj[encodeRfc3986Full(key)] = !Array.isArray(query[key]) ? query[key] :
           (firstValOnly ? query[key][0] : query[key]);
         return obj;
-      }, { });
+      }, {});
       let encodedQueryPieces = [];
       Object.keys(reducedQuery).sort().forEach(function (key) {
         if (!Array.isArray(reducedQuery[key])) {

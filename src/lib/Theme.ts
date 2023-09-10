@@ -76,20 +76,20 @@ export default class Theme {
 
     public static getSettingsDataPath() {
         let settings_path = path.join(process.cwd(), 'theme', 'config', 'settings_data.json')
-        if (fs.existsSync(settings_path)) 
+        if (fs.existsSync(settings_path))
             return settings_path
         settings_path = path.join(process.cwd(), 'config', 'settings_data.json')
-        if (fs.existsSync(settings_path)) 
+        if (fs.existsSync(settings_path))
             return settings_path
         throw "Settings path not exist";
     }
 
     public static getSettingsSchemaPath() {
         let settings_schema_path = path.join(process.cwd(), 'theme', 'config', 'settings_schema.json')
-        if (fs.existsSync(settings_schema_path)) 
+        if (fs.existsSync(settings_schema_path))
             return settings_schema_path
         settings_schema_path = path.join(process.cwd(), 'config', 'settings_schema.json')
-        if (fs.existsSync(settings_schema_path)) 
+        if (fs.existsSync(settings_schema_path))
             return settings_schema_path
         throw "Settings schema path not exist";
     }
@@ -315,9 +315,9 @@ export default class Theme {
             await Theme.syncVueTheme(currentContext, true);
             var b5 = Box(
                 chalk.green.bold('DONE ') +
-                    chalk.green.bold('Project ready\n') +
-                    chalk.yellowBright.bold('NOTE ') +
-                    chalk.green.bold('cd ' + targetDirectory + ' to continue ...'),
+                chalk.green.bold('Project ready\n') +
+                chalk.yellowBright.bold('NOTE ') +
+                chalk.green.bold('cd ' + targetDirectory + ' to continue ...'),
                 {
                     padding: 1,
                     margin: 1,
@@ -397,9 +397,9 @@ export default class Theme {
             await Theme.syncReactTheme(currentContext);
             var b5 = Box(
                 chalk.green.bold('DONE ') +
-                    chalk.green.bold('Project ready\n') +
-                    chalk.yellowBright.bold('NOTE ') +
-                    chalk.green.bold('cd ' + targetDirectory + ' to continue ...'),
+                chalk.green.bold('Project ready\n') +
+                chalk.yellowBright.bold('NOTE ') +
+                chalk.green.bold('cd ' + targetDirectory + ' to continue ...'),
                 {
                     padding: 1,
                     margin: 1,
@@ -540,11 +540,11 @@ export default class Theme {
             if (!fs.existsSync(path.join(process.cwd(), THEME_ENTRY_FILE))) {
                 Logger.info("Restructuring folder structure");
                 let restructureSpinner = new Spinner("Restructuring folder structure");
-                try{
+                try {
                     restructureSpinner.start();
                     this.restructTheme();
                     restructureSpinner.succeed();
-                }catch(err){
+                } catch (err) {
                     spinner.fail();
                     Logger.error("Failed restructuring: Please check your folder structure");
                     console.log(chalk.red("Please check your folder structure"));
@@ -642,23 +642,23 @@ export default class Theme {
             Logger.info('Theme syncing DONE');
             var b5 = Box(
                 chalk.green.bold('Your Theme was pushed successfully\n') +
-                    chalk.white('\n') +
-                    chalk.white('View your theme:\n') +
-                    chalk.green(
-                        terminalLink(
-                            '',
-                            `https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true`
-                        )
-                    ) +
-                    chalk.white('\n') +
-                    chalk.white('\n') +
-                    chalk.white('Customize this theme in Theme Editor:\n') +
-                    chalk.green(
-                        terminalLink(
-                            '',
-                            `${getPlatformUrls().platform}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`
-                        )
-                    ),
+                chalk.white('\n') +
+                chalk.white('View your theme:\n') +
+                chalk.green(
+                    terminalLink(
+                        '',
+                        `https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true`
+                    )
+                ) +
+                chalk.white('\n') +
+                chalk.white('\n') +
+                chalk.white('Customize this theme in Theme Editor:\n') +
+                chalk.green(
+                    terminalLink(
+                        '',
+                        `${getPlatformUrls().platform}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`
+                    )
+                ),
                 {
                     padding: 1,
                     margin: 1,
@@ -759,23 +759,23 @@ export default class Theme {
             Logger.info('Theme syncing DONE');
             var b5 = Box(
                 chalk.green.bold('Your Theme was pushed successfully\n') +
-                    chalk.white('\n') +
-                    chalk.white('View your theme:\n') +
-                    chalk.green(
-                        terminalLink(
-                            '',
-                            `https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true`
-                        )
-                    ) +
-                    chalk.white('\n') +
-                    chalk.white('\n') +
-                    chalk.white('Customize this theme in Theme Editor:\n') +
-                    chalk.green(
-                        terminalLink(
-                            '',
-                            `${getPlatformUrls().platform}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`
-                        )
-                    ),
+                chalk.white('\n') +
+                chalk.white('View your theme:\n') +
+                chalk.green(
+                    terminalLink(
+                        '',
+                        `https://${currentContext.domain}/?themeId=${currentContext.theme_id}&preview=true`
+                    )
+                ) +
+                chalk.white('\n') +
+                chalk.white('\n') +
+                chalk.white('Customize this theme in Theme Editor:\n') +
+                chalk.green(
+                    terminalLink(
+                        '',
+                        `${getPlatformUrls().platform}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`
+                    )
+                ),
                 {
                     padding: 1,
                     margin: 1,
@@ -813,15 +813,15 @@ export default class Theme {
                 typeof options['ssr'] === 'boolean'
                     ? options['ssr']
                     : options['ssr'] == 'true'
-                    ? true
-                    : false;
+                        ? true
+                        : false;
             const DEFAULT_PORT = 5001;
             const serverPort =
                 typeof options['port'] === 'string'
                     ? parseInt(options['port'])
                     : typeof options['port'] === 'number'
-                    ? options['port']
-                    : DEFAULT_PORT;
+                        ? options['port']
+                        : DEFAULT_PORT;
             const port = await getPort(serverPort);
             if (port !== serverPort)
                 Logger.warn(
@@ -831,9 +831,12 @@ export default class Theme {
                 );
             !isSSR ? Logger.warn('Disabling SSR') : null;
             let { data: appInfo } = await ConfigurationService.getApplicationDetails();
+
             let domain = Array.isArray(appInfo.domains)
                 ? `https://${appInfo.domains.filter(d => d.is_primary)[0].name}`
                 : `https://${appInfo.domain.name}`;
+            // Todo: remove this, added for locally testing 
+            domain = "http://localdev.fyndx5.de:8087"
             let host = getBaseURL();
             // initial build
             Logger.info(`Locally building`);
@@ -872,15 +875,15 @@ export default class Theme {
                 typeof options['hmr'] === 'boolean'
                     ? options['hmr']
                     : options['hmr'] == 'true'
-                    ? true
-                    : false;
+                        ? true
+                        : false;
             const DEFAULT_PORT = 5001;
             const serverPort =
                 typeof options['port'] === 'string'
                     ? parseInt(options['port'])
                     : typeof options['port'] === 'number'
-                    ? options['port']
-                    : DEFAULT_PORT;
+                        ? options['port']
+                        : DEFAULT_PORT;
             const port = await getPort(serverPort);
 
             if (port !== serverPort)
@@ -1021,7 +1024,7 @@ export default class Theme {
             sectionsFiles = fs
                 .readdirSync(path.join(Theme.TEMPLATE_DIRECTORY, '/sections'))
                 .filter(o => o != 'index.js');
-        } catch (err) {}
+        } catch (err) { }
         let settings = sectionsFiles.map(f => {
             return Theme.extractSettingsFromFile(`${Theme.TEMPLATE_DIRECTORY}/theme/sections/${f}`);
         });
@@ -1137,14 +1140,14 @@ export default class Theme {
             function exportComponents(components) {
             return [
                 ${available_sections
-                    .map((s, i) => {
-                        return JSON.stringify({
-                            name: s.name,
-                            label: s.label,
-                            component: '',
-                        }).replace('"component":""', `"component": components[${i}].default`);
-                    })
-                    .join(',\n')}
+                .map((s, i) => {
+                    return JSON.stringify({
+                        name: s.name,
+                        label: s.label,
+                        component: '',
+                    }).replace('"component":""', `"component": components[${i}].default`);
+                })
+                .join(',\n')}
             ];
             }
             export default exportComponents([${fileNames
@@ -1168,9 +1171,9 @@ export default class Theme {
 
         const exportingTemplate = `export default {
             ${fileNames.map(fileName => {
-                const [SectionName, sectionKey] = transformSectionFileName(fileName);
-                return `'${sectionKey}': { ...${SectionName}, },`;
-            }).join(`
+            const [SectionName, sectionKey] = transformSectionFileName(fileName);
+            return `'${sectionKey}': { ...${SectionName}, },`;
+        }).join(`
             `)}
         }`;
 
@@ -1511,7 +1514,7 @@ export default class Theme {
             theme.assets.common_js = theme.assets.commonJs || {};
             theme.assets.common_js.link = commonJsUrl;
             theme.assets.css = theme.assets.css || {};
-            if(theme.theme_type === 'vue2') {
+            if (theme.theme_type === 'vue2') {
                 theme.assets.css.links = cssUrls.filter(x => x.endsWith('_themeBundle.css'));
             } else {
                 theme.assets.css.links = cssUrls; // theme_type = 'react'
@@ -1779,7 +1782,7 @@ export default class Theme {
             const systemPagesDB = allPages.filter(x => x.type == 'system');
             const customPagesDB = allPages.filter(x => x.type == 'custom');
             const pagesToSave = [];
-    
+
             // extract system page level settings schema
             let systemPages = fs
                 .readdirSync(path.join(process.cwd(), 'theme', 'pages'))
@@ -1816,38 +1819,38 @@ export default class Theme {
                     ) ||
                     [] ||
                     [];
-    
+
                 systemPage.type = 'system';
                 pagesToSave.push(systemPage);
             });
-    
+
             // remove .jsx from file name
             const allLocalSystemPageNames = systemPages.map(name =>
                 name.replace('.jsx', '')
             );
-    
+
             // Delete system pages that were available before sync but now deleted
             const systemPagesToDelete = systemPagesDB.filter(
                 x => !allLocalSystemPageNames.includes(x.value)
             );
-    
+
             const allowedDefaultProps = {};
-    
+
             if (systemPagesToDelete.length > 0) {
                 // Reseting props in system pages
-    
+
                 // Get default values of all deleted system pages
                 const default_props_arr = await Promise.all(
                     systemPagesToDelete.map(page => ThemeService.getDefaultPageDetails(page.value))
                 );
-    
+
                 const default_props = {};
-    
+
                 // Create object with page value as a `key` and page details as `value`
                 default_props_arr.forEach(res => {
                     default_props[res.data.value] = res.data;
                 });
-    
+
                 /**
                  * Update deleted page props with default props. Also filter out
                  * default props from existing props to keep current values intact
@@ -1858,7 +1861,7 @@ export default class Theme {
                         const { data: deletedPage } = await ThemeService.getAvailablePage(
                             page.value
                         );
-    
+
                         // default page values for a system page
                         const defaultPage = default_props[page.value];
                         if (defaultPage) {
@@ -1879,18 +1882,18 @@ export default class Theme {
                     })
                 );
             }
-    
+
             const sectionPath = path.resolve(
                 process.cwd(),
                 Theme.BUILD_FOLDER,
                 'custom-templates/custom-templates.commonjs.js'
             );
-    
+
             const customTemplates = require(sectionPath)?.customTemplates?.default;
             if (!customTemplates) {
                 Logger.error('Custom Templates Not Available');
             }
-    
+
             const customFiles = {};
             const customRoutes = (ctTemplates, parentKey = null) => {
                 for (let key in ctTemplates) {
@@ -1906,7 +1909,7 @@ export default class Theme {
                         text: pageNameModifier(key),
                         path: routerPath,
                     };
-    
+
                     if (
                         ctTemplates[key].children &&
                         Object.keys(ctTemplates[key].children).length
@@ -2319,11 +2322,11 @@ export default class Theme {
         if (!fs.existsSync(destinationFolder)) {
             fs.mkdirSync(destinationFolder, { recursive: true });
         }
-        
+
         const outer_items = ["package.json", "theme", "babel.config.js", "fdk.config.js", ".fdk", ".git", ".gitignore", ".husky"]
         const moved_files = []
         files.forEach((fileOrFolder) => {
-            if(outer_items.includes(fileOrFolder)) return;
+            if (outer_items.includes(fileOrFolder)) return;
             const sourcePath = path.join(sourceFolder, fileOrFolder);
             const destinationPath = path.join(destinationFolder, fileOrFolder);
             // Move the file or folder to the destination directory
@@ -2338,7 +2341,7 @@ export default class Theme {
             const babelContent = fs.readFileSync(path.join(Theme.TEMPLATE_DIRECTORY, 'babel.config.js'));
             fs.writeFileSync(babelFilePath, babelContent);
             Logger.info("✔ babel.config.js added");
-            
+
         }
 
         // Check if fdk config exist
@@ -2348,7 +2351,7 @@ export default class Theme {
             Logger.info("✔ fdk.config.js added")
         }
     }
-    
+
     public static generateThemeZip = async () => {
         // Generate production build so that we can get assets and available sections in config file while creating zip
         const activeContext = getActiveContext();

@@ -20,151 +20,151 @@ const baseConfig = (ctx) => {
 	const assetNormalizedBasePath = assetBasePath[assetBasePath.length - 1] === '/' ? assetBasePath : assetBasePath + '/';
 	const imageCDNNormalizedBasePath = imageCdnUrl[imageCdnUrl.length - 1] === '/' ? imageCdnUrl : imageCdnUrl + '/';
 	const isLocal = NODE_ENV === 'development';
-    const localBasePath = `https://localhost:${localThemePort}/`
-    const localImageBasePath = `https://localhost:${localThemePort}/assets/images/`
+	const localBasePath = `http://127.0.0.1:${localThemePort}/`
+	const localImageBasePath = `http://127.0.0.1:${localThemePort}/assets/images/`
 	return {
-			mode: isLocal ? 'development' : 'production',
-			entry: { 
-				themeBundle: (isLocal && isHMREnabled) ? 
-					[ require.resolve('webpack-hot-middleware/client'), path.resolve(context, 'theme/index.jsx') ] : 
-					[ path.resolve(context, 'theme/index.jsx') ]
-			},
-			devtool: isLocal ? 'source-map' : false,
-			optimization: {
-				minimizer: [
-				  new TerserPlugin({
+		mode: isLocal ? 'development' : 'production',
+		entry: {
+			themeBundle: (isLocal && isHMREnabled) ?
+				[require.resolve('webpack-hot-middleware/client'), path.resolve(context, 'theme/index.jsx')] :
+				[path.resolve(context, 'theme/index.jsx')]
+		},
+		devtool: isLocal ? 'source-map' : false,
+		optimization: {
+			minimizer: [
+				new TerserPlugin({
 					terserOptions: {
-					  keep_fnames: true,
-					  keep_classnames: true,
+						keep_fnames: true,
+						keep_classnames: true,
 					},
-				  }),
-				],
-				splitChunks: {
-						chunks() {
-							return false;
-					  	},
-				  },
-			  },
-			resolve: {
-				extensions: ['', '.js', '.jsx'],
-			},
-			module: {
-				rules: [
-					{
-						test: /\.(jsx|js)$/,
-						include: path.resolve(context, 'theme'),
-						exclude: /node_modules/,
-						use: [
-							{
-								loader: 'babel-loader',
-								options: {
-									presets: [
-										[
-											'@babel/preset-env',
-											{
-												targets: 'defaults',
-											},
-										],
-										'@babel/preset-react',
-									],
-									plugins: [
-										...((isLocal && isHMREnabled) ? [require.resolve('react-refresh/babel')] : []),
-									],
-								},
-							},
-						],
-					},
-					{
-						test: /\.css$/i,
-						use: [MiniCssExtractPlugin.loader, {
-							loader: 'css-loader',
-							options: {
-								modules: {
-									localIdentName: isLocal ? '[path][name]__[local]--[hash:base64:5]' : '[hash:base64:5]',
-								},
-
-							},
-						}],
-					},
-					{
-						test: /\.less$/i,
-						use: [
-						  // compiles Less to CSS
-						  MiniCssExtractPlugin.loader,
-						  {
-							loader: 'css-loader',
-							options: {
-								modules: {
-									localIdentName: isLocal ? '[path][name]__[local]--[hash:base64:5]' : '[hash:base64:5]',
-									},
-								},
-							},
-						],
-					  },
-					  {
-						test: /\.scss$/i,
-						use: [
-						  // compiles scss to CSS
-						  MiniCssExtractPlugin.loader,
-						  {
-							loader: 'css-loader',
-							options: {
-								modules: {
-									localIdentName: isLocal ? '[path][name]__[local]--[hash:base64:5]' : '[hash:base64:5]',
-									},
-								},
-							},
-						],
-					  },
-					{
-						test: /\.(png|jpg|jpeg)$/i,
-						type: 'asset/resource',
-						generator: {
-							publicPath: isLocal ? localImageBasePath : imageCDNNormalizedBasePath,
-							outputPath: 'assets/images/'
-						  }
-					}
-				],
-			},
-			externals: {
-				react: 'React',
-				'react-router-dom': 'ReactRouterDOM',
-				'fdk-core/components': 'sharedComponentLibrary',
-				'fdk-core/utils': 'sharedUtilsLibrary',
-				'react-helmet-async': 'helmetModule',
-				'styled-components': 'styledComponents',
-			},
-			output: {
-				path: buildPath,
-				filename: isLocal ? 'themeBundle.umd.js' : 'themeBundle.[contenthash].umd.js',
-				publicPath: isLocal ? localBasePath : assetNormalizedBasePath,
-				chunkFilename: isLocal ? '[name].themeBundle.umd.js' : '[name].themeBundle.[contenthash].umd.js',
-				library: {
-					name: 'themeBundle',
-					type: 'umd',
-					umdNamedDefine: true,
-				},
-				globalObject: 'typeof self !=="undefined" ? self : this',
-				// [ext] has "." as prefix
-				assetModuleFilename: 'images.[contenthash][ext]'
-			},
-			plugins: [
-				new MiniCssExtractPlugin({
-					filename: isLocal ? '[name].css' : '[name].[contenthash].css',
-				}),
-				...((isLocal && isHMREnabled) ? [new webpack.HotModuleReplacementPlugin()] : []),
-				...((isLocal && isHMREnabled) ? [new ReactRefreshWebpackPlugin({
-					overlay: false,
-				})] : []),
-				new webpack.ProvidePlugin({
-					// you must "npm install buffer" to use this.
-					Buffer: ['buffer', 'Buffer'],
 				}),
 			],
-		}
+			splitChunks: {
+				chunks() {
+					return false;
+				},
+			},
+		},
+		resolve: {
+			extensions: ['', '.js', '.jsx'],
+		},
+		module: {
+			rules: [
+				{
+					test: /\.(jsx|js)$/,
+					include: path.resolve(context, 'theme'),
+					exclude: /node_modules/,
+					use: [
+						{
+							loader: 'babel-loader',
+							options: {
+								presets: [
+									[
+										'@babel/preset-env',
+										{
+											targets: 'defaults',
+										},
+									],
+									'@babel/preset-react',
+								],
+								plugins: [
+									...((isLocal && isHMREnabled) ? [require.resolve('react-refresh/babel')] : []),
+								],
+							},
+						},
+					],
+				},
+				{
+					test: /\.css$/i,
+					use: [MiniCssExtractPlugin.loader, {
+						loader: 'css-loader',
+						options: {
+							modules: {
+								localIdentName: isLocal ? '[path][name]__[local]--[hash:base64:5]' : '[hash:base64:5]',
+							},
+
+						},
+					}],
+				},
+				{
+					test: /\.less$/i,
+					use: [
+						// compiles Less to CSS
+						MiniCssExtractPlugin.loader,
+						{
+							loader: 'css-loader',
+							options: {
+								modules: {
+									localIdentName: isLocal ? '[path][name]__[local]--[hash:base64:5]' : '[hash:base64:5]',
+								},
+							},
+						},
+					],
+				},
+				{
+					test: /\.scss$/i,
+					use: [
+						// compiles scss to CSS
+						MiniCssExtractPlugin.loader,
+						{
+							loader: 'css-loader',
+							options: {
+								modules: {
+									localIdentName: isLocal ? '[path][name]__[local]--[hash:base64:5]' : '[hash:base64:5]',
+								},
+							},
+						},
+					],
+				},
+				{
+					test: /\.(png|jpg|jpeg)$/i,
+					type: 'asset/resource',
+					generator: {
+						publicPath: isLocal ? localImageBasePath : imageCDNNormalizedBasePath,
+						outputPath: 'assets/images/'
+					}
+				}
+			],
+		},
+		externals: {
+			react: 'React',
+			'react-router-dom': 'ReactRouterDOM',
+			'fdk-core/components': 'sharedComponentLibrary',
+			'fdk-core/utils': 'sharedUtilsLibrary',
+			'react-helmet-async': 'helmetModule',
+			'styled-components': 'styledComponents',
+		},
+		output: {
+			path: buildPath,
+			filename: isLocal ? 'themeBundle.umd.js' : 'themeBundle.[contenthash].umd.js',
+			publicPath: isLocal ? localBasePath : assetNormalizedBasePath,
+			chunkFilename: isLocal ? '[name].themeBundle.umd.js' : '[name].themeBundle.[contenthash].umd.js',
+			library: {
+				name: 'themeBundle',
+				type: 'umd',
+				umdNamedDefine: true,
+			},
+			globalObject: 'typeof self !=="undefined" ? self : this',
+			// [ext] has "." as prefix
+			assetModuleFilename: 'images.[contenthash][ext]'
+		},
+		plugins: [
+			new MiniCssExtractPlugin({
+				filename: isLocal ? '[name].css' : '[name].[contenthash].css',
+			}),
+			...((isLocal && isHMREnabled) ? [new webpack.HotModuleReplacementPlugin()] : []),
+			...((isLocal && isHMREnabled) ? [new ReactRefreshWebpackPlugin({
+				overlay: false,
+			})] : []),
+			new webpack.ProvidePlugin({
+				// you must "npm install buffer" to use this.
+				Buffer: ['buffer', 'Buffer'],
+			}),
+		],
+	}
 };
 
-const baseSectionConfig = ({ buildPath, context}) => {
+const baseSectionConfig = ({ buildPath, context }) => {
 	return {
 		mode: 'production',
 		entry: path.resolve(context, 'theme/sections/index.js'),
@@ -197,7 +197,7 @@ const baseSectionConfig = ({ buildPath, context}) => {
 				{
 					test: /\.less$/i,
 					use: ['css-loader'],
-				  },
+				},
 			],
 		},
 		resolve: {
@@ -223,7 +223,7 @@ const baseSectionConfig = ({ buildPath, context}) => {
 		plugins: [],
 	}
 }
-const baseCustomTemplateConfig = ({ buildPath, context}) => {
+const baseCustomTemplateConfig = ({ buildPath, context }) => {
 	return {
 		mode: 'production',
 		entry: path.resolve(context, 'theme/custom-templates/index.jsx'),
@@ -256,7 +256,7 @@ const baseCustomTemplateConfig = ({ buildPath, context}) => {
 				{
 					test: /\.less$/i,
 					use: ['css-loader'],
-				  },
+				},
 			],
 		},
 		resolve: {
@@ -290,30 +290,30 @@ export default (ctx, extendedWebpackConfig): Configuration[] => {
 
 	const mergedSectionConfig = mergeWithRules({
 		module: {
-		  rules: {
-			test: "match",
-			use: "append",
-		  },
+			rules: {
+				test: "match",
+				use: "append",
+			},
 		},
-	  })(sectionBaseConfig, extendedWebpackConfig);
+	})(sectionBaseConfig, extendedWebpackConfig);
 
 	const mergedBaseConfig = mergeWithRules({
 		module: {
-		  rules: {
-			test: "match",
-			use: "append",
-		  },
+			rules: {
+				test: "match",
+				use: "append",
+			},
 		},
-	  })(baseWebpackConfig, extendedWebpackConfig);
+	})(baseWebpackConfig, extendedWebpackConfig);
 
 	const mergedCustomTemplateConfig = mergeWithRules({
 		module: {
-		  rules: {
-			test: "match",
-			use: "append",
-		  },
+			rules: {
+				test: "match",
+				use: "append",
+			},
 		},
-	  })(customTemplateConfig, extendedWebpackConfig);
+	})(customTemplateConfig, extendedWebpackConfig);
 
 	return [
 		mergedBaseConfig,

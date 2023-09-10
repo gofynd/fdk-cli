@@ -10,8 +10,8 @@ const port = 7071;
 import chalk from 'chalk';
 import { AVAILABLE_ENVS } from './Env';
 import ThemeService from './api/services/theme.service';
-function getLocalBaseUrl(isTesting = false) {
-    return `http${isTesting ? '' : 's'}://localhost`;
+function getLocalBaseUrl() {
+    return `http://127.0.0.1`;
 }
 async function checkTokenExpired(auth_token) {
     const { expiry_time } = auth_token;
@@ -23,13 +23,8 @@ async function checkTokenExpired(auth_token) {
     }
 }
 
-export const getApp = async ({ isTesting = false }) => {
-    const app = require('https-localhost')(getLocalBaseUrl(isTesting));
-    let certs = null;
-
-    if (!isTesting) {
-        certs = await app.getCerts();
-    }
+export const getApp = async () => {
+    const app = express();
 
     app.use(cors());
     app.use(express.json());
@@ -50,16 +45,14 @@ export const getApp = async ({ isTesting = false }) => {
         }
     });
 
-    return { app, certs };
+    return { app };
 };
 
-export const startServer = async ({ isTesting = false }) => {
+export const startServer = async () => {
     if (Auth.server) return Auth.server;
 
-    const { app, certs } = await getApp({ isTesting });
-    const serverIn = isTesting
-        ? require('http').createServer(app)
-        : require('https').createServer(certs, app);
+    const { app } = await getApp();
+    const serverIn = require('http').createServer(app);
     Auth.server = serverIn.listen(port, err => {
         if (err) console.log(err);
     });
@@ -74,12 +67,12 @@ async function checkVersionCompatibility() {
 export default class Auth {
     static server = null;
     static isOrganizationChange = false;
-    constructor() {}
+    constructor() { }
     public static async login() {
         await checkVersionCompatibility();
         Logger.info(chalk.green('Current env: ', ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)));
         const isLoggedIn = await Auth.isAlreadyLoggedIn();
-        await startServer({});
+        await startServer();
         if (isLoggedIn) {
             const questions = [
                 {
@@ -102,15 +95,15 @@ export default class Auth {
         const env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
         try {
             let domain = null;
-            if(AVAILABLE_ENVS[env] ){
+            if (AVAILABLE_ENVS[env]) {
                 let partnerDomain = AVAILABLE_ENVS[env].replace("api", "partners")
                 domain = `https://${partnerDomain}`;
             }
             else {
                 let partnerDomain = env.replace("api", "partners")
-                domain =`https://${partnerDomain}`
+                domain = `https://${partnerDomain}`
             }
-            if(Auth.isOrganizationChange || !isLoggedIn){
+            if (Auth.isOrganizationChange || !isLoggedIn) {
                 await open(
                     `${domain}/organizations/?fdk-cli=true&callback=${getLocalBaseUrl()}:${port}`
                 );
@@ -161,6 +154,6 @@ export default class Auth {
         } else return false;
     };
     static stopSever = async () => {
-        Auth.server.close(() => {});
+        Auth.server.close(() => { });
     };
 }
