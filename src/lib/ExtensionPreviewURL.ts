@@ -7,7 +7,7 @@ import inquirer from "inquirer";
 
 import Debug from "./Debug";
 import Partner from "./Partner";
-import { getBaseURL } from "./api/services/url";
+import { getPlatformUrls } from "./api/services/url";
 import configStore, { CONFIG_KEYS } from "./Config";
 import ExtensionLaunchURL from "./ExtensionLaunchURL";
 import ExtensionService from "./api/services/extension.service";
@@ -91,7 +91,7 @@ export default class ExtensionPreviewURL {
   }
 
   private getPreviewURL() {
-    let baseURL = getBaseURL().replace('api', 'platform');
+    let baseURL = getPlatformUrls().platform;
     return urljoin(baseURL, `/company/${this.options.companyId}`, `/extensions/${this.options.apiKey}`);
   }
 
@@ -119,7 +119,7 @@ export default class ExtensionPreviewURL {
       ))
 
       console.log(chalk.yellowBright(
-        `Please create a development account from ${getBaseURL().replace('api', 'partners')} and try again`
+        `Please create a development account from ${getPlatformUrls().partners} and try again`
       ))
 
       throw new CommandError(

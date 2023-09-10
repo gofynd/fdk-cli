@@ -37,15 +37,19 @@ export const ErrorCodes = {
     code: 'FDK-0008'
   },
   NO_COMPANY_FOUND: {
-    message: "Company not found",
+    message: (company_type = "live", domain) => {
+      if (company_type === "live")
+        return `No live company found, please request live company access from partners panel under your selected organization.  For more details, refer to the documentation link: ${domain}/help/docs/partners/architecture/development-accounts/#request-access-for-the-live-company-from-a-seller`
+      return `No development company found, please create development company from partners panel under your selected organization. For more details, refer to the documentation link: ${domain}/help/docs/partners/architecture/development-accounts`
+    },
     code: 'FDK-0009'
   },
   NO_APP_FOUND: {
-    message: "Sales channel not found",
+    message: (domain) => `No sales channel found, Please create a sales channel under development/live account. For more details, refer to the documentation link: ${domain}/help/docs/manage-website/create-website`,
     code: 'FDK-00010'
   },
   NO_THEME_FOUND: {
-    message: "Theme not found",
+    message: (domain) => `No themes are created, Please create/add a theme under the sales channel. For more details, refer to the documentation link: ${domain}/help/docs/partners/themes/vuejs/overview`,
     code: 'FDK-00011'
   },
   DOWNGRADE_CLI_VERSION: {
