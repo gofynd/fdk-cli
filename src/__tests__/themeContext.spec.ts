@@ -24,7 +24,7 @@ let program;
 jest.mock('configstore', () => {
     const Store = jest.requireActual<typeof import('configstore')>('configstore');
     return class MockConfigstore {
-        store = new Store('test-cli', undefined, {configPath: './themeCtx-test-cli.json'})
+        store = new Store('test-cli', undefined, { configPath: './themeCtx-test-cli.json' })
         all = this.store.all
         size = this.store.size
         get(key: string) {
@@ -53,7 +53,7 @@ afterAll(() => {
 });
 async function login() {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
-    const app = await startServer({isTesting: true});
+    const app = await startServer();
     const req = request(app)
     await program.parseAsync([
         'ts-node',
@@ -72,37 +72,43 @@ describe('Theme Context Commands', () => {
         mock.onGet(
             `${URLS.GET_APPLICATION_DETAILS(appConfig.company_id, appConfig.application_id)}`
         ).reply(200, appConfig);
-        
+
         mock
-        .onGet(`${URLS.GET_DEVELOPMENT_ACCOUNTS(1, 9999)}`)
-        .reply(200, {items: [{"company": {
-                "uid": 1,
-                "name": "cli-test"
-            }, 
-            company_name: "cli-test"}]
-        })
-        
+            .onGet(`${URLS.GET_DEVELOPMENT_ACCOUNTS(1, 9999)}`)
+            .reply(200, {
+                items: [{
+                    "company": {
+                        "uid": 1,
+                        "name": "cli-test"
+                    },
+                    company_name: "cli-test"
+                }]
+            })
+
         mock
-        .onGet(`${URLS.GET_LIVE_ACCOUNTS(1, 9999)}`)
-        .reply(200, {items: [{"company": {
-                "uid": 1,
-                "name": "cli-test"
-            }, company_name: "cli-test"}]
-        })
-        
+            .onGet(`${URLS.GET_LIVE_ACCOUNTS(1, 9999)}`)
+            .reply(200, {
+                items: [{
+                    "company": {
+                        "uid": 1,
+                        "name": "cli-test"
+                    }, company_name: "cli-test"
+                }]
+            })
+
         mock.onGet(
             `${URLS.GET_APPLICATION_LIST(
                 appConfig.company_id,
             )}`
         ).reply(200, appList);
-        
+
         mock
-        .onGet(`${URLS.GET_ALL_THEME(
-            appConfig.company_id,
-            appConfig.application_id,
-        )}`)
-        .reply(200, themeList.items)
-        
+            .onGet(`${URLS.GET_ALL_THEME(
+                appConfig.company_id,
+                appConfig.application_id,
+            )}`)
+            .reply(200, themeList.items)
+
         mock.onGet(
             `${URLS.THEME_BY_ID(
                 appConfig.application_id,
@@ -115,11 +121,11 @@ describe('Theme Context Commands', () => {
     it('should successfully add theme context ', async () => {
         await login();
         const inquirerMock = mockFunction(inquirer.prompt);
-        inquirerMock.mockResolvedValue({ 
+        inquirerMock.mockResolvedValue({
             showCreateFolder: 'Yes',
-            accountType: 'development', 
+            accountType: 'development',
             selectedCompany: 'cli-test',
-            selectedApplication: 'anurag', 
+            selectedApplication: 'anurag',
             selectedTheme: 'Namaste'
         });
         await program.parseAsync([
@@ -150,7 +156,7 @@ describe('Theme Context Commands', () => {
     });
 
     it('should successsfully show active context', async () => {
-        let context =  getActiveContext()
+        let context = getActiveContext()
         await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'active-context']);
         expect(context.name).toMatch('fyndx1');
     })

@@ -30,7 +30,7 @@ const pullThemeData = require('./fixtures/pullThemeData.json');
 const initAppConfigData = require('./fixtures/initAppConfigData.json');
 const deleteData = require('./fixtures/deleteData.json');
 const deleteAvailablePage = require('./fixtures/deleteAvailablePage.json');
-const  updateAllAvailablePageData=require('./fixtures/updateAllAvailablePage.json');
+const updateAllAvailablePageData = require('./fixtures/updateAllAvailablePage.json');
 const appList = require('./fixtures/applicationList.json');
 const data = require('./fixtures/email-login.json');
 import { createDirectory } from '../helper/file.utils';
@@ -47,7 +47,7 @@ jest.mock('configstore', () => {
     const path = jest.requireActual<typeof import('path')>('path');
     return class MockConfigstore {
 
-        store = new Store('@gofynd/fdk-cli', undefined, {configPath: path.join(__dirname, "theme-test-cli.json")})
+        store = new Store('@gofynd/fdk-cli', undefined, { configPath: path.join(__dirname, "theme-test-cli.json") })
         all = this.store.all
         size = this.store.size
         path = this.store.path
@@ -56,7 +56,7 @@ jest.mock('configstore', () => {
         }
         set(key: string, value: any) {
             this.store.set(key, value);
-        }   
+        }
         delete(key: string) {
             this.store.delete(key)
         }
@@ -73,39 +73,39 @@ async function createThemeFromZip() {
     let zipPath = path.join(__dirname, 'fixtures', 'rolex.zip');
     let destination = path.join(__dirname, '..', '..', 'test-theme');
     await extractArchive({ zipPath, destFolderPath: destination });
-    if(!fs.existsSync(path.join(process.cwd(), '.fdk')))
+    if (!fs.existsSync(path.join(process.cwd(), '.fdk')))
         await fs.mkdir(path.join(process.cwd(), '.fdk'));
     process.chdir(path.join(__dirname, '..', '..', 'test-theme'));
     let context = {
         "theme": {
-          "active_context": "test-context-new",
-          "contexts": {
-            "test-context-new": {
-              "name": "test-context-new",
-              "application_id": "622894659baaca3be88c9d65",
-              "domain": "e2end-testing.hostx1.de",
-              "company_id": 1,
-              "theme_id": "622894659baaca3be88c9d65",
-              "application_token": "8DXpyVsKD",
-              "env": "fyndx1"
-            },
-          }
+            "active_context": "test-context-new",
+            "contexts": {
+                "test-context-new": {
+                    "name": "test-context-new",
+                    "application_id": "622894659baaca3be88c9d65",
+                    "domain": "e2end-testing.hostx1.de",
+                    "company_id": 1,
+                    "theme_id": "622894659baaca3be88c9d65",
+                    "application_token": "8DXpyVsKD",
+                    "env": "fyndx1"
+                },
+            }
         },
         "partners": {}
-      }
+    }
 
     await fs.writeJSON(path.join(process.cwd(), '.fdk', 'context.json'), context);
 }
 
 async function createTheme() {
     const inquirerMock = mockFunction(inquirer.prompt);
-    inquirerMock.mockResolvedValue({ 
+    inquirerMock.mockResolvedValue({
         showCreateFolder: 'Yes',
-        accountType: 'development', 
+        accountType: 'development',
         selectedCompany: 'cli-test',
-        selectedApplication: 'anurag', 
+        selectedApplication: 'anurag',
         selectedTheme: 'Namaste'
-    });    
+    });
     await program.parseAsync([
         'ts-node',
         './src/fdk.ts',
@@ -196,18 +196,18 @@ describe('Theme Commands', () => {
             `${URLS.AVAILABLE_PAGE(
                 appConfig.application_id,
                 appConfig.company_id,
-                appConfig.theme_id,      
+                appConfig.theme_id,
             )}`
         );
         const availablePage = new RegExp(
             `${URLS.AVAILABLE_PAGE(
                 appConfig.application_id,
                 appConfig.company_id,
-                appConfig.theme_id,  
-                "*"     
+                appConfig.theme_id,
+                "*"
             )}`
-        );   
-        mock.onGet(availablePageUrl).reply(200, getAllAvailablePage.data);  
+        );
+        mock.onGet(availablePageUrl).reply(200, getAllAvailablePage.data);
         mock.onPost().reply(200, appConfig);
         mock.onPut(
             `${URLS.THEME_BY_ID(
@@ -232,23 +232,29 @@ describe('Theme Commands', () => {
         mock.onGet(initThemeData.src.link).reply(function () {
             return [200, fs.createReadStream(filePath)];
         });
-        
+
         mock
-        .onGet(`${URLS.GET_DEVELOPMENT_ACCOUNTS(1, 9999)}`)
-        .reply(200, {items: [{"company": {
-                "uid": 1,
-                "name": "cli-test"
-            }, 
-            company_name: "cli-test"}]
-        })
-        
+            .onGet(`${URLS.GET_DEVELOPMENT_ACCOUNTS(1, 9999)}`)
+            .reply(200, {
+                items: [{
+                    "company": {
+                        "uid": 1,
+                        "name": "cli-test"
+                    },
+                    company_name: "cli-test"
+                }]
+            })
+
         mock
-        .onGet(`${URLS.GET_LIVE_ACCOUNTS(1, 9999)}`)
-        .reply(200, {items: [{"company": {
-                "uid": 1,
-                "name": "cli-test"
-            }, company_name: "cli-test"}]
-        })
+            .onGet(`${URLS.GET_LIVE_ACCOUNTS(1, 9999)}`)
+            .reply(200, {
+                items: [{
+                    "company": {
+                        "uid": 1,
+                        "name": "cli-test"
+                    }, company_name: "cli-test"
+                }]
+            })
 
         mock.onGet(
             `${URLS.THEME_BY_ID(
@@ -272,30 +278,30 @@ describe('Theme Commands', () => {
             )}`
         ).reply(200, deleteData);
         mock.onDelete(availablePage).reply(200, deleteAvailablePage);
-        
+
         mock.onGet(
             `${URLS.GET_APPLICATION_LIST(
                 appConfig.company_id,
             )}`
         ).reply(200, appList);
-        
-    
+
+
         mock
-        .onGet(`${URLS.GET_ALL_THEME(
-            appConfig.company_id,
-            appConfig.application_id,
-        )}`)
-        .reply(200, themeList.items);
+            .onGet(`${URLS.GET_ALL_THEME(
+                appConfig.company_id,
+                appConfig.application_id,
+            )}`)
+            .reply(200, themeList.items);
 
         mock.onGet(
             `${URLS.GET_DEFAULT_THEME(appConfig.company_id, appConfig.application_id)}`
         ).reply(200, { name: 'Emerge' });
-        
+
         // user login
         configStore.set(CONFIG_KEYS.USER, data.user)
-        
+
         process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
-        const app = await startServer({isTesting: true});
+        const app = await startServer();
         const req = request(app)
         await program.parseAsync([
             'ts-node',
@@ -328,7 +334,7 @@ describe('Theme Commands', () => {
         const filePath = path.join(process.cwd(), 'rolex');
         expect(fs.existsSync(filePath)).toBe(true);
     });
-    
+
     it('should successfully pull config theme', async () => {
         await createTheme();
         process.chdir(path.join(process.cwd(), "rolex"))
@@ -341,7 +347,7 @@ describe('Theme Commands', () => {
         process.chdir(`../`);
         expect(isEqual(newSettings_data, oldSettings_data)).toBe(false);
     });
-    
+
     it('should successfully pull theme', async () => {
         await createThemeFromZip();
         await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'pull']);
@@ -349,16 +355,16 @@ describe('Theme Commands', () => {
         process.chdir(`../`);
         expect(fs.existsSync(filePath)).toBe(true);
     });
-    
+
     it('should successfully init theme', async () => {
         const inquirerMock = mockFunction(inquirer.prompt);
-        inquirerMock.mockResolvedValue({ 
+        inquirerMock.mockResolvedValue({
             showCreateFolder: 'Yes',
-            accountType: 'development', 
+            accountType: 'development',
             selectedCompany: 'cli-test',
-            selectedApplication: 'anurag', 
+            selectedApplication: 'anurag',
             selectedTheme: 'Namaste'
-        });    
+        });
         await program.parseAsync([
             'ts-node',
             './src/fdk.ts',
@@ -369,15 +375,15 @@ describe('Theme Commands', () => {
         const filePath = path.join(process.cwd(), 'Namaste');
         expect(fs.existsSync(filePath)).toBe(true);
     });
-    
+
     it('should successfully generate .zip file of theme', async () => {
         await createTheme();
         process.chdir(path.join(process.cwd(), "rolex"))
-        let filepath = path.join(process.cwd(),'package.json');
+        let filepath = path.join(process.cwd(), 'package.json');
         let packageContent: any = readFile(filepath);
         let content = JSON.parse(packageContent);
         let fileName = `${content.name}_${content.version}.zip`;
-        let file = path.join(process.cwd(),`${fileName}`)
+        let file = path.join(process.cwd(), `${fileName}`)
         await program.parseAsync(['ts-node', './src/fdk.ts', 'theme', 'package']);
         expect(fs.existsSync(file)).toBe(true);
     });

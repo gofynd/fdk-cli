@@ -18,7 +18,7 @@ let program;
 jest.mock('configstore', () => {
     const Store = jest.requireActual<typeof import('configstore')>('configstore');
     return class MockConfigstore {
-        store = new Store('test-cli', undefined, {configPath: './auth-test-cli.json'})
+        store = new Store('test-cli', undefined, { configPath: './auth-test-cli.json' })
         all = this.store.all
         size = this.store.size
         get(key: string) {
@@ -26,7 +26,7 @@ jest.mock('configstore', () => {
         }
         set(key: string, value) {
             this.store.set(key, value);
-        }   
+        }
         delete(key) {
             this.store.delete(key)
         }
@@ -38,7 +38,7 @@ jest.mock('configstore', () => {
 
 async function login() {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
-    const app = await startServer({isTesting: true});
+    const app = await startServer();
     const req = request(app)
     await program.parseAsync([
         'ts-node',
@@ -69,7 +69,7 @@ describe('Auth Commands', () => {
         await login()
         expect(configStore.get(CONFIG_KEYS.AUTH_TOKEN).access_token).toBe('pr-4fb094006ed3a6d749b69875be0418b83238d078');
     });
-    it('Should exit when user selects no for organization change', async() =>{
+    it('Should exit when user selects no for organization change', async () => {
         const inquirerMock = mockFunction(inquirer.prompt);
         inquirerMock.mockResolvedValue({ confirmChangeOrg: 'No' });
         await login()
