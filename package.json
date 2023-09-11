@@ -25,7 +25,8 @@
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build",
     "test": "jest --runInBand",
-    "pretty": "./node_modules/.bin/prettier --config ./.prettierrc --write './src/**/*.*'"
+    "pretty": "./node_modules/.bin/prettier --config ./.prettierrc --write './src/**/*.*'",
+    "publish-check": "node scripts"
   },
   "devDependencies": {
     "@types/async": "^3.2.6",
