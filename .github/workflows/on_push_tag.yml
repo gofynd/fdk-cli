@@ -7,7 +7,6 @@ on:
 
 jobs:
   publish-test-release:
-    needs: call-workflow
     runs-on: ubuntu-latest
 
     steps:
