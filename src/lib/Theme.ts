@@ -241,9 +241,7 @@ export default class Theme {
                 shouldDelete = false;
                 throw new CommandError(`Folder ${options.name} already exists`);
             }
-            // const themeType = await Theme.selectThemeType();
-            // In Future You can use the selection Theme Type
-            const themeType = options.type;
+            const themeType = await Theme.selectThemeType();
             if (themeType !== 'vue2' && themeType !== 'react') {
                 throw new CommandError(COMMON_LOG_MESSAGES.invalidThemeType);
             }
@@ -267,13 +265,41 @@ export default class Theme {
             Logger.info('Cloning template files');
             await Theme.cloneTemplate(options, targetDirectory, appConfig);
             shouldDelete = true;
+            process.chdir(path.join('.', options.name));
+            Logger.info('Installing dependencies');
+            let spinner = new Spinner('Installing npm packages');
+            try {
+                spinner.start();
+                await installNpmPackages();
+                spinner.succeed();
+            } catch (error) {
+                spinner.fail();
+                throw new CommandError(error.message);
+            }
             Logger.info('Creating Theme');
             let available_sections = await Theme.getAvailableSections();
+            let settings_schema = await fs.readJSON(
+                path.join(process.cwd(),'theme', 'config', 'settings_schema.json')
+            );
+            let settings_data = await fs.readJSON(
+                path.join(process.cwd(), 'theme', 'config', 'settings_data.json')
+            );
+            const imageCdnUrl = await Theme.getImageCdnBaseUrl();
+            const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
+            Theme.createVueConfig();
+            const assetHash = shortid.generate();
+            await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl, assetHash });
+            const pages = await Theme.generateAvailablePages(assetHash, true);
             const themeData = {
                 name: options.name,
                 available_sections,
                 version: '1.0.0',
                 theme_type: 'vue2',
+                list: settings_data.list,
+                preset: settings_data.preset,
+                current: settings_data.current,
+                global_schema: settings_schema,
+                pages: pages
             };
             const { data: theme } = await ThemeService.createTheme({ ...configObj, ...themeData });
 
@@ -286,23 +312,9 @@ export default class Theme {
                 application_token: appConfig.token,
                 theme_type: 'vue2',
             };
-
-            process.chdir(path.join('.', options.name));
-
             Logger.info('Saving context');
             await createContext(context);
-
-            Logger.info('Installing dependencies');
-            let spinner = new Spinner('Installing npm packages');
-            try {
-                spinner.start();
-                await installNpmPackages();
-                spinner.succeed();
-            } catch (error) {
-                spinner.fail();
-                throw new CommandError(error.message);
-            }
-
+            await Theme.ensureThemeTypeInPackageJson();
             let packageJSON = await fs.readJSON(path.join(process.cwd(), 'package.json'));
             packageJSON.name = Theme.sanitizeThemeName(options.name);
             packageJSON.version = '1.0.0';
@@ -310,7 +322,11 @@ export default class Theme {
                 spaces: 2,
             });
             const currentContext = getActiveContext();
-            await Theme.syncVueTheme(currentContext, true);
+            await Theme.syncVueTheme(currentContext, true, {
+                assetCdnUrl,
+                assetHash,
+                imageCdnUrl
+            });
             var b5 = Box(
                 chalk.green.bold('DONE ') +
                     chalk.green.bold('Project ready\n') +
@@ -363,15 +379,26 @@ export default class Theme {
             });
 
             const available_sections = await Theme.getAvailableReactSectionsForSync();
-
+            let settings_schema = await fs.readJSON(
+                path.join(process.cwd(),'theme', 'config', 'settings_schema.json')
+            );
+            let settings_data = await fs.readJSON(
+                path.join(process.cwd(), 'theme', 'config', 'settings_data.json')
+            );
+            const pages = await Theme.generateAvailablePagesReact(true);
             const themeData = {
                 name: options.name,
                 available_sections,
                 theme_type: 'react',
                 version: '1.0.0',
+                list: settings_data.list,
+                preset: settings_data.preset,
+                current: settings_data.current,
+                global_schema: settings_schema,
+                pages: pages
             };
 
-            const { data: theme } = await ThemeService.createTheme({ ...configObj, ...themeData });
+            const { data: theme } =  await ThemeService.createTheme({ ...configObj, ...themeData });
 
             const context: any = {
                 name: options.name,
@@ -385,6 +412,7 @@ export default class Theme {
 
             Logger.info('Saving context');
             await createContext(context);
+            await Theme.ensureThemeTypeInPackageJson();
 
             let packageJSON = await fs.readJSON(path.join(process.cwd(), 'package.json'));
             packageJSON.name = Theme.sanitizeThemeName(options.name);
@@ -495,6 +523,7 @@ export default class Theme {
 
             Logger.info('Saving context');
             await createContext(context);
+            await Theme.ensureThemeTypeInPackageJson();
 
             Logger.info('Installing dependencies..');
             if (fs.existsSync(path.join(process.cwd(), 'theme', 'package.json'))) {
@@ -569,6 +598,7 @@ export default class Theme {
     };
     private static syncReactTheme = async (currentContext: ThemeContextInterface) => {
         try {
+            await Theme.ensureThemeTypeInPackageJson();
             currentContext.domain
                 ? Logger.warn('Syncing Theme to: ' + currentContext.domain)
                 : Logger.warn('Please add domain to context');
@@ -676,8 +706,9 @@ export default class Theme {
             throw new CommandError(error.message, error.code);
         }
     };
-    private static syncVueTheme = async (currentContext: ThemeContextInterface, isNew = false) => {
+    private static syncVueTheme = async (currentContext: ThemeContextInterface, isNew = false, buildData = undefined) => {
         try {
+            await Theme.ensureThemeTypeInPackageJson();
             currentContext.domain
                 ? Logger.warn('Syncing Theme to: ' + currentContext.domain)
                 : Logger.warn('Please add domain to context');
@@ -685,7 +716,9 @@ export default class Theme {
 
             // Merge with latest platform config
             await Theme.matchWithLatestPlatformConfig(theme, isNew);
-            Theme.clearPreviousBuild();
+            if(!buildData){
+                Theme.clearPreviousBuild();
+            }
 
             Logger.info('Reading Files');
             let themeContent: any = readFile(`${process.cwd()}/config.json`);
@@ -702,15 +735,24 @@ export default class Theme {
             // Create index.js with section file imports
             await Theme.createSectionsIndexFile(available_sections);
 
-            const imageCdnUrl = await Theme.getImageCdnBaseUrl();
-            const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
-            Theme.createVueConfig();
-            const assetHash = shortid.generate();
+            let imageCdnUrl;
+            let assetCdnUrl;
+            let assetHash;
 
-            Logger.info('Building Assets');
-            // Building .js & .css bundles using vue-cli
-            await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl, assetHash });
-
+            if(buildData){
+               imageCdnUrl = buildData.imageCdnUrl;
+               assetCdnUrl = buildData.assetCdnUrl;
+               assetHash =  buildData.assetHash;
+            }
+            else{
+                imageCdnUrl = await Theme.getImageCdnBaseUrl();
+                assetCdnUrl = await Theme.getAssetCdnBaseUrl();
+                Theme.createVueConfig();
+                assetHash = shortid.generate();
+                Logger.info('Building Assets');
+                // Building .js & .css bundles using vue-cli
+                await build({ buildFolder: Theme.BUILD_FOLDER, imageCdnUrl, assetCdnUrl, assetHash });
+            }
             // Check if build folder exists, as during build, vue fails with non-error code even when it errors out
             if (!fs.existsSync(path.join(process.cwd(), Theme.BUILD_FOLDER))) {
                 throw new Error('Build Failed');
@@ -1264,6 +1306,9 @@ export default class Theme {
             }
         }
         rimraf.sync(path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH));
+        if(!fs.existsSync(path.join(process.cwd(), ".fdk"))){
+            fs.mkdirSync('.fdk');
+        }
         fs.writeFileSync(
             path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH),
             themeVueConfigTemplate
@@ -2136,7 +2181,7 @@ export default class Theme {
         await Theme.generateAvailablePagesReact();
     };
 
-    public static generateAvailablePages = async assetHash => {
+    public static generateAvailablePages = async (assetHash, isCreate = false) => {
         try {
             // extract system page level settings schema
             const pagesToSave = [];
@@ -2220,13 +2265,16 @@ export default class Theme {
                 pagesToSave.push(pageData);
             }
             const pageJson = path.join(process.cwd(), 'pages.json');
-            await fs.writeJson(pageJson, { pages: pagesToSave }, { spaces: 2 });
+            if (isCreate) {
+                return pagesToSave;
+            }
+                await fs.writeJson(pageJson, { pages: pagesToSave }, { spaces: 2 });
         } catch (err) {
             throw new CommandError(err.message, err.code);
         }
     };
 
-    public static generateAvailablePagesReact = async () => {
+    public static generateAvailablePagesReact = async (isNew=false) => {
         // extract system page level settings schema
         try {
             const pagesToSave = [];
@@ -2316,6 +2364,9 @@ export default class Theme {
                 pagesToSave.push(pageData);
             }
             const pageJson = path.join(process.cwd(), 'pages.json');
+            if(isNew){
+               return pagesToSave;
+            }
             await fs.writeJson(pageJson, { pages: pagesToSave }, { spaces: 2 });
         } catch (err) {
             throw new CommandError(err.message, err.code);
@@ -2365,6 +2416,7 @@ export default class Theme {
     
     public static generateThemeZip = async () => {
         // Generate production build so that we can get assets and available sections in config file while creating zip
+        await Theme.ensureThemeTypeInPackageJson();
         const activeContext = getActiveContext();
         if (activeContext.theme_type === 'vue2') {
             await Theme.generateAssetsVue();
@@ -2446,6 +2498,33 @@ export default class Theme {
             });
         } catch (error) {
             throw new CommandError(error.message);
+        }
+    };
+
+    private static ensureThemeTypeInPackageJson = async () => {
+        try {
+            const packageJsonPath = path.resolve(process.cwd(), './package.json');
+            const data = await fs.promises.readFile(packageJsonPath, 'utf8');
+            // Parse the JSON content of package.json
+            const packageJsonData = JSON.parse(data);
+            if (!packageJsonData.theme_metadata?.theme_type) {
+                const context = getActiveContext();
+                if (!context.theme_type) {
+                    throw new CommandError(COMMON_LOG_MESSAGES.ThemeTypeNotAvailableInContext);
+                }
+                if (!packageJsonData.theme_metadata) {
+                    packageJsonData.theme_metadata = {};
+                }
+
+                packageJsonData.theme_metadata.theme_type = context.theme_type;
+                await fs.promises.writeFile(
+                    packageJsonPath,
+                    JSON.stringify(packageJsonData, null, 2),
+                    'utf8'
+                );
+            }
+        } catch (err) {
+            throw err;
         }
     };
 }

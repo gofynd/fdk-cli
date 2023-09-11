@@ -104,5 +104,8 @@ export const COMMON_LOG_MESSAGES = {
   )}`,
   invalidThemeType: `${chalk.yellow(
     `Theme Type can be react or vue2 only`
+  )}`,
+  ThemeTypeNotAvailableInContext: `${chalk.yellow(
+    `Theme Type Not Available in Context and Package.json`
   )}`
 };
