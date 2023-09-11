@@ -13,7 +13,6 @@
 //     .command('list')
 //     .description('List all contexts')
 //     .asyncAction(Context.listContext);
-  
 
 // 		return context;
 // }
