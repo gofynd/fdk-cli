@@ -1,6 +1,6 @@
 {
   "name": "@gofynd/fdk-cli",
-  "version": "4.0.0-beta.1",
+  "version": "3.0.4",
   "main": "index.js",
   "license": "MIT",
   "bin": {
@@ -24,7 +24,8 @@
     "copy-files": "copyfiles -u 1 src/**/*.html dist/",
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "pubish-check": "node scripts"
   },
   "devDependencies": {
     "@types/async": "^3.2.6",
