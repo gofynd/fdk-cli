@@ -24,7 +24,8 @@
     "copy-files": "copyfiles -u 1 src/**/*.html dist/",
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "prepare": "husky install"
   },
   "devDependencies": {
     "@types/async": "^3.2.6",
@@ -52,7 +53,9 @@
     "axios-mock-adapter": "^1.20.0",
     "copyfiles": "^2.4.1",
     "del-cli": "^3.0.1",
+    "husky": "^8.0.0",
     "jest": "^27.5.1",
+    "lint-staged": "^14.0.1",
     "source-map-support": "^0.5.19",
     "supertest": "^6.3.3",
     "ts-jest": "^27.1.4",
