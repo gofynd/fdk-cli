@@ -25,7 +25,7 @@
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build",
     "test": "jest --runInBand",
-    "pubish-check": "node scripts"
+    "publish-check": "node scripts"
   },
   "devDependencies": {
     "@types/async": "^3.2.6",
