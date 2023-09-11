@@ -17,24 +17,40 @@ export default class CompanySetup {
             ];
             let request_id, next_step;
             let prompt_message = 'Creating Brand';
-            await inquirer.prompt(questions).then(async answers => {
-                if (!answers.company_id) throw new CommandError('Invalid Company ID');
+            await inquirer.prompt(questions).then(async (answers) => {
+                if (!answers.company_id)
+                    throw new CommandError('Invalid Company ID');
                 ConfigStore.set(CONFIG_KEYS.COMPANY_ID, answers.company_id);
-                await CompanySetup.setupComponent(answers.company_id, request_id, prompt_message)
+                await CompanySetup.setupComponent(
+                    answers.company_id,
+                    request_id,
+                    prompt_message,
+                );
             });
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
     }
-    private static async setupComponent(company_id, request_id, prompt_message){
-        Logger.info(prompt_message)
-        const { data, headers } = await CompanySetupService.setupCompany(company_id, request_id);
-        Logger.info(data.message)
-        if(data.next_step){
-            setTimeout(async() => {
-                return await CompanySetup.setupComponent(company_id, data.request_id, data.prompt_message)
+    private static async setupComponent(
+        company_id,
+        request_id,
+        prompt_message,
+    ) {
+        Logger.info(prompt_message);
+        const { data, headers } = await CompanySetupService.setupCompany(
+            company_id,
+            request_id,
+        );
+        Logger.info(data.message);
+        if (data.next_step) {
+            setTimeout(async () => {
+                return await CompanySetup.setupComponent(
+                    company_id,
+                    data.request_id,
+                    data.prompt_message,
+                );
             }, data.cli_wait_time || 100);
         }
-        return data
+        return data;
     }
 }
