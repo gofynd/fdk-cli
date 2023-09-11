@@ -2,13 +2,13 @@
     "access_token": "oa-ea316a2765ee7f2003a8a743b2436f989b",
     "token_type": "Bearer",
     "expires_in": 7199,
-    "scope": [ "company/*', 'app/*/*" ],
+    "scope": ["company/*', 'app/*/*"],
     "current_user": {
-      "id": "65b4eee67c34fcdd55ce0b76",
-      "emails": [ ["Object"], ["Object"], ["Object"] ],
-      "gender": "null",
-      "first_name": "Anurag",
-      "last_name": "Pandey",
-      "phone_numbers": [ ["Object"] ]
+        "id": "65b4eee67c34fcdd55ce0b76",
+        "emails": [["Object"], ["Object"], ["Object"]],
+        "gender": "null",
+        "first_name": "Anurag",
+        "last_name": "Pandey",
+        "phone_numbers": [["Object"]]
     }
-  }
+}
