@@ -14,6 +14,7 @@ export function build({ buildFolder, imageCdnUrl, assetCdnUrl, assetHash = '' })
     const spinner = new Spinner('Building assets using vue-cli-service');
     return new Promise((resolve, reject) => {
         spinner.start();
+        const isNodeVersionIsGreaterThan18 = +process.version.split(".")[0].slice(1) >= 18;
         let b = exec(`node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle --filename ${assetHash}_themeBundle ${THEME_ENTRY_FILE}`,
             {
                 cwd: process.cwd(),
@@ -24,7 +25,8 @@ export function build({ buildFolder, imageCdnUrl, assetCdnUrl, assetHash = '' })
                     ASSET_HASH: assetHash,
                     NODE_ENV: "production",
                     VUE_CLI_SERVICE_CONFIG_PATH: path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH),
-                    BUILD_TYPE: 'sync'
+                    BUILD_TYPE: 'sync',
+                    ...(isNodeVersionIsGreaterThan18 && { NODE_OPTIONS:"--openssl-legacy-provider" })
                 }
             });
 
@@ -57,6 +59,8 @@ interface DevReactBuild {
 
 export function devBuild({ buildFolder, imageCdnUrl, isProd } : DevBuild) {
     const VUE_CLI_PATH = path.join('.', 'node_modules', '@vue', 'cli-service', 'bin', 'vue-cli-service.js');
+    const isNodeVersionIsGreaterThan18 = +process.version.split(".")[0].slice(1) >= 18;
+
     return new Promise((resolve, reject) => {
         let b = exec(`node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle ${THEME_ENTRY_FILE}`,
             {
@@ -66,7 +70,8 @@ export function devBuild({ buildFolder, imageCdnUrl, isProd } : DevBuild) {
                     IMAGE_CDN_URL: imageCdnUrl,
                     NODE_ENV: (isProd && "production") || "development",
                     VUE_CLI_SERVICE_CONFIG_PATH: path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH),
-                    BUILD_TYPE: 'serve'
+                    BUILD_TYPE: 'serve',
+                    ...(isNodeVersionIsGreaterThan18 && { NODE_OPTIONS:"--openssl-legacy-provider" })
                 }
             });
 

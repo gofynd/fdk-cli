@@ -43,7 +43,7 @@ import {
     getPort,
     startReactServer,
 } from '../helper/serve.utils';
-import { getBaseURL } from './api/services/url';
+import { getBaseURL, getPlatformUrls } from './api/services/url';
 import open from 'open';
 import chokidar from 'chokidar';
 import { downloadFile } from '../helper/download';
@@ -121,7 +121,7 @@ export default class Theme {
         const themeList = await ThemeService.getAllThemes(config);
         if (!themeList.data.length) {
             throw new CommandError(
-                ErrorCodes.NO_THEME_FOUND.message,
+                ErrorCodes.NO_THEME_FOUND.message(getPlatformUrls().partners),
                 ErrorCodes.NO_THEME_FOUND.code
             );
         }
@@ -158,12 +158,14 @@ export default class Theme {
             },
         ];
         let config = {};
+        let company_type;
         let companyList;
         let selectedCompany;
         let applicationList;
         let selectedApplication;
         await inquirer.prompt(accountTypeQuestions).then(async answers => {
             try {
+                company_type = answers.accountType;
                 if (answers.accountType === 'development') {
                     companyList = await ExtensionService.getDevelopmentAccounts(1, 9999);
                 } else {
@@ -177,7 +179,7 @@ export default class Theme {
         const companyListOptions = {};
         if (!companyList.items.length) {
             throw new CommandError(
-                ErrorCodes.NO_COMPANY_FOUND.message,
+                ErrorCodes.NO_COMPANY_FOUND.message(company_type, getPlatformUrls().partners),
                 ErrorCodes.NO_COMPANY_FOUND.code
             );
         }
@@ -204,7 +206,7 @@ export default class Theme {
             }
         });
         if (!applicationList.data.items.length) {
-            throw new CommandError(ErrorCodes.NO_APP_FOUND.message, ErrorCodes.NO_APP_FOUND.code);
+            throw new CommandError(ErrorCodes.NO_APP_FOUND.message(getPlatformUrls().partners), ErrorCodes.NO_APP_FOUND.code);
         }
         const applicationListOptions = {};
         applicationList.data.items.forEach(application => {
@@ -613,6 +615,8 @@ export default class Theme {
             const buildPath = path.join(process.cwd(), Theme.BUILD_FOLDER);
 
             Logger.info('Creating theme source code zip file');
+            // Remove temp source folder
+            rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
             await Theme.copyFolders(path.join(process.cwd()), Theme.SRC_FOLDER);
             await archiveFolder({
                 srcFolder: Theme.SRC_FOLDER,
@@ -621,8 +625,6 @@ export default class Theme {
             });
             // await Theme.copyReactThemeSourceToFdkFolder();
 
-            // Remove temp source folder
-            rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
 
             Logger.info('Uploading theme source code zip file');
             let srcCdnUrl = await Theme.uploadThemeSrcZip();
@@ -668,13 +670,6 @@ export default class Theme {
             await ThemeService.updateTheme(newTheme);
 
             Logger.info('Theme syncing DONE');
-            let domainURL = null;
-            if (AVAILABLE_ENVS[currentContext.env])
-                domainURL = `https://${AVAILABLE_ENVS[currentContext.env]}`;
-            else domainURL = `https://${currentContext.env}`;
-            const url = new URL(domainURL);
-            const hostName = url.hostname;
-            let domain = hostName.replace('api', 'platform');
             var b5 = Box(
                 chalk.green.bold('Your Theme was pushed successfully\n') +
                     chalk.white('\n') +
@@ -691,7 +686,7 @@ export default class Theme {
                     chalk.green(
                         terminalLink(
                             '',
-                            `https://platform.${domain}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`
+                            `${getPlatformUrls().platform}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`
                         )
                     ),
                 {
@@ -704,6 +699,8 @@ export default class Theme {
         } catch (error) {
             Logger.error(error);
             throw new CommandError(error.message, error.code);
+        } finally {
+            rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
         }
     };
     private static syncVueTheme = async (currentContext: ThemeContextInterface, isNew = false, buildData = undefined) => {
@@ -764,6 +761,8 @@ export default class Theme {
             Logger.info('Uploading theme assets/fonts');
             await Theme.assetsFontsUploader();
 
+            // Remove temp source folder
+            rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
             Logger.info('Creating theme source code zip file');
             await Theme.copyFolders(path.join(process.cwd()), Theme.SRC_FOLDER);
             await archiveFolder({
@@ -771,9 +770,6 @@ export default class Theme {
                 destFolder: Theme.SRC_ARCHIVE_FOLDER,
                 zipFileName: Theme.ZIP_FILE_NAME,
             });
-
-            // Remove temp source folder
-            rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
 
             Logger.info('Uploading theme source code zip file');
             let srcCdnUrl = await Theme.uploadThemeSrcZip();
@@ -803,18 +799,6 @@ export default class Theme {
             await ThemeService.updateTheme(newTheme);
 
             Logger.info('Theme syncing DONE');
-            let domainURL = null;
-            if (AVAILABLE_ENVS[currentContext.env])
-                domainURL = `https://${AVAILABLE_ENVS[currentContext.env]}`;
-            else domainURL = `https://${currentContext.env}`;
-            const url = new URL(domainURL);
-            const hostName = url.hostname;
-            // replace "api" with "platform"
-            // When you set env, we are setting api url of that environment. Like api.fyndx1.de
-            // now if you want to open fyndx1's platform, you need to open platform.fyndx1.de So here we are replacing api with platform.
-            // also we need to take care of sandbox URLs. Sandbox have different url pattern. Like api-namespace.sandbox.fynd.engineering & platform-namespace.sandbox.fynd.engineering
-            // Here also by replacing api with platform will work on sandbox.
-            let domain = hostName.replace('api', 'platform');
             var b5 = Box(
                 chalk.green.bold('Your Theme was pushed successfully\n') +
                     chalk.white('\n') +
@@ -831,7 +815,7 @@ export default class Theme {
                     chalk.green(
                         terminalLink(
                             '',
-                            `https://${domain}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`
+                            `${getPlatformUrls().platform}/company/${currentContext.company_id}/application/${currentContext.application_id}/themes/${currentContext.theme_id}/edit?preview=true`
                         )
                     ),
                 {
@@ -843,6 +827,8 @@ export default class Theme {
             Logger.info(b5.toString());
         } catch (error) {
             throw new CommandError(error.message, error.code);
+        } finally {
+            rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
         }
     };
     public static serveTheme = async options => {
@@ -2059,7 +2045,7 @@ export default class Theme {
     };
     public static copyFolders = async (from, to) => {
         try {
-            fs.mkdir(to);
+            await fs.mkdir(to);
             const files = await fs.readdir(from);
             const nonHiddenFiles = files.filter(file => !file.startsWith('.'));
 
