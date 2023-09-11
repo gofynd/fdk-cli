@@ -1,6 +1,6 @@
-import ApiClient from "../ApiClient";
-import { URLS } from './url'
-import { getCommonHeaderOptions } from "./utils";
+import ApiClient from '../ApiClient';
+import { URLS } from './url';
+import { getCommonHeaderOptions } from './utils';
 
 export default {
     loginUserWithEmailAndPassword: async (data) => {
@@ -8,9 +8,9 @@ export default {
             const axiosOption = Object.assign(
                 {},
                 {
-                    data: data
+                    data: data,
                 },
-                getCommonHeaderOptions()
+                getCommonHeaderOptions(),
             );
             const res = await ApiClient.post(URLS.LOGIN_USER(), axiosOption);
             return res;
@@ -23,9 +23,9 @@ export default {
             const axiosOption = Object.assign(
                 {},
                 {
-                    data: data
+                    data: data,
                 },
-                getCommonHeaderOptions()
+                getCommonHeaderOptions(),
             );
             const res = await ApiClient.post(URLS.SEND_OTP(), axiosOption);
             return res;
@@ -38,9 +38,9 @@ export default {
             const axiosOption = Object.assign(
                 {},
                 {
-                    data: data
+                    data: data,
                 },
-                getCommonHeaderOptions()
+                getCommonHeaderOptions(),
             );
             const res = await ApiClient.post(URLS.VERIFY_OTP(), axiosOption);
             return res;
@@ -48,4 +48,4 @@ export default {
             throw error;
         }
     },
-}
+};

@@ -3,9 +3,7 @@
         "access_token": "pr-4fb094006ed3a6d749b69875be0418b83238d078",
         "token_type": "Bearer",
         "expires_in": 7199,
-        "scope": [
-            "organization/*"
-        ],
+        "scope": ["organization/*"],
         "current_user": {
             "id": "0f2f6aa3abbe0f86c4ef8c5c",
             "emails": [
@@ -42,9 +40,7 @@
             ],
             "profile_pic_url": "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/misc/default-assets/original/default-platform-profile.png"
         },
-        "redirect_urls": [
-            "https://localhost"
-        ]
+        "redirect_urls": ["https://localhost"]
     },
     "organization": "60afe92972b7a964de57a1d4"
 }

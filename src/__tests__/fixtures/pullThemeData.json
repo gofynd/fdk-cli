@@ -638,11 +638,7 @@
             "amount": 0
         },
         "description": "Namaste Theme is a dynamic and visually stunning theme designed to empower the fashion and beauty sectors. With its sleek design and seamless functionality, Namaste Theme caters to the needs of fashion-forward businesses, beauty brands, and retailers. This theme embodies style and substance, featuring an exquisite range of acrylic pads and sheets, beauty bronzers, and a curated collection of fashion materials.",
-        "industry": [
-            "Home and decor",
-            "Restaurants",
-            "Pet supplies"
-        ],
+        "industry": ["Home and decor", "Restaurants", "Pet supplies"],
         "release": {
             "notes": "<p>Namaste release notes. Fyndx1 theme submission.</p>"
         },
