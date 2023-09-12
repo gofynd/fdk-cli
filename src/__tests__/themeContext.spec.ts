@@ -16,6 +16,7 @@ import rimraf from 'rimraf';
 import { readFile } from '../helper/file.utils';
 import CommandError from '../lib/CommandError';
 import { startServer, getApp } from '../lib/Auth';
+import { login } from './auth.spec';
 const request = require('supertest');
 
 jest.mock('inquirer');
@@ -54,17 +55,6 @@ afterAll(() => {
         console.error(`Error while deleting ${filePath}.`);
     }
 });
-async function login() {
-    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
-    const app = await startServer();
-    const req = request(app)
-    await program.parseAsync([
-        'ts-node',
-        './src/fdk.ts',
-        'login',
-    ]);
-    await req.post('/token').send(tokenData);
-}
 
 describe('Theme Context Commands', () => {
     beforeAll(async () => {

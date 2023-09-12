@@ -87,11 +87,9 @@ function applyProxy(app: any) {
     );
 }
 
-export async function startServer({ domain, host, isSSR, port }) {
-	const currentContext = getActiveContext();
-	// const currentDomain = `https://${currentContext.domain}`;
+async function setupServer({domain}){
+    const currentContext = getActiveContext();
 	const app = express();
-	// const port = 3000
 	const server = require('http').createServer(app);
 	const io = require('socket.io')(server);
 
@@ -102,33 +100,39 @@ export async function startServer({ domain, host, isSSR, port }) {
         });
     });
 
-	app.use('/public', async (req, res, done) => {
-		const { url } = req;
-		try {
-			if (publicCache[url]) {
-				for (const [key, value] of Object.entries(publicCache[url].headers)) {
-					res.header(key, `${value}`);
-				}
-				return res.send(publicCache[url].body);
-			}
-			const networkRes = await axios.get(urlJoin(domain, 'public', url));
-			publicCache[url] = publicCache[url] || {};
-			publicCache[url].body = networkRes.data;
-			publicCache[url].headers = networkRes.headers;
-			res.set(publicCache[url].headers);
-			console.log("HEADERS>>>>>>>>>>", url, ">>>", publicCache[url].headers);
-			return res.send(publicCache[url].body);
-		} catch (e) {
-			console.log("Error loading file ", url)
-		}
+    // parse application/x-www-form-urlencoded
+    app.use(express.json());
+
+    app.use('/public', async (req, res, done) => {
+        const { url } = req;
+        try {
+            if (publicCache[url]) {
+                for (const [key, value] of Object.entries(publicCache[url].headers)) {
+                    res.header(key, `${value}`);
+                }
+                return res.send(publicCache[url].body);
+            }
+            const networkRes = await axios.get(urlJoin(domain, 'public', url));
+            publicCache[url] = publicCache[url] || {};
+            publicCache[url].body = networkRes.data;
+            publicCache[url].headers = networkRes.headers;
+            res.set(publicCache[url].headers);
+            console.log("HEADERS>>>>>>>>>>", url, ">>>", publicCache[url].headers);
+            return res.send(publicCache[url].body);
+        } catch (e) {
+            console.log("Error loading file ", url)
+        }
 	});
 
     app.get('/_healthz', (req, res) => {
         res.json({ ok: 'ok' });
     });
 
-    // parse application/x-www-form-urlencoded
-    app.use(express.json());
+    return { currentContext, app, server, io }
+}
+
+export async function startServer({ domain, host, isSSR, port }) {
+	const { currentContext, app, server, io } = await setupServer({domain});
 
     applyProxy(app);
 
@@ -303,17 +307,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 }
 
 export async function startReactServer({ domain, host, isHMREnabled, port }) {
-	const currentContext = getActiveContext();
-	const app = express();
-	const server = require('http').createServer(app);
-	const io = require('socket.io')(server);
-
-    io.on('connection', function (socket) {
-        sockets.push(socket);
-        socket.on('disconnect', function () {
-            sockets = sockets.filter((s) => s !== socket);
-        });
-    });
+    const { currentContext, app, server, io } = await setupServer({domain});
 
     if (isHMREnabled) {
         let webpackConfigFromTheme = {};
@@ -361,35 +355,6 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
         }
         next();
     });
-
-    app.use('/public', async (req, res, done) => {
-        const { url } = req;
-        try {
-            if (publicCache[url]) {
-                res.set(publicCache[url].headers);
-                return res.send(publicCache[url].body);
-            }
-            const networkRes = await axios.get(
-                urlJoin(
-                    domain,
-                    'public',
-                    url,
-                    `?themeId=${currentContext.theme_id}`,
-                ),
-            );
-            publicCache[url] = publicCache[url] || {};
-            publicCache[url].body = networkRes.data;
-            publicCache[url].headers = networkRes.headers;
-            res.set(publicCache[url].headers);
-            return res.send(publicCache[url].body);
-        } catch (e) {
-            console.log('Error loading file ', url, e);
-            return res.status(500).send(e.message);
-        }
-    });
-
-    // parse application/x-www-form-urlencoded
-    app.use(express.json());
 
     applyProxy(app);
 
