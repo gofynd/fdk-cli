@@ -965,39 +965,46 @@ export default class Theme {
             throw new CommandError(error.message, error.code);
         }
     };
+    private static commonSetup = async (options) => {
+        const DEFAULT_PORT = 5001;
+        const serverPort =
+            typeof options['port'] === 'string'
+                ? parseInt(options['port'])
+                : typeof options['port'] === 'number'
+                    ? options['port']
+                    : DEFAULT_PORT;
+        const port = await getPort(serverPort);
+        if (port !== serverPort)
+            Logger.warn(
+                chalk.bold.yellowBright(
+                    `PORT: ${serverPort} is busy, Switching to PORT: ${port}`,
+                ),
+            );
+        let { data: appInfo } =
+            await ConfigurationService.getApplicationDetails();
+        let domain = Array.isArray(appInfo.domains)
+            ? `https://${appInfo.domains.filter((d) => d.is_primary)[0].name
+            }`
+            : `https://${appInfo.domain.name}`;
+
+        // Todo: remove this, added for locally testing 
+        let host = getBaseURL();
+        return {
+            domain, port, host
+        }
+    }
     public static serveVueTheme = async (options) => {
         try {
+            const { port, domain, host } = await Theme.commonSetup(options)
+            
             const isSSR =
                 typeof options['ssr'] === 'boolean'
                     ? options['ssr']
                     : options['ssr'] == 'true'
                         ? true
                         : false;
-            const DEFAULT_PORT = 5001;
-            const serverPort =
-                typeof options['port'] === 'string'
-                    ? parseInt(options['port'])
-                    : typeof options['port'] === 'number'
-                        ? options['port']
-                        : DEFAULT_PORT;
-            const port = await getPort(serverPort);
-            if (port !== serverPort)
-                Logger.warn(
-                    chalk.bold.yellowBright(
-                        `PORT: ${serverPort} is busy, Switching to PORT: ${port}`,
-                    ),
-                );
             !isSSR ? Logger.warn('Disabling SSR') : null;
-            let { data: appInfo } =
-                await ConfigurationService.getApplicationDetails();
-            let domain = Array.isArray(appInfo.domains)
-                ? `https://${
-                      appInfo.domains.filter((d) => d.is_primary)[0].name
-                  }`
-                : `https://${appInfo.domain.name}`;
-            // Todo: remove this, added for locally testing 
-            domain = "http://localdev.fyndx5.de:8087"
-            let host = getBaseURL();
+            
             // initial build
             Logger.info(`Locally building`);
             Theme.createVueConfig();
@@ -1034,38 +1041,18 @@ export default class Theme {
     };
     public static serveReactTheme = async (options) => {
         try {
+            const { port, domain, host } = await Theme.commonSetup(options)
+            
             const isHMREnabled =
                 typeof options['hmr'] === 'boolean'
                     ? options['hmr']
                     : options['hmr'] == 'true'
                         ? true
                         : false;
-            const DEFAULT_PORT = 5001;
-            const serverPort =
-                typeof options['port'] === 'string'
-                    ? parseInt(options['port'])
-                    : typeof options['port'] === 'number'
-                        ? options['port']
-                        : DEFAULT_PORT;
-            const port = await getPort(serverPort);
-
-            if (port !== serverPort)
-                Logger.warn(
-                    chalk.bold.yellowBright(
-                        `PORT: ${serverPort} is busy, Switching to PORT: ${port}`,
-                    ),
-                );
-            let { data: appInfo } =
-                await ConfigurationService.getApplicationDetails();
-            let domain = Array.isArray(appInfo.domains)
-                ? `https://${
-                      appInfo.domains.filter((d) => d.is_primary)[0].name
-                  }`
-                : `https://${appInfo.domain.name}`;
-            let host = getBaseURL();
+            
+            
             // initial build
             Logger.info(`Locally building`);
-
             // Create index.js with section file imports
             await Theme.createReactSectionsIndexFile();
 
@@ -2248,9 +2235,8 @@ export default class Theme {
                 Theme.BUILD_FOLDER,
                 'custom-templates/custom-templates.commonjs.js',
             );
-
-            const customTemplates =
-                require(sectionPath)?.customTemplates?.default;
+    
+            const customTemplates = require(sectionPath)?.customTemplates?.default;
             if (!customTemplates) {
                 Logger.error('Custom Templates Not Available');
             }
@@ -2740,18 +2726,9 @@ export default class Theme {
         if (!fs.existsSync(destinationFolder)) {
             fs.mkdirSync(destinationFolder, { recursive: true });
         }
-
-        const outer_items = [
-            'package.json',
-            'theme',
-            'babel.config.js',
-            'fdk.config.js',
-            '.fdk',
-            '.git',
-            '.gitignore',
-            '.husky',
-        ];
-        const moved_files = [];
+        
+        const outer_items = ["package.json", "theme", "babel.config.js", "fdk.config.js", ".fdk", ".git", ".gitignore", ".husky"]
+        const moved_files = []
         files.forEach((fileOrFolder) => {
             if (outer_items.includes(fileOrFolder)) return;
             const sourcePath = path.join(sourceFolder, fileOrFolder);
