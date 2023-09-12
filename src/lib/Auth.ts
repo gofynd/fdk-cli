@@ -10,9 +10,8 @@ const port = 7071;
 import chalk from 'chalk';
 import { AVAILABLE_ENVS } from './Env';
 import ThemeService from './api/services/theme.service';
-function getLocalBaseUrl() {
-    return `http://127.0.0.1`;
-}
+import { getLocalBaseUrl } from '../helper/serve.utils';
+
 async function checkTokenExpired(auth_token) {
     const { expiry_time } = auth_token;
     const currentTimestamp = Math.floor(Date.now() / 1000);
