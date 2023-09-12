@@ -2975,9 +2975,8 @@ export default class Theme {
                 process.cwd(),
                 './package.json',
             );
-            const data = await fs.promises.readFile(packageJsonPath, 'utf8');
+            const packageJsonData = require(packageJsonPath);
             // Parse the JSON content of package.json
-            const packageJsonData = JSON.parse(data);
             if (!packageJsonData.theme_metadata?.theme_type) {
                 const context = getActiveContext();
                 if (!context.theme_type) {
