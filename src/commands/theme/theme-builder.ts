@@ -67,5 +67,10 @@ export default function themeCommandBuilder() {
         .description('generate zip file of theme')
         .asyncAction(Theme.generateThemeZip);
 
+    theme
+        .command('generate-template')
+        .description('generate zip file of theme')
+        .asyncAction(Theme.getMarketplaceTemplate);
+
     return theme;
 }

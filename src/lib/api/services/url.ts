@@ -23,6 +23,7 @@ export const getPlatformUrls = () => {
 };
 
 const BLITZKRIEG_PANEL_URL = () => getBaseURL() + '/service/panel/theme';
+const BLITZKRIEG_PANEL_WITH_VERSION_URL = () => getBaseURL() + '/service/panel/theme/v' + apiVersion;
 const THEME_URL = () => getBaseURL() + '/service/partner/theme/v' + apiVersion;
 const AUTH_URL = () =>
     getBaseURL() + '/service/panel/authentication/v' + apiVersion;
@@ -173,5 +174,8 @@ export const URLS = {
 
     IS_VERSION_COMPATIBLE: () => {
         return urlJoin(BLITZKRIEG_PANEL_URL(), '/_compatibility');
+    },
+    GET_MARKETPLACE_THEME: (theme_slug) => {
+        return urlJoin(BLITZKRIEG_PANEL_WITH_VERSION_URL(), `/marketplace/theme/${theme_slug}`);
     },
 };

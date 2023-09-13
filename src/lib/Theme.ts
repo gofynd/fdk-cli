@@ -90,8 +90,10 @@ export default class Theme {
     static REACT_CLI_CONFIG_PATH = 'webpack.config.js';
     static SRC_ARCHIVE_FOLDER = path.join('.fdk', 'archive');
     static SETTING_LOADER_FILE = path.join('.fdk', 'setting-loader.js');
+    static MARKETPLACE_TEMPLATE_FILE = path.join(process.cwd(), 'marketplace_template.json');
     static ZIP_FILE_NAME = `archive.zip`;
     static TEMPLATE_THEME_URL = 'https://github.com/gofynd/Astra.git';
+    static DEFAULT_THEME_SLUG = 'astra';
 
     public static getSettingsDataPath() {
         let settings_path = path.join(
@@ -150,6 +152,16 @@ export default class Theme {
             return settingsJson;
         } catch (err) {
             throw new CommandError(`Error reading ${path} file.!!!`);
+        }
+    }
+
+    public static async getMarketplaceThemeFromSlug(slug) {
+        try{
+            const data = await ThemeService.getMarketplaceTheme(slug)
+            return data.theme;
+        }catch(err){
+            Debug(err);
+            return null;
         }
     }
 
@@ -2890,4 +2902,76 @@ export default class Theme {
             throw new CommandError(error.message);
         }
     };
+
+    public static getMarketplaceTemplate = async () => {
+        if (fs.existsSync(Theme.MARKETPLACE_TEMPLATE_FILE)) {
+            const questions = [
+                {
+                    type: 'list',
+                    name: 'confirmChangeOrg',
+                    message: `The ${Theme.MARKETPLACE_TEMPLATE_FILE.split('/').pop()} already exists. Are you sure you want to overwrite it?`,
+                    choices: ['Yes', 'No'],
+                },
+            ];
+
+            await inquirer.prompt(questions).then(async (answers) => {
+                if (answers.confirmChangeOrg === 'No') {
+                    throw new CommandError(`${Theme.MARKETPLACE_TEMPLATE_FILE} won't be override.`)
+                }
+            });
+        }
+
+        let packageJSONPath = path.join(process.cwd(), 'package.json');
+        let packageContent: any = readFile(packageJSONPath);
+        let content = JSON.parse(packageContent) || {};
+        const themeName = content.name as String;
+        const slug = themeName.toLowerCase();
+        let theme_data = null
+        
+        Debug(`Fetching theme from marketplace. Using '${slug}' slug.`);
+        theme_data = await Theme.getMarketplaceThemeFromSlug(slug);
+        
+        if(!theme_data){
+            Debug(`Theme with '${slug}' slug not found on marketplace.`);
+            Debug(`Trying to fetch theme with default slug '${Theme.DEFAULT_THEME_SLUG}'.`);
+            theme_data = await Theme.getMarketplaceThemeFromSlug(Theme.DEFAULT_THEME_SLUG);
+            if(!theme_data){
+                Debug(`Default theme not found on marketplace. Using '${Theme.DEFAULT_THEME_SLUG}' slug.`);
+                throw new CommandError(`Default theme not found on marketplace. Using '${Theme.DEFAULT_THEME_SLUG}' slug.`);
+            }
+
+            console.log(chalk.red.bold(`\n${content.name} not found on the marketplace. Gathering details from ${Theme.DEFAULT_THEME_SLUG}.`));
+            console.log(chalk.green.bold(`Note: Kindly make the necessary modifications in the marketplace_template.json file.\n`));
+        }
+
+        // remove extra fields
+        const {
+            template_theme_id,
+            created_at,
+            updated_at,
+            is_update,
+            is_default,
+            _id,
+            ...template_data } = theme_data;
+
+        delete template_data.release.previous_version;
+
+        await fs.writeJSON(
+            Theme.MARKETPLACE_TEMPLATE_FILE,
+            template_data,
+            {
+                spaces: 2,
+            },
+        );
+        
+        // modify data
+
+        // MODIFY
+        // organization_id
+        // user_id
+        // status > in-review
+        // src
+
+        // theme_type >> if theme not available on marketplace then check what to set
+    }
 }
