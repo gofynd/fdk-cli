@@ -49,10 +49,15 @@ function interceptorFn(options) {
                 const cookie = ConfigStore.get(CONFIG_KEYS.COOKIE);
                 config.headers['Cookie'] = cookie || '';
                 if (pathname.startsWith('/service/partner')) {
-                    const auth_token = ConfigStore.get(CONFIG_KEYS.AUTH_TOKEN);
-                    if (auth_token && auth_token.access_token) {
+                    if (process.env.ACCESS_TOKEN) {
                         config.headers['Authorization'] =
-                            'Bearer ' + auth_token.access_token;
+                        'Bearer ' + process.env.ACCESS_TOKEN;
+                    } else {
+                        const auth_token = ConfigStore.get(CONFIG_KEYS.AUTH_TOKEN);
+                        if (auth_token && auth_token.access_token) {
+                            config.headers['Authorization'] =
+                                'Bearer ' + auth_token.access_token;
+                        }
                     }
                 }
                 let queryParam = '';

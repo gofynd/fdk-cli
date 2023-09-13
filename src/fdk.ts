@@ -59,6 +59,18 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
                 process.env.DEBUG = 'false';
             }
 
+            if (parent._optionValues.accessToken) {
+                process.env.ACCESS_TOKEN = parent._optionValues.accessToken;
+            } else {
+                process.env.ACCESS_TOKEN = '';
+            }
+
+            if (parent._optionValues.org) {
+                process.env.ORGANIZATION = parent._optionValues.org;
+            } else {
+                process.env.ORGANIZATION = '';
+            }
+
             initializeLogger();
             const latest = await checkCliVersionAsync();
             const isCurrentLessThanLatest = semver.lt(
@@ -138,7 +150,8 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
                         partnerCommand.includes(c),
                     ) !== -1
                 ) &&
-                !configStore.get(CONFIG_KEYS.AUTH_TOKEN)
+                !configStore.get(CONFIG_KEYS.AUTH_TOKEN) &&
+                !process.env.ACCESS_TOKEN
             ) {
                 throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
             }
@@ -149,7 +162,7 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
                 THEME_COMMANDS.findIndex((c) => themeCommand.includes(c)) !== -1
             ) {
                 const isTokenExpired = await checkTokenExpired(
-                    configStore.get(CONFIG_KEYS.AUTH_TOKEN),
+                    process.env.ACCESS_TOKEN || configStore.get(CONFIG_KEYS.AUTH_TOKEN),
                 );
                 if (isTokenExpired)
                     throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
@@ -205,7 +218,10 @@ export async function init(programName: string) {
     program
         .name(programName)
         .version(packageJSON.version)
-        .option('-v, --verbose', 'A value that can be increased');
+        .option('-v, --verbose', 'A value that can be increased')
+        .option('-at, --access-token <token>', 'Set access token', false)
+        .option('-o, --org <token>', 'Set organization id', false);
+
     //register commands with commander instance
     registerCommands(program);
     //set API versios

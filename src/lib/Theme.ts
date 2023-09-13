@@ -2788,6 +2788,8 @@ export default class Theme {
             await Theme.generateAssetsVue();
         } else if (activeContext.theme_type === 'react') {
             await Theme.generateAssetsReact();
+        } else {
+            await Theme.generateAssetsVue();
         }
         let content = { name: '' };
         let spinner;
