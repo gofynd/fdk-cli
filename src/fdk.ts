@@ -66,9 +66,9 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
             }
 
             if (parent._optionValues.org) {
-                process.env.ORGANIZATION = parent._optionValues.org;
+                process.env.ORGANIZATION_ID = parent._optionValues.org;
             } else {
-                process.env.ORGANIZATION = '';
+                process.env.ORGANIZATION_ID = '';
             }
 
             initializeLogger();
@@ -220,7 +220,7 @@ export async function init(programName: string) {
         .version(packageJSON.version)
         .option('-v, --verbose', 'A value that can be increased')
         .option('-at, --access-token <token>', 'Set access token', false)
-        .option('-o, --org <token>', 'Set organization id', false);
+        .option('-o, --org <organization_id>', 'Set organization id', false);
 
     //register commands with commander instance
     registerCommands(program);
