@@ -1,6 +1,6 @@
 {
   "name": "@gofynd/fdk-cli",
-  "version": "3.0.1-alpha.6",
+  "version": "4.0.0-beta.1",
   "main": "index.js",
   "license": "MIT",
   "bin": {
@@ -14,7 +14,9 @@
     "bin",
     "dist",
     "src/**/*.js",
-    "template"
+    "template",
+    "react-template",
+    "react-theme-template"
   ],
   "scripts": {
     "clean": "rimraf ./dist",
@@ -22,7 +24,9 @@
     "copy-files": "copyfiles -u 1 src/**/*.html dist/",
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "pretty": "./node_modules/.bin/prettier --config ./.prettierrc --write './src/**/*.*'",
+    "publish-check": "node scripts"
   },
   "devDependencies": {
     "@types/async": "^3.2.6",
@@ -50,16 +54,25 @@
     "axios-mock-adapter": "^1.20.0",
     "copyfiles": "^2.4.1",
     "del-cli": "^3.0.1",
+    "eslint": "^8.49.0",
+    "husky": "^8.0.3",
     "jest": "^27.5.1",
+    "lint-staged": "^14.0.1",
+    "prettier": "^3.0.3",
     "source-map-support": "^0.5.19",
+    "supertest": "^6.3.3",
     "ts-jest": "^27.1.4",
     "ts-node": "^9.1.1",
-    "typescript": "^4.6.4"
+    "typescript": "^4.6.4",
+    "webpack": "^5.83.1"
   },
   "dependencies": {
     "@babel/core": "7.14.3",
     "@babel/plugin-transform-modules-commonjs": "^7.14.0",
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.10",
     "@types/open": "^6.2.1",
+    "acorn": "^8.10.0",
+    "acorn-walk": "^8.2.0",
     "archiver": "^5.3.0",
     "async": "^3.2.0",
     "axios": "^0.21.1",
@@ -69,10 +82,12 @@
     "chokidar": "^3.3.0",
     "commander": "^7.2.0",
     "configstore": "^5.0.1",
+    "cors": "^2.8.5",
     "crypto-js": "^4.0.0",
     "debug": "^4.3.1",
     "detect-port": "^1.3.0",
     "email-validator": "^2.0.4",
+    "escodegen": "^2.1.0",
     "execa": "^5.1.1",
     "express": "^4.17.1",
     "extract-zip": "^2.0.1",
@@ -81,11 +96,13 @@
     "http-proxy-middleware": "^2.0.6",
     "https-localhost": "^4.6.5",
     "inquirer": "^7.0.0",
+    "inquirer-search-list": "^1.2.6",
     "latest-version": "^5.1.0",
     "leven": "^3.1.0",
     "libphonenumber-js": "^1.9.23",
     "lodash": "^4.17.21",
     "mime": "^2.5.2",
+    "mini-css-extract-plugin": "^2.7.6",
     "mongodb": "^3.5.4",
     "mongoose": "^5.8.0",
     "ncp": "^2.0.0",
@@ -94,6 +111,7 @@
     "ora": "^5.4.0",
     "password-validator": "^5.1.1",
     "query-string": "^7.1.0",
+    "react-refresh": "^0.14.0",
     "require-from-string": "^2.0.2",
     "rimraf": "^3.0.2",
     "semver": "^6.3.0",
@@ -103,9 +121,13 @@
     "source-map": "^0.7.3",
     "stacktrace-parser": "^0.1.10",
     "terminal-link": "^1.3.0",
+    "terser-webpack-plugin": "^5.3.9",
     "url-join": "^4.0.1",
     "validator": "^13.6.0",
     "vue-template-compiler": "^2.6.13",
+    "webpack-dev-middleware": "^6.1.1",
+    "webpack-hot-middleware": "^2.25.3",
+    "webpack-merge": "^5.8.0",
     "winston": "^3.3.3"
   }
 }

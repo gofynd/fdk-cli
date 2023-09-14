@@ -1,7 +1,7 @@
-import configStore , { CONFIG_KEYS }  from '../lib/Config';
+import configStore, { CONFIG_KEYS } from '../lib/Config';
 
 export default function mockFunction<T extends (...args: any[]) => any>(
-    fn: T
+    fn: T,
 ): jest.MockedFunction<T> {
     return fn as jest.MockedFunction<T>;
 }
@@ -13,7 +13,7 @@ export function generateToken(decodedToken) {
     return new Buffer(`${JSON.stringify(decodedToken)}`).toString('base64');
 }
 
-export function setEnv(){
+export function setEnv() {
     configStore.set(CONFIG_KEYS.CURRENT_ENV, {}); // active_context: {}
-    configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, "fyndx0") 
+    configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'fyndx1');
 }

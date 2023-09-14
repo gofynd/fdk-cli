@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 53 (72520) - https://sketchapp.com -->
+    <title>share</title>
+    <desc>Created with Sketch.</desc>
+    <g id="share" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Group">
+            <rect id="Rectangle" x="0" y="0" width="24" height="24"></rect>
+            <g id="Imported-Layers" transform="translate(4.000000, 4.000000)" style="stroke:var(--primaryColor)">
+                <path d="M6.14893565,10.0752002 L9.55021162,12.4110806" id="Stroke-2" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M5.88505057,6.15431543 L9.28632654,3.81843507" id="Stroke-2-Copy" stroke-linecap="round" stroke-linejoin="round"></path>
+                <circle id="Oval-17" cx="11.7647059" cy="2.35294118" r="2.35294118"></circle>
+                <circle id="Oval-17-Copy" cx="11.7647059" cy="13.6470588" r="2.35294118"></circle>
+                <circle id="Oval-17-Copy-2" cx="3.45080081" cy="8.43183283" r="2.82352941"></circle>
+            </g>
+        </g>
+    </g>
+</svg>

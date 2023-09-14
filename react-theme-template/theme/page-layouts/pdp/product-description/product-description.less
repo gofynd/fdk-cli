@@ -1,0 +1,397 @@
+.productDescriptionContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 75vh;
+  padding: 1rem 4.5rem;
+  background-color: var(--pageBackground);
+  .productImagesPricingContainer {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    .productImagesContainer {
+      flex-basis: 60%;
+      .carouselImagesContainer {
+        display: flex;
+        flex-direction: column;
+        .singleImagePreviewContainer {
+          display: flex;
+          gap: 2rem;
+          justify-content: space-evenly;
+          align-items: center;
+          .carouselSvgContainer {
+            flex-basis: 48px;
+            svg {
+              width: 100%;
+              height: 100%;
+              cursor: pointer;
+            }
+            .inActiveSvg {
+              path {
+                stroke: #ccc;
+              }
+            }
+          }
+          .carouselImage {
+            padding: 1rem 0rem;
+            width: 80%;
+            img {
+              width: 100%;
+              border-radius: 24px;
+              max-height: 800px;
+              object-fit: contain;
+            }
+          }
+        }
+        .multipleImagePreviewContainer {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 2rem;
+          .imagesPreview {
+            display: flex;
+            gap: 0.5rem;
+            max-width: 80%;
+            overflow: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            &::-webkit-scrollbar {
+              display: none;
+            }
+            .imageContainer {
+              width: 63px;
+              border: 2px solid #fff;
+              border-radius: 24px;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              padding: 2px 0rem;
+              img {
+                border-radius: 24px;
+                width: 94%;
+                height: 84px;
+                object-fit: cover;
+              }
+            }
+            .selected {
+              border: 2px solid var(--textHeading);
+            }
+          }
+        }
+      }
+    }
+    .productPricingContainer {
+      flex-basis: 40%;
+      flex-direction: column;
+      padding: 2rem 1.5rem;
+      .productNameHeading {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--textHeading);
+        letter-spacing: 0.03em;
+      }
+      .productPriceContainer {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin: 16px 0px 0px 0px;
+        .productMrp {
+          margin-right: 4px;
+          font-size: 16px;
+          font-weight: 600;
+          color: var(--textHeading);
+          line-height: 18px;
+          letter-spacing: 0.02em;
+        }
+        .productEffectivePrice {
+          line-height: 24px;
+          font-size: 22px;
+          font-weight: 600;
+          color: var(--textHeading);
+          letter-spacing: 0.02em;
+        }
+        .productMarkedPrice {
+          margin-left: 0.25rem;
+          font-weight: 500;
+          color: var(--textLabel);
+          font-size: 14px;
+          line-height: 14px;
+          text-decoration-line: line-through;
+          letter-spacing: 0.02em;
+        }
+        .productDiscount {
+          padding: 0.25rem 0.5rem;
+          border-radius: 4px;
+          background-color: var(--saleBadgeBackground);
+          color: var(--saleDiscountText);
+          font-size: 12px;
+          margin-left: 1rem;
+          display: inline-block;
+        }
+      }
+      .productTaxLabel {
+        margin-bottom: 16px;
+        color: var(--textSecondary);
+        margin-top: 2px;
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        line-height: 14px;
+      }
+      .productSellerInformation {
+        display: flex;
+        align-items: center;
+        margin-bottom: 48px;
+        .sellerHeading {
+          color: var(--textHeading);
+          letter-spacing: 0.02em;
+        }
+        .sellerName {
+          color: var(--textHeading);
+          letter-spacing: 0.02em;
+        }
+      }
+      .sizeGuideContainer {
+        display: flex;
+        align-items: center;
+        margin-bottom: 16px;
+        .sizeGuideHeading {
+          margin-right: 2px;
+          color: var(--buttonPrimary);
+          font-size: 16px;
+          line-height: 16px;
+          font-weight: 600;
+          letter-spacing: 0.02em;
+        }
+      }
+      .sizeCartSelectionContainer {
+        display: flex;
+        .sizeSelectionContainer {
+          display: flex;
+          position: relative;
+          flex: 1;
+          margin-right: 12px;
+          .sizeDetails {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 11px 16px;
+            border: 0.8px solid var(--dividerStokes);
+            border-radius: var(--buttonRadius, 0);
+            background-color: #fff;
+            width: 100%;
+            height: 100%;
+            font-weight: 500;
+            font-size: 14px;
+            line-height: 16px;
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+            color: var(--textHeading);
+            .currentSize {
+              white-space: nowrap;
+              text-overflow: ellipsis;
+              overflow: hidden;
+              color: var(--textHeading);
+              font-size: 16px;
+              line-height: 14px;
+              font-weight: 500;
+              cursor: pointer;
+            }
+            svg {
+              width: 24px;
+              height: 24px;
+              transition: all 0.25s ease-in-out;
+            }
+            .sizeContainerOpen {
+              transform: scale(1, -1);
+            }
+            .sizePopUpModal {
+              position: absolute;
+              background-color: var(--dialogBackground);
+              width: 100%;
+              top: calc(100%);
+              left: 0px;
+              border: 1px solid #d4d1d1;
+              box-shadow: 0 4px 4px rgba(0, 0, 0, 0.15),
+                0 12px 16px rgba(0, 0, 0, 0.16);
+              border-radius: 8px;
+              padding: 0.5rem;
+              z-index: 1;
+              color: var(--textBody);
+              transition: all 0.25s ease-in;
+              .singleSizes {
+                cursor: pointer;
+                padding: 8px 12px;
+                border-radius: 4px;
+                color: var(--textBody);
+                &:hover {
+                  background-color: #e5dbdd;
+                }
+              }
+            }
+          }
+        }
+        .cartSelectionContainer {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          flex: 2;
+          padding: 19px !important;
+          cursor: pointer;
+          transition: all 0.4s;
+          border: 0.8px solid var(--dividerStokes);
+          border-radius: var(--buttonRadius, 0);
+          background-color: var(--buttonSecondary);
+          color: var(--buttonPrimary);
+          svg {
+            height: 16px;
+            width: 16px;
+          }
+          h5 {
+            font-size: 16px;
+            line-height: 16px;
+            color: var(--buttonPrimary);
+            letter-spacing: 0.02em;
+            font-weight: 600;
+          }
+          &:hover {
+            background-color: var(--buttonPrimary);
+            svg,
+            h5 {
+              color: var(--buttonSecondary);
+              fill: var(--buttonSecondary);
+            }
+          }
+        }
+      }
+      .buyNowButtonContainer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 12px;
+        width: 100%;
+        text-transform: uppercase;
+        padding: 20px;
+        cursor: pointer;
+        transition: all 0.4s;
+        border: 0.8px solid var(--dividerStokes);
+        border-radius: var(--buttonRadius, 0);
+        background-color: var(--buttonSecondary);
+        color: var(--buttonPrimary);
+        font-size: 18px;
+        line-height: 16px;
+        letter-spacing: 0.02em;
+        font-weight: 600;
+        &:hover {
+          border-color: var(--buttonPrimaryL1);
+          background-color: var(--buttonPrimary);
+          color: var(--buttonSecondary);
+        }
+      }
+      .pinCodeEnterContainer {
+        display: flex;
+        flex-direction: column;
+        margin-top: 3rem;
+        .pincodeHeading {
+          margin-bottom: 6px;
+          color: var(--textHeading);
+          font-size: 14px;
+          line-height: 18px;
+          letter-spacing: 0.02em;
+        }
+        .pincodeInputContainer {
+          margin-bottom: 4px;
+          display: flex;
+          border-radius: var(--buttonRadius, 0);
+          background-color: var(--themeAccentL4);
+          color: var(--textBody);
+          background-color: #f2edee;
+          border-radius: 4px;
+          .pincodeInput {
+            background: none;
+            border: none;
+            padding: 1rem;
+            width: 100%;
+            text-overflow: ellipsis;
+            font-size: 16px;
+            line-height: 18px;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+            color: var(--textBody);
+            outline: none;
+          }
+          .changePincodeContainer {
+            background: none;
+            border: none;
+            padding: 0 1rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            color: var(--buttonPrimary);
+            font-size: 14px;
+            line-height: 16px;
+            font-weight: 500;
+            border-radius: 4px;
+            letter-spacing: 0.02em;
+            .changePinCodeHeading {
+              display: flex;
+              align-items: center;
+              border-bottom: 1px solid var(--buttonPrimary);
+              svg {
+                margin-left: 6px;
+              }
+            }
+          }
+        }
+        .deliveryDateContainer {
+          color: var(--successText);
+          display: flex;
+          align-items: center;
+          svg {
+            width: 12px;
+            height: 12px;
+            fill: var(--successText);
+          }
+          p {
+            margin-left: 4px;
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 16px;
+            letter-spacing: 0.02em;
+          }
+        }
+      }
+    }
+  }
+  .productDetailsContainer {
+    margin-top: 3rem;
+    display: flex;
+    color: var(--textBody);
+    .productDetailsTab {
+      padding: 8px 32px;
+      color: var(--textLabel);
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 18px;
+      letter-spacing: 0.02em;
+      font-weight: 600;
+    }
+    .tabsActive {
+      background-color: var(--dialogBackground);
+      color: var(--textHeading);
+      border: 1px solid var(--dividerStokes);
+      border-radius: 12px 12px 0 0;
+      border-bottom: 1px solid var(--themeAccentL2);
+      margin-bottom: -1px;
+    }
+  }
+  .productDetailsData {
+    padding: 1rem 2.5rem;
+    background: var(--dialogBackground);
+    border: 1px solid var(--dividerStokes);
+    border-radius: 0 12px 12px 12px;
+    font-size: 16px;
+    line-height: 18px;
+    letter-spacing: -0.02em;
+    color: var(--textBody);
+  }
+}
