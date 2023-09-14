@@ -22,6 +22,7 @@ import webpackDevMiddleware from 'webpack-dev-middleware';
 import webpackHotMiddleware from 'webpack-hot-middleware';
 import webpack from 'webpack';
 import createBaseWebpackConfig from '../helper/theme.react.config';
+const packageJSON = require('../../package.json');
 
 const BUILD_FOLDER = './.fdk/dist';
 let port = 5001;
@@ -173,6 +174,7 @@ export async function startServer({ domain, host, isSSR, port }) {
                 headers: {
                     'Content-Yype': 'application/json',
                     Accept: 'application/json',
+                    'x-fp-cli': `${packageJSON.version}`,
                 },
                 data: {
                     theme_url: themeUrl,
@@ -477,7 +479,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 						window.location.reload();
 					`
                     }
-					
+
 				});
 				</script>
 			`);
