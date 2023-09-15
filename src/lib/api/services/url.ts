@@ -3,7 +3,13 @@ import urlJoin from 'url-join';
 import { AVAILABLE_ENVS } from '../../Env';
 
 const apiVersion = configStore.get(CONFIG_KEYS.API_VERSION) || '1.0';
-const organization_id = () => process.env.ORGANIZATION_ID || configStore.get(CONFIG_KEYS.ORGANIZATION);
+const organizationId = configStore.get(CONFIG_KEYS.ORGANIZATION)
+
+function organization_id() {
+    if(process.env.ORGANIZATION_ID)
+        return process.env.ORGANIZATION_ID;
+    return organizationId;
+}
 
 export const getBaseURL = () => {
     const currentEnv = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
