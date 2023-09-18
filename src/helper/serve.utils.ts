@@ -24,6 +24,8 @@ import webpackDevMiddleware from 'webpack-dev-middleware';
 import webpackHotMiddleware from 'webpack-hot-middleware';
 import webpack from 'webpack';
 import createBaseWebpackConfig from '../helper/theme.react.config';
+import getOverlayErrorHtml, { getErrorStack } from './overlay_error';
+import Debug from '../lib/Debug';
 
 const BUILD_FOLDER = './.fdk/dist';
 let port = 5001;
@@ -98,103 +100,57 @@ export async function startServer({ domain, host, isSSR, port }) {
 
         // When error occurs on browser after app has been served
         // We will send socket event to CLI and find file location
-        socket.on('explain-error', async function ({ stack: errorStack, name, message, info, isServerSide }) {
-            const stack = stackTraceParser(errorStack);
-			if(isSSR){
-				// 'ReferenceError: manish is not defined\n 
-				// at VueComponent.throwError (webpack://themeBundle/./theme/templates/pages/home.vue?./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options:17:14)\n    
-				// at click (webpack://themeBundle/./theme/templates/pages/home.vue?./node_modules/cache-loader/dist/cjs.js?%7B%22cacheDirectory%22:%22node_modules/.cache/vue-loader%22,%22cacheIdentifier%22:%220af8f5f4-vue-loader-template%22%7D!./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/babel-loader/lib!./node_modules/vue-loader/lib/loaders/templateLoader.js??ref--6!./node_modules/vue-loader/lib??vue-loader-options:13:20)\n    
-				// at invokeWithErrorHandling (https://localhost:5002/public/app.js:94212:30)\n    
-				// at HTMLButtonElement.invoker (https://localhost:5002/public/app.js:92032:20)\n    
-				// at original_1._wrapper (https://localhost:5002/public/app.js:98484:35)'
-                const bundleFile = stack[0].file.split('/').pop() + '.map';
-			} else
-			// webpack://themeBundle/./theme/templates/pages/home.vue?./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options'
-            if (stack[0]) {
-                // To show error in CLI
-                // ======================
-                // Check in which bundle file error occuring and get map file
-                const bundleFile = stack[0].file.split('/').pop() + '.map';
-                // Get bundle file from local machine
-                const mapContent = JSON.parse(
-                    fs.readFileSync(`${BUILD_FOLDER}/${bundleFile}`, {
-                        encoding: 'utf8',
-                        flag: 'r',
-                    })
-                );
+		socket.on('explain-error', async function ({ stack: errorStack, name, message, info }) {
+			Debug(["Error from Browser", errorStack, name, message, info])
+			const stack = stackTraceParser(errorStack);
+			if (!stack[0]) return
+			let bundleFile = stack[0].file.split('/').pop() + '.map'
+			let mapFilePath = `${BUILD_FOLDER}/${bundleFile}`
 
-                const smc = await new SourceMapConsumer(mapContent);
+			if (!fs.existsSync(mapFilePath)) {
+				bundleFile = "themeBundle.umd.js.map"
+				mapFilePath = `${BUILD_FOLDER}/${bundleFile}`
+			}
 
-                // Get position in original file
-                const pos = smc.originalPositionFor({
-                    line: stack[0].lineNumber,
-                    column: stack[0].column,
-                });
+			if (!fs.existsSync(mapFilePath)) {
+				console.log("Can't find map file.");
+			}
 
-				const filePath = pos.source.split('themeBundle/')[1].split("?")[0]
-                const pathToFile = filePath + ':' + pos.line + ':' + pos.column;
+			// To show error in CLI
+			// ======================
+			// Check in which bundle file error occuring and get map file
+			// Get bundle file from local machine
+			const mapContent = JSON.parse(
+				fs.readFileSync(mapFilePath, {
+					encoding: 'utf8',
+					flag: 'r',
+				})
+			);
 
-                // Log in CLI
-                if (pos){
-					console.log(`\n${chalk.red.bold(message)}`);
-                    console.log(chalk.bgRed.bold('Error at ' + process.cwd() + "/" + pathToFile + (pos.name ? ` @${pos.name}` : '') + '\n'));
-				}
-                // ========================
+			const smc = await new SourceMapConsumer(mapContent);
 
-                // Generate HTML to show overlay error
-                let errorString = errorStack.split('\n').find(line => line.trim().length > 0);
-                errorString = `<h3 style="font-size: 18px; margin-bottom: 8px;"><b>${errorString}</b></h3>`;
+			// Get position in original file
+			const pos = smc.originalPositionFor({
+				line: stack[0].lineNumber,
+				column: stack[0].column,
+			});
 
-                stack?.forEach(({ methodName, lineNumber, column }) => {
-                    try {
-                        if (lineNumber == null || lineNumber < 1) {
-                            errorString += `<p style="color: #dda2aa">      at  <strong>${
-                                methodName || ''
-                            }</strong></p>`;
-                        } else {
-                            const pos = smc.originalPositionFor({ line: lineNumber, column });
-                            if (pos && pos.line != null) {
-                                errorString += `<p style="color: #dda2aa">      at  <strong>${
-                                    methodName || pos.name || ''
-                                }</strong> (${pos.source}:${pos.line}:${pos.column})</p>`;
-                            }
-                        }
-                    } catch (err) {
-                        console.log(`    at FAILED_TO_PARSE_LINE`);
-                    }
-                });
-                const finalHTML = `
-                <div
-                    class="overlay"
-                    style="
-                    position: absolute;
-                    inset: 0;
-                    background: #454545;
-                    color: white;
-                    padding: 50px 32px;
-                    z-index: 10000;
-                    font-family: monospace;
-                    "
-                >
-                    <div class="header-wrapper" style="margin-bottom: 16px">
-                        <h1 style="color: #f45556; font-size: 24px;">${message}</h1>
-                    </div>
-                    <div class="location" style="margin-bottom: 16px">
-                        <a href="vscode://file${process.cwd()}/${pathToFile}" style="color: #878888; font-size: 20px; line-height: 23px; text-decoration: none;border: none; text-align: left;">
-                            <span style="color: #fff;">${name} ${info}</span>
-                            <br />
-                            <span style="font-size: 16px; line-height: 19px;">
-                            ${pathToFile}
-                            </span>
-                        </a>
-                    </div>
-                    <a href="vscode://file${process.cwd()}/${pathToFile}"  style="padding: 10px; background: #564143; display: block; font-size: 16px; line-height: 19px;">${errorString}</a>
-                    <a style="background: #0078d7; color: white; text-decoration: none; padding: 8px 16px; margin-top: 16px; display: block; width: max-content; border-radius: 2px; font-family: arial; border: none;" href="vscode://file${process.cwd()}/${pathToFile}">Open in VS Code</a>
-                </div>`;
+			const filePath = pos.source.split('themeBundle/')[1].split("?")[0]
+			const pathToFile = filePath + ':' + pos.line + ':' + pos.column;
 
-                // Emit "show-error-overlay" event to browser with innerHTML
-                socket.emit('show-error-overlay', finalHTML);
-            }
+			// Log in CLI
+			if (pos) {
+				console.log(`\n${chalk.red.bold(message)}`);
+				console.log(chalk.bgRed.bold('Error at ' + process.cwd() + "/" + pathToFile + (pos.name ? ` @${pos.name}` : '') + '\n'));
+			}
+
+			// Generate HTML to show overlay error
+			let errorString = getErrorStack(stack, errorStack, smc);
+			const finalHTML = getOverlayErrorHtml({message, name, info, pathToFile: `${process.cwd()}/${pathToFile}`, errorString});
+
+			// Emit "show-error-overlay" event to browser with innerHTML
+			socket.emit('show-error-overlay', finalHTML);
+            
         });
 	});
 
@@ -274,21 +230,16 @@ export async function startServer({ domain, host, isSSR, port }) {
 					});
                     // CLI will emit "show-error-overlay" event with dynamic error html
                     socket.on("show-error-overlay", function(htmlString){
-                        const errorDiv = document.createElement('div');
-                        errorDiv.className = "error-boundry-dynamic";
+						const errorDiv = document.createElement('div');
+                        errorDiv.className = "error-boundry-dynamic"; // render engine contains it's css
                         errorDiv.innerHTML = htmlString;
                         document?.body?.appendChild(errorDiv)
-                        const closeButton = document.createElement('button');
-                        closeButton.innerText = "close";
-                        closeButton.style.position= "absolute";
-                        closeButton.style.top= "16px";
-                        closeButton.style.right= "16px";
-                        closeButton.style.zIndex= 100000;
+                        const closeButton = document.querySelector(".error-boundry-dynamic .close-error-boundry-btn");
                         closeButton.onclick = () => {
                             errorDiv.remove();
                         }
                         errorDiv.append(closeButton);
-                    })
+					})
 					</script>
 				`);
 			$('head').append(`
@@ -317,6 +268,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 			});
 			res.send($.html({ decodeEntities: false }));
 		} catch (e) {
+			Debug(["Error while serving", e])
             // Check if error contains "all_server_components" string
             // if yes, then it means error is from jetfire
             const errorStackIsPresent = e.stack;
@@ -324,14 +276,15 @@ export async function startServer({ domain, host, isSSR, port }) {
                 ? e.stack.includes?.('all_server_components')
                 : false;
             let pathToFile = null;
+			Debug(["Error from Browser", errorStackIsPresent, e.message , e.name, e.code]);
 
             // Showing in CLI whether it's from Jetfire or Theme
-            console.log(all_server_components ? 'Error in Jetfire' : 'Error in theme');
+            console.log(all_server_components ? 'Error in Engine' : 'Error in theme');
 
             // If it's from theme side
             // then find original location from .map file
             if (errorStackIsPresent && !all_server_components) {
-                const stack = stackTraceParser(e.stack);
+                const stack = stackTraceParser(errorStackIsPresent);
                 if (stack[0]) {
                     const mapContent = JSON.parse(
                         fs.readFileSync(`${BUILD_FOLDER}/themeBundle.common.js.map`, {
@@ -351,6 +304,10 @@ export async function startServer({ domain, host, isSSR, port }) {
                         pathToFile =
                             pos.source.split('themeBundle/')[1] + ':' + pos.line + ':' + pos.column;
                         console.log(chalk.bgRed('\nError at ' + process.cwd() + "/" + pathToFile + ' @' + pos.name));
+						// Generate HTML to show overlay error
+						const errorString = getErrorStack(stack, errorStackIsPresent, smc);
+						const finalHTML = getOverlayErrorHtml({message: e.message , name: e.name, info: e.code, pathToFile: `${process.cwd()}/${pathToFile}`, errorString, noCloseButton: true});
+						res.send(finalHTML)
                     }
                 }
             }
@@ -359,25 +316,11 @@ export async function startServer({ domain, host, isSSR, port }) {
 			} else if (e.response && e.response.status == 500) {
 				try {
 					Logger.error(e.stack)
-					let errorString = e.stack.split('\n').find(line => line.trim().length > 0);
-					errorString = `<h3><b>${errorString}</b></h3>`;
 					const mapContent = JSON.parse(fs.readFileSync(`${BUILD_FOLDER}/themeBundle.common.js.map`, { encoding: 'utf8', flag: 'r' }));
 					const smc = await new SourceMapConsumer(mapContent);
 					const stack = stackTraceParser(e.stack);
-					stack?.forEach(({ methodName, lineNumber, column }) => {
-						try {
-							if (lineNumber == null || lineNumber < 1) {
-								errorString += `<p>      at  <strong>${methodName || ''}</strong></p>`;
-							} else {
-								const pos = smc.originalPositionFor({ line: lineNumber, column });
-								if (pos && pos.line != null) {
-									errorString += `<p>      at  <strong>${methodName || pos.name || ''}</strong> (${pos.source}:${pos.line}:${pos.column})</p>`;
-								}
-							}
-						} catch (err) {
-							console.log(`    at FAILED_TO_PARSE_LINE`);
-						}
-					});
+					const errorString = getErrorStack(stack, e.stack, smc);
+
 					res.send(`<div style="padding: 10px;background: #efe2e0;color: #af2626;">${errorString}${pathToFile ? `<a style="background: #0078d7; color: white; text-decoration: none; padding: 8px 16px; margin-top: 16px; display: block; width: max-content; border-radius: 2px; font-family: arial;" href="vscode://file${process.cwd()}/${pathToFile}">Open in VS Code</a>` : ''}</div>`);
 				}
 				catch (e) {
