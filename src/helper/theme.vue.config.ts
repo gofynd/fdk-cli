@@ -92,6 +92,7 @@ vueConfig = mergeDeep(vueConfig, {
 const vueChainWebpack = vueConfig.chainWebpack;
 const vueConfigureWebpack = vueConfig.configureWebpack;
 const configureWebpack = (config) => {
+  config.devtool = 'source-map';
   config.module.rules.push({
     resourceQuery: /blockType=settings/,
     loader:set
