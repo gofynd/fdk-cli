@@ -17,10 +17,11 @@ import {
     responseInterceptor,
 } from './helper/interceptors';
 import Curl from '../../helper/curl';
+import Logger from '../Logger';
 import chalk from 'chalk';
 import { MAX_RETRY } from '../../helper/constants';
 axios.defaults.withCredentials = true;
-axios.defaults.timeout = 300000; // 5 minute
+axios.defaults.timeout = 60000; // 1 minute
 
 let uninterceptedAxiosInstance = axios.create();
 
@@ -32,9 +33,7 @@ const axiosRetryConfig = {
     },
     shouldResetTimeout: true,
     onRetry(retryCount, error, requestConfig) {
-        console.log(
-            chalk.red('\nNetworking fluctuation detected. Retrying request...'),
-        );
+        Logger.warn(`\nRetrying........ (${retryCount}/${MAX_RETRY})`);
     },
     retryDelay(retryCount, error) {
         return 2000;
