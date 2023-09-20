@@ -1,0 +1,116 @@
+.singleFilterContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 1rem 0.5rem;
+  cursor: pointer;
+  max-height: 400px;
+  overflow: scroll;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  .filterInformationContainer {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    .filterHeading {
+      color: var(--textHeading);
+      font-size: 16px;
+      line-height: 18px;
+      letter-spacing: 0.02em;
+      font-weight: 500;
+    }
+    .filterSvg {
+      height: 24px;
+      width: 24px;
+      fill: var(--textHeading);
+      transition: all 0.25s ease;
+    }
+  }
+  .filterValueContainer {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0rem;
+    stroke: none;
+    .svgStrokeContainer {
+      width: 26px;
+      height: 26px;
+      &:hover {
+        &.notSelected {
+          stroke: var(--buttonPrimary);
+        }
+      }
+    }
+    .notSelected {
+      stroke: var(--dividerStokes);
+    }
+    .filterValueName {
+      color: var(--textBody);
+      font-size: 14px;
+      letter-spacing: 0.02em;
+      font-weight: 500;
+    }
+    .filterValueCount {
+      color: var(--textSecondary);
+      font-size: 12px;
+      letter-spacing: 0.02em;
+      font-weight: 400;
+    }
+  }
+  .rangeContainer {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    .rangeTitleContainer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1rem;
+      div {
+        flex-basis: 35%;
+        display: flex;
+        justify-content: start;
+        align-items: center;
+        font-size: 14px;
+        line-height: 14px;
+        margin-bottom: 8px;
+        color: var(--textBody);
+        font-weight: 500;
+      }
+    }
+    .rangeInputContainer {
+      display: flex;
+      justify-content: space-between;
+      div {
+        flex-basis: 35%;
+        display: flex;
+        justify-content: start;
+        align-items: center;
+        font-size: 14px;
+        line-height: 14px;
+        margin-bottom: 8px;
+        color: var(--textBody);
+        font-weight: 500;
+        gap: 0.5rem;
+        .currencySymbol {
+          font-size: 14px;
+          color: var(--textSecondary);
+          line-height: 14px;
+          font-weight: 500;
+        }
+        input {
+          min-width: 76px;
+          max-width: 100px;
+          padding: 6px 0px;
+          border: 1px solid var(--dividerStokes);
+          color: var(--textBody);
+          text-align: center;
+          background: transparent;
+        }
+      }
+    }
+  }
+}

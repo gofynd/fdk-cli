@@ -1,40 +1,52 @@
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse, AxiosInstance, ResponseType } from 'axios';
-import axiosRetry from 'axios-retry';
+import axios, {
+    AxiosError,
+    AxiosRequestConfig,
+    AxiosResponse,
+    AxiosInstance,
+    ResponseType,
+} from 'axios';
+import {
+    isNetworkErrorCode,
+    transformRequestOptions,
+} from './../../helper/utils';
 import Debug from '../Debug';
-import { isNetworkErrorCode, transformRequestOptions } from './../../helper/utils';
-import { addSignatureFn, responseErrorInterceptor, responseInterceptor } from './helper/interceptors';
+import axiosRetry from 'axios-retry';
+import {
+    addSignatureFn,
+    responseErrorInterceptor,
+    responseInterceptor,
+} from './helper/interceptors';
 import Curl from '../../helper/curl';
 import chalk from 'chalk';
 import { MAX_RETRY } from '../../helper/constants';
 axios.defaults.withCredentials = true;
 axios.defaults.timeout = 300000; // 5 minute
 
-let uninterceptedAxiosInstance = axios.create()
+let uninterceptedAxiosInstance = axios.create();
 
-const axiosRetryConfig = { 
+const axiosRetryConfig = {
     retries: MAX_RETRY,
     retryCondition(error) {
-        const shouldRetry = isNetworkErrorCode(error.code)
-        return shouldRetry
+        const shouldRetry = isNetworkErrorCode(error.code);
+        return shouldRetry;
     },
     shouldResetTimeout: true,
     onRetry(retryCount, error, requestConfig) {
-        console.log(chalk.red("\nNetworking fluctuation detected. Retrying request..."));
+        console.log(
+            chalk.red('\nNetworking fluctuation detected. Retrying request...'),
+        );
     },
     retryDelay(retryCount, error) {
-        return 2000
-    }
-}
+        return 2000;
+    },
+};
 
 uninterceptedAxiosInstance.interceptors.request.use(addSignatureFn({}));
-uninterceptedAxiosInstance.interceptors.response.use(
-    (response) => {
-        Debug(`Response status: ${response.status}`);
-        Debug(`Response Headers: ${JSON.stringify(response.headers)}`);
-        return response; // IF 2XX then return response.data only
-    }, 
-    responseErrorInterceptor()
-);
+uninterceptedAxiosInstance.interceptors.response.use((response) => {
+    Debug(`Response status: ${response.status}`);
+    Debug(`Response Headers: ${JSON.stringify(response.headers)}`);
+    return response; // IF 2XX then return response.data only
+}, responseErrorInterceptor());
 
 // Axios Interceptors
 axios.interceptors.request.use(
@@ -43,7 +55,9 @@ axios.interceptors.request.use(
             // log curl request incase of debug
             const curl = new Curl(request);
             Debug('************** CURL **************');
-            Debug(`METHOD: ${request?.method.toUpperCase()} | PATH: ${request?.url}`);
+            Debug(
+                `METHOD: ${request?.method.toUpperCase()} | PATH: ${request?.url}`,
+            );
             Debug(curl.generateCommand());
             Debug('************** END OF CURL **************');
         } catch (error) {
@@ -51,10 +65,16 @@ axios.interceptors.request.use(
         } finally {
             return request;
         }
-    }
+    },
+    function (error: AxiosError) {
+        console.log('Error from the request interceptor', error);
+    },
 );
 axios.interceptors.request.use(addSignatureFn({}));
-axios.interceptors.response.use(responseInterceptor(), responseErrorInterceptor());
+axios.interceptors.response.use(
+    responseInterceptor(),
+    responseErrorInterceptor(),
+);
 
 let axiosMisc = axios.create({
     withCredentials: false,
@@ -66,10 +86,10 @@ axiosRetry(uninterceptedAxiosInstance, axiosRetryConfig);
 axiosRetry(axiosMisc, axiosRetryConfig);
 
 interface Options {
-    headers?: object
-    params?: object
-    data?: object
-    responseType?: ResponseType
+    headers?: object;
+    params?: object;
+    data?: object;
+    responseType?: ResponseType;
 }
 
 class ApiEngine {
@@ -84,18 +104,22 @@ class ApiEngine {
             headers: opt.headers,
             params: opt.params,
             responseType: opt.responseType,
-            paramsSerializer: params => {
+            paramsSerializer: (params) => {
                 return transformRequestOptions(params);
             },
         });
     }
 
-    get(url: string, opt: Options = {}, config = {}): Promise<AxiosResponse<any>> {
+    get(
+        url: string,
+        opt: Options = {},
+        config = {},
+    ): Promise<AxiosResponse<any>> {
         return this.axiosInstance.get(url, {
             params: opt.params,
             headers: opt.headers,
             responseType: opt.responseType,
-            paramsSerializer: params => {
+            paramsSerializer: (params) => {
                 return transformRequestOptions(params);
             },
             ...config,
@@ -140,12 +164,12 @@ class ApiEngine {
             params: opt.params,
             headers: opt.headers,
             responseType: opt.responseType,
-            paramsSerializer: params => {
+            paramsSerializer: (params) => {
                 return transformRequestOptions(params);
             },
         });
     }
-    
+
     postMisc(url: string, opt: Options = {}): Promise<AxiosResponse<any>> {
         return axiosMisc.post(url, opt.data, { headers: opt.headers });
     }
