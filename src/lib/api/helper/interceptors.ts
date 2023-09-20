@@ -4,7 +4,6 @@ const { transformRequestOptions } = require('../../../helper/utils');
 const { sign } = require('./signature');
 import Debug from '../../Debug';
 import CommandError, { ErrorCodes } from '../../CommandError';
-import AuthenticationService from '../services/auth.service';
 import ConfigStore, { CONFIG_KEYS } from '../../Config';
 import { MAX_RETRY } from '../../../helper/constants';
 import { COMMON_LOG_MESSAGES } from '../../../lib/Logger';
@@ -25,12 +24,6 @@ function getTransformer(config) {
     );
 }
 
-function getCompanyId(path: string): number {
-    const pathArr = path.split('/');
-    const companyId = pathArr[pathArr.findIndex((p) => p === 'company') + 1];
-
-    return Number(companyId);
-}
 function interceptorFn(options) {
     return async (config) => {
         try {
@@ -155,11 +148,9 @@ export function responseErrorInterceptor() {
             // then directly send error network error
             if (error.config?.['axios-retry']?.retryCount === MAX_RETRY) {
                 Debug(
-                    `\nError => Code: ${error.code} Message: ${error.message}\n`,
+                    `\nError => Code: ${error.code} Message: ${error.message} Url: ${error.config.url}\n`,
                 );
-                throw new Error(
-                    'Not received response from the server, possibly some network issue, please retry!!',
-                );
+                throw new Error('Please retry, possibly some network issue!!');
             }
 
             // If axios haven't tried 3(MAX_RETRY) times, then throw whatever error you got from last API call try
