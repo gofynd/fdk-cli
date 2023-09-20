@@ -158,20 +158,12 @@ export function responseErrorInterceptor() {
                     `\nError => Code: ${error.code} Message: ${error.message}\n`,
                 );
                 throw new Error(
-                    // @ts-ignore
                     'Not received response from the server, possibly some network issue, please retry!!',
-                    { cause: ErrorCodes.NETWORK_ERROR.code },
                 );
             }
 
             // If axios haven't tried 3(MAX_RETRY) times, then throw whatever error you got from last API call try
             throw error;
-        } else if (error.cause === ErrorCodes.NETWORK_ERROR.code) {
-            throw new Error(
-                // @ts-ignore
-                'Not received response from the server, possibly some network issue, please retry!!',
-                { cause: ErrorCodes.NETWORK_ERROR.code },
-            );
         } else {
             throw new Error(
                 'There was an issue in setting up the request, Please raise issue',
