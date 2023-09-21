@@ -2796,9 +2796,9 @@ export default class Theme {
     public static generateThemeZip = async () => {
         // Generate production build so that we can get assets and available sections in config file while creating zip
         const activeContext = getActiveContext();
-        if (activeContext.theme_type === 'vue2') {
+        if (activeContext && activeContext.theme_type === 'vue2') {
             await Theme.generateAssetsVue();
-        } else if (activeContext.theme_type === 'react') {
+        } else if (activeContext && activeContext.theme_type === 'react') {
             await Theme.generateAssetsReact();
         } else {
             await Theme.generateAssetsVue();
