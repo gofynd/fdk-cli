@@ -1,1837 +1,1837 @@
 {
-  "items":[
-    {
-        "_id": "622894659baaca3be88c9d65",
-        "font": {
-            "variants": {
-                "light": {
-                    "name": "300",
-                    "file": "https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLDz8V1tvFP-KUEg.ttf"
-                },
-                "regular": {
-                    "name": "regular",
-                    "file": "https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrFJDUc1NECPY.ttf"
-                },
-                "medium": {
-                    "name": "500",
-                    "file": "https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLGT9V1tvFP-KUEg.ttf"
-                },
-                "semi_bold": {
-                    "name": "600",
-                    "file": "https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLEj6V1tvFP-KUEg.ttf"
-                },
-                "bold": {
-                    "name": "700",
-                    "file": "https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLCz7V1tvFP-KUEg.ttf"
-                }
-            },
-            "family": "Poppins"
-        },
-        "config": {
-            "current": "default",
-            "list": [
-                {
-                    "name": "default",
-                    "page": [
-                        {
-                            "settings": {
-                                "props": {
-                                    "bulk_prices": true,
-                                    "add_to_compare": true,
-                                    "store_selection": true,
-                                    "reviews": true,
-                                    "compare_products": true,
-                                    "variants": true,
-                                    "share": true,
-                                    "size_guide": true,
-                                    "wishlist": true,
-                                    "product_request": true,
-                                    "ratings": true,
-                                    "similar_products": true
-                                }
-                            },
-                            "page": "product-description"
-                        },
-                        {
-                            "settings": {
-                                "props": {
-                                    "staff_selection": true,
-                                    "enable_guest": true,
-                                    "enable_customer": true,
-                                    "message": true,
-                                    "reward_points": true,
-                                    "gst": false,
-                                    "coupons": true
-                                }
-                            },
-                            "page": "cart-landing"
-                        }
-                    ],
-                    "global_config": {
-                        "static": {
-                            "props": {
-                                "colors": {
-                                    "primary_color": "#7043f7",
-                                    "secondary_color": "#02d1cb",
-                                    "accent_color": "#FFFFFF",
-                                    "link_color": "#7043f7",
-                                    "button_secondary_color": "#000000",
-                                    "bg_color": "#F8F8F8"
-                                },
-                                "auth": {
-                                    "show_header_auth": false,
-                                    "show_footer_auth": false
-                                },
-                                "palette": {
-                                    "general_setting": {
-                                        "theme": {
-                                            "page_background": "#F8F8F8",
-                                            "theme_accent": "#FFFFFF"
-                                        },
-                                        "text": {
-                                            "text_heading": "#02d1cb",
-                                            "text_body": "#3C3131",
-                                            "text_label": "#7D7676",
-                                            "text_secondary": "#9C9C9C"
-                                        },
-                                        "button": {
-                                            "button_primary": "#7043f7",
-                                            "button_secondary": "#000000",
-                                            "button_link": "#7043f7"
-                                        },
-                                        "sale_discount": {
-                                            "sale_badge_background": "#FFFFFF",
-                                            "sale_badge_text": "#1C958F",
-                                            "sale_discount_text": "#1C958F",
-                                            "sale_timer": "#994449"
-                                        },
-                                        "header": {
-                                            "header_background": "#F3F3ED",
-                                            "header_nav": "#261A1A",
-                                            "header_icon": "#261A1A"
-                                        },
-                                        "footer": {
-                                            "footer_background": "#2C231E",
-                                            "footer_bottom_background": "#231812",
-                                            "footer_heading_text": "#FFFFFF",
-                                            "footer_body_text": "#FFFFFF",
-                                            "footer_icon": "#FFFFFF"
-                                        }
-                                    },
-                                    "advance_setting": {
-                                        "overlay_popup": {
-                                            "dialog_backgroung": "#FFFFFF",
-                                            "overlay": "#14130E"
-                                        },
-                                        "divider_stroke_highlight": {
-                                            "divider_strokes": "#D4D1D1",
-                                            "highlight": "#EDECE9"
-                                        },
-                                        "user_alerts": {
-                                            "success_background": "#C2DBC9",
-                                            "success_text": "#1C958F",
-                                            "error_background": "#E6D5D5",
-                                            "error_text": "#B24141",
-                                            "info_background": "#EBD3BC",
-                                            "info_text": "#D28F51"
-                                        }
-                                    }
-                                },
-                                "extension": {
-                                    "header_top": [],
-                                    "header_bottom": [],
-                                    "footer_top": [],
-                                    "footer_bottom": []
-                                }
-                            }
-                        },
-                        "custom": {
-                            "props": {
-                                "disable_cart": false
-                            }
-                        }
-                    }
-                }
-            ],
-            "global_schema": {
-                "props": [
-                    {
-                        "type": "checkbox",
-                        "id": "disable_cart",
-                        "default": false,
-                        "category": "Cart",
-                        "label": "Disable Cart"
+    "items": [
+        {
+            "_id": "622894659baaca3be88c9d65",
+            "font": {
+                "variants": {
+                    "light": {
+                        "name": "300",
+                        "file": "https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLDz8V1tvFP-KUEg.ttf"
                     },
-                    {
-                        "type": "color",
-                        "category": "Colors",
-                        "id": "tax_label_color",
-                        "label": "Price (tax incl.) label",
-                        "default": "#9B9B9B"
+                    "regular": {
+                        "name": "regular",
+                        "file": "https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrFJDUc1NECPY.ttf"
+                    },
+                    "medium": {
+                        "name": "500",
+                        "file": "https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLGT9V1tvFP-KUEg.ttf"
+                    },
+                    "semi_bold": {
+                        "name": "600",
+                        "file": "https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLEj6V1tvFP-KUEg.ttf"
+                    },
+                    "bold": {
+                        "name": "700",
+                        "file": "https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLCz7V1tvFP-KUEg.ttf"
                     }
-                ]
+                },
+                "family": "Poppins"
             },
-            "preset": {
-                "pages": [
+            "config": {
+                "current": "default",
+                "list": [
                     {
-                        "sections": [
+                        "name": "default",
+                        "page": [
                             {
-                                "blocks": [],
-                                "predicate": {
-                                    "screen": {
-                                        "mobile": true,
-                                        "desktop": true,
-                                        "tablet": true
-                                    },
-                                    "user": {
-                                        "authenticated": true,
-                                        "anonymous": true
-                                    },
-                                    "route": {
-                                        "selected": "none",
-                                        "exact_url": ""
+                                "settings": {
+                                    "props": {
+                                        "bulk_prices": true,
+                                        "add_to_compare": true,
+                                        "store_selection": true,
+                                        "reviews": true,
+                                        "compare_products": true,
+                                        "variants": true,
+                                        "share": true,
+                                        "size_guide": true,
+                                        "wishlist": true,
+                                        "product_request": true,
+                                        "ratings": true,
+                                        "similar_products": true
                                     }
                                 },
-                                "name": "customHtml",
-                                "props": {
-                                    "code": {
-                                        "type": "code",
-                                        "value": "<p style=\"text-align:right;\"><a href=\"tel:+919820204442\"><img src=\"https://dabuttonfactory.com/button.png?t=For+any+queries%2C+call%3A+%2B91+98202+04442&f=Open+Sans-Bold&ts=15&tc=fff&hp=20&vp=10&c=round&bgt=unicolored&bgc=7043f7\"/> </a></p>"
-                                    }
-                                }
+                                "page": "product-description"
                             },
                             {
-                                "blocks": [],
-                                "predicate": {
-                                    "screen": {
-                                        "mobile": true,
-                                        "desktop": true,
-                                        "tablet": true
-                                    },
-                                    "user": {
-                                        "authenticated": true,
-                                        "anonymous": true
-                                    },
-                                    "route": {
-                                        "selected": "none",
-                                        "exact_url": ""
+                                "settings": {
+                                    "props": {
+                                        "staff_selection": true,
+                                        "enable_guest": true,
+                                        "enable_customer": true,
+                                        "message": true,
+                                        "reward_points": true,
+                                        "gst": false,
+                                        "coupons": true
                                     }
                                 },
-                                "name": "rupifyBanner",
+                                "page": "cart-landing"
+                            }
+                        ],
+                        "global_config": {
+                            "static": {
                                 "props": {
-                                    "image": {
-                                        "type": "image_picker",
-                                        "value": "https://hdn-1.fynd.com/company/884/applications/000000000000000000000004/theme/pictures/free/original/theme-image-1605592653629.jpeg"
-                                    }
-                                }
-                            },
-                            {
-                                "blocks": [
-                                    {
-                                        "type": "gallery_image",
-                                        "name": "Image",
-                                        "props": {
-                                            "image": {
-                                                "type": "image_picker",
-                                                "value": "https://hdn-1.fynd.com/company/884/applications/000000000000000000000004/theme/pictures/free/original/theme-image-1607053997354.jpeg"
+                                    "colors": {
+                                        "primary_color": "#7043f7",
+                                        "secondary_color": "#02d1cb",
+                                        "accent_color": "#FFFFFF",
+                                        "link_color": "#7043f7",
+                                        "button_secondary_color": "#000000",
+                                        "bg_color": "#F8F8F8"
+                                    },
+                                    "auth": {
+                                        "show_header_auth": false,
+                                        "show_footer_auth": false
+                                    },
+                                    "palette": {
+                                        "general_setting": {
+                                            "theme": {
+                                                "page_background": "#F8F8F8",
+                                                "theme_accent": "#FFFFFF"
                                             },
-                                            "slide_link": {
-                                                "type": "url",
-                                                "value": "https://www.uniket.store/collections/"
+                                            "text": {
+                                                "text_heading": "#02d1cb",
+                                                "text_body": "#3C3131",
+                                                "text_label": "#7D7676",
+                                                "text_secondary": "#9C9C9C"
+                                            },
+                                            "button": {
+                                                "button_primary": "#7043f7",
+                                                "button_secondary": "#000000",
+                                                "button_link": "#7043f7"
+                                            },
+                                            "sale_discount": {
+                                                "sale_badge_background": "#FFFFFF",
+                                                "sale_badge_text": "#1C958F",
+                                                "sale_discount_text": "#1C958F",
+                                                "sale_timer": "#994449"
+                                            },
+                                            "header": {
+                                                "header_background": "#F3F3ED",
+                                                "header_nav": "#261A1A",
+                                                "header_icon": "#261A1A"
+                                            },
+                                            "footer": {
+                                                "footer_background": "#2C231E",
+                                                "footer_bottom_background": "#231812",
+                                                "footer_heading_text": "#FFFFFF",
+                                                "footer_body_text": "#FFFFFF",
+                                                "footer_icon": "#FFFFFF"
+                                            }
+                                        },
+                                        "advance_setting": {
+                                            "overlay_popup": {
+                                                "dialog_backgroung": "#FFFFFF",
+                                                "overlay": "#14130E"
+                                            },
+                                            "divider_stroke_highlight": {
+                                                "divider_strokes": "#D4D1D1",
+                                                "highlight": "#EDECE9"
+                                            },
+                                            "user_alerts": {
+                                                "success_background": "#C2DBC9",
+                                                "success_text": "#1C958F",
+                                                "error_background": "#E6D5D5",
+                                                "error_text": "#B24141",
+                                                "info_background": "#EBD3BC",
+                                                "info_text": "#D28F51"
                                             }
                                         }
-                                    }
-                                ],
-                                "predicate": {
-                                    "screen": {
-                                        "mobile": true,
-                                        "desktop": true,
-                                        "tablet": true
                                     },
-                                    "user": {
-                                        "authenticated": true,
-                                        "anonymous": true
-                                    },
-                                    "route": {
-                                        "selected": "none",
-                                        "exact_url": ""
-                                    }
-                                },
-                                "name": "image-carousel",
-                                "props": {
-                                    "heading": {
-                                        "type": "text",
-                                        "value": ""
-                                    },
-                                    "view_all": {
-                                        "type": "checkbox",
-                                        "value": false
-                                    },
-                                    "slide_width": {
-                                        "type": "checkbox",
-                                        "value": false
-                                    },
-                                    "slide_height": {
-                                        "type": "select",
-                                        "value": "adapt"
-                                    },
-                                    "autoplay": {
-                                        "type": "checkbox",
-                                        "value": false
-                                    },
-                                    "slide_interval": {
-                                        "type": "range",
-                                        "value": 2
+                                    "extension": {
+                                        "header_top": [],
+                                        "header_bottom": [],
+                                        "footer_top": [],
+                                        "footer_bottom": []
                                     }
                                 }
                             },
-                            {
-                                "blocks": [
-                                    {
-                                        "type": "gallery_image",
-                                        "name": "Image",
-                                        "props": {
-                                            "image": {
-                                                "type": "image_picker",
-                                                "value": "https://hdn-1.fynd.com/company/884/applications/000000000000000000000004/theme/pictures/free/original/theme-image-1606932947112.png"
-                                            },
-                                            "slide_link": {
-                                                "type": "url",
-                                                "value": "https://www.uniket.store/collections/"
-                                            }
+                            "custom": {
+                                "props": {
+                                    "disable_cart": false
+                                }
+                            }
+                        }
+                    }
+                ],
+                "global_schema": {
+                    "props": [
+                        {
+                            "type": "checkbox",
+                            "id": "disable_cart",
+                            "default": false,
+                            "category": "Cart",
+                            "label": "Disable Cart"
+                        },
+                        {
+                            "type": "color",
+                            "category": "Colors",
+                            "id": "tax_label_color",
+                            "label": "Price (tax incl.) label",
+                            "default": "#9B9B9B"
+                        }
+                    ]
+                },
+                "preset": {
+                    "pages": [
+                        {
+                            "sections": [
+                                {
+                                    "blocks": [],
+                                    "predicate": {
+                                        "screen": {
+                                            "mobile": true,
+                                            "desktop": true,
+                                            "tablet": true
+                                        },
+                                        "user": {
+                                            "authenticated": true,
+                                            "anonymous": true
+                                        },
+                                        "route": {
+                                            "selected": "none",
+                                            "exact_url": ""
+                                        }
+                                    },
+                                    "name": "customHtml",
+                                    "props": {
+                                        "code": {
+                                            "type": "code",
+                                            "value": "<p style=\"text-align:right;\"><a href=\"tel:+919820204442\"><img src=\"https://dabuttonfactory.com/button.png?t=For+any+queries%2C+call%3A+%2B91+98202+04442&f=Open+Sans-Bold&ts=15&tc=fff&hp=20&vp=10&c=round&bgt=unicolored&bgc=7043f7\"/> </a></p>"
                                         }
                                     }
-                                ],
-                                "predicate": {
-                                    "screen": {
-                                        "mobile": true,
-                                        "desktop": true,
-                                        "tablet": true
+                                },
+                                {
+                                    "blocks": [],
+                                    "predicate": {
+                                        "screen": {
+                                            "mobile": true,
+                                            "desktop": true,
+                                            "tablet": true
+                                        },
+                                        "user": {
+                                            "authenticated": true,
+                                            "anonymous": true
+                                        },
+                                        "route": {
+                                            "selected": "none",
+                                            "exact_url": ""
+                                        }
                                     },
-                                    "user": {
-                                        "authenticated": true,
-                                        "anonymous": true
-                                    },
-                                    "route": {
-                                        "selected": "none",
-                                        "exact_url": ""
+                                    "name": "rupifyBanner",
+                                    "props": {
+                                        "image": {
+                                            "type": "image_picker",
+                                            "value": "https://hdn-1.fynd.com/company/884/applications/000000000000000000000004/theme/pictures/free/original/theme-image-1605592653629.jpeg"
+                                        }
                                     }
                                 },
-                                "name": "image-carousel",
-                                "props": {
-                                    "heading": {
-                                        "value": "",
-                                        "type": "text"
-                                    },
-                                    "view_all": {
-                                        "value": false,
-                                        "type": "checkbox"
-                                    },
-                                    "slide_width": {
-                                        "value": false,
-                                        "type": "checkbox"
-                                    },
-                                    "slide_height": {
-                                        "value": "adapt",
-                                        "type": "select"
-                                    },
-                                    "autoplay": {
-                                        "value": false,
-                                        "type": "checkbox"
-                                    },
-                                    "slide_interval": {
-                                        "value": 2,
-                                        "type": "range"
-                                    }
-                                },
-                                "preset": {
+                                {
                                     "blocks": [
                                         {
-                                            "name": "Image"
+                                            "type": "gallery_image",
+                                            "name": "Image",
+                                            "props": {
+                                                "image": {
+                                                    "type": "image_picker",
+                                                    "value": "https://hdn-1.fynd.com/company/884/applications/000000000000000000000004/theme/pictures/free/original/theme-image-1607053997354.jpeg"
+                                                },
+                                                "slide_link": {
+                                                    "type": "url",
+                                                    "value": "https://www.uniket.store/collections/"
+                                                }
+                                            }
+                                        }
+                                    ],
+                                    "predicate": {
+                                        "screen": {
+                                            "mobile": true,
+                                            "desktop": true,
+                                            "tablet": true
+                                        },
+                                        "user": {
+                                            "authenticated": true,
+                                            "anonymous": true
+                                        },
+                                        "route": {
+                                            "selected": "none",
+                                            "exact_url": ""
+                                        }
+                                    },
+                                    "name": "image-carousel",
+                                    "props": {
+                                        "heading": {
+                                            "type": "text",
+                                            "value": ""
+                                        },
+                                        "view_all": {
+                                            "type": "checkbox",
+                                            "value": false
+                                        },
+                                        "slide_width": {
+                                            "type": "checkbox",
+                                            "value": false
+                                        },
+                                        "slide_height": {
+                                            "type": "select",
+                                            "value": "adapt"
+                                        },
+                                        "autoplay": {
+                                            "type": "checkbox",
+                                            "value": false
+                                        },
+                                        "slide_interval": {
+                                            "type": "range",
+                                            "value": 2
+                                        }
+                                    }
+                                },
+                                {
+                                    "blocks": [
+                                        {
+                                            "type": "gallery_image",
+                                            "name": "Image",
+                                            "props": {
+                                                "image": {
+                                                    "type": "image_picker",
+                                                    "value": "https://hdn-1.fynd.com/company/884/applications/000000000000000000000004/theme/pictures/free/original/theme-image-1606932947112.png"
+                                                },
+                                                "slide_link": {
+                                                    "type": "url",
+                                                    "value": "https://www.uniket.store/collections/"
+                                                }
+                                            }
+                                        }
+                                    ],
+                                    "predicate": {
+                                        "screen": {
+                                            "mobile": true,
+                                            "desktop": true,
+                                            "tablet": true
+                                        },
+                                        "user": {
+                                            "authenticated": true,
+                                            "anonymous": true
+                                        },
+                                        "route": {
+                                            "selected": "none",
+                                            "exact_url": ""
+                                        }
+                                    },
+                                    "name": "image-carousel",
+                                    "props": {
+                                        "heading": {
+                                            "value": "",
+                                            "type": "text"
+                                        },
+                                        "view_all": {
+                                            "value": false,
+                                            "type": "checkbox"
+                                        },
+                                        "slide_width": {
+                                            "value": false,
+                                            "type": "checkbox"
+                                        },
+                                        "slide_height": {
+                                            "value": "adapt",
+                                            "type": "select"
+                                        },
+                                        "autoplay": {
+                                            "value": false,
+                                            "type": "checkbox"
+                                        },
+                                        "slide_interval": {
+                                            "value": 2,
+                                            "type": "range"
+                                        }
+                                    },
+                                    "preset": {
+                                        "blocks": [
+                                            {
+                                                "name": "Image"
+                                            },
+                                            {
+                                                "name": "Image"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "blocks": [
+                                        {
+                                            "type": "gallery_image",
+                                            "name": "Image",
+                                            "props": {
+                                                "image": {
+                                                    "type": "image_picker",
+                                                    "value": "https://hdn-1.fynd.com/company/884/applications/000000000000000000000004/theme/pictures/free/original/theme-image-1603195705045.jpeg"
+                                                },
+                                                "slide_link": {
+                                                    "type": "url",
+                                                    "value": "https://www.uniket.store/profile/refer-earn"
+                                                }
+                                            }
+                                        }
+                                    ],
+                                    "predicate": {
+                                        "screen": {
+                                            "mobile": true,
+                                            "desktop": true,
+                                            "tablet": true
+                                        },
+                                        "user": {
+                                            "authenticated": true,
+                                            "anonymous": true
+                                        },
+                                        "route": {
+                                            "selected": "none",
+                                            "exact_url": ""
+                                        }
+                                    },
+                                    "name": "image-carousel",
+                                    "props": {
+                                        "heading": {
+                                            "type": "text",
+                                            "value": ""
+                                        },
+                                        "view_all": {
+                                            "type": "checkbox",
+                                            "value": false
+                                        },
+                                        "slide_width": {
+                                            "type": "checkbox",
+                                            "value": false
+                                        },
+                                        "slide_height": {
+                                            "type": "select",
+                                            "value": "adapt"
+                                        },
+                                        "autoplay": {
+                                            "type": "checkbox",
+                                            "value": false
+                                        },
+                                        "slide_interval": {
+                                            "type": "range",
+                                            "value": 2
+                                        }
+                                    }
+                                },
+                                {
+                                    "blocks": [
+                                        {
+                                            "type": "gallery_image",
+                                            "name": "Image",
+                                            "props": {
+                                                "image": {
+                                                    "type": "image_picker",
+                                                    "value": "https://hdn-1.fynd.com/company/884/applications/000000000000000000000004/theme/pictures/free/original/theme-image-1607159461398.jpeg"
+                                                },
+                                                "slide_link": {
+                                                    "type": "url",
+                                                    "value": "https://www.uniket.store/products/?brand=sparx"
+                                                }
+                                            }
                                         },
                                         {
-                                            "name": "Image"
-                                        }
-                                    ]
-                                }
-                            },
-                            {
-                                "blocks": [
-                                    {
-                                        "type": "gallery_image",
-                                        "name": "Image",
-                                        "props": {
-                                            "image": {
-                                                "type": "image_picker",
-                                                "value": "https://hdn-1.fynd.com/company/884/applications/000000000000000000000004/theme/pictures/free/original/theme-image-1603195705045.jpeg"
-                                            },
-                                            "slide_link": {
-                                                "type": "url",
-                                                "value": "https://www.uniket.store/profile/refer-earn"
+                                            "type": "gallery_image",
+                                            "name": "Image",
+                                            "props": {
+                                                "image": {
+                                                    "type": "image_picker",
+                                                    "value": "https://hdn-1.fynd.com/company/884/applications/000000000000000000000004/theme/pictures/free/original/theme-image-1607106766703.jpeg"
+                                                },
+                                                "slide_link": {
+                                                    "type": "url",
+                                                    "value": "https://www.uniket.store/collection/blue-saint-upto-70-off"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "gallery_image",
+                                            "name": "Image",
+                                            "props": {
+                                                "image": {
+                                                    "type": "image_picker",
+                                                    "value": "https://hdn-1.fynd.com/company/884/applications/000000000000000000000004/theme/pictures/free/original/theme-image-1607328084665.jpeg"
+                                                },
+                                                "slide_link": {
+                                                    "type": "url",
+                                                    "value": "https://www.uniket.store/collection/liberty-upto-35-off"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "gallery_image",
+                                            "name": "Image",
+                                            "props": {
+                                                "image": {
+                                                    "type": "image_picker",
+                                                    "value": "https://hdn-1.fynd.com/company/884/applications/000000000000000000000004/theme/pictures/free/original/theme-image-1607106814677.jpeg"
+                                                },
+                                                "slide_link": {
+                                                    "type": "url",
+                                                    "value": "https://www.uniket.store/collection/aerowalk-upto-32-off"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "gallery_image",
+                                            "name": "Image",
+                                            "props": {
+                                                "image": {
+                                                    "type": "image_picker",
+                                                    "value": "https://hdn-1.fynd.com/company/884/applications/000000000000000000000004/theme/pictures/free/original/theme-image-1607063213743.jpeg"
+                                                },
+                                                "slide_link": {
+                                                    "type": "url",
+                                                    "value": "https://www.uniket.store/collection/campus-upto-42-off"
+                                                }
                                             }
                                         }
-                                    }
-                                ],
-                                "predicate": {
-                                    "screen": {
-                                        "mobile": true,
-                                        "desktop": true,
-                                        "tablet": true
+                                    ],
+                                    "predicate": {
+                                        "screen": {
+                                            "mobile": true,
+                                            "desktop": true,
+                                            "tablet": true
+                                        },
+                                        "user": {
+                                            "authenticated": true,
+                                            "anonymous": true
+                                        },
+                                        "route": {
+                                            "selected": "none",
+                                            "exact_url": ""
+                                        }
                                     },
-                                    "user": {
-                                        "authenticated": true,
-                                        "anonymous": true
-                                    },
-                                    "route": {
-                                        "selected": "none",
-                                        "exact_url": ""
+                                    "name": "image-carousel",
+                                    "props": {
+                                        "heading": {
+                                            "type": "text",
+                                            "value": "Top Collections"
+                                        },
+                                        "view_all": {
+                                            "type": "checkbox",
+                                            "value": true
+                                        },
+                                        "slide_width": {
+                                            "type": "checkbox",
+                                            "value": true
+                                        },
+                                        "slide_height": {
+                                            "type": "select",
+                                            "value": "adapt"
+                                        },
+                                        "autoplay": {
+                                            "type": "checkbox",
+                                            "value": true
+                                        },
+                                        "slide_interval": {
+                                            "type": "range",
+                                            "value": 4
+                                        }
                                     }
                                 },
-                                "name": "image-carousel",
-                                "props": {
-                                    "heading": {
-                                        "type": "text",
-                                        "value": ""
-                                    },
-                                    "view_all": {
-                                        "type": "checkbox",
-                                        "value": false
-                                    },
-                                    "slide_width": {
-                                        "type": "checkbox",
-                                        "value": false
-                                    },
-                                    "slide_height": {
-                                        "type": "select",
-                                        "value": "adapt"
-                                    },
-                                    "autoplay": {
-                                        "type": "checkbox",
-                                        "value": false
-                                    },
-                                    "slide_interval": {
-                                        "type": "range",
-                                        "value": 2
-                                    }
-                                }
-                            },
-                            {
-                                "blocks": [
-                                    {
-                                        "type": "gallery_image",
-                                        "name": "Image",
-                                        "props": {
-                                            "image": {
-                                                "type": "image_picker",
-                                                "value": "https://hdn-1.fynd.com/company/884/applications/000000000000000000000004/theme/pictures/free/original/theme-image-1607159461398.jpeg"
-                                            },
-                                            "slide_link": {
-                                                "type": "url",
-                                                "value": "https://www.uniket.store/products/?brand=sparx"
+                                {
+                                    "blocks": [
+                                        {
+                                            "type": "brand-item",
+                                            "name": "Brand Item",
+                                            "props": {
+                                                "brand": {
+                                                    "type": "brand",
+                                                    "value": {
+                                                        "display": "Undercolors of Benetton",
+                                                        "id": "undercolors-of-benetton"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "brand-item",
+                                            "name": "Brand Item",
+                                            "props": {
+                                                "brand": {
+                                                    "type": "brand",
+                                                    "value": {
+                                                        "display": "Voi Jeans",
+                                                        "id": "voi-jeans"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "brand-item",
+                                            "name": "Brand Item",
+                                            "props": {
+                                                "brand": {
+                                                    "type": "brand",
+                                                    "value": {
+                                                        "display": "Killer",
+                                                        "id": "killer"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "brand-item",
+                                            "name": "Brand Item",
+                                            "props": {
+                                                "brand": {
+                                                    "type": "brand",
+                                                    "value": {
+                                                        "display": "globus",
+                                                        "id": "globus"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "brand-item",
+                                            "name": "Brand Item",
+                                            "props": {
+                                                "brand": {
+                                                    "type": "brand",
+                                                    "value": {
+                                                        "display": "spykar",
+                                                        "id": "spykar"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "brand-item",
+                                            "name": "Brand Item",
+                                            "props": {
+                                                "brand": {
+                                                    "type": "brand",
+                                                    "value": {
+                                                        "display": "Integriti",
+                                                        "id": "integriti"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "brand-item",
+                                            "name": "Brand Item",
+                                            "props": {
+                                                "brand": {
+                                                    "type": "brand",
+                                                    "value": {
+                                                        "display": "Bolts & Barrels",
+                                                        "id": "bolts-barrels"
+                                                    }
+                                                }
                                             }
                                         }
-                                    },
-                                    {
-                                        "type": "gallery_image",
-                                        "name": "Image",
-                                        "props": {
-                                            "image": {
-                                                "type": "image_picker",
-                                                "value": "https://hdn-1.fynd.com/company/884/applications/000000000000000000000004/theme/pictures/free/original/theme-image-1607106766703.jpeg"
-                                            },
-                                            "slide_link": {
-                                                "type": "url",
-                                                "value": "https://www.uniket.store/collection/blue-saint-upto-70-off"
-                                            }
+                                    ],
+                                    "predicate": {
+                                        "screen": {
+                                            "mobile": true,
+                                            "desktop": true,
+                                            "tablet": true
+                                        },
+                                        "user": {
+                                            "authenticated": true,
+                                            "anonymous": true
+                                        },
+                                        "route": {
+                                            "selected": "none",
+                                            "exact_url": ""
                                         }
                                     },
-                                    {
-                                        "type": "gallery_image",
-                                        "name": "Image",
-                                        "props": {
-                                            "image": {
-                                                "type": "image_picker",
-                                                "value": "https://hdn-1.fynd.com/company/884/applications/000000000000000000000004/theme/pictures/free/original/theme-image-1607328084665.jpeg"
-                                            },
-                                            "slide_link": {
-                                                "type": "url",
-                                                "value": "https://www.uniket.store/collection/liberty-upto-35-off"
-                                            }
+                                    "name": "brands-listing",
+                                    "props": {
+                                        "title": {
+                                            "type": "text",
+                                            "value": "Popular Brands"
+                                        },
+                                        "header": {
+                                            "type": "header"
+                                        },
+                                        "brand_type": {
+                                            "type": "radio",
+                                            "value": "handpicked"
+                                        },
+                                        "department": {
+                                            "type": "department",
+                                            "value": "men"
+                                        },
+                                        "item_count": {
+                                            "type": "range",
+                                            "value": 5
+                                        },
+                                        "layout": {
+                                            "type": "select",
+                                            "value": "horizontal"
+                                        },
+                                        "view_all": {
+                                            "type": "checkbox",
+                                            "value": true
                                         }
-                                    },
-                                    {
-                                        "type": "gallery_image",
-                                        "name": "Image",
-                                        "props": {
-                                            "image": {
-                                                "type": "image_picker",
-                                                "value": "https://hdn-1.fynd.com/company/884/applications/000000000000000000000004/theme/pictures/free/original/theme-image-1607106814677.jpeg"
-                                            },
-                                            "slide_link": {
-                                                "type": "url",
-                                                "value": "https://www.uniket.store/collection/aerowalk-upto-32-off"
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "type": "gallery_image",
-                                        "name": "Image",
-                                        "props": {
-                                            "image": {
-                                                "type": "image_picker",
-                                                "value": "https://hdn-1.fynd.com/company/884/applications/000000000000000000000004/theme/pictures/free/original/theme-image-1607063213743.jpeg"
-                                            },
-                                            "slide_link": {
-                                                "type": "url",
-                                                "value": "https://www.uniket.store/collection/campus-upto-42-off"
-                                            }
-                                        }
-                                    }
-                                ],
-                                "predicate": {
-                                    "screen": {
-                                        "mobile": true,
-                                        "desktop": true,
-                                        "tablet": true
-                                    },
-                                    "user": {
-                                        "authenticated": true,
-                                        "anonymous": true
-                                    },
-                                    "route": {
-                                        "selected": "none",
-                                        "exact_url": ""
                                     }
                                 },
-                                "name": "image-carousel",
-                                "props": {
-                                    "heading": {
-                                        "type": "text",
-                                        "value": "Top Collections"
+                                {
+                                    "blocks": [],
+                                    "predicate": {
+                                        "screen": {
+                                            "mobile": true,
+                                            "desktop": true,
+                                            "tablet": true
+                                        },
+                                        "user": {
+                                            "authenticated": true,
+                                            "anonymous": true
+                                        },
+                                        "route": {
+                                            "selected": "none",
+                                            "exact_url": ""
+                                        }
                                     },
-                                    "view_all": {
-                                        "type": "checkbox",
-                                        "value": true
-                                    },
-                                    "slide_width": {
-                                        "type": "checkbox",
-                                        "value": true
-                                    },
-                                    "slide_height": {
-                                        "type": "select",
-                                        "value": "adapt"
-                                    },
-                                    "autoplay": {
-                                        "type": "checkbox",
-                                        "value": true
-                                    },
-                                    "slide_interval": {
-                                        "type": "range",
-                                        "value": 4
+                                    "name": "categoryListPage",
+                                    "props": {
+                                        "heading": {
+                                            "type": "text",
+                                            "value": "Explore Categories"
+                                        },
+                                        "layout": {
+                                            "type": "select",
+                                            "value": "grid"
+                                        },
+                                        "item_count": {
+                                            "type": "range",
+                                            "value": 5
+                                        },
+                                        "view_all": {
+                                            "type": "checkbox",
+                                            "value": true
+                                        }
                                     }
                                 }
-                            },
-                            {
-                                "blocks": [
-                                    {
-                                        "type": "brand-item",
-                                        "name": "Brand Item",
-                                        "props": {
-                                            "brand": {
-                                                "type": "brand",
-                                                "value": {
-                                                    "display": "Undercolors of Benetton",
-                                                    "id": "undercolors-of-benetton"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "type": "brand-item",
-                                        "name": "Brand Item",
-                                        "props": {
-                                            "brand": {
-                                                "type": "brand",
-                                                "value": {
-                                                    "display": "Voi Jeans",
-                                                    "id": "voi-jeans"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "type": "brand-item",
-                                        "name": "Brand Item",
-                                        "props": {
-                                            "brand": {
-                                                "type": "brand",
-                                                "value": {
-                                                    "display": "Killer",
-                                                    "id": "killer"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "type": "brand-item",
-                                        "name": "Brand Item",
-                                        "props": {
-                                            "brand": {
-                                                "type": "brand",
-                                                "value": {
-                                                    "display": "globus",
-                                                    "id": "globus"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "type": "brand-item",
-                                        "name": "Brand Item",
-                                        "props": {
-                                            "brand": {
-                                                "type": "brand",
-                                                "value": {
-                                                    "display": "spykar",
-                                                    "id": "spykar"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "type": "brand-item",
-                                        "name": "Brand Item",
-                                        "props": {
-                                            "brand": {
-                                                "type": "brand",
-                                                "value": {
-                                                    "display": "Integriti",
-                                                    "id": "integriti"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "type": "brand-item",
-                                        "name": "Brand Item",
-                                        "props": {
-                                            "brand": {
-                                                "type": "brand",
-                                                "value": {
-                                                    "display": "Bolts & Barrels",
-                                                    "id": "bolts-barrels"
-                                                }
-                                            }
-                                        }
-                                    }
-                                ],
-                                "predicate": {
-                                    "screen": {
-                                        "mobile": true,
-                                        "desktop": true,
-                                        "tablet": true
-                                    },
-                                    "user": {
-                                        "authenticated": true,
-                                        "anonymous": true
-                                    },
-                                    "route": {
-                                        "selected": "none",
-                                        "exact_url": ""
-                                    }
-                                },
-                                "name": "brands-listing",
-                                "props": {
-                                    "title": {
-                                        "type": "text",
-                                        "value": "Popular Brands"
-                                    },
-                                    "header": {
-                                        "type": "header"
-                                    },
-                                    "brand_type": {
-                                        "type": "radio",
-                                        "value": "handpicked"
-                                    },
-                                    "department": {
-                                        "type": "department",
-                                        "value": "men"
-                                    },
-                                    "item_count": {
-                                        "type": "range",
-                                        "value": 5
-                                    },
-                                    "layout": {
-                                        "type": "select",
-                                        "value": "horizontal"
-                                    },
-                                    "view_all": {
-                                        "type": "checkbox",
-                                        "value": true
-                                    }
-                                }
-                            },
-                            {
-                                "blocks": [],
-                                "predicate": {
-                                    "screen": {
-                                        "mobile": true,
-                                        "desktop": true,
-                                        "tablet": true
-                                    },
-                                    "user": {
-                                        "authenticated": true,
-                                        "anonymous": true
-                                    },
-                                    "route": {
-                                        "selected": "none",
-                                        "exact_url": ""
-                                    }
-                                },
-                                "name": "categoryListPage",
-                                "props": {
-                                    "heading": {
-                                        "type": "text",
-                                        "value": "Explore Categories"
-                                    },
-                                    "layout": {
-                                        "type": "select",
-                                        "value": "grid"
-                                    },
-                                    "item_count": {
-                                        "type": "range",
-                                        "value": 5
-                                    },
-                                    "view_all": {
-                                        "type": "checkbox",
-                                        "value": true
-                                    }
-                                }
+                            ],
+                            "value": "home"
+                        },
+                        {
+                            "sections": [],
+                            "value": "brands"
+                        },
+                        {
+                            "sections": [],
+                            "value": "cart-landing"
+                        },
+                        {
+                            "sections": [],
+                            "value": "categories"
+                        },
+                        {
+                            "sections": [],
+                            "value": "collections"
+                        },
+                        {
+                            "sections": [],
+                            "value": "compare-products"
+                        },
+                        {
+                            "sections": [],
+                            "value": "product-description"
+                        },
+                        {
+                            "sections": [],
+                            "value": "product-listing"
+                        },
+                        {
+                            "sections": [],
+                            "value": "wishlist"
+                        }
+                    ]
+                }
+            },
+            "applied": true,
+            "is_private": true,
+            "tags": [],
+            "name": "Namaste",
+            "version": "1.1.116",
+            "application_id": "5d5fa7e9f301d75b2ac4a9fa",
+            "styles": {
+                "default": {
+                    "sub_header": {
+                        "background_color": "#f8f8f8"
+                    },
+                    "snackbar": {
+                        "positive": {
+                            "title_color": "#FFFFFF",
+                            "action_color": "#FFFFFF",
+                            "background_color": "#33CC99"
+                        },
+                        "negative": {
+                            "title_color": "#FFFFFF",
+                            "action_color": "#FFFFFF",
+                            "background_color": "#ED365E"
+                        }
+                    },
+                    "status_bar": {
+                        "background_color": "#4F20A3",
+                        "is_dark": false
+                    },
+                    "tab_bar": {
+                        "background_color": "#FFFFFF",
+                        "selected_color": "#4F20A3",
+                        "default_color": "#41434c"
+                    },
+                    "header": {
+                        "background_color": "#4f20a3",
+                        "title_color": "#FFFFFF",
+                        "cart_tag": {
+                            "background_color": "#EE478D",
+                            "title_color": "#FFFFFF"
+                        },
+                        "search_bar": {
+                            "background_color": "#603ccc",
+                            "accessory_color": "#FFFFFF",
+                            "title_color": "#FFFFFF"
+                        },
+                        "shadow_color": "#4F20A3"
+                    },
+                    "breadcrumb": {
+                        "title_color": "#4F20A3",
+                        "background_color": "#FFFFFF",
+                        "border_color": "#4F20A3"
+                    },
+                    "error_state": {
+                        "title_color": "#4F20A3"
+                    },
+                    "button": {
+                        "primary": {
+                            "default": {
+                                "title_color": "#FFFFFF",
+                                "background_color": "#4F20A3",
+                                "border_color": "#4F20A3"
                             }
-                        ],
-                        "value": "home"
+                        },
+                        "secondary": {
+                            "default": {
+                                "title_color": "#4F20A3",
+                                "background_color": "#FFFFFF",
+                                "border_color": "#4F20A3"
+                            }
+                        },
+                        "single_select": {
+                            "selected": {
+                                "title_color": "#FFFFFF",
+                                "background_color": "#4F20A3",
+                                "border_color": "#4F20A3"
+                            },
+                            "default": {
+                                "title_color": "#41434c",
+                                "background_color": "#ffffff",
+                                "border_color": "#EEEEEE"
+                            },
+                            "on_hover": {
+                                "title_color": "#41434c",
+                                "background_color": "#e8baf5",
+                                "border_color": "#EEEEEE"
+                            }
+                        },
+                        "multi_select": {
+                            "selected": {
+                                "title_color": "#FFFFFF",
+                                "background_color": "#4F20A3",
+                                "border_color": "#4F20A3"
+                            },
+                            "default": {
+                                "title_color": "#41434c",
+                                "background_color": "#ffffff",
+                                "border_color": "#EEEEEE"
+                            },
+                            "on_hover": {
+                                "title_color": "#41434c",
+                                "background_color": "#e8baf5",
+                                "border_color": "#EEEEEE"
+                            }
+                        }
                     },
-                    {
-                        "sections": [],
-                        "value": "brands"
-                    },
-                    {
-                        "sections": [],
-                        "value": "cart-landing"
-                    },
-                    {
-                        "sections": [],
-                        "value": "categories"
-                    },
-                    {
-                        "sections": [],
-                        "value": "collections"
-                    },
-                    {
-                        "sections": [],
-                        "value": "compare-products"
-                    },
-                    {
-                        "sections": [],
-                        "value": "product-description"
-                    },
-                    {
-                        "sections": [],
-                        "value": "product-listing"
-                    },
-                    {
-                        "sections": [],
-                        "value": "wishlist"
-                    }
-                ]
-            }
-        },
-        "applied": true,
-        "is_private": true,
-        "tags": [],
-        "name": "Namaste",
-        "version": "1.1.116",
-        "application_id": "5d5fa7e9f301d75b2ac4a9fa",
-        "styles": {
-            "default": {
-                "sub_header": {
-                    "background_color": "#f8f8f8"
-                },
-                "snackbar": {
-                    "positive": {
-                        "title_color": "#FFFFFF",
-                        "action_color": "#FFFFFF",
-                        "background_color": "#33CC99"
-                    },
-                    "negative": {
-                        "title_color": "#FFFFFF",
-                        "action_color": "#FFFFFF",
-                        "background_color": "#ED365E"
-                    }
-                },
-                "status_bar": {
-                    "background_color": "#4F20A3",
-                    "is_dark": false
-                },
-                "tab_bar": {
-                    "background_color": "#FFFFFF",
-                    "selected_color": "#4F20A3",
-                    "default_color": "#41434c"
-                },
-                "header": {
-                    "background_color": "#4f20a3",
-                    "title_color": "#FFFFFF",
-                    "cart_tag": {
-                        "background_color": "#EE478D",
+                    "side_bar": {
+                        "background_color": "#4F20A3",
                         "title_color": "#FFFFFF"
                     },
-                    "search_bar": {
-                        "background_color": "#603ccc",
-                        "accessory_color": "#FFFFFF",
-                        "title_color": "#FFFFFF"
-                    },
-                    "shadow_color": "#4F20A3"
-                },
-                "breadcrumb": {
-                    "title_color": "#4F20A3",
-                    "background_color": "#FFFFFF",
-                    "border_color": "#4F20A3"
-                },
-                "error_state": {
-                    "title_color": "#4F20A3"
-                },
-                "button": {
-                    "primary": {
-                        "default": {
-                            "title_color": "#FFFFFF",
-                            "background_color": "#4F20A3",
-                            "border_color": "#4F20A3"
-                        }
-                    },
-                    "secondary": {
-                        "default": {
-                            "title_color": "#4F20A3",
-                            "background_color": "#FFFFFF",
-                            "border_color": "#4F20A3"
-                        }
-                    },
-                    "single_select": {
+                    "link": {
                         "selected": {
-                            "title_color": "#FFFFFF",
-                            "background_color": "#4F20A3",
-                            "border_color": "#4F20A3"
+                            "title_color": "#4F20A3"
                         },
                         "default": {
-                            "title_color": "#41434c",
-                            "background_color": "#ffffff",
-                            "border_color": "#EEEEEE"
+                            "title_color": "#4F20A3"
                         },
                         "on_hover": {
-                            "title_color": "#41434c",
-                            "background_color": "#e8baf5",
-                            "border_color": "#EEEEEE"
-                        }
-                    },
-                    "multi_select": {
-                        "selected": {
-                            "title_color": "#FFFFFF",
-                            "background_color": "#4F20A3",
-                            "border_color": "#4F20A3"
-                        },
-                        "default": {
-                            "title_color": "#41434c",
-                            "background_color": "#ffffff",
-                            "border_color": "#EEEEEE"
-                        },
-                        "on_hover": {
-                            "title_color": "#41434c",
-                            "background_color": "#e8baf5",
-                            "border_color": "#EEEEEE"
+                            "title_color": "#4F20A3"
                         }
                     }
                 },
-                "side_bar": {
-                    "background_color": "#4F20A3",
-                    "title_color": "#FFFFFF"
-                },
-                "link": {
-                    "selected": {
-                        "title_color": "#4F20A3"
-                    },
-                    "default": {
-                        "title_color": "#4F20A3"
-                    },
-                    "on_hover": {
-                        "title_color": "#4F20A3"
-                    }
-                }
-            },
-            "pdp": {
-                "link": {
-                    "selected": {
-                        "title_color": "#4F20A3"
-                    },
-                    "default": {
-                        "title_color": "#4F20A3"
-                    },
-                    "on_hover": {
-                        "title_color": "#4F20A3"
-                    }
-                },
-                "button": {
-                    "primary": {
-                        "default": {
-                            "title_color": "#FFFFFF",
-                            "background_color": "#27B6CD",
-                            "border_color": "#27B6CD"
-                        }
-                    },
-                    "secondary": {
-                        "default": {
-                            "title_color": "#27B6CD",
-                            "background_color": "#FFFFFF",
-                            "border_color": "#27B6CD"
-                        }
-                    },
-                    "single_select": {
+                "pdp": {
+                    "link": {
                         "selected": {
-                            "title_color": "#FFFFFF",
-                            "background_color": "#4F20A3",
-                            "border_color": "#4F20A3"
+                            "title_color": "#4F20A3"
                         },
                         "default": {
-                            "title_color": "#41434c",
-                            "background_color": "#ffffff",
-                            "border_color": "#EEEEEE"
+                            "title_color": "#4F20A3"
                         },
                         "on_hover": {
-                            "title_color": "#41434c",
-                            "background_color": "#e8baf5",
-                            "border_color": "#EEEEEE"
+                            "title_color": "#4F20A3"
                         }
                     },
-                    "multi_select": {
-                        "selected": {
-                            "title_color": "#FFFFFF",
-                            "background_color": "#4F20A3",
-                            "border_color": "#4F20A3"
+                    "button": {
+                        "primary": {
+                            "default": {
+                                "title_color": "#FFFFFF",
+                                "background_color": "#27B6CD",
+                                "border_color": "#27B6CD"
+                            }
                         },
-                        "default": {
-                            "title_color": "#41434c",
-                            "background_color": "#ffffff",
-                            "border_color": "#EEEEEE"
+                        "secondary": {
+                            "default": {
+                                "title_color": "#27B6CD",
+                                "background_color": "#FFFFFF",
+                                "border_color": "#27B6CD"
+                            }
                         },
-                        "on_hover": {
-                            "title_color": "#41434c",
-                            "background_color": "#e8baf5",
-                            "border_color": "#EEEEEE"
+                        "single_select": {
+                            "selected": {
+                                "title_color": "#FFFFFF",
+                                "background_color": "#4F20A3",
+                                "border_color": "#4F20A3"
+                            },
+                            "default": {
+                                "title_color": "#41434c",
+                                "background_color": "#ffffff",
+                                "border_color": "#EEEEEE"
+                            },
+                            "on_hover": {
+                                "title_color": "#41434c",
+                                "background_color": "#e8baf5",
+                                "border_color": "#EEEEEE"
+                            }
+                        },
+                        "multi_select": {
+                            "selected": {
+                                "title_color": "#FFFFFF",
+                                "background_color": "#4F20A3",
+                                "border_color": "#4F20A3"
+                            },
+                            "default": {
+                                "title_color": "#41434c",
+                                "background_color": "#ffffff",
+                                "border_color": "#EEEEEE"
+                            },
+                            "on_hover": {
+                                "title_color": "#41434c",
+                                "background_color": "#e8baf5",
+                                "border_color": "#EEEEEE"
+                            }
                         }
                     }
                 }
-            }
-        },
-        "template_theme_id": "64840dd953077109ea16e48f",
-        "created_at": "2023-06-10T05:44:58.054Z",
-        "updated_at": "2023-06-10T05:44:58.054Z",
-        "assets": {
-            "umd_js": {
-                "links": [
-                    "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/company/873/applications/5cc04264ad924cea93ded855/theme/assets/FzBTHEfGN_themeBundle.umd.min.js"
-                ],
-                "link": ""
             },
-            "common_js": {
-                "link": "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/company/873/applications/5cc04264ad924cea93ded855/theme/assets/FzBTHEfGN_themeBundle.common.js"
+            "template_theme_id": "64840dd953077109ea16e48f",
+            "created_at": "2023-06-10T05:44:58.054Z",
+            "updated_at": "2023-06-10T05:44:58.054Z",
+            "assets": {
+                "umd_js": {
+                    "links": [
+                        "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/company/873/applications/5cc04264ad924cea93ded855/theme/assets/FzBTHEfGN_themeBundle.umd.min.js"
+                    ],
+                    "link": ""
+                },
+                "common_js": {
+                    "link": "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/company/873/applications/5cc04264ad924cea93ded855/theme/assets/FzBTHEfGN_themeBundle.common.js"
+                },
+                "css": {
+                    "links": [
+                        "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/company/873/applications/5cc04264ad924cea93ded855/theme/assets/FzBTHEfGN_themeBundle.css"
+                    ],
+                    "link": ""
+                }
             },
-            "css": {
-                "links": [
-                    "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/company/873/applications/5cc04264ad924cea93ded855/theme/assets/FzBTHEfGN_themeBundle.css"
-                ],
-                "link": ""
-            }
-        },
-        "available_sections": [
-            {
-                "props": [
-                    {
-                        "type": "text",
-                        "id": "title",
-                        "default": "",
-                        "label": "Title"
-                    },
-                    {
-                        "type": "header",
-                        "id": "header",
-                        "value": "Choose Brands to Show"
-                    },
-                    {
-                        "type": "radio",
-                        "id": "brand_type",
-                        "default": "all",
-                        "options": [
-                            {
-                                "value": "all",
-                                "text": "All"
-                            },
-                            {
-                                "value": "department",
-                                "text": "Department"
-                            },
-                            {
-                                "value": "handpicked",
-                                "text": "Handpicked"
-                            }
-                        ]
-                    },
-                    {
-                        "type": "department",
-                        "id": "department",
-                        "label": "Department",
-                        "info": "Select a department of brands",
-                        "note": "Department only applies if 'department' type is selected"
-                    },
-                    {
-                        "type": "range",
-                        "id": "item_count",
-                        "min": 3,
-                        "max": 5,
-                        "step": 1,
-                        "unit": "",
-                        "label": "Items per row",
-                        "default": 5,
-                        "info": "Maximum items allowed per row"
-                    },
-                    {
-                        "id": "layout",
-                        "type": "select",
-                        "options": [
-                            {
-                                "value": "grid",
-                                "text": "Grid View"
-                            },
-                            {
-                                "value": "horizontal",
-                                "text": "Horizontal View"
-                            }
-                        ],
-                        "default": "horizontal",
-                        "label": "Layout",
-                        "info": "Alignment of content"
-                    },
-                    {
-                        "type": "checkbox",
-                        "id": "view_all",
-                        "default": false,
-                        "label": "Show View All"
-                    }
-                ],
-                "blocks": [
-                    {
-                        "type": "brand-item",
-                        "name": "Brand Item",
-                        "props": [
-                            {
-                                "type": "brand",
-                                "id": "brand",
-                                "label": "Select Brand"
-                            }
-                        ]
-                    }
-                ],
-                "name": "brands-listing",
-                "label": "Brands Listing"
-            },
-            {
-                "props": [
-                    {
-                        "type": "text",
-                        "id": "heading",
-                        "default": "",
-                        "label": "Category List Heading"
-                    },
-                    {
-                        "id": "layout",
-                        "type": "select",
-                        "options": [
-                            {
-                                "value": "grid",
-                                "text": "Grid View"
-                            },
-                            {
-                                "value": "horizontal",
-                                "text": "Horizontal View"
-                            }
-                        ],
-                        "default": "horizontal",
-                        "label": "Layout",
-                        "info": "Alignment of content"
-                    },
-                    {
-                        "type": "range",
-                        "id": "item_count",
-                        "min": 3,
-                        "max": 5,
-                        "step": 1,
-                        "unit": "",
-                        "label": "Items per row",
-                        "default": 5,
-                        "info": "Maximum items allowed per row"
-                    },
-                    {
-                        "type": "checkbox",
-                        "id": "view_all",
-                        "default": false,
-                        "label": "Show View All",
-                        "info": "Check to show View All Button"
-                    }
-                ],
-                "blocks": [],
-                "name": "categoryListPage",
-                "label": "Category List Page"
-            },
-            {
-                "props": [
-                    {
-                        "type": "text",
-                        "id": "heading",
-                        "default": "Collection List",
-                        "label": "Collection Heading",
-                        "info": "Collection Heading"
-                    },
-                    {
-                        "type": "range",
-                        "id": "item_count",
-                        "min": 2,
-                        "max": 5,
-                        "step": 1,
-                        "unit": "",
-                        "label": "Collections per row",
-                        "default": 2,
-                        "info": "Maximum items allowed per row"
-                    },
-                    {
-                        "type": "checkbox",
-                        "id": "full_width",
-                        "default": false,
-                        "label": "Full width",
-                        "info": "Check to allow items to take entire width of the viewport"
-                    }
-                ],
-                "blocks": [
-                    {
-                        "type": "collection",
-                        "name": "Collection",
-                        "props": [
-                            {
-                                "type": "collection",
-                                "id": "collection",
-                                "label": "Select a collection"
-                            }
-                        ]
-                    }
-                ],
-                "name": "collectionList",
-                "label": "Collection List"
-            },
-            {
-                "props": [
-                    {
-                        "type": "text",
-                        "id": "title",
-                        "default": "",
-                        "label": "Title"
-                    },
-                    {
-                        "type": "radio",
-                        "id": "collection_type",
-                        "default": "all",
-                        "options": [
-                            {
-                                "value": "all",
-                                "text": "All"
-                            },
-                            {
-                                "value": "handpicked",
-                                "text": "Handpicked"
-                            }
-                        ]
-                    },
-                    {
-                        "type": "range",
-                        "id": "item_count",
-                        "min": 3,
-                        "max": 5,
-                        "step": 1,
-                        "unit": "",
-                        "label": "Items per row",
-                        "default": 5,
-                        "info": "Maximum items allowed per row"
-                    },
-                    {
-                        "id": "layout",
-                        "type": "select",
-                        "options": [
-                            {
-                                "value": "grid",
-                                "text": "Grid View"
-                            },
-                            {
-                                "value": "horizontal",
-                                "text": "Horizontal View"
-                            }
-                        ],
-                        "default": "horizontal",
-                        "label": "Layout",
-                        "info": "Alignment of content"
-                    },
-                    {
-                        "type": "checkbox",
-                        "id": "view_all",
-                        "default": false,
-                        "label": "Show View All"
-                    }
-                ],
-                "blocks": [
-                    {
-                        "type": "collection-item",
-                        "name": "collection Item",
-                        "props": [
-                            {
-                                "type": "collection",
-                                "id": "collection",
-                                "label": "Select Collection"
-                            }
-                        ]
-                    }
-                ],
-                "name": "collectionListPage",
-                "label": "Collection List Page"
-            },
-            {
-                "props": [
-                    {
-                        "type": "code",
-                        "id": "code",
-                        "label": "Custom HTML",
-                        "info": "Add Your custom HTML Code below. You can also use the full screen icon to open a code editor and add your code"
-                    }
-                ],
-                "blocks": [],
-                "name": "customHtml",
-                "label": "Custom HTML"
-            },
-            {
-                "props": [
-                    {
-                        "type": "extension",
-                        "id": "extension",
-                        "label": "Extension Positions",
-                        "info": "Handle extension in these positions",
-                        "positions": [
-                            {
-                                "value": "section_extension",
-                                "text": ""
-                            }
-                        ]
-                    }
-                ],
-                "blocks": [],
-                "name": "section_extension",
-                "label": "Extensions"
-            },
-            {
-                "props": [
-                    {
-                        "type": "text",
-                        "id": "heading",
-                        "default": "Featured Products",
-                        "label": "Section Heading"
-                    },
-                    {
-                        "type": "range",
-                        "id": "item_count",
-                        "min": 2,
-                        "max": 5,
-                        "step": 1,
-                        "unit": "",
-                        "label": "Products per row",
-                        "default": 4,
-                        "info": "Maximum items allowed per row"
-                    },
-                    {
-                        "type": "checkbox",
-                        "id": "full_width",
-                        "default": false,
-                        "label": "Full width",
-                        "info": "Check to allow items to take entire width of the viewport"
-                    }
-                ],
-                "blocks": [
-                    {
-                        "type": "product",
-                        "name": "Product",
-                        "props": [
-                            {
-                                "type": "product",
-                                "id": "product",
-                                "label": "Select a Product",
-                                "info": "Product Item to be displayed"
-                            }
-                        ]
-                    }
-                ],
-                "name": "featuredProducts",
-                "label": "Featured Products",
-                "preset": {
+            "available_sections": [
+                {
+                    "props": [
+                        {
+                            "type": "text",
+                            "id": "title",
+                            "default": "",
+                            "label": "Title"
+                        },
+                        {
+                            "type": "header",
+                            "id": "header",
+                            "value": "Choose Brands to Show"
+                        },
+                        {
+                            "type": "radio",
+                            "id": "brand_type",
+                            "default": "all",
+                            "options": [
+                                {
+                                    "value": "all",
+                                    "text": "All"
+                                },
+                                {
+                                    "value": "department",
+                                    "text": "Department"
+                                },
+                                {
+                                    "value": "handpicked",
+                                    "text": "Handpicked"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "department",
+                            "id": "department",
+                            "label": "Department",
+                            "info": "Select a department of brands",
+                            "note": "Department only applies if 'department' type is selected"
+                        },
+                        {
+                            "type": "range",
+                            "id": "item_count",
+                            "min": 3,
+                            "max": 5,
+                            "step": 1,
+                            "unit": "",
+                            "label": "Items per row",
+                            "default": 5,
+                            "info": "Maximum items allowed per row"
+                        },
+                        {
+                            "id": "layout",
+                            "type": "select",
+                            "options": [
+                                {
+                                    "value": "grid",
+                                    "text": "Grid View"
+                                },
+                                {
+                                    "value": "horizontal",
+                                    "text": "Horizontal View"
+                                }
+                            ],
+                            "default": "horizontal",
+                            "label": "Layout",
+                            "info": "Alignment of content"
+                        },
+                        {
+                            "type": "checkbox",
+                            "id": "view_all",
+                            "default": false,
+                            "label": "Show View All"
+                        }
+                    ],
                     "blocks": [
                         {
-                            "name": "Product"
-                        },
-                        {
-                            "name": "Product"
-                        },
-                        {
-                            "name": "Product"
-                        },
-                        {
-                            "name": "Product"
+                            "type": "brand-item",
+                            "name": "Brand Item",
+                            "props": [
+                                {
+                                    "type": "brand",
+                                    "id": "brand",
+                                    "label": "Select Brand"
+                                }
+                            ]
                         }
-                    ]
-                }
-            },
-            {
-                "props": [
-                    {
-                        "type": "range",
-                        "id": "item_count",
-                        "min": 1,
-                        "max": 4,
-                        "step": 1,
-                        "unit": "",
-                        "label": "No of items",
-                        "default": 4,
-                        "info": "Maximum items allowed per row"
-                    }
-                ],
-                "blocks": [
-                    {
-                        "type": "gallery_image",
-                        "name": "Image",
-                        "props": [
-                            {
-                                "type": "image_picker",
-                                "id": "image",
-                                "label": "Gallery Image",
-                                "default": "https://hdn-1.fynd.com/company/884/applications/000000000000000000000001/theme/pictures/free/original/theme-image-1598448644345.png"
-                            },
-                            {
-                                "type": "text",
-                                "id": "caption",
-                                "label": "Image Caption",
-                                "default": ""
-                            },
-                            {
-                                "type": "url",
-                                "id": "link",
-                                "label": "Link",
-                                "default": "",
-                                "info": "Link to redirect"
-                            }
-                        ]
-                    }
-                ],
-                "name": "gallery",
-                "label": "Gallery",
-                "preset": {
+                    ],
+                    "name": "brands-listing",
+                    "label": "Brands Listing"
+                },
+                {
+                    "props": [
+                        {
+                            "type": "text",
+                            "id": "heading",
+                            "default": "",
+                            "label": "Category List Heading"
+                        },
+                        {
+                            "id": "layout",
+                            "type": "select",
+                            "options": [
+                                {
+                                    "value": "grid",
+                                    "text": "Grid View"
+                                },
+                                {
+                                    "value": "horizontal",
+                                    "text": "Horizontal View"
+                                }
+                            ],
+                            "default": "horizontal",
+                            "label": "Layout",
+                            "info": "Alignment of content"
+                        },
+                        {
+                            "type": "range",
+                            "id": "item_count",
+                            "min": 3,
+                            "max": 5,
+                            "step": 1,
+                            "unit": "",
+                            "label": "Items per row",
+                            "default": 5,
+                            "info": "Maximum items allowed per row"
+                        },
+                        {
+                            "type": "checkbox",
+                            "id": "view_all",
+                            "default": false,
+                            "label": "Show View All",
+                            "info": "Check to show View All Button"
+                        }
+                    ],
+                    "blocks": [],
+                    "name": "categoryListPage",
+                    "label": "Category List Page"
+                },
+                {
+                    "props": [
+                        {
+                            "type": "text",
+                            "id": "heading",
+                            "default": "Collection List",
+                            "label": "Collection Heading",
+                            "info": "Collection Heading"
+                        },
+                        {
+                            "type": "range",
+                            "id": "item_count",
+                            "min": 2,
+                            "max": 5,
+                            "step": 1,
+                            "unit": "",
+                            "label": "Collections per row",
+                            "default": 2,
+                            "info": "Maximum items allowed per row"
+                        },
+                        {
+                            "type": "checkbox",
+                            "id": "full_width",
+                            "default": false,
+                            "label": "Full width",
+                            "info": "Check to allow items to take entire width of the viewport"
+                        }
+                    ],
                     "blocks": [
                         {
-                            "name": "Image"
-                        },
-                        {
-                            "name": "Image"
-                        },
-                        {
-                            "name": "Image"
-                        },
-                        {
-                            "name": "Image"
+                            "type": "collection",
+                            "name": "Collection",
+                            "props": [
+                                {
+                                    "type": "collection",
+                                    "id": "collection",
+                                    "label": "Select a collection"
+                                }
+                            ]
                         }
-                    ]
-                }
-            },
-            {
-                "props": [
-                    {
-                        "type": "url",
-                        "id": "ctaLink",
-                        "default": "",
-                        "label": "Redirect Link"
-                    }
-                ],
-                "blocks": [],
-                "name": "heroBanner",
-                "label": "Hero Banner"
-            },
-            {
-                "props": [
-                    {
-                        "id": "image",
-                        "type": "image_picker",
-                        "label": "Hero Image",
-                        "default": ""
-                    },
-                    {
-                        "type": "checkbox",
-                        "id": "full_width",
-                        "default": false,
-                        "label": "Full width",
-                        "info": "Check to allow items to take entire width of the viewport"
-                    },
-                    {
-                        "id": "overlayLayout",
-                        "type": "select",
-                        "options": [
-                            {
-                                "value": "left",
-                                "text": "Align Left"
-                            },
-                            {
-                                "value": "center",
-                                "text": "Align Center"
-                            },
-                            {
-                                "value": "right",
-                                "text": "Align Right"
-                            }
-                        ],
-                        "default": "left",
-                        "label": "Overlay Layout",
-                        "info": "Alignment of overlay content"
-                    },
-                    {
-                        "type": "image_picker",
-                        "id": "overlayImage",
-                        "default": "",
-                        "label": "Overlay image",
-                        "info": "Overlay Image"
-                    },
-                    {
-                        "type": "text",
-                        "id": "text",
-                        "default": "",
-                        "label": "Overlay Text"
-                    },
-                    {
-                        "type": "color",
-                        "id": "text_color",
-                        "default": "#000",
-                        "label": "Text Color"
-                    },
-                    {
-                        "type": "url",
-                        "id": "ctaLink",
-                        "default": "",
-                        "label": "Redirect Link"
-                    },
-                    {
-                        "type": "text",
-                        "id": "ctaText",
-                        "default": "",
-                        "label": "Button Text"
-                    }
-                ],
-                "blocks": [],
-                "name": "imageBanner",
-                "label": "Hero Image"
-            },
-            {
-                "props": [
-                    {
-                        "id": "videoUrl",
-                        "type": "url",
-                        "label": "Video URL",
-                        "default": ""
-                    },
-                    {
-                        "type": "checkbox",
-                        "id": "full_width",
-                        "default": false,
-                        "label": "Full width",
-                        "info": "Check to allow items to take entire width of the viewport"
-                    },
-                    {
-                        "id": "coverUrl",
-                        "type": "image_picker",
-                        "label": "Video Cover Image",
-                        "default": ""
-                    },
-                    {
-                        "type": "checkbox",
-                        "id": "autoplay",
-                        "default": false,
-                        "label": "Autoplay",
-                        "info": "Check to enable autoplay of video"
-                    },
-                    {
-                        "type": "checkbox",
-                        "id": "showcontrols",
-                        "default": false,
-                        "label": "Show Controls on Video",
-                        "info": "Check to show controls on video"
-                    },
-                    {
-                        "type": "select",
-                        "id": "size",
-                        "options": [
-                            {
-                                "value": "small",
-                                "text": "Small"
-                            },
-                            {
-                                "value": "medium",
-                                "text": "Medium"
-                            },
-                            {
-                                "value": "large",
-                                "text": "Large"
-                            }
-                        ],
-                        "default": "large",
-                        "label": "Video Height",
-                        "info": "Height of Video"
-                    },
-                    {
-                        "type": "text",
-                        "id": "heading",
-                        "default": "",
-                        "label": "Heading"
-                    },
-                    {
-                        "type": "color",
-                        "id": "heading_color",
-                        "default": "#000",
-                        "label": "Headin Text Color"
-                    },
-                    {
-                        "type": "text",
-                        "id": "subHeading",
-                        "default": "",
-                        "label": "Sub-heading"
-                    },
-                    {
-                        "type": "color",
-                        "id": "subheading_color",
-                        "default": "#000",
-                        "label": "Subheading Text Color"
-                    },
-                    {
-                        "type": "url",
-                        "id": "ctaLink",
-                        "default": "",
-                        "label": "Redirect Link"
-                    },
-                    {
-                        "type": "text",
-                        "id": "ctaText",
-                        "default": "ShopNow",
-                        "label": "Button Text"
-                    }
-                ],
-                "blocks": [],
-                "name": "videoBanner",
-                "label": "Hero Video"
-            },
-            {
-                "props": [
-                    {
-                        "type": "text",
-                        "id": "heading",
-                        "default": "",
-                        "label": "Section Heading"
-                    }
-                ],
-                "blocks": [],
-                "name": "infiniteProductListing",
-                "label": "Infinite Products Listing"
-            },
-            {
-                "props": [
-                    {
-                        "type": "text",
-                        "id": "heading",
-                        "default": "Featured Collections",
-                        "label": "Collection Heading"
-                    },
-                    {
-                        "type": "range",
-                        "id": "item_count",
-                        "min": 2,
-                        "max": 5,
-                        "step": 1,
-                        "unit": "",
-                        "label": "Collections per row",
-                        "default": 4,
-                        "info": "Maximum items allowed per row"
-                    },
-                    {
-                        "type": "collection",
-                        "id": "collection",
-                        "label": "Collection",
-                        "info": "Select a collection"
-                    },
-                    {
-                        "type": "checkbox",
-                        "id": "full_width",
-                        "default": false,
-                        "label": "Full width"
-                    }
-                ],
-                "blocks": [],
-                "name": "productList",
-                "label": "Product List"
-            },
-            {
-                "props": [
-                    {
-                        "type": "image_picker",
-                        "id": "image",
-                        "label": "Image",
-                        "default": ""
-                    }
-                ],
-                "blocks": [],
-                "name": "rupifyBanner",
-                "label": "Rupify Banner"
-            },
-            {
-                "props": [
-                    {
-                        "type": "text",
-                        "id": "heading",
-                        "default": "",
-                        "label": "Carousel Heading"
-                    },
-                    {
-                        "type": "checkbox",
-                        "id": "slide_width",
-                        "default": false,
-                        "label": "Overlap Slides"
-                    },
-                    {
-                        "type": "select",
-                        "id": "slide_height",
-                        "options": [
-                            {
-                                "value": "adapt",
-                                "text": "Adapt to first image"
-                            },
-                            {
-                                "value": "small",
-                                "text": "Small"
-                            },
-                            {
-                                "value": "medium",
-                                "text": "Medium"
-                            },
-                            {
-                                "value": "large",
-                                "text": "Large"
-                            }
-                        ],
-                        "default": "adapt",
-                        "label": "Slide height",
-                        "info": "Size of the slide"
-                    },
-                    {
-                        "type": "checkbox",
-                        "id": "autoplay",
-                        "default": false,
-                        "label": "AutoPlay Slides",
-                        "info": "Check to autoplay slides"
-                    },
-                    {
-                        "type": "range",
-                        "id": "slide_interval",
-                        "min": 1,
-                        "max": 10,
-                        "step": 1,
-                        "unit": "sec",
-                        "label": "Change slides after every",
-                        "default": 2,
-                        "info": "Autoplay slide duration"
-                    }
-                ],
-                "blocks": [
-                    {
-                        "type": "gallery_image",
-                        "name": "Image",
-                        "props": [
-                            {
-                                "type": "image_picker",
-                                "id": "image",
-                                "label": "Gallery Image"
-                            },
-                            {
-                                "type": "url",
-                                "id": "slide_link",
-                                "label": "Slide Link"
-                            }
-                        ]
-                    }
-                ],
-                "name": "image-carousel",
-                "label": "Image Carousel",
-                "preset": {
+                    ],
+                    "name": "collectionList",
+                    "label": "Collection List"
+                },
+                {
+                    "props": [
+                        {
+                            "type": "text",
+                            "id": "title",
+                            "default": "",
+                            "label": "Title"
+                        },
+                        {
+                            "type": "radio",
+                            "id": "collection_type",
+                            "default": "all",
+                            "options": [
+                                {
+                                    "value": "all",
+                                    "text": "All"
+                                },
+                                {
+                                    "value": "handpicked",
+                                    "text": "Handpicked"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "range",
+                            "id": "item_count",
+                            "min": 3,
+                            "max": 5,
+                            "step": 1,
+                            "unit": "",
+                            "label": "Items per row",
+                            "default": 5,
+                            "info": "Maximum items allowed per row"
+                        },
+                        {
+                            "id": "layout",
+                            "type": "select",
+                            "options": [
+                                {
+                                    "value": "grid",
+                                    "text": "Grid View"
+                                },
+                                {
+                                    "value": "horizontal",
+                                    "text": "Horizontal View"
+                                }
+                            ],
+                            "default": "horizontal",
+                            "label": "Layout",
+                            "info": "Alignment of content"
+                        },
+                        {
+                            "type": "checkbox",
+                            "id": "view_all",
+                            "default": false,
+                            "label": "Show View All"
+                        }
+                    ],
                     "blocks": [
                         {
-                            "name": "Image"
+                            "type": "collection-item",
+                            "name": "collection Item",
+                            "props": [
+                                {
+                                    "type": "collection",
+                                    "id": "collection",
+                                    "label": "Select Collection"
+                                }
+                            ]
+                        }
+                    ],
+                    "name": "collectionListPage",
+                    "label": "Collection List Page"
+                },
+                {
+                    "props": [
+                        {
+                            "type": "code",
+                            "id": "code",
+                            "label": "Custom HTML",
+                            "info": "Add Your custom HTML Code below. You can also use the full screen icon to open a code editor and add your code"
+                        }
+                    ],
+                    "blocks": [],
+                    "name": "customHtml",
+                    "label": "Custom HTML"
+                },
+                {
+                    "props": [
+                        {
+                            "type": "extension",
+                            "id": "extension",
+                            "label": "Extension Positions",
+                            "info": "Handle extension in these positions",
+                            "positions": [
+                                {
+                                    "value": "section_extension",
+                                    "text": ""
+                                }
+                            ]
+                        }
+                    ],
+                    "blocks": [],
+                    "name": "section_extension",
+                    "label": "Extensions"
+                },
+                {
+                    "props": [
+                        {
+                            "type": "text",
+                            "id": "heading",
+                            "default": "Featured Products",
+                            "label": "Section Heading"
                         },
                         {
-                            "name": "Image"
+                            "type": "range",
+                            "id": "item_count",
+                            "min": 2,
+                            "max": 5,
+                            "step": 1,
+                            "unit": "",
+                            "label": "Products per row",
+                            "default": 4,
+                            "info": "Maximum items allowed per row"
+                        },
+                        {
+                            "type": "checkbox",
+                            "id": "full_width",
+                            "default": false,
+                            "label": "Full width",
+                            "info": "Check to allow items to take entire width of the viewport"
                         }
-                    ]
-                }
-            },
-            {
-                "props": [
-                    {
-                        "type": "checkbox",
-                        "id": "autoplay",
-                        "default": false,
-                        "label": "AutoPlay Slides"
-                    },
-                    {
-                        "type": "range",
-                        "id": "slide_interval",
-                        "min": 1,
-                        "max": 10,
-                        "step": 1,
-                        "unit": "sec",
-                        "label": "Change slides every",
-                        "default": 2
-                    },
-                    {
-                        "type": "checkbox",
-                        "id": "full_width",
-                        "default": false,
-                        "label": "Full width",
-                        "info": "Check to allow items to take entire width of the viewport"
-                    }
-                ],
-                "blocks": [
-                    {
-                        "type": "testimonial",
-                        "name": "Testimonial",
-                        "props": [
-                            {
-                                "type": "textarea",
-                                "id": "testimonialText",
-                                "label": "Text for Testimonial",
-                                "default": "Add customer reviews and testimonials to showcase your store’s happy customers.",
-                                "info": "Text for testimonial",
-                                "placeholder": "Text"
-                            },
-                            {
-                                "type": "text",
-                                "id": "author",
-                                "label": "Customers name",
-                                "default": "Author's name"
-                            }
-                        ]
-                    }
-                ],
-                "name": "testimonials",
-                "label": "Testimonial",
-                "preset": {
+                    ],
                     "blocks": [
                         {
-                            "name": "Testimonial"
-                        },
-                        {
-                            "name": "Testimonial"
+                            "type": "product",
+                            "name": "Product",
+                            "props": [
+                                {
+                                    "type": "product",
+                                    "id": "product",
+                                    "label": "Select a Product",
+                                    "info": "Product Item to be displayed"
+                                }
+                            ]
                         }
-                    ]
-                }
-            },
-            {
-                "props": [
-                    {
-                        "type": "select",
-                        "id": "slide_height",
-                        "options": [
+                    ],
+                    "name": "featuredProducts",
+                    "label": "Featured Products",
+                    "preset": {
+                        "blocks": [
                             {
-                                "value": "adapt",
-                                "text": "Adapt to first video"
+                                "name": "Product"
                             },
                             {
-                                "value": "small",
-                                "text": "Small"
+                                "name": "Product"
                             },
                             {
-                                "value": "medium",
-                                "text": "Medium"
+                                "name": "Product"
                             },
                             {
-                                "value": "large",
-                                "text": "Large"
-                            }
-                        ],
-                        "default": "adapt",
-                        "label": "Slide height",
-                        "info": "Size of the slide"
-                    },
-                    {
-                        "type": "checkbox",
-                        "id": "full_width",
-                        "default": false,
-                        "label": "Full width",
-                        "info": "Check to allow items to take entire width of the viewport"
-                    },
-                    {
-                        "type": "checkbox",
-                        "id": "autoplay",
-                        "default": false,
-                        "label": "AutoPlay Slides",
-                        "info": "Check to autoplay slides"
-                    },
-                    {
-                        "type": "range",
-                        "id": "slide_interval",
-                        "min": 1,
-                        "max": 10,
-                        "step": 1,
-                        "unit": "sec",
-                        "label": "Change slides every",
-                        "default": 2,
-                        "info": "Autoplay slide duration"
-                    }
-                ],
-                "blocks": [
-                    {
-                        "type": "video_item",
-                        "name": "Video Slide",
-                        "props": [
-                            {
-                                "id": "videoUrl",
-                                "type": "url",
-                                "label": "Video URL",
-                                "default": ""
-                            },
-                            {
-                                "type": "checkbox",
-                                "id": "showcontrols",
-                                "default": false,
-                                "label": "Show Controls on Video",
-                                "info": "Check to show controls on video"
+                                "name": "Product"
                             }
                         ]
                     }
-                ],
-                "name": "videoCarousel",
-                "label": "Video Carousel"
-            }
-        ],
-        "src": "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/company/873/applications/5cc04264ad924cea93ded855/theme/sources/sBLScYX4a-archive.zip"
-    }
-]
+                },
+                {
+                    "props": [
+                        {
+                            "type": "range",
+                            "id": "item_count",
+                            "min": 1,
+                            "max": 4,
+                            "step": 1,
+                            "unit": "",
+                            "label": "No of items",
+                            "default": 4,
+                            "info": "Maximum items allowed per row"
+                        }
+                    ],
+                    "blocks": [
+                        {
+                            "type": "gallery_image",
+                            "name": "Image",
+                            "props": [
+                                {
+                                    "type": "image_picker",
+                                    "id": "image",
+                                    "label": "Gallery Image",
+                                    "default": "https://hdn-1.fynd.com/company/884/applications/000000000000000000000001/theme/pictures/free/original/theme-image-1598448644345.png"
+                                },
+                                {
+                                    "type": "text",
+                                    "id": "caption",
+                                    "label": "Image Caption",
+                                    "default": ""
+                                },
+                                {
+                                    "type": "url",
+                                    "id": "link",
+                                    "label": "Link",
+                                    "default": "",
+                                    "info": "Link to redirect"
+                                }
+                            ]
+                        }
+                    ],
+                    "name": "gallery",
+                    "label": "Gallery",
+                    "preset": {
+                        "blocks": [
+                            {
+                                "name": "Image"
+                            },
+                            {
+                                "name": "Image"
+                            },
+                            {
+                                "name": "Image"
+                            },
+                            {
+                                "name": "Image"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "props": [
+                        {
+                            "type": "url",
+                            "id": "ctaLink",
+                            "default": "",
+                            "label": "Redirect Link"
+                        }
+                    ],
+                    "blocks": [],
+                    "name": "heroBanner",
+                    "label": "Hero Banner"
+                },
+                {
+                    "props": [
+                        {
+                            "id": "image",
+                            "type": "image_picker",
+                            "label": "Hero Image",
+                            "default": ""
+                        },
+                        {
+                            "type": "checkbox",
+                            "id": "full_width",
+                            "default": false,
+                            "label": "Full width",
+                            "info": "Check to allow items to take entire width of the viewport"
+                        },
+                        {
+                            "id": "overlayLayout",
+                            "type": "select",
+                            "options": [
+                                {
+                                    "value": "left",
+                                    "text": "Align Left"
+                                },
+                                {
+                                    "value": "center",
+                                    "text": "Align Center"
+                                },
+                                {
+                                    "value": "right",
+                                    "text": "Align Right"
+                                }
+                            ],
+                            "default": "left",
+                            "label": "Overlay Layout",
+                            "info": "Alignment of overlay content"
+                        },
+                        {
+                            "type": "image_picker",
+                            "id": "overlayImage",
+                            "default": "",
+                            "label": "Overlay image",
+                            "info": "Overlay Image"
+                        },
+                        {
+                            "type": "text",
+                            "id": "text",
+                            "default": "",
+                            "label": "Overlay Text"
+                        },
+                        {
+                            "type": "color",
+                            "id": "text_color",
+                            "default": "#000",
+                            "label": "Text Color"
+                        },
+                        {
+                            "type": "url",
+                            "id": "ctaLink",
+                            "default": "",
+                            "label": "Redirect Link"
+                        },
+                        {
+                            "type": "text",
+                            "id": "ctaText",
+                            "default": "",
+                            "label": "Button Text"
+                        }
+                    ],
+                    "blocks": [],
+                    "name": "imageBanner",
+                    "label": "Hero Image"
+                },
+                {
+                    "props": [
+                        {
+                            "id": "videoUrl",
+                            "type": "url",
+                            "label": "Video URL",
+                            "default": ""
+                        },
+                        {
+                            "type": "checkbox",
+                            "id": "full_width",
+                            "default": false,
+                            "label": "Full width",
+                            "info": "Check to allow items to take entire width of the viewport"
+                        },
+                        {
+                            "id": "coverUrl",
+                            "type": "image_picker",
+                            "label": "Video Cover Image",
+                            "default": ""
+                        },
+                        {
+                            "type": "checkbox",
+                            "id": "autoplay",
+                            "default": false,
+                            "label": "Autoplay",
+                            "info": "Check to enable autoplay of video"
+                        },
+                        {
+                            "type": "checkbox",
+                            "id": "showcontrols",
+                            "default": false,
+                            "label": "Show Controls on Video",
+                            "info": "Check to show controls on video"
+                        },
+                        {
+                            "type": "select",
+                            "id": "size",
+                            "options": [
+                                {
+                                    "value": "small",
+                                    "text": "Small"
+                                },
+                                {
+                                    "value": "medium",
+                                    "text": "Medium"
+                                },
+                                {
+                                    "value": "large",
+                                    "text": "Large"
+                                }
+                            ],
+                            "default": "large",
+                            "label": "Video Height",
+                            "info": "Height of Video"
+                        },
+                        {
+                            "type": "text",
+                            "id": "heading",
+                            "default": "",
+                            "label": "Heading"
+                        },
+                        {
+                            "type": "color",
+                            "id": "heading_color",
+                            "default": "#000",
+                            "label": "Headin Text Color"
+                        },
+                        {
+                            "type": "text",
+                            "id": "subHeading",
+                            "default": "",
+                            "label": "Sub-heading"
+                        },
+                        {
+                            "type": "color",
+                            "id": "subheading_color",
+                            "default": "#000",
+                            "label": "Subheading Text Color"
+                        },
+                        {
+                            "type": "url",
+                            "id": "ctaLink",
+                            "default": "",
+                            "label": "Redirect Link"
+                        },
+                        {
+                            "type": "text",
+                            "id": "ctaText",
+                            "default": "ShopNow",
+                            "label": "Button Text"
+                        }
+                    ],
+                    "blocks": [],
+                    "name": "videoBanner",
+                    "label": "Hero Video"
+                },
+                {
+                    "props": [
+                        {
+                            "type": "text",
+                            "id": "heading",
+                            "default": "",
+                            "label": "Section Heading"
+                        }
+                    ],
+                    "blocks": [],
+                    "name": "infiniteProductListing",
+                    "label": "Infinite Products Listing"
+                },
+                {
+                    "props": [
+                        {
+                            "type": "text",
+                            "id": "heading",
+                            "default": "Featured Collections",
+                            "label": "Collection Heading"
+                        },
+                        {
+                            "type": "range",
+                            "id": "item_count",
+                            "min": 2,
+                            "max": 5,
+                            "step": 1,
+                            "unit": "",
+                            "label": "Collections per row",
+                            "default": 4,
+                            "info": "Maximum items allowed per row"
+                        },
+                        {
+                            "type": "collection",
+                            "id": "collection",
+                            "label": "Collection",
+                            "info": "Select a collection"
+                        },
+                        {
+                            "type": "checkbox",
+                            "id": "full_width",
+                            "default": false,
+                            "label": "Full width"
+                        }
+                    ],
+                    "blocks": [],
+                    "name": "productList",
+                    "label": "Product List"
+                },
+                {
+                    "props": [
+                        {
+                            "type": "image_picker",
+                            "id": "image",
+                            "label": "Image",
+                            "default": ""
+                        }
+                    ],
+                    "blocks": [],
+                    "name": "rupifyBanner",
+                    "label": "Rupify Banner"
+                },
+                {
+                    "props": [
+                        {
+                            "type": "text",
+                            "id": "heading",
+                            "default": "",
+                            "label": "Carousel Heading"
+                        },
+                        {
+                            "type": "checkbox",
+                            "id": "slide_width",
+                            "default": false,
+                            "label": "Overlap Slides"
+                        },
+                        {
+                            "type": "select",
+                            "id": "slide_height",
+                            "options": [
+                                {
+                                    "value": "adapt",
+                                    "text": "Adapt to first image"
+                                },
+                                {
+                                    "value": "small",
+                                    "text": "Small"
+                                },
+                                {
+                                    "value": "medium",
+                                    "text": "Medium"
+                                },
+                                {
+                                    "value": "large",
+                                    "text": "Large"
+                                }
+                            ],
+                            "default": "adapt",
+                            "label": "Slide height",
+                            "info": "Size of the slide"
+                        },
+                        {
+                            "type": "checkbox",
+                            "id": "autoplay",
+                            "default": false,
+                            "label": "AutoPlay Slides",
+                            "info": "Check to autoplay slides"
+                        },
+                        {
+                            "type": "range",
+                            "id": "slide_interval",
+                            "min": 1,
+                            "max": 10,
+                            "step": 1,
+                            "unit": "sec",
+                            "label": "Change slides after every",
+                            "default": 2,
+                            "info": "Autoplay slide duration"
+                        }
+                    ],
+                    "blocks": [
+                        {
+                            "type": "gallery_image",
+                            "name": "Image",
+                            "props": [
+                                {
+                                    "type": "image_picker",
+                                    "id": "image",
+                                    "label": "Gallery Image"
+                                },
+                                {
+                                    "type": "url",
+                                    "id": "slide_link",
+                                    "label": "Slide Link"
+                                }
+                            ]
+                        }
+                    ],
+                    "name": "image-carousel",
+                    "label": "Image Carousel",
+                    "preset": {
+                        "blocks": [
+                            {
+                                "name": "Image"
+                            },
+                            {
+                                "name": "Image"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "props": [
+                        {
+                            "type": "checkbox",
+                            "id": "autoplay",
+                            "default": false,
+                            "label": "AutoPlay Slides"
+                        },
+                        {
+                            "type": "range",
+                            "id": "slide_interval",
+                            "min": 1,
+                            "max": 10,
+                            "step": 1,
+                            "unit": "sec",
+                            "label": "Change slides every",
+                            "default": 2
+                        },
+                        {
+                            "type": "checkbox",
+                            "id": "full_width",
+                            "default": false,
+                            "label": "Full width",
+                            "info": "Check to allow items to take entire width of the viewport"
+                        }
+                    ],
+                    "blocks": [
+                        {
+                            "type": "testimonial",
+                            "name": "Testimonial",
+                            "props": [
+                                {
+                                    "type": "textarea",
+                                    "id": "testimonialText",
+                                    "label": "Text for Testimonial",
+                                    "default": "Add customer reviews and testimonials to showcase your store’s happy customers.",
+                                    "info": "Text for testimonial",
+                                    "placeholder": "Text"
+                                },
+                                {
+                                    "type": "text",
+                                    "id": "author",
+                                    "label": "Customers name",
+                                    "default": "Author's name"
+                                }
+                            ]
+                        }
+                    ],
+                    "name": "testimonials",
+                    "label": "Testimonial",
+                    "preset": {
+                        "blocks": [
+                            {
+                                "name": "Testimonial"
+                            },
+                            {
+                                "name": "Testimonial"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "props": [
+                        {
+                            "type": "select",
+                            "id": "slide_height",
+                            "options": [
+                                {
+                                    "value": "adapt",
+                                    "text": "Adapt to first video"
+                                },
+                                {
+                                    "value": "small",
+                                    "text": "Small"
+                                },
+                                {
+                                    "value": "medium",
+                                    "text": "Medium"
+                                },
+                                {
+                                    "value": "large",
+                                    "text": "Large"
+                                }
+                            ],
+                            "default": "adapt",
+                            "label": "Slide height",
+                            "info": "Size of the slide"
+                        },
+                        {
+                            "type": "checkbox",
+                            "id": "full_width",
+                            "default": false,
+                            "label": "Full width",
+                            "info": "Check to allow items to take entire width of the viewport"
+                        },
+                        {
+                            "type": "checkbox",
+                            "id": "autoplay",
+                            "default": false,
+                            "label": "AutoPlay Slides",
+                            "info": "Check to autoplay slides"
+                        },
+                        {
+                            "type": "range",
+                            "id": "slide_interval",
+                            "min": 1,
+                            "max": 10,
+                            "step": 1,
+                            "unit": "sec",
+                            "label": "Change slides every",
+                            "default": 2,
+                            "info": "Autoplay slide duration"
+                        }
+                    ],
+                    "blocks": [
+                        {
+                            "type": "video_item",
+                            "name": "Video Slide",
+                            "props": [
+                                {
+                                    "id": "videoUrl",
+                                    "type": "url",
+                                    "label": "Video URL",
+                                    "default": ""
+                                },
+                                {
+                                    "type": "checkbox",
+                                    "id": "showcontrols",
+                                    "default": false,
+                                    "label": "Show Controls on Video",
+                                    "info": "Check to show controls on video"
+                                }
+                            ]
+                        }
+                    ],
+                    "name": "videoCarousel",
+                    "label": "Video Carousel"
+                }
+            ],
+            "src": "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/company/873/applications/5cc04264ad924cea93ded855/theme/sources/sBLScYX4a-archive.zip"
+        }
+    ]
 }

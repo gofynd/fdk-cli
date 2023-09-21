@@ -1,6 +1,6 @@
-import ApiClient from "../ApiClient";
-import { URLS } from './url'
-import { getCommonHeaderOptions } from "./utils";
+import ApiClient from '../ApiClient';
+import { URLS } from './url';
+import { getCommonHeaderOptions } from './utils';
 
 export default {
     setupCompany: async (company_id, request_id, data = {}) => {
@@ -8,18 +8,21 @@ export default {
             const axiosOption = Object.assign(
                 {
                     params: {
-                        request_id
-                    }
+                        request_id,
+                    },
                 },
                 {
-                    data: data
+                    data: data,
                 },
-                getCommonHeaderOptions()
+                getCommonHeaderOptions(),
             );
-            const res = await ApiClient.post(URLS.SETUP_COMPANY(company_id), axiosOption);
-            return res;   
-        } catch(error) {
+            const res = await ApiClient.post(
+                URLS.SETUP_COMPANY(company_id),
+                axiosOption,
+            );
+            return res;
+        } catch (error) {
             throw error;
         }
     },
-}
+};

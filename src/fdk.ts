@@ -16,26 +16,24 @@ import inquirer from 'inquirer';
 import path from 'path';
 import Env from './lib/Env';
 import { getActiveContext } from './helper/utils';
-import { 
-    THEME_COMMANDS, 
-    AUTHENTICATION_COMMANDS, 
-    ENVIRONMENT_COMMANDS, 
-    EXTENSION_COMMANDS, 
+import {
+    THEME_COMMANDS,
+    AUTHENTICATION_COMMANDS,
+    ENVIRONMENT_COMMANDS,
+    EXTENSION_COMMANDS,
     PARTNER_COMMANDS,
-    ALL_THEME_COMMANDS
+    ALL_THEME_COMMANDS,
 } from './helper/constants';
 const packageJSON = require('../package.json');
 
 async function checkTokenExpired(auth_token) {
-    if(!auth_token)
-        return true
-    const { expiry_time } = auth_token
+    if (!auth_token) return true;
+    const { expiry_time } = auth_token;
     const currentTimestamp = Math.floor(Date.now() / 1000);
     if (currentTimestamp > expiry_time) {
         return true;
-    }
-    else{
-        return false
+    } else {
+        return false;
     }
 }
 
@@ -45,7 +43,6 @@ export type Action = (...args: any[]) => void;
 // Common Handler for all commands are executed from here
 Command.prototype.asyncAction = async function (asyncFn: Action) {
     return this.action(async (...args: any[]) => {
-
         try {
             console.log('Version: ', packageJSON.version);
             let parent = args[1].parent;
@@ -64,26 +61,38 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
 
             initializeLogger();
             const latest = await checkCliVersionAsync();
-            const isCurrentLessThanLatest = semver.lt(packageJSON.version, latest)
+            const isCurrentLessThanLatest = semver.lt(
+                packageJSON.version,
+                latest,
+            );
             Debug(`Latest version: ${latest} | ${isCurrentLessThanLatest}`);
 
             const versionChange = semver.diff(packageJSON.version, latest);
-            const allowed_update_version_types = ["patch", "minor", "major"]
+            const allowed_update_version_types = ['patch', 'minor', 'major'];
             const major = versionChange === 'major';
             const color = major ? 'red' : 'green';
 
-            const logMessage = `There is a new version of ${packageJSON.name} available (${latest}).
+            const logMessage = `There is a new version of ${
+                packageJSON.name
+            } available (${latest}).
 You are currently using ${packageJSON.name} ${packageJSON.version}.
 Install fdk-cli globally using the package manager of your choice.
-${major ? `\nNote: You need to update \`${packageJSON.name}\` first inorder to use it.` : ''}
-Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
+${
+    major
+        ? `\nNote: You need to update \`${packageJSON.name}\` first inorder to use it.`
+        : ''
+}
+Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
 
-            if (allowed_update_version_types.includes(versionChange) && isCurrentLessThanLatest) {
+            if (
+                allowed_update_version_types.includes(versionChange) &&
+                isCurrentLessThanLatest
+            ) {
                 console.log(
                     boxen(
                         major ? chalk.red(logMessage) : chalk.green(logMessage),
-                        { borderColor: color, padding: 1 }
-                    )
+                        { borderColor: color, padding: 1 },
+                    ),
                 );
 
                 if (major) {
@@ -100,7 +109,11 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
             const isStatusCommand = args[1].parent.name() === 'status';
 
             if (
-                !(ENVIRONMENT_COMMANDS.findIndex(c => envCommand.includes(c)) !== -1) &&
+                !(
+                    ENVIRONMENT_COMMANDS.findIndex((c) =>
+                        envCommand.includes(c),
+                    ) !== -1
+                ) &&
                 !configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)
             ) {
                 throw new CommandError(COMMON_LOG_MESSAGES.EnvNotSet);
@@ -115,27 +128,37 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
             ) {
                 throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
             }
-            if(ALL_THEME_COMMANDS.findIndex(c => themeCommand.includes(c)) !== -1 || THEME_COMMANDS.findIndex(c => themeCommand.includes(c)) !== -1){
-                const isTokenExpired = await checkTokenExpired(configStore.get(CONFIG_KEYS.AUTH_TOKEN))
-                if(isTokenExpired)
+            if (
+                ALL_THEME_COMMANDS.findIndex((c) =>
+                    themeCommand.includes(c),
+                ) !== -1 ||
+                THEME_COMMANDS.findIndex((c) => themeCommand.includes(c)) !== -1
+            ) {
+                const isTokenExpired = await checkTokenExpired(
+                    configStore.get(CONFIG_KEYS.AUTH_TOKEN),
+                );
+                if (isTokenExpired)
                     throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
             }
-            if (THEME_COMMANDS.findIndex(c => themeCommand.includes(c)) !== -1) {
+            if (
+                THEME_COMMANDS.findIndex((c) => themeCommand.includes(c)) !== -1
+            ) {
                 const activeContextEnv = getActiveContext().env;
                 // need to check if env is set by url [Ex. Env.getEnvValue() will give api.fynd.com | Here activeContextEnv is "fynd"]
-                if (activeContextEnv !== Env.getEnvValue() && !Env.getEnvValue().includes(activeContextEnv)) {
+                if (
+                    activeContextEnv !== Env.getEnvValue() &&
+                    !Env.getEnvValue().includes(activeContextEnv)
+                ) {
                     throw new CommandError(COMMON_LOG_MESSAGES.contextMismatch);
                 }
             }
-            if (
-                parent.args.includes('theme')            
-            ) {
+            if (parent.args.includes('theme')) {
                 if (!isAThemeDirectory()) {
                     const answer = await promptForFDKFolder();
                     if (!answer) {
                         throw new CommandError(
                             ErrorCodes.INVALID_THEME_DIRECTORY.message,
-                            ErrorCodes.INVALID_THEME_DIRECTORY.code
+                            ErrorCodes.INVALID_THEME_DIRECTORY.code,
                         );
                     }
                 }
@@ -174,16 +197,20 @@ export async function init(programName: string) {
     //set API versios
     configStore.set(CONFIG_KEYS.API_VERSION, '1.0');
     // set default environment
-    if(!configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)) configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'fynd')
+    if (!configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE))
+        configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'fynd');
     program.on('command:*', (subCommand: any) => {
         let msg = `"${subCommand.join(
-            ' '
+            ' ',
         )}" is not an fdk command. See "fdk --help" for the full list of commands.`;
-        const availableCommands = program.commands.map((cmd: Command) => cmd.name());
+        const availableCommands = program.commands.map((cmd: Command) =>
+            cmd.name(),
+        );
         // finding the best match whose edit distance is less than 40% of their length.
 
         const suggestion = availableCommands.find(
-            (commandName: string) => leven(commandName, subCommand[0]) < commandName.length * 0.4
+            (commandName: string) =>
+                leven(commandName, subCommand[0]) < commandName.length * 0.4,
         );
         if (suggestion) {
             msg = `"${subCommand}" is not an fdk command -- did you mean ${suggestion}?\n See "fdk --help" for the full list of commands.`;
@@ -194,7 +221,7 @@ export async function init(programName: string) {
     return program;
 }
 
-export function parseCommands(){
+export function parseCommands() {
     program.parse(process.argv);
     // Show help when no sub-command specified
     if (program.args.length === 0) {
@@ -203,7 +230,7 @@ export function parseCommands(){
 }
 
 async function checkCliVersionAsync() {
-    return await latestVersion(packageJSON.name, {version: '*'});
+    return await latestVersion(packageJSON.name, { version: '*' });
 }
 
 async function promptForFDKFolder() {

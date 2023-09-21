@@ -35,7 +35,12 @@
                 }
             ],
             "token": "4Eoh-yDMW",
-            "tokens": [{ "token": "4Eoh-yDMW", "created_at": "2022-03-09T11:49:57.590Z" }],
+            "tokens": [
+                {
+                    "token": "4Eoh-yDMW",
+                    "created_at": "2022-03-09T11:49:57.590Z"
+                }
+            ],
             "redirections": [],
             "meta": [],
             "created_at": "2022-03-09T11:49:57.590Z",
