@@ -4,8 +4,8 @@ import path from 'path';
 import { init } from '../fdk';
 import { SERVICE_URL } from '../helper/constants';
 import { createDirectory } from '../helper/file.utils';
-import { getBaseURL } from '../lib/api/services/utils';
 import { axiosInstance } from '../lib/api/services/status.service';
+import { getBaseURL } from '../lib/api/services/url';
 
 let program;
 let mock;

@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { SERVICE_URL } from '../helper/constants';
 import StatusService from './api/services/status.service';
-import { getBaseURL } from './api/services/utils';
+import { getBaseURL } from './api/services/url';
 
 export default class Status {
     public static checkServiceStatus = async options => {
