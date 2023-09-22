@@ -165,6 +165,11 @@ export default class Theme {
         }
     }
 
+    public static isBypassingContextCheck(){
+        // checking both env for package command as command is dependent on these
+        return process.env.ORGANIZATION_ID && process.env.ACCESS_TOKEN
+    }
+
     public static async selectTheme(config) {
         const themeListOptions = {};
         const themeList = await ThemeService.getAllThemes(config);
@@ -2795,7 +2800,9 @@ export default class Theme {
 
     public static generateThemeZip = async () => {
         // Generate production build so that we can get assets and available sections in config file while creating zip
-        const activeContext = getActiveContext();
+
+        // check if access token and org id is set in env then we don't need to check context [for theme deployment CI/CD]
+        const activeContext = !Theme.isBypassingContextCheck() && getActiveContext();
         if (activeContext && activeContext.theme_type === 'vue2') {
             await Theme.generateAssetsVue();
         } else if (activeContext && activeContext.theme_type === 'react') {
