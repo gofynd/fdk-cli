@@ -28,7 +28,7 @@ export const ErrorCodes = {
         code: 'FDK-0006',
     },
     INVALID_PARTNER_TOKEN: {
-        message: 'Invalid of Expired Partner access token',
+        message: 'Invalid or Expired Partner access token',
         code: 'FDK-0007',
     },
     NO_DEVELOPMENT_COMPANY: {

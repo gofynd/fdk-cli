@@ -16,6 +16,7 @@ import inquirer from 'inquirer';
 import path from 'path';
 import Env from './lib/Env';
 import { getActiveContext } from './helper/utils';
+import ExtensionService from './lib/api/services/extension.service'
 import {
     THEME_COMMANDS,
     AUTHENTICATION_COMMANDS,
@@ -59,19 +60,29 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
                 process.env.DEBUG = 'false';
             }
 
+            initializeLogger();
+
             if (parent._optionValues.accessToken) {
-                process.env.ACCESS_TOKEN = parent._optionValues.accessToken;
+                const token = parent._optionValues.accessToken
+                process.env.ACCESS_TOKEN = token;
+                try{
+                    Debug(`Fetching Organization Id from Token ${token}...`);
+                    const { id: organization_id } = await ExtensionService.getOrganizationData(token)
+                    process.env.ORGANIZATION_ID = organization_id;
+                    Debug(`Token:${token} | Organization:${organization_id}`);
+                }catch(err){
+                    Debug(`Error while fetching Organiation Id from Token`);
+                    Debug(err);
+                    throw new CommandError(
+                        ErrorCodes.INVALID_PARTNER_TOKEN.message,
+                        ErrorCodes.INVALID_PARTNER_TOKEN.code,
+                    )
+                }
             } else {
                 process.env.ACCESS_TOKEN = '';
-            }
-
-            if (parent._optionValues.org) {
-                process.env.ORGANIZATION_ID = parent._optionValues.org;
-            } else {
                 process.env.ORGANIZATION_ID = '';
             }
 
-            initializeLogger();
             const latest = await checkCliVersionAsync();
             const isCurrentLessThanLatest = semver.lt(
                 packageJSON.version,
@@ -220,7 +231,6 @@ export async function init(programName: string) {
         .version(packageJSON.version)
         .option('-v, --verbose', 'A value that can be increased')
         .option('-at, --access-token <token>', 'Set access token', false)
-        .option('-o, --org <organization_id>', 'Set organization id', false);
 
     //register commands with commander instance
     registerCommands(program);

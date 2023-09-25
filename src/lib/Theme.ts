@@ -167,7 +167,7 @@ export default class Theme {
 
     public static isBypassingContextCheck(){
         // checking both env for package command as command is dependent on these
-        return process.env.ORGANIZATION_ID && process.env.ACCESS_TOKEN
+        return process.env.ACCESS_TOKEN
     }
 
     public static async selectTheme(config) {
