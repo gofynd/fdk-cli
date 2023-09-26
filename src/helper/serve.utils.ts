@@ -253,20 +253,17 @@ export async function startServer({ domain, host, isSSR, port }) {
                     stack?.forEach(({ methodName, lineNumber, column }) => {
                         try {
                             if (lineNumber == null || lineNumber < 1) {
-                                errorString += `<p>      at  <strong>${
-                                    methodName || ''
-                                }</strong></p>`;
+                                errorString += `<p>      at  <strong>${methodName || ''
+                                    }</strong></p>`;
                             } else {
                                 const pos = smc.originalPositionFor({
                                     line: lineNumber,
                                     column,
                                 });
                                 if (pos && pos.line != null) {
-                                    errorString += `<p>      at  <strong>${
-                                        methodName || pos.name || ''
-                                    }</strong> (${pos.source}:${pos.line}:${
-                                        pos.column
-                                    })</p>`;
+                                    errorString += `<p>      at  <strong>${methodName || pos.name || ''
+                                        }</strong> (${pos.source}:${pos.line}:${pos.column
+                                        })</p>`;
                                 }
                             }
                         } catch (err) {
@@ -291,8 +288,7 @@ export async function startServer({ domain, host, isSSR, port }) {
                 return reject(err);
             }
             Logger.info(
-                `Starting starter at port -- ${port} in ${
-                    isSSR ? 'SSR' : 'Non-SSR'
+                `Starting starter at port -- ${port} in ${isSSR ? 'SSR' : 'Non-SSR'
                 } mode`,
             );
             Logger.info(`************* Using Debugging build`);
@@ -449,6 +445,11 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
                 cliMeta: {
                     port,
                 },
+                headers: {
+                    'Content-Yype': 'application/json',
+                    Accept: 'application/json',
+                    'x-fp-cli': `${packageJSON.version}`,
+                }
             })
             .catch((error) => {
                 console.log(error);
@@ -460,9 +461,8 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 				<script>
 				var socket = io();
 				socket.on('reload',function(){
-					${
-                        isHMREnabled
-                            ? `
+					${isHMREnabled
+                ? `
 						try {
 							window.APP_DATA.themeBundleUMDURL = '/themeBundle.umd.js';
 							window.APP_DATA.isServerRendered = false;
@@ -475,10 +475,10 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 							window.loadApp().catch(console.log);
 						} catch(e) { console.log( e );}
 					`
-                            : `
+                : `
 						window.location.reload();
 					`
-                    }
+            }
 
 				});
 				</script>
