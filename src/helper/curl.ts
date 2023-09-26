@@ -19,7 +19,9 @@ export default class CurlHelper {
         let queryParamString = '';
 
         if (this.reqConfig.paramsSerializer) {
-            let queryParams = this.reqConfig.paramsSerializer(this.reqConfig.params);
+            let queryParams = this.reqConfig.paramsSerializer(
+                this.reqConfig.params,
+            );
             if (queryParams && queryParams.length) {
                 queryParamString = `?${queryParams.trim()}`;
             }
@@ -29,7 +31,9 @@ export default class CurlHelper {
                 Object.keys(this.reqConfig.params).length &&
                 qs.stringify(this.reqConfig.params).trim() !== ''
             ) {
-                queryParamString = `?${qs.stringify(this.reqConfig.params).trim()}`;
+                queryParamString = `?${qs
+                    .stringify(this.reqConfig.params)
+                    .trim()}`;
             }
         }
 
@@ -50,7 +54,15 @@ export default class CurlHelper {
     }
 
     getHeaders(): string {
-        const axiosHeaders = ['common', 'delete', 'get', 'head', 'post', 'put', 'patch'];
+        const axiosHeaders = [
+            'common',
+            'delete',
+            'get',
+            'head',
+            'post',
+            'put',
+            'patch',
+        ];
         let headers = {};
 
         // Logger.info(JSON.stringify(this.reqConfig.headers));
@@ -61,7 +73,7 @@ export default class CurlHelper {
         }
         headers = Object.keys(headers).reduce(
             (acc, key) => ((acc[key.toLowerCase()] = headers[key]), acc),
-            {}
+            {},
         );
 
         // add custom headers
@@ -73,10 +85,11 @@ export default class CurlHelper {
             ) {
                 if (this.reqConfig.headers[headerName] instanceof Object) {
                     headers[headerName.toLowerCase()] = JSON.stringify(
-                        this.reqConfig.headers[headerName]
+                        this.reqConfig.headers[headerName],
                     );
                 } else {
-                    headers[headerName.toLowerCase()] = this.reqConfig.headers[headerName];
+                    headers[headerName.toLowerCase()] =
+                        this.reqConfig.headers[headerName];
                 }
             }
         }
@@ -84,7 +97,8 @@ export default class CurlHelper {
         // convert header object to curl string
         let headerString = '';
         for (let header in headers) {
-            headerString = headerString + ` --header '${header}: ${headers[header]}'`;
+            headerString =
+                headerString + ` --header '${header}: ${headers[header]}'`;
         }
 
         return headerString.trim();
