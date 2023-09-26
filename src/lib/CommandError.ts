@@ -80,7 +80,7 @@ export default class CommandError extends Error {
     Object.setPrototypeOf(this, CommandError.prototype);
     this.code = code || 'FDK-0004';
     this.message = message || 'Something went wrong';
-    this.response = response || "Response not Recived";
+    this.response = response || "Response not Received";
     process.exitCode = 1;
   }
 }
