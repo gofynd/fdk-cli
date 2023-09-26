@@ -50,8 +50,7 @@ function interceptorFn(options) {
                 config.headers['Cookie'] = cookie || '';
                 if (pathname.startsWith('/service/partner')) {
                     if (process.env.ACCESS_TOKEN) {
-                        config.headers['Authorization'] =
-                        'Bearer ' + process.env.ACCESS_TOKEN;
+                        config.headers['x-partner-token'] = process.env.ACCESS_TOKEN;
                     } else {
                         const auth_token = ConfigStore.get(CONFIG_KEYS.AUTH_TOKEN);
                         if (auth_token && auth_token.access_token) {
