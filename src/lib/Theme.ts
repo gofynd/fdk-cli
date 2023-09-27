@@ -11,6 +11,7 @@ import {
     parseBundleFilename,
     transformSectionFileName,
     findExportedVariable,
+    convertJsonToPlaceholders,
 } from '../helper/utils';
 import CommandError, { ErrorCodes } from './CommandError';
 import Logger, { COMMON_LOG_MESSAGES } from './Logger';
@@ -18,7 +19,6 @@ import ConfigurationService from './api/services/configuration.service';
 import fs from 'fs-extra';
 import path from 'path';
 import execa from 'execa';
-import { AVAILABLE_ENVS } from './Env';
 import rimraf from 'rimraf';
 import terminalLink from 'terminal-link';
 import Box from 'boxen';
@@ -61,7 +61,6 @@ import {
     settingLoader,
 } from '../helper/theme.vue.config';
 import { simpleGit } from 'simple-git';
-import ConfigStore, { CONFIG_KEYS } from './Config';
 export default class Theme {
     /*
         new theme from default template -> create
@@ -2928,31 +2927,16 @@ export default class Theme {
             });
         }
 
-        let packageJSONPath = path.join(process.cwd(), 'package.json');
-        let packageContent: any = readFile(packageJSONPath);
-        let content = JSON.parse(packageContent) || {};
-        const themeName = content.name as String;
-        const slug = themeName.toLowerCase();
         let theme_data = null
-        
-        Debug(`Fetching theme from marketplace. Using '${slug}' slug.`);
-        theme_data = await Theme.getMarketplaceThemeFromSlug(slug);
+        Debug(`Trying to fetch default theme (${Theme.DEFAULT_THEME_SLUG}) data.`);
+        theme_data = await Theme.getMarketplaceThemeFromSlug(Theme.DEFAULT_THEME_SLUG);
         
         if(!theme_data){
-            Debug(`Theme with '${slug}' slug not found on marketplace.`);
-            Debug(`Trying to fetch theme with default slug '${Theme.DEFAULT_THEME_SLUG}'.`);
-            theme_data = await Theme.getMarketplaceThemeFromSlug(Theme.DEFAULT_THEME_SLUG);
-            if(!theme_data){
-                Debug(`Default theme not found on marketplace. Using '${Theme.DEFAULT_THEME_SLUG}' slug.`);
-                throw new CommandError(`Default theme not found on marketplace. Using '${Theme.DEFAULT_THEME_SLUG}' slug.`);
-            }
-
-            console.log(chalk.red.bold(`\n${content.name} not found on the marketplace. Gathering details from ${Theme.DEFAULT_THEME_SLUG}.`));
-            console.log(chalk.green.bold(`Note: Kindly make the necessary modifications in the marketplace_template.json file.\n`));
+            Debug(`Theme with '${Theme.DEFAULT_THEME_SLUG}' slug not found on marketplace.`);
         }
 
         // remove extra fields
-        const {
+        let {
             template_theme_id,
             created_at,
             updated_at,
@@ -2962,6 +2946,14 @@ export default class Theme {
             ...template_data } = theme_data;
 
         delete template_data.release.previous_version;
+        delete template_data.organization_id;
+        delete template_data.user_id;
+        delete template_data.status;
+        delete template_data.step;
+
+        // Add placeholders to values
+        template_data = convertJsonToPlaceholders(template_data)
+        template_data.theme_type = "vue2";
 
         await fs.writeJSON(
             Theme.MARKETPLACE_TEMPLATE_FILE,
@@ -2970,7 +2962,7 @@ export default class Theme {
                 spaces: 2,
             },
         );
-        
+        console.log(chalk.yellow.bold(`\nNote: Kindly make the necessary modifications in the marketplace_template.json file. Please refer ${getPlatformUrls().partners}/help/docs/partners/themes/vuejs/submit-theme for more details.\n`));
         // modify data
 
         // MODIFY
