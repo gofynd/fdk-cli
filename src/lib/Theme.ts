@@ -2926,12 +2926,28 @@ export default class Theme {
             });
         }
 
+        let spinner = new Spinner('Creating marketplace_template.json');
+        spinner.start();
+        let packageJSONPath = path.join(process.cwd(), 'package.json');
+        let packageContent: any = readFile(packageJSONPath);
+        let content = JSON.parse(packageContent) || {};
+        const themeName = content.name as String;
+        const slug = themeName.toLowerCase();
         let theme_data = null
-        Debug(`Trying to fetch default theme (${Theme.DEFAULT_THEME_SLUG}) data.`);
-        theme_data = await Theme.getMarketplaceThemeFromSlug(Theme.DEFAULT_THEME_SLUG);
+        
+        Debug(`Fetching theme from marketplace. Using '${slug}' slug.`);
+        theme_data = await Theme.getMarketplaceThemeFromSlug(slug);
         
         if(!theme_data){
-            Debug(`Theme with '${Theme.DEFAULT_THEME_SLUG}' slug not found on marketplace.`);
+            Debug(`Theme with '${slug}' slug not found on marketplace.`);
+            Debug(`Trying to fetch theme with default slug '${Theme.DEFAULT_THEME_SLUG}'.`);
+            console.log(chalk.red.bold(`\n${content.name} not found on the marketplace. Gathering details from ${Theme.DEFAULT_THEME_SLUG}.`));
+            theme_data = await Theme.getMarketplaceThemeFromSlug(Theme.DEFAULT_THEME_SLUG);
+            if(!theme_data){
+                Debug(`Default theme not found on marketplace. Using '${Theme.DEFAULT_THEME_SLUG}' slug.`);
+                spinner.fail();
+                throw new CommandError(`Default theme not found on marketplace. Using '${Theme.DEFAULT_THEME_SLUG}' slug.`);
+            }
         }
 
         // remove extra fields
@@ -2942,13 +2958,13 @@ export default class Theme {
             is_update,
             is_default,
             _id,
+            organization_id,
+            user_id,
+            status,
+            step,
             ...template_data } = theme_data;
 
         delete template_data.release.previous_version;
-        delete template_data.organization_id;
-        delete template_data.user_id;
-        delete template_data.status;
-        delete template_data.step;
 
         await fs.writeJSON(
             Theme.MARKETPLACE_TEMPLATE_FILE,
@@ -2957,6 +2973,7 @@ export default class Theme {
                 spaces: 2,
             },
         );
-        console.log(chalk.yellow.bold(`\nNote: Kindly make the necessary modifications in the marketplace_template.json file. Please refer ${getPlatformUrls().partners}/help/docs/partners/themes/vuejs/submit-theme for more details.\n`));
+        spinner.succeed();
+        console.log(chalk.green.bold(`Note: Kindly make the necessary modifications in the marketplace_template.json file. Please refer ${getPlatformUrls().partners}/help/docs/partners/themes/vuejs/submit-theme for more details.`));
     }
 }
