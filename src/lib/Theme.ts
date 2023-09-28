@@ -11,7 +11,6 @@ import {
     parseBundleFilename,
     transformSectionFileName,
     findExportedVariable,
-    convertJsonToPlaceholders,
 } from '../helper/utils';
 import CommandError, { ErrorCodes } from './CommandError';
 import Logger, { COMMON_LOG_MESSAGES } from './Logger';
@@ -2951,10 +2950,6 @@ export default class Theme {
         delete template_data.status;
         delete template_data.step;
 
-        // Add placeholders to values
-        template_data = convertJsonToPlaceholders(template_data)
-        template_data.theme_type = "vue2";
-
         await fs.writeJSON(
             Theme.MARKETPLACE_TEMPLATE_FILE,
             template_data,
@@ -2963,14 +2958,5 @@ export default class Theme {
             },
         );
         console.log(chalk.yellow.bold(`\nNote: Kindly make the necessary modifications in the marketplace_template.json file. Please refer ${getPlatformUrls().partners}/help/docs/partners/themes/vuejs/submit-theme for more details.\n`));
-        // modify data
-
-        // MODIFY
-        // organization_id
-        // user_id
-        // status > in-review
-        // src
-
-        // theme_type >> if theme not available on marketplace then check what to set
     }
 }

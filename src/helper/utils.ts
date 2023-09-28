@@ -355,32 +355,3 @@ export function findExportedVariable(
         return null;
     }
 }
-
-export function convertJsonToPlaceholders(obj, fieldName = 'enter') {
-    if (typeof obj === 'object') {
-      if (Array.isArray(obj)) {
-        for (let i = 0; i < obj.length; i++) {
-          obj[i] = convertJsonToPlaceholders(obj[i], `${fieldName}`);
-        }
-      } else {
-        for (const key in obj) {
-          if (obj.hasOwnProperty(key)) {
-            obj[key] = convertJsonToPlaceholders(obj[key], `${fieldName}_${key}`);
-          }
-        }
-      }
-    } else if (typeof obj === 'string') {
-      if (obj.match(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/)) {
-        // Email address
-        return `<${fieldName}_email>`;
-      } else if (obj.match(/^https?:\/\/\S+$/)) {
-        // Link
-        return `<${fieldName}_link>`;
-      } else {
-        // Normal string
-        return `<${fieldName}_value>`;
-      }
-    }
-  
-    return obj;
-  }
