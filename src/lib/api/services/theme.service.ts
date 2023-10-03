@@ -245,10 +245,22 @@ export default {
             const res = await ApiClient.get(
                 URLS.GET_DEFAULT_THEME(data.company_id, data.application_id),
                 axiosOption,
+                );
+                return res?.data;
+            } catch (err) {
+                throw err;
+            }
+        },
+    getMarketplaceTheme: async (slug) => {
+        try {
+            const axiosOption = Object.assign({}, getCommonHeaderOptions());
+            const res = await ApiClient.get(
+                URLS.GET_MARKETPLACE_THEME(slug),
+                axiosOption,
             );
             return res?.data;
         } catch (err) {
             throw err;
         }
-    },
+    }
 };

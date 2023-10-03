@@ -18,7 +18,6 @@ import ConfigurationService from './api/services/configuration.service';
 import fs from 'fs-extra';
 import path from 'path';
 import execa from 'execa';
-import { AVAILABLE_ENVS } from './Env';
 import rimraf from 'rimraf';
 import terminalLink from 'terminal-link';
 import Box from 'boxen';
@@ -61,7 +60,6 @@ import {
     settingLoader,
 } from '../helper/theme.vue.config';
 import { simpleGit } from 'simple-git';
-import ConfigStore, { CONFIG_KEYS } from './Config';
 export default class Theme {
     /*
         new theme from default template -> create
@@ -90,8 +88,10 @@ export default class Theme {
     static REACT_CLI_CONFIG_PATH = 'webpack.config.js';
     static SRC_ARCHIVE_FOLDER = path.join('.fdk', 'archive');
     static SETTING_LOADER_FILE = path.join('.fdk', 'setting-loader.js');
+    static MARKETPLACE_TEMPLATE_FILE = path.join(process.cwd(), 'marketplace_template.json');
     static ZIP_FILE_NAME = `archive.zip`;
     static TEMPLATE_THEME_URL = 'https://github.com/gofynd/Astra.git';
+    static DEFAULT_THEME_SLUG = 'astra';
 
     public static getSettingsDataPath() {
         let settings_path = path.join(
@@ -151,6 +151,21 @@ export default class Theme {
         } catch (err) {
             throw new CommandError(`Error reading ${path} file.!!!`);
         }
+    }
+
+    public static async getMarketplaceThemeFromSlug(slug) {
+        try{
+            const data = await ThemeService.getMarketplaceTheme(slug)
+            return data.theme;
+        }catch(err){
+            Debug(err);
+            return null;
+        }
+    }
+
+    public static isBypassingContextCheck(){
+        // checking both env for package command as command is dependent on these
+        return process.env.ACCESS_TOKEN
     }
 
     public static async selectTheme(config) {
@@ -2783,11 +2798,15 @@ export default class Theme {
 
     public static generateThemeZip = async () => {
         // Generate production build so that we can get assets and available sections in config file while creating zip
-        const activeContext = getActiveContext();
-        if (activeContext.theme_type === 'vue2') {
+
+        // check if access token and org id is set in env then we don't need to check context [for theme deployment CI/CD]
+        const activeContext = !Theme.isBypassingContextCheck() && getActiveContext();
+        if (activeContext && activeContext.theme_type === 'vue2') {
             await Theme.generateAssetsVue();
-        } else if (activeContext.theme_type === 'react') {
+        } else if (activeContext && activeContext.theme_type === 'react') {
             await Theme.generateAssetsReact();
+        } else {
+            await Theme.generateAssetsVue();
         }
         let content = { name: '' };
         let spinner;
@@ -2888,4 +2907,73 @@ export default class Theme {
             throw new CommandError(error.message);
         }
     };
+
+    public static getMarketplaceTemplate = async () => {
+        if (fs.existsSync(Theme.MARKETPLACE_TEMPLATE_FILE)) {
+            const questions = [
+                {
+                    type: 'list',
+                    name: 'confirmChangeOrg',
+                    message: `The ${Theme.MARKETPLACE_TEMPLATE_FILE.split('/').pop()} already exists. Are you sure you want to overwrite it?`,
+                    choices: ['Yes', 'No'],
+                },
+            ];
+
+            await inquirer.prompt(questions).then(async (answers) => {
+                if (answers.confirmChangeOrg === 'No') {
+                    throw new CommandError(`${Theme.MARKETPLACE_TEMPLATE_FILE} won't be override.`)
+                }
+            });
+        }
+
+        let spinner = new Spinner('Creating marketplace_template.json');
+        spinner.start();
+        let packageJSONPath = path.join(process.cwd(), 'package.json');
+        let packageContent: any = readFile(packageJSONPath);
+        let content = JSON.parse(packageContent) || {};
+        const themeName = content.name as String;
+        const slug = themeName.toLowerCase();
+        let theme_data = null
+        
+        Debug(`Fetching theme from marketplace. Using '${slug}' slug.`);
+        theme_data = await Theme.getMarketplaceThemeFromSlug(slug);
+        
+        if(!theme_data){
+            Debug(`Theme with '${slug}' slug not found on marketplace.`);
+            Debug(`Trying to fetch theme with default slug '${Theme.DEFAULT_THEME_SLUG}'.`);
+            console.log(chalk.red.bold(`\n${content.name} not found on the marketplace. Gathering details from ${Theme.DEFAULT_THEME_SLUG}.`));
+            theme_data = await Theme.getMarketplaceThemeFromSlug(Theme.DEFAULT_THEME_SLUG);
+            if(!theme_data){
+                Debug(`Default theme not found on marketplace. Using '${Theme.DEFAULT_THEME_SLUG}' slug.`);
+                spinner.fail();
+                throw new CommandError(`Default theme not found on marketplace. Using '${Theme.DEFAULT_THEME_SLUG}' slug.`);
+            }
+        }
+
+        // remove extra fields
+        let {
+            template_theme_id,
+            created_at,
+            updated_at,
+            is_update,
+            is_default,
+            _id,
+            organization_id,
+            user_id,
+            status,
+            step,
+            ...template_data } = theme_data;
+
+        delete template_data.release.previous_version;
+
+        await fs.writeJSON(
+            Theme.MARKETPLACE_TEMPLATE_FILE,
+            template_data,
+            {
+                spaces: 2,
+            },
+        );
+        spinner.succeed();
+        console.log(chalk.green.bold(`Note: Kindly make the necessary modifications in the marketplace_template.json file. Please refer ${getPlatformUrls().partners}/help/docs/partners/themes/vuejs/submit-theme for more details.`));
+    }
 }

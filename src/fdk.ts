@@ -16,6 +16,7 @@ import inquirer from 'inquirer';
 import path from 'path';
 import Env from './lib/Env';
 import { getActiveContext } from './helper/utils';
+import ExtensionService from './lib/api/services/extension.service'
 import {
     THEME_COMMANDS,
     AUTHENTICATION_COMMANDS,
@@ -60,6 +61,28 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
             }
 
             initializeLogger();
+
+            if (parent._optionValues.accessToken) {
+                const token = parent._optionValues.accessToken
+                process.env.ACCESS_TOKEN = token;
+                try{
+                    Debug(`Fetching Organization Id from Token ${token}...`);
+                    const { id: organization_id } = await ExtensionService.getOrganizationData(token)
+                    process.env.ORGANIZATION_ID = organization_id;
+                    Debug(`Token:${token} | Organization:${organization_id}`);
+                }catch(err){
+                    Debug(`Error while fetching Organiation Id from Token`);
+                    Debug(err);
+                    throw new CommandError(
+                        ErrorCodes.INVALID_PARTNER_TOKEN.message,
+                        ErrorCodes.INVALID_PARTNER_TOKEN.code,
+                    )
+                }
+            } else {
+                process.env.ACCESS_TOKEN = '';
+                process.env.ORGANIZATION_ID = '';
+            }
+
             const latest = await checkCliVersionAsync();
             const isCurrentLessThanLatest = semver.lt(
                 packageJSON.version,
@@ -138,7 +161,8 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
                         partnerCommand.includes(c),
                     ) !== -1
                 ) &&
-                !configStore.get(CONFIG_KEYS.AUTH_TOKEN)
+                !configStore.get(CONFIG_KEYS.AUTH_TOKEN) &&
+                !process.env.ACCESS_TOKEN
             ) {
                 throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
             }
@@ -149,7 +173,7 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
                 THEME_COMMANDS.findIndex((c) => themeCommand.includes(c)) !== -1
             ) {
                 const isTokenExpired = await checkTokenExpired(
-                    configStore.get(CONFIG_KEYS.AUTH_TOKEN),
+                    process.env.ACCESS_TOKEN || configStore.get(CONFIG_KEYS.AUTH_TOKEN),
                 );
                 if (isTokenExpired)
                     throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
@@ -205,7 +229,9 @@ export async function init(programName: string) {
     program
         .name(programName)
         .version(packageJSON.version)
-        .option('-v, --verbose', 'A value that can be increased');
+        .option('-v, --verbose', 'A value that can be increased')
+        .option('-at, --access-token <token>', 'Set access token', false)
+
     //register commands with commander instance
     registerCommands(program);
     //set API versios
