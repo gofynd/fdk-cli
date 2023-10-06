@@ -180,12 +180,11 @@ export async function startServer({ domain, host, isSSR, port }) {
                 url: jetfireUrl.toString(),
                 headers: {
                     'Content-Yype': 'application/json',
-                    Accept: 'application/json',
-                    'x-fp-cli': packageJSON.version
+                    Accept: 'application/json'
                 },
                 data: {
                     theme_url: themeUrl,
-                    port: port.toString(),
+                    domain: getFullLocalUrl(port)
                 },
             });
 
