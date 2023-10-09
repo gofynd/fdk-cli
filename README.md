@@ -87,7 +87,7 @@ ___
 | [context](#theme-context)     | Add context of a theme |
 | [context-list](#theme-context-list)     | List all available contexts |
 | [active-context](theme-active-context)    | show currently active context |
-| [serve](#theme-serve)     | Start theme serving on localhost |
+| [serve](#theme-serve)     | Start theme serving on 127.0.0.1 |
 | [sync](#theme-sync)     | Sync theme to application |
 | [pull](#theme-pull)     | Pull latest theme code |
 | [pull-config](#theme-pull-config)     | Pull latest theme config |
