@@ -305,6 +305,13 @@ describe('Theme Commands', () => {
         ).reply(200, themeList.items);
 
         mock.onGet(
+            `${URLS.GET_ALL_THEME(
+                appConfig.company_id,
+                appConfig.application_id,
+            )}`,
+        ).reply(200, themeList.items);
+
+        mock.onGet(
             `${URLS.GET_DEFAULT_THEME(
                 appConfig.company_id,
                 appConfig.application_id,
@@ -315,7 +322,7 @@ describe('Theme Commands', () => {
         configStore.set(CONFIG_KEYS.USER, data.user);
 
         process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
-        const app = await startServer({ isTesting: true });
+        const app = await startServer();
         const req = request(app);
         await program.parseAsync(['ts-node', './src/fdk.ts', 'login']);
         await req.post('/token').send(tokenData);
