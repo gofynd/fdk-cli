@@ -13,7 +13,9 @@ export const THEME_COMMANDS = ['pull', 'pull-config', 'serve', 'sync'];
 export const ENVIRONMENT_COMMANDS = ['env'];
 export const AUTHENTICATION_COMMANDS = ['auth', 'login', 'logout'];
 export const EXTENSION_COMMANDS = ['init', 'setup', 'get', 'set'];
+export const MAX_RETRY = 5;
 export const PARTNER_COMMANDS = ['connect'];
+
 // todo: We will change this later, as of now we don't want to show the deprecation warning
 // export const DEPRECATED_THEME_COMMANDS = ['publish', 'unpublish', 'context', 'init', 'new', ];
 // export const DEPRECATED_AUTHENTICATION_COMMANDS = ['login', 'auth']

@@ -290,6 +290,11 @@ export function debounce<T extends (...args: any[]) => void>(
     };
 }
 
+export const isNetworkErrorCode = (code) =>
+    ['ECONNABORTED', 'EPIPE', 'ENOTFOUND', 'ETIMEDOUT', 'ECONNRESET'].includes(
+        code,
+    );
+
 export const isValidDomain = (domain) => {
     const domainRegex = /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return domainRegex.test(domain);

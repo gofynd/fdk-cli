@@ -5,18 +5,41 @@ import axios, {
     AxiosInstance,
     ResponseType,
 } from 'axios';
+import {
+    isNetworkErrorCode,
+    transformRequestOptions,
+} from './../../helper/utils';
 import Debug from '../Debug';
-import { transformRequestOptions } from './../../helper/utils';
+import axiosRetry from 'axios-retry';
 import {
     addSignatureFn,
     responseErrorInterceptor,
     responseInterceptor,
 } from './helper/interceptors';
 import Curl from '../../helper/curl';
+import Logger from '../Logger';
+import chalk from 'chalk';
+import { MAX_RETRY } from '../../helper/constants';
 axios.defaults.withCredentials = true;
-axios.defaults.timeout = 300000; // 5 minute
+axios.defaults.timeout = 60000; // 1 minute
 
 let uninterceptedAxiosInstance = axios.create();
+
+const axiosRetryConfig = {
+    retries: MAX_RETRY,
+    retryCondition(error) {
+        const shouldRetry = isNetworkErrorCode(error.code);
+        return shouldRetry;
+    },
+    shouldResetTimeout: true,
+    onRetry(retryCount, error, requestConfig) {
+        Logger.warn(`\nRetrying........ (${retryCount}/${MAX_RETRY})`);
+    },
+    retryDelay(retryCount, error) {
+        return 2000;
+    },
+};
+
 uninterceptedAxiosInstance.interceptors.request.use(addSignatureFn({}));
 uninterceptedAxiosInstance.interceptors.response.use((response) => {
     Debug(`Response status: ${response.status}`);
@@ -55,6 +78,11 @@ axios.interceptors.response.use(
 let axiosMisc = axios.create({
     withCredentials: false,
 });
+
+// add retry interceptor
+axiosRetry(axios, axiosRetryConfig);
+axiosRetry(uninterceptedAxiosInstance, axiosRetryConfig);
+axiosRetry(axiosMisc, axiosRetryConfig);
 
 interface Options {
     headers?: object;

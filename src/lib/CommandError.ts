@@ -68,6 +68,10 @@ export const ErrorCodes = {
         message: 'File is too large to upload, please optimize it and retry!',
         code: 'FDK-0010',
     },
+    NETWORK_ERROR: {
+        message: 'Network issue',
+        code: 'FDK-0009',
+    },
 };
 
 export default class CommandError extends Error {
