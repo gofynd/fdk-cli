@@ -53,7 +53,7 @@ function applyProxy(app: any) {
     const options = {
         target: currentDomain, // target host
         changeOrigin: true, // needed for virtual hosted sites
-        cookieDomainRewrite: 'localhost', // rewrite cookies to localhost
+        cookieDomainRewrite: '127.0.0.1', // rewrite cookies to localhost
         onProxyReq: fixRequestBody,
         onError: (error) => Logger.error(error),
     };
