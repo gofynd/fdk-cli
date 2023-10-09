@@ -1,6 +1,6 @@
 {
   "name": "@gofynd/fdk-cli",
-  "version": "4.0.0-beta.1",
+  "version": "4.0.1-alpha.5",
   "main": "index.js",
   "license": "MIT",
   "bin": {
@@ -94,7 +94,6 @@
     "fs-extra": "^10.0.0",
     "glob": "^7.1.7",
     "http-proxy-middleware": "^2.0.6",
-    "https-localhost": "^4.6.5",
     "inquirer": "^7.0.0",
     "inquirer-search-list": "^1.2.6",
     "latest-version": "^5.1.0",

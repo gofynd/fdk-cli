@@ -22,6 +22,7 @@ import webpackDevMiddleware from 'webpack-dev-middleware';
 import webpackHotMiddleware from 'webpack-hot-middleware';
 import webpack from 'webpack';
 import createBaseWebpackConfig from '../helper/theme.react.config';
+const packageJSON = require('../../package.json');
 
 const BUILD_FOLDER = './.fdk/dist';
 let port = 5001;
@@ -35,7 +36,7 @@ export function reload() {
 }
 
 export function getLocalBaseUrl() {
-    return 'https://localhost';
+	return "http://127.0.0.1";
 }
 
 export function getFullLocalUrl(port) {
@@ -87,13 +88,11 @@ function applyProxy(app: any) {
     );
 }
 
-export async function startServer({ domain, host, isSSR, port }) {
+async function setupServer({domain}){
     const currentContext = getActiveContext();
-    const currentDomain = `https://${currentContext.domain}`;
-    const app = require('https-localhost')(getLocalBaseUrl());
-    const certs = await app.getCerts();
-    const server = require('https').createServer(certs, app);
-    const io = require('socket.io')(server);
+	const app = express();
+	const server = require('http').createServer(app);
+	const io = require('socket.io')(server);
 
     io.on('connection', function (socket) {
         sockets.push(socket);
@@ -102,11 +101,16 @@ export async function startServer({ domain, host, isSSR, port }) {
         });
     });
 
+    // parse application/x-www-form-urlencoded
+    app.use(express.json());
+
     app.use('/public', async (req, res, done) => {
         const { url } = req;
         try {
             if (publicCache[url]) {
-                res.set(publicCache[url].headers);
+                for (const [key, value] of Object.entries(publicCache[url].headers)) {
+                    res.header(key, `${value}`);
+                }
                 return res.send(publicCache[url].body);
             }
             const networkRes = await axios.get(urlJoin(domain, 'public', url));
@@ -114,18 +118,22 @@ export async function startServer({ domain, host, isSSR, port }) {
             publicCache[url].body = networkRes.data;
             publicCache[url].headers = networkRes.headers;
             res.set(publicCache[url].headers);
+            console.log("HEADERS>>>>>>>>>>", url, ">>>", publicCache[url].headers);
             return res.send(publicCache[url].body);
         } catch (e) {
-            console.log('Error loading file ', url);
+            console.log("Error loading file ", url)
         }
-    });
+	});
 
     app.get('/_healthz', (req, res) => {
         res.json({ ok: 'ok' });
     });
 
-    // parse application/x-www-form-urlencoded
-    app.use(express.json());
+    return { currentContext, app, server, io }
+}
+
+export async function startServer({ domain, host, isSSR, port }) {
+	const { currentContext, app, server, io } = await setupServer({domain});
 
     applyProxy(app);
 
@@ -173,6 +181,7 @@ export async function startServer({ domain, host, isSSR, port }) {
                 headers: {
                     'Content-Yype': 'application/json',
                     Accept: 'application/json',
+                    'x-fp-cli': packageJSON.version
                 },
                 data: {
                     theme_url: themeUrl,
@@ -300,18 +309,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 }
 
 export async function startReactServer({ domain, host, isHMREnabled, port }) {
-    const currentContext = getActiveContext();
-    const app = require('https-localhost')(getLocalBaseUrl());
-    const certs = await app.getCerts();
-    const server = require('https').createServer(certs, app);
-    const io = require('socket.io')(server);
-
-    io.on('connection', function (socket) {
-        sockets.push(socket);
-        socket.on('disconnect', function () {
-            sockets = sockets.filter((s) => s !== socket);
-        });
-    });
+    const { currentContext, app, server, io } = await setupServer({domain});
 
     if (isHMREnabled) {
         let webpackConfigFromTheme = {};
@@ -359,35 +357,6 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
         }
         next();
     });
-
-    app.use('/public', async (req, res, done) => {
-        const { url } = req;
-        try {
-            if (publicCache[url]) {
-                res.set(publicCache[url].headers);
-                return res.send(publicCache[url].body);
-            }
-            const networkRes = await axios.get(
-                urlJoin(
-                    domain,
-                    'public',
-                    url,
-                    `?themeId=${currentContext.theme_id}`,
-                ),
-            );
-            publicCache[url] = publicCache[url] || {};
-            publicCache[url].body = networkRes.data;
-            publicCache[url].headers = networkRes.headers;
-            res.set(publicCache[url].headers);
-            return res.send(publicCache[url].body);
-        } catch (e) {
-            console.log('Error loading file ', url, e);
-            return res.status(500).send(e.message);
-        }
-    });
-
-    // parse application/x-www-form-urlencoded
-    app.use(express.json());
 
     applyProxy(app);
 
