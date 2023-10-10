@@ -30,9 +30,9 @@ export function build({
             +process.version.split('.')[0].slice(1) >= 18;
         
         console.log(`assetHash: ${assetHash}`);
-        console.log(`Executing: node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle --filename \'${assetHash}_themeBundle\' ${THEME_ENTRY_FILE}`);
+        console.log(`Executing: node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle --filename ${assetHash}_themeBundle ${THEME_ENTRY_FILE}`);
         let b = exec(
-            `node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle --filename \'${assetHash}_themeBundle\' ${THEME_ENTRY_FILE}`,
+            `node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle --filename ${assetHash}_themeBundle ${THEME_ENTRY_FILE}`,
             {
                 cwd: process.cwd(),
                 env: {
