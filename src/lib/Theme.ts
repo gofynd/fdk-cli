@@ -63,7 +63,7 @@ import {
 import { simpleGit } from 'simple-git';
 import ConfigStore, { CONFIG_KEYS } from './Config';
 
-shortid.characters('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_');
+shortid.characters('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_@');
 
 export default class Theme {
     /*
