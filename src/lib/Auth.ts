@@ -115,7 +115,9 @@ export default class Auth {
             }
             if (Auth.isOrganizationChange || !isLoggedIn) {
                 await open(
-                    `${domain}/organizations/?fdk-cli=true&callback=${getLocalBaseUrl()}:${port}`,
+                    `${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
+                        `${getLocalBaseUrl()}:${port}`,
+                    )}`,
                 );
             }
         } catch (error) {
