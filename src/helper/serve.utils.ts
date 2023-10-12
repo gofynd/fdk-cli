@@ -28,6 +28,11 @@ const BUILD_FOLDER = './.fdk/dist';
 let port = 5001;
 let sockets = [];
 let publicCache = {};
+let headers = {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+    'x-fp-cli': `${packageJSON.version}`,
+}
 
 export function reload() {
     sockets.forEach((s) => {
@@ -171,11 +176,7 @@ export async function startServer({ domain, host, isSSR, port }) {
             const { data: html } = await axios({
                 method: 'POST',
                 url: jetfireUrl.toString(),
-                headers: {
-                    'Content-Yype': 'application/json',
-                    Accept: 'application/json',
-                    'x-fp-cli': `${packageJSON.version}`,
-                },
+                headers,
                 data: {
                     theme_url: themeUrl,
                     port: port.toString(),
@@ -445,11 +446,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
                 cliMeta: {
                     port,
                 },
-                headers: {
-                    'Content-Yype': 'application/json',
-                    Accept: 'application/json',
-                    'x-fp-cli': `${packageJSON.version}`,
-                }
+                headers
             })
             .catch((error) => {
                 console.log(error);
