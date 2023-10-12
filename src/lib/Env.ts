@@ -5,6 +5,7 @@ import chalk from 'chalk';
 import axios from 'axios';
 import urljoin from 'url-join';
 import { isValidDomain } from '../helper/utils';
+import Debug from './Debug';
 
 export const AVAILABLE_ENVS = {
     // Fynd
@@ -146,7 +147,7 @@ export default class Env {
                     );
                     const response = await axios.get(url);
 
-                    if (response?.data?.ok) {
+                    if (response?.status === 200) {
                         Env.setEnv(options.url);
                         Logger.info(
                             `CLI will start using: ${chalk.bold(options.url)}`,
@@ -157,6 +158,7 @@ export default class Env {
                         );
                     }
                 } catch (err) {
+                    Debug(err)
                     throw new Error('Provided url is not valid platform URL.');
                 }
             }
