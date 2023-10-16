@@ -28,9 +28,6 @@ export function build({
         spinner.start();
         const isNodeVersionIsGreaterThan18 =
             +process.version.split('.')[0].slice(1) >= 18;
-        
-        console.log(`assetHash: ${assetHash}`);
-        console.log(`Executing: node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle --filename ${assetHash}_themeBundle ${THEME_ENTRY_FILE}`);
         let b = exec(
             `node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle --filename ${assetHash}_themeBundle ${THEME_ENTRY_FILE}`,
             {
