@@ -4,8 +4,8 @@ const { transformRequestOptions } = require('../../../helper/utils');
 const { sign } = require('./signature');
 import Debug from '../../Debug';
 import CommandError, { ErrorCodes } from '../../CommandError';
-import AuthenticationService from '../services/auth.service';
 import ConfigStore, { CONFIG_KEYS } from '../../Config';
+import { MAX_RETRY } from '../../../helper/constants';
 import { COMMON_LOG_MESSAGES } from '../../../lib/Logger';
 
 function getTransformer(config) {
@@ -19,20 +19,18 @@ function getTransformer(config) {
         }
     }
 
-    throw new Error('Could not get default transformRequest function from Axios defaults');
+    throw new Error(
+        'Could not get default transformRequest function from Axios defaults',
+    );
 }
 
-function getCompanyId(path: string): number {
-    const pathArr = path.split('/');
-    const companyId = pathArr[pathArr.findIndex(p => p === 'company') + 1];
-
-    return Number(companyId);
-}
 function interceptorFn(options) {
-    return async config => {
+    return async (config) => {
         try {
             if (!config.url) {
-                throw new Error('No URL present in request config, unable to sign request');
+                throw new Error(
+                    'No URL present in request config, unable to sign request',
+                );
             }
             let url = config.url;
             if (config.baseURL && !isAbsoluteURL(config.url)) {
@@ -47,7 +45,8 @@ function interceptorFn(options) {
                 if (pathname.startsWith('/service/partner')) {
                     const auth_token = ConfigStore.get(CONFIG_KEYS.AUTH_TOKEN);
                     if (auth_token && auth_token.access_token) {
-                        config.headers['Authorization'] = 'Bearer ' + auth_token.access_token;
+                        config.headers['Authorization'] =
+                            'Bearer ' + auth_token.access_token;
                     }
                 }
                 let queryParam = '';
@@ -85,65 +84,84 @@ function interceptorFn(options) {
                 sign(signingOptions);
                 // console.log(signingOptions);
                 // config.headers = signingOptions.headers;
-                config.headers['x-fp-date'] = signingOptions.headers['x-fp-date'];
-                config.headers['x-fp-signature'] = signingOptions.headers['x-fp-signature'];
+                config.headers['x-fp-date'] =
+                    signingOptions.headers['x-fp-date'];
+                config.headers['x-fp-signature'] =
+                    signingOptions.headers['x-fp-signature'];
             }
             return config;
         } catch (error) {
-            throw new Error(error);
+            throw error;
         }
     };
 }
 
 export function responseInterceptor() {
-    return response => {
+    return (response) => {
         Debug(`Response status: ${response.status}`);
         Debug(`Response: ${JSON.stringify(response.data)}`);
         Debug(`Response Headers: ${JSON.stringify(response.headers)}`);
         return response; // IF 2XX then return response.data only
-    }
+    };
 }
 
-function getErrorMessage(error){
-    if(error?.response?.data?.message)
-        return error.response.data.message
-    if(error.response.data)
-        return error.response.data
-    if(error.response.message)
-        return error.response.message
-    if(error.message)
-        return error.message
-    return "Something went wrong";
+function getErrorMessage(error) {
+    if (error?.response?.data?.message) return error.response.data.message;
+    if (error.response.data) return error.response.data;
+    if (error.response.message) return error.response.message;
+    if (error.message) return error.message;
+    return 'Something went wrong';
 }
 
 export function responseErrorInterceptor() {
-    return error => {
-        
+    return (error) => {
         // Request made and server responded
-        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+        if (
+            error.response &&
+            (error.response.status === 401 || error.response.status === 403)
+        ) {
             ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
             throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
-        }
-        else if(error.response && (error.response.status === 404 && error.response.config.url.includes('/_compatibility'))){
+        } else if (
+            error.response &&
+            error.response.status === 404 &&
+            error.response.config.url.includes('/_compatibility')
+        ) {
             throw new CommandError(
-                ErrorCodes.DOWNGRADE_CLI_VERSION.message, 
-                ErrorCodes.DOWNGRADE_CLI_VERSION.code
-            )
-        }
-        else if (error.response) {
+                ErrorCodes.DOWNGRADE_CLI_VERSION.message,
+                ErrorCodes.DOWNGRADE_CLI_VERSION.code,
+            );
+        } else if (error.response) {
             Debug(`Error Response  :  ${JSON.stringify(error.response.data)}`);
-            throw new CommandError(`${getErrorMessage(error)}`, ErrorCodes.API_ERROR.code);
+            throw new CommandError(
+                `${getErrorMessage(error)}`,
+                ErrorCodes.API_ERROR.code,
+                error?.response
+            );
         } else if (error.request) {
-            if(error.code == 'ERR_FR_MAX_BODY_LENGTH_EXCEEDED'){
-                throw new CommandError(`${ErrorCodes.LARGE_PAYLOAD.message}`, ErrorCodes.LARGE_PAYLOAD.code);
+            if (error.code == 'ERR_FR_MAX_BODY_LENGTH_EXCEEDED') {
+                throw new CommandError(
+                    `${ErrorCodes.LARGE_PAYLOAD.message}`,
+                    ErrorCodes.LARGE_PAYLOAD.code,
+                );
             }
-            // The request was made but no error.response was received
-            Debug(`\nError => Code: ${error.code} Message: ${error.message}\n`);
-            throw new CommandError(`${ErrorCodes.ECONN_RESET.message}`, ErrorCodes.ECONN_RESET.code);
+            // Check if axios already tried 3 times and then getting into error interceptor
+            // then directly send error network error
+            if (error.config?.['axios-retry']?.retryCount === MAX_RETRY) {
+                Debug(
+                    `\nError => Code: ${error.code} Message: ${error.message} Url: ${error.config.url}\n`,
+                );
+                throw new Error('Please retry, possibly some network issue!!');
+            }
+
+            // If axios haven't tried 3(MAX_RETRY) times, then throw whatever error you got from last API call try
+            throw error;
         } else {
-            throw new Error('There was an issue in setting up the request, Please raise issue');
+            throw new Error(
+                'There was an issue in setting up the request, Please raise issue',
+            );
         }
-    }
+    };
 }
 
 export { interceptorFn as addSignatureFn };
