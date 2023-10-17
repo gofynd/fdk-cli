@@ -1,6 +1,6 @@
- {
-     "data":{
-         "pages":[
+{
+    "data": {
+        "pages": [
             {
                 "path": "faq",
                 "type": "system",
@@ -17,7 +17,7 @@
                 "theme": "623b09faeb0b6e0f4ff9758f",
                 "__v": 0,
                 "application": "622894659baaca3be88c9d65"
-            }, 
+            },
             {
                 "path": "/c/faq",
                 "type": "custom",
@@ -36,6 +36,5 @@
                 "application": "622894659baaca3be88c9d65"
             }
         ]
-    
-     }
- }
+    }
+}

@@ -1,17 +1,17 @@
 {
-  "file_name": "archive.zip",
-  "operation": "putObject",
-  "size": 2075653,
-  "namespace": "application-theme-src",
-  "content_type": "application/zip",
-  "file_path": "/company/285/applications/628b54933f2552a4a4c251eb/theme/sources/ZlX7wHgpe-archive.zip",
-  "method": "PUT",
-  "tags": [],
-  "upload": {
-    "url": "https://fynd-staging-assets.s3-accelerate.amazonaws.com/x0/company/285/applications/628b54933f2552a4a4c251eb/theme/sources/ZlX7wHgpe-archive.zip?AWSAccessKeyId=AKIAJUADR2WMPQT6ZJ2Q&Content-Type=application%2Fzip&Expires=1653550027&Signature=y%2FL4nX1KAxGyUUnsldnPI2feD5A%3D&x-amz-acl=public-read",
-    "expiry": 1800
-  },
-  "cdn": {
-    "url": "https://hdn-1.addsale.com/x0/company/285/applications/628b54933f2552a4a4c251eb/theme/sources/ZlX7wHgpe-archive.zip"
-  }
+    "file_name": "archive.zip",
+    "operation": "putObject",
+    "size": 2075653,
+    "namespace": "application-theme-src",
+    "content_type": "application/zip",
+    "file_path": "/company/285/applications/628b54933f2552a4a4c251eb/theme/sources/ZlX7wHgpe-archive.zip",
+    "method": "PUT",
+    "tags": [],
+    "upload": {
+        "url": "https://fynd-staging-assets.s3-accelerate.amazonaws.com/x0/company/285/applications/628b54933f2552a4a4c251eb/theme/sources/ZlX7wHgpe-archive.zip?AWSAccessKeyId=AKIAJUADR2WMPQT6ZJ2Q&Content-Type=application%2Fzip&Expires=1653550027&Signature=y%2FL4nX1KAxGyUUnsldnPI2feD5A%3D&x-amz-acl=public-read",
+        "expiry": 1800
+    },
+    "cdn": {
+        "url": "https://hdn-1.addsale.com/x0/company/285/applications/628b54933f2552a4a4c251eb/theme/sources/ZlX7wHgpe-archive.zip"
+    }
 }

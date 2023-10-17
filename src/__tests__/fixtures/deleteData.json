@@ -1,50 +1,34 @@
 {
     "information": {
-      "images": [
-        null
-      ],
-      "features": [],
-      "name": "new-dmjkm"
+        "images": [null],
+        "features": [],
+        "name": "new-dmjkm"
     },
     "src": {
-      "link": ""
+        "link": ""
     },
     "assets": {
-      "css": [
-        null
-      ],
-      "umd_js": [
-        null
-      ],
-      "common_js": [
-        null
-      ]
+        "css": [null],
+        "umd_js": [null],
+        "common_js": [null]
     },
     "config": {
-      "global_schema": [
-        null
-      ],
-      "current": "Default",
-      "preset": [
-        null
-      ],
-      "list": [
-        null
-      ]
+        "global_schema": [null],
+        "current": "Default",
+        "preset": [null],
+        "list": [null]
     },
     "colors": {
-      "primary_color": "#7043f7",
-      "secondary_color": "#02d1cb",
-      "accent_color": "#FFFFFF",
-      "link_color": "#7043f7",
-      "button_secondary_color": "#000000",
-      "bg_color": "#F8F8F8"
+        "primary_color": "#7043f7",
+        "secondary_color": "#02d1cb",
+        "accent_color": "#FFFFFF",
+        "link_color": "#7043f7",
+        "button_secondary_color": "#000000",
+        "bg_color": "#F8F8F8"
     },
     "font": {
-      "variants": [
-        null
-      ],
-      "family": "Poppins"
+        "variants": [null],
+        "family": "Poppins"
     },
     "applied": false,
     "published": false,
@@ -54,45 +38,21 @@
     "tags": [],
     "_id": "62a34ffa95111baea307ac5f",
     "available_sections": [
-      [
-        null
-      ],
-      [
-        null
-      ],
-      [
-        null
-      ],
-      [
-        null
-      ],
-      [
-        null
-      ],
-      [
-        null
-      ],
-      [
-        null
-      ],
-      [
-        null
-      ],
-      [
-        null
-      ],
-      [
-        null
-      ],
-      [
-        null
-      ],
-      [
-        null
-      ]
+        [null],
+        [null],
+        [null],
+        [null],
+        [null],
+        [null],
+        [null],
+        [null],
+        [null],
+        [null],
+        [null],
+        [null]
     ],
     "application": "622894659baaca3be88c9d65",
     "styles": {},
     "created_at": "2022-06-10T14:06:50.501Z",
     "updated_at": "2022-06-10T14:06:50.501Z"
-  }
+}

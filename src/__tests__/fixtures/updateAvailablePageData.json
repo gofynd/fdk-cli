@@ -1,21 +1,17 @@
 {
-  "path": "wishlist",
+    "path": "wishlist",
     "type": "system",
     "seo": {
-      "title": "",
-      "description": ""
+        "title": "",
+        "description": ""
     },
     "props": [],
     "_id": "623b09fceb0b6e5765f975ab",
     "value": "wishlist",
-    "sections": [
-      [
-        null
-      ]
-    ],
+    "sections": [[null]],
     "sections_meta": [],
     "text": "Wishlist",
     "theme": "623b09faeb0b6e0f4ff9758f",
     "__v": 25,
     "application": "622894659baaca3be88c9d65"
-  }
+}
