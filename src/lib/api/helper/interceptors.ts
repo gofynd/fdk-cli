@@ -136,6 +136,7 @@ export function responseErrorInterceptor() {
             throw new CommandError(
                 `${getErrorMessage(error)}`,
                 ErrorCodes.API_ERROR.code,
+                error?.response
             );
         } else if (error.request) {
             if (error.code == 'ERR_FR_MAX_BODY_LENGTH_EXCEEDED') {

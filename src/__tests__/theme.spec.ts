@@ -290,10 +290,19 @@ describe('Theme Commands', () => {
         ).reply(200, deleteData);
         mock.onDelete(availablePage).reply(200, deleteAvailablePage);
 
-        mock.onGet(`${URLS.GET_APPLICATION_LIST(appConfig.company_id)}`).reply(
-            200,
-            appList,
-        );
+        mock.onGet(
+            `${URLS.GET_APPLICATION_LIST(
+                appConfig.company_id,
+            )}`
+        ).reply(200, appList);
+
+
+        mock
+            .onGet(`${URLS.GET_ALL_THEME(
+                appConfig.company_id,
+                appConfig.application_id,
+            )}`)
+            .reply(200, themeList.items);
 
         mock.onGet(
             `${URLS.GET_ALL_THEME(
@@ -310,12 +319,16 @@ describe('Theme Commands', () => {
         ).reply(200, { name: 'Emerge' });
 
         // user login
-        configStore.set(CONFIG_KEYS.USER, data.user);
+        configStore.set(CONFIG_KEYS.USER, data.user)
 
         process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
-        const app = await startServer({ isTesting: true });
-        const req = request(app);
-        await program.parseAsync(['ts-node', './src/fdk.ts', 'login']);
+        const app = await startServer();
+        const req = request(app)
+        await program.parseAsync([
+            'ts-node',
+            './src/fdk.ts',
+            'login',
+        ]);
         await req.post('/token').send(tokenData);
     });
 
