@@ -62,6 +62,9 @@ import {
 } from '../helper/theme.vue.config';
 import { simpleGit } from 'simple-git';
 import ConfigStore, { CONFIG_KEYS } from './Config';
+
+shortid.characters('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_@');
+
 export default class Theme {
     /*
         new theme from default template -> create
