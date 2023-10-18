@@ -236,7 +236,7 @@ export default class Extension {
     }
 
     // check for system dependencies
-    private static checkDependencies(project_type: string) {
+    static checkDependencies(project_type: string) {
 
         const missingDependencies: string[] = [];
         const requiredDependencies: string[] = ['npm'];
