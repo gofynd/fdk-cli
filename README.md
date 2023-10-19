@@ -1,14 +1,17 @@
 <img src="https://res.cloudinary.com/dwzm9bysq/image/upload/v1576497695/addsale/applications/0.1914751846702707/media/company/pan/FDK_mdmpbd.png" height="200"></img>
 
 # Fynd Development Kit
+<div>
+
 [![NPM Version][npm-image]][npm-url]
 [![NPM Downloads][downloads-image]][downloads-url]
-[![NPM License][license-image]][license-url]
-[![Build Status](https://travis-ci.org/gofynd/fdk-cli.svg?branch=master)](https://travis-ci.org/gofynd/fdk-cli)
-[![Coverage Status](https://coveralls.io/repos/github/gofynd/fdk-cli/badge.svg?branch=master&&kill_cache=1)](https://coveralls.io/github/gofynd/fdk-cli?branch=master)
+[![Coverage Status][coveralls-badge]]([coveralls-url])
+
+</div>
+
 Fynd development Kit (FDK CLI) is a cli tool developed by Fynd to create and update themes, extensions and various other components of the [Fynd Platform](https://platform.fynd.com/).
 ### Quick Links
-[Fynd Platform](https://platform.fynd.com/) | [Fynd Partners](https://partners.fynd.com/) | [Documentation](https://documentation.fynd.com/) | [Other Projects](#OtherProjects) | | [Contributing](#Contributing) | 
+| [Fynd Platform](https://platform.fynd.com/) | [Fynd Partners](https://partners.fynd.com/) | [Documentation](https://documentation.fynd.com/) | [Other Projects](#other-fynd-projects) | [Contributing](CONTRIBUTING.md) | 
 # Installation
 ___
 ```sh
@@ -29,8 +32,22 @@ To see the available extension commands, enter:
 ```sh
 fdk extension
 ```
-See the [Command overview](#commands-overview) for a listing of all available commands, or the [Command reference](#commands-reference) for syntax details and usage examples of the commands.
-<div id="commands-overview"><div/>
+See the [Command overview](#commands-overview) for a listing of all available commands, or the [Command reference](#commands-reference) for syntax details and usage examples of the commands. 
+
+<div id="debugMode"></div>
+
+
+## Debug Mode
+Add the `--verbose` flag to the command you want to run in debug mode.
+
+This will create `debug.log` file at the current working directory. In case you encounter any issues, this log file can be shared with maintainers for effective issue resolution.
+#### **Example**
+```sh
+fdk login --verbose
+```
+
+<div id="commands-overview"></div>
+
 
 # Commands Overview
 All FDK CLI commands start with fdk. The general syntax for the commands is as follows:
@@ -43,7 +60,7 @@ This command can be broken down as follows:
 | ------------- |-------------| 
 | module     | theme |
 | method     | init |
-| options     | --email email@gmail.com |
+| options     | --verbose |
 
 ## Commands
 ___
@@ -70,7 +87,7 @@ ___
 | [context](#theme-context)     | Add context of a theme |
 | [context-list](#theme-context-list)     | List all available contexts |
 | [active-context](theme-active-context)    | show currently active context |
-| [serve](#theme-serve)     | Start theme serving on localhost |
+| [serve](#theme-serve)     | Start theme serving on 127.0.0.1 |
 | [sync](#theme-sync)     | Sync theme to application |
 | [pull](#theme-pull)     | Pull latest theme code |
 | [pull-config](#theme-pull-config)     | Pull latest theme config |
@@ -144,11 +161,11 @@ fdk env get
 ```
 ___
 ### Authentication Commands
-After setting the environment the user has to login to the cli. They can use their email ID or phone number to login.
+After setting the environment the user has to login to the cli.
 <div id="login"></div>
 
 #### **login**
-This command allows user to login via partner panel
+This command allows user to login via partner panel.
 #### **Syntax**
 ```sh
 fdk login
@@ -196,11 +213,11 @@ This command is used to create a new theme for your application
 fdk theme new [options]
 ```
 #### **Command Options**
-| Option        | Description           | 
-| ------------- |-------------| 
-| --name, -n    | Theme name |
-| --help    | Show help |
-| --verbose, -v | enable debug mode |
+| Option        | Description | Required |
+| ------------- |-------------|----------|
+| --name, -n    | Theme name | Yes |
+| --help    | Show help | No |
+| --verbose, -v | enable debug mode | No |
 
 #### **Example**
 ```sh
@@ -219,7 +236,7 @@ This command is used to initialize an exisiting theme on your local system.
 fdk theme init [options]
 ```
 #### **Command Options**
-| Option        | Description           | 
+| Option        | Description | 
 | ------------- |-------------| 
 | --help    | Show help |
 | --verbose, -v | enable debug mode |
@@ -240,11 +257,11 @@ This command is used to add a new context.
 fdk theme context [options]
 ```
 #### **Command Options**
-| Option        | Description           | 
-| ------------- |-------------| 
-| --name, -n    | Context name |
-| --help    | Show help |
-| --verbose, -v | enable debug mode |
+| Option        | Description | Required | 
+| ------------- |-------------| -------- |
+| --name, -n    | Context name | Yes |
+| --help    | Show help | No |
+| --verbose, -v | enable debug mode | No |
 
 #### **Example**
 ```sh
@@ -479,31 +496,6 @@ fdk partner connect
 ```
 ___
 
-<div id="debugMode"></div>
-
-#### Log Curl
-
-To print the curl command in the console for all network calls,
-run the cli commands in debug mode using `--verbose` flag.
-
-#### **Example**
-```sh
-fdk login --verbose
-```
-
-above command will log the curl command in the console
-```sh
-************** CURL **************
-METHOD: POST | PATH: https://api.fynd.com/service/panel/authentication/v1.0/auth/login/password
-curl --include --request POST 'https://api.fynd.com/service/panel/authentication/v1.0/auth/login/password' --header 'content-type: application/json' --header 'x-fp-cli: 1.0.144' --header 'x-fp-date: 20230227T174059Z' --header 'x-fp-signature: v1.1:ab4fa30b4f12e2d968110ed809863f6f404621e03eb8a98c8a4fe228c8262684' --header 'x-debug: true' --data-raw '{"username":"email@fynd.com","password":"password@123","g-recaptcha-response":"_skip_"}'
-************** END OF CURL **************
-
-
-User logged in successfully
-```
-
-___
-
 <div id="OtherProjects"></div>
 
 
@@ -521,11 +513,8 @@ ___
 [npm-url]: https://www.npmjs.com/package/@gofynd/fdk-cli
 [downloads-image]: https://img.shields.io/npm/dm/@gofynd/fdk-cli
 [downloads-url]: https://www.npmjs.com/package/@gofynd/fdk-cli
-[coveralls-image]: https://img.shields.io/coveralls/github/gofynd/fdk-cli?color=success
-[coveralls-url]: https://coveralls.io/github/gofynd/fdk-cli
-[travis-url]: https://travis-ci.org/gofynd/fdk-cli/
-[license-image]: https://img.shields.io/npm/l/@gofynd/fdk-cli?color=success
-[license-url]: https://github.com/gofynd/fdk-cli/blob/master/LICENSE
+[coveralls-badge]: https://coveralls.io/repos/github/gofynd/fdk-cli/badge.svg?branch=master&&kill_cache=1
+[coveralls-url]: https://coveralls.io/github/gofynd/fdk-cli?branch=master
 
 ___
 

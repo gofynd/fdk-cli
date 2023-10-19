@@ -8,7 +8,6 @@ export default function themeCommandBuilder() {
         .alias('add')
         .description('Create Theme')
         .requiredOption('-n, --name [name]', 'Theme name')
-        .option('--type <string>', 'Theme Type', 'vue2')
         .asyncAction(Theme.createTheme);
 
     theme
@@ -16,7 +15,10 @@ export default function themeCommandBuilder() {
         .description('Initialize existing theme')
         .asyncAction(Theme.initTheme);
 
-    theme.command('sync').description('Sync theme').asyncAction(Theme.syncThemeWrapper);
+    theme
+        .command('sync')
+        .description('Sync theme')
+        .asyncAction(Theme.syncThemeWrapper);
 
     theme
         .command('serve')
@@ -26,29 +28,43 @@ export default function themeCommandBuilder() {
         .option('--port <number>', 'Custom port')
         .asyncAction(Theme.serveTheme);
 
-    theme.command('pull').description('Pull theme').asyncAction(Theme.pullTheme);
+    theme
+        .command('pull')
+        .description('Pull theme')
+        .asyncAction(Theme.pullTheme);
 
     // TODO: tech debt update message when both config are same
     theme
         .command('pull-config')
         .description('Pull theme config')
         .asyncAction(Theme.pullThemeConfig);
-        
+
     theme
         .command('context')
         .description('Add context')
         .requiredOption('-n, --name [name]', 'Context name')
         .asyncAction(ThemeContext.addThemeContext);
 
+    theme
+        .command('context-list')
+        .description('List all contexts')
+        .asyncAction(ThemeContext.listThemeContext);
 
-    theme.command('context-list').description('List all contexts').asyncAction(ThemeContext.listThemeContext);
+    theme
+        .command('active-context')
+        .description('print active_context')
+        .asyncAction(ThemeContext.activeContext);
 
-    theme.command('active-context').description('print active_context').asyncAction(ThemeContext.activeContext);
-
-    theme.command('open').description('preview theme').asyncAction(Theme.previewTheme);
+    theme
+        .command('open')
+        .description('preview theme')
+        .asyncAction(Theme.previewTheme);
 
     // TODO: Improve this to remove hidden files
-    theme.command('package').description('generate zip file of theme').asyncAction(Theme.generateThemeZip);
+    theme
+        .command('package')
+        .description('generate zip file of theme')
+        .asyncAction(Theme.generateThemeZip);
 
     return theme;
 }

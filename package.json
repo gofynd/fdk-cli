@@ -1,6 +1,6 @@
 {
   "name": "@gofynd/fdk-cli",
-  "version": "3.0.4-alpha.5",
+  "version": "4.0.1-alpha.9",
   "main": "index.js",
   "license": "MIT",
   "bin": {
@@ -24,7 +24,9 @@
     "copy-files": "copyfiles -u 1 src/**/*.html dist/",
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "pretty": "./node_modules/.bin/prettier --config ./.prettierrc --write './src/**/*.*'",
+    "publish-check": "node scripts"
   },
   "devDependencies": {
     "@types/async": "^3.2.6",
@@ -52,7 +54,11 @@
     "axios-mock-adapter": "^1.20.0",
     "copyfiles": "^2.4.1",
     "del-cli": "^3.0.1",
+    "eslint": "^8.49.0",
+    "husky": "^8.0.3",
     "jest": "^27.5.1",
+    "lint-staged": "^14.0.1",
+    "prettier": "^3.0.3",
     "source-map-support": "^0.5.19",
     "supertest": "^6.3.3",
     "ts-jest": "^27.1.4",
@@ -88,8 +94,8 @@
     "fs-extra": "^10.0.0",
     "glob": "^7.1.7",
     "http-proxy-middleware": "^2.0.6",
-    "https-localhost": "^4.6.5",
     "inquirer": "^7.0.0",
+    "inquirer-search-list": "^1.2.6",
     "latest-version": "^5.1.0",
     "leven": "^3.1.0",
     "libphonenumber-js": "^1.9.23",

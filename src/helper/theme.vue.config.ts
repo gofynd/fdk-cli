@@ -1,5 +1,4 @@
-export const themeVueConfigTemplate = 
-`const webpack = require("webpack");
+export const themeVueConfigTemplate = `const webpack = require("webpack");
 const fs = require("fs");
 const path = require("path");
 const { chalk, error, loadModule } = require('@vue/cli-shared-utils')
@@ -135,12 +134,12 @@ const chainWebpack = (config) => {
 vueConfig.chainWebpack = chainWebpack;
 vueConfig.configureWebpack = configureWebpack;
 
-module.exports = vueConfig;`
+module.exports = vueConfig;`;
 
-export const settingLoader=`
+export const settingLoader = `
 module.exports = function (source, map) {
   this.callback(null, 'module.exports = function(Component) {Component.options.__settings = ' +
   JSON.parse(JSON.stringify(source))  +
     '}', map)
 }
-`
+`;
