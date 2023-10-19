@@ -1,9 +1,10 @@
 import path from 'path';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
-import TerserPlugin from "terser-webpack-plugin";
+import TerserPlugin from 'terser-webpack-plugin';
 import webpack, { Configuration } from 'webpack';
 import fs from 'fs';
 import { mergeWithRules, merge } from 'webpack-merge';
+import { getLocalBaseUrl } from './serve.utils';
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 
 const context = process.cwd();
@@ -20,9 +21,9 @@ const baseConfig = (ctx) => {
 	const assetNormalizedBasePath = assetBasePath[assetBasePath.length - 1] === '/' ? assetBasePath : assetBasePath + '/';
 	const imageCDNNormalizedBasePath = imageCdnUrl[imageCdnUrl.length - 1] === '/' ? imageCdnUrl : imageCdnUrl + '/';
 	const isLocal = NODE_ENV === 'development';
-	const localBasePath = `https://localhost:${localThemePort}/`
-	const localImageBasePath = `https://localhost:${localThemePort}/assets/images/`
-	const localFontsBasePath = `https://localhost:${localThemePort}/assets/fonts/`
+	const localBasePath = `${getLocalBaseUrl()}:${localThemePort}/`
+	const localImageBasePath = `${getLocalBaseUrl()}:${localThemePort}/assets/images/`
+	const localFontsBasePath = `${getLocalBaseUrl()}:${localThemePort}/assets/fonts/`
 	return {
 		mode: isLocal ? 'development' : 'production',
 		entry: {
@@ -315,8 +316,8 @@ export default (ctx, extendedWebpackConfig): Configuration[] => {
 	const mergedSectionConfig = mergeWithRules({
 		module: {
 			rules: {
-				test: "match",
-				use: "append",
+				test: 'match',
+				use: 'append',
 			},
 		},
 	})(sectionBaseConfig, extendedWebpackConfig);
@@ -324,8 +325,8 @@ export default (ctx, extendedWebpackConfig): Configuration[] => {
 	const mergedBaseConfig = mergeWithRules({
 		module: {
 			rules: {
-				test: "match",
-				use: "append",
+				test: 'match',
+				use: 'append',
 			},
 		},
 	})(baseWebpackConfig, extendedWebpackConfig);
@@ -333,8 +334,8 @@ export default (ctx, extendedWebpackConfig): Configuration[] => {
 	const mergedCustomTemplateConfig = mergeWithRules({
 		module: {
 			rules: {
-				test: "match",
-				use: "append",
+				test: 'match',
+				use: 'append',
 			},
 		},
 	})(customTemplateConfig, extendedWebpackConfig);
