@@ -16,7 +16,9 @@ import Curl from '../../helper/curl';
 axios.defaults.withCredentials = true;
 axios.defaults.timeout = 300000; // 5 minute
 
-let uninterceptedAxiosInstance = axios.create();
+let uninterceptedAxiosInstance = axios.create({
+    maxBodyLength: 15 * 1024 * 1024
+})
 uninterceptedAxiosInstance.interceptors.request.use(addSignatureFn({}));
 uninterceptedAxiosInstance.interceptors.response.use((response) => {
     Debug(`Response status: ${response.status}`);
