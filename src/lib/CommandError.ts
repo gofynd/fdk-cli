@@ -72,7 +72,8 @@ export const ErrorCodes = {
 
 export default class CommandError extends Error {
     code: string;
-    constructor(message?: string, code?: string, ...args: any[]) {
+    response?: any;
+    constructor(message?: string, code?: string, response?: any, ...args: any[]) {
         super(message);
         // If e.toString() was called to get `message` we don't want it to look
         // like "Error: Error:".
@@ -85,6 +86,7 @@ export default class CommandError extends Error {
         Object.setPrototypeOf(this, CommandError.prototype);
         this.code = code || 'FDK-0004';
         this.message = message || 'Something went wrong';
+        this.response = response || "Response not Received";
         process.exitCode = 1;
     }
 }
