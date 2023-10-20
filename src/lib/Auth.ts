@@ -10,8 +10,9 @@ const port = 7071;
 import chalk from 'chalk';
 import { AVAILABLE_ENVS } from './Env';
 import ThemeService from './api/services/theme.service';
-import { getLocalBaseUrl } from '../helper/serve.utils';
-
+function getLocalBaseUrl(isTesting = false) {
+    return `http${isTesting ? '' : 's'}://localhost`;
+}
 async function checkTokenExpired(auth_token) {
     const { expiry_time } = auth_token;
     const currentTimestamp = Math.floor(Date.now() / 1000);
@@ -22,8 +23,13 @@ async function checkTokenExpired(auth_token) {
     }
 }
 
-export const getApp = async () => {
-    const app = express();
+export const getApp = async ({ isTesting = false }) => {
+    const app = require('https-localhost')(getLocalBaseUrl(isTesting));
+    let certs = null;
+
+    if (!isTesting) {
+        certs = await app.getCerts();
+    }
 
     app.use(cors());
     app.use(express.json());
@@ -47,14 +53,16 @@ export const getApp = async () => {
         }
     });
 
-    return { app };
+    return { app, certs };
 };
 
-export const startServer = async () => {
+export const startServer = async ({ isTesting = false }) => {
     if (Auth.server) return Auth.server;
 
-    const { app } = await getApp();
-    const serverIn = require('http').createServer(app);
+    const { app, certs } = await getApp({ isTesting });
+    const serverIn = isTesting
+        ? require('http').createServer(app)
+        : require('https').createServer(certs, app);
     Auth.server = serverIn.listen(port, (err) => {
         if (err) console.log(err);
     });
@@ -79,7 +87,7 @@ export default class Auth {
             ),
         );
         const isLoggedIn = await Auth.isAlreadyLoggedIn();
-        await startServer();
+        await startServer({});
         if (isLoggedIn) {
             const questions = [
                 {
@@ -115,7 +123,7 @@ export default class Auth {
             }
             if (Auth.isOrganizationChange || !isLoggedIn) {
                 await open(
-                    `${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(`${getLocalBaseUrl()}:${port}`)}`,
+                    `${domain}/organizations/?fdk-cli=true&callback=${getLocalBaseUrl()}:${port}`,
                 );
             }
         } catch (error) {
