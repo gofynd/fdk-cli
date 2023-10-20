@@ -90,7 +90,6 @@ async function createThemeFromZip() {
                     theme_id: '622894659baaca3be88c9d65',
                     application_token: '8DXpyVsKD',
                     env: 'fyndx1',
-                    theme_type: 'vue2',
                 },
             },
         },
@@ -111,7 +110,6 @@ async function createTheme() {
         selectedCompany: 'cli-test',
         selectedApplication: 'anurag',
         selectedTheme: 'Namaste',
-        themeType: 'vue2',
     });
     await program.parseAsync([
         'ts-node',
@@ -305,13 +303,6 @@ describe('Theme Commands', () => {
         ).reply(200, themeList.items);
 
         mock.onGet(
-            `${URLS.GET_ALL_THEME(
-                appConfig.company_id,
-                appConfig.application_id,
-            )}`,
-        ).reply(200, themeList.items);
-
-        mock.onGet(
             `${URLS.GET_DEFAULT_THEME(
                 appConfig.company_id,
                 appConfig.application_id,
@@ -322,7 +313,7 @@ describe('Theme Commands', () => {
         configStore.set(CONFIG_KEYS.USER, data.user);
 
         process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
-        const app = await startServer();
+        const app = await startServer({ isTesting: true });
         const req = request(app);
         await program.parseAsync(['ts-node', './src/fdk.ts', 'login']);
         await req.post('/token').send(tokenData);
