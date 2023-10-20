@@ -103,4 +103,7 @@ export const COMMON_LOG_MESSAGES = {
         'Use `fdk theme context-list` to switch context OR `fdk env set -n <env-name>` to change active environment.',
     )}`,
     invalidThemeType: `${chalk.yellow(`Theme Type can be react or vue2 only`)}`,
+    ThemeTypeNotAvailableInContext: `${chalk.yellow(
+        `Theme Type Not Available in Context and Package.json`,
+    )}`,
 };

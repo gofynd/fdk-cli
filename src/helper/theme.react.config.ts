@@ -4,6 +4,7 @@ import TerserPlugin from 'terser-webpack-plugin';
 import webpack, { Configuration } from 'webpack';
 import fs from 'fs';
 import { mergeWithRules, merge } from 'webpack-merge';
+import { getLocalBaseUrl } from './serve.utils';
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 
 const context = process.cwd();
@@ -34,8 +35,8 @@ const baseConfig = (ctx) => {
             ? imageCdnUrl
             : imageCdnUrl + '/';
     const isLocal = NODE_ENV === 'development';
-    const localBasePath = `https://localhost:${localThemePort}/`;
-    const localImageBasePath = `https://localhost:${localThemePort}/assets/images/`;
+    const localBasePath = `${getLocalBaseUrl()}:${localThemePort}/`;
+    const localImageBasePath = `${getLocalBaseUrl()}:${localThemePort}/assets/images/`;
     return {
         mode: isLocal ? 'development' : 'production',
         entry: {
