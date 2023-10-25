@@ -12,6 +12,8 @@ import * as fsNode from 'fs';
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
 import * as escodegen from 'escodegen';
+import { createDirectory } from './file.utils';
+import { DEFAULT_CONTEXT } from '../lib/ThemeContext';
 
 const FDK_PATH = () => path.join(process.cwd(), '.fdk');
 const CONTEXT_PATH = () => path.join(FDK_PATH(), 'context.json');
@@ -75,6 +77,11 @@ export const getActiveContext = (): ThemeContextInterface => {
 
 export const createContext = async context => {
   try {
+    // this is needed for theme creation command, as we are cloning theme template and directly passing context.
+    if (!isAThemeDirectory()) createDirectory(FDK_PATH());
+    if (!hasContext()) {
+        await fs.writeJSON(CONTEXT_PATH(), DEFAULT_CONTEXT);
+    }
     let contextsData = await fs.readJSON(CONTEXT_PATH());
     context.env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
     contextsData.theme.active_context = context.name;

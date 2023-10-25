@@ -15,7 +15,7 @@ import inquirer from 'inquirer';
 import { createDirectory } from '../helper/file.utils';
 const FDK_PATH = () => path.join(process.cwd(), '.fdk');
 const CONTEXT_PATH = () => path.join(FDK_PATH(), 'context.json');
-const DEFAULT_CONTEXT = { theme: {active_context: '', contexts: {}}, partners: {} };
+export const DEFAULT_CONTEXT = { theme: {active_context: '', contexts: {}}, partners: {} };
 export default class ThemeContext {
     constructor() {}
 
