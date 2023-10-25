@@ -5,7 +5,6 @@ import vm from 'vm';
 import CommandError, { ErrorCodes } from '../lib/CommandError';
 import { COMMON_LOG_MESSAGES } from '../lib/Logger';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
-import { createDirectory } from './file.utils';
 import execa from 'execa';
 import Debug from '../lib/Debug';
 import * as babel from '@babel/core';
@@ -16,10 +15,6 @@ import * as escodegen from 'escodegen';
 
 const FDK_PATH = () => path.join(process.cwd(), '.fdk');
 const CONTEXT_PATH = () => path.join(FDK_PATH(), 'context.json');
-const DEFAULT_CONTEXT = {
-    theme: { active_context: '', contexts: {} },
-    partners: {},
-};
 
 export type ThemeType = 'react' | 'vue2' | null;
 
@@ -78,24 +73,18 @@ export const getActiveContext = (): ThemeContextInterface => {
     );
 };
 
-export const createContext = async (context) => {
-    try {
-        if (!isAThemeDirectory()) createDirectory(FDK_PATH());
-        if (!hasContext()) {
-            await fs.writeJSON(CONTEXT_PATH(), DEFAULT_CONTEXT);
-        }
-        let contextsData = await fs.readJSON(CONTEXT_PATH());
-        if (contextsData.theme.contexts[context.name])
-            throw new CommandError('Context with the same name already exists');
-        context.env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
-        contextsData.theme.active_context = context.name;
-        contextsData.theme.contexts[context.name] = context;
-        await fs.writeJSON(CONTEXT_PATH(), contextsData, {
-            spaces: 2,
-        });
-    } catch (error) {
-        throw new CommandError(error.message, error.code);
-    }
+export const createContext = async context => {
+  try {
+    let contextsData = await fs.readJSON(CONTEXT_PATH());
+    context.env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+    contextsData.theme.active_context = context.name;
+    contextsData.theme.contexts[context.name] = context;
+    await fs.writeJSON(CONTEXT_PATH(), contextsData, {
+      spaces: 2,
+    });
+  } catch (error) {
+    throw new CommandError(error.message, error.code);
+  }
 };
 
 export const isAThemeDirectory = () => {
