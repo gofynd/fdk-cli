@@ -192,7 +192,7 @@
                                             "exact_url": ""
                                         }
                                     },
-                                    "name": "customHtml",
+                                    "name": "custom_html",
                                     "props": {
                                         "code": {
                                             "type": "code",
@@ -640,7 +640,7 @@
                                             "exact_url": ""
                                         }
                                     },
-                                    "name": "brands-listing",
+                                    "name": "brands_listing",
                                     "props": {
                                         "title": {
                                             "type": "text",
@@ -1038,7 +1038,7 @@
                             ]
                         }
                     ],
-                    "name": "brands-listing",
+                    "name": "brands_listing",
                     "label": "Brands Listing"
                 },
                 {
@@ -1217,7 +1217,7 @@
                         }
                     ],
                     "blocks": [],
-                    "name": "customHtml",
+                    "name": "custom_html",
                     "label": "Custom HTML"
                 },
                 {
@@ -1447,103 +1447,6 @@
                 {
                     "props": [
                         {
-                            "id": "videoUrl",
-                            "type": "url",
-                            "label": "Video URL",
-                            "default": ""
-                        },
-                        {
-                            "type": "checkbox",
-                            "id": "full_width",
-                            "default": false,
-                            "label": "Full width",
-                            "info": "Check to allow items to take entire width of the viewport"
-                        },
-                        {
-                            "id": "coverUrl",
-                            "type": "image_picker",
-                            "label": "Video Cover Image",
-                            "default": ""
-                        },
-                        {
-                            "type": "checkbox",
-                            "id": "autoplay",
-                            "default": false,
-                            "label": "Autoplay",
-                            "info": "Check to enable autoplay of video"
-                        },
-                        {
-                            "type": "checkbox",
-                            "id": "showcontrols",
-                            "default": false,
-                            "label": "Show Controls on Video",
-                            "info": "Check to show controls on video"
-                        },
-                        {
-                            "type": "select",
-                            "id": "size",
-                            "options": [
-                                {
-                                    "value": "small",
-                                    "text": "Small"
-                                },
-                                {
-                                    "value": "medium",
-                                    "text": "Medium"
-                                },
-                                {
-                                    "value": "large",
-                                    "text": "Large"
-                                }
-                            ],
-                            "default": "large",
-                            "label": "Video Height",
-                            "info": "Height of Video"
-                        },
-                        {
-                            "type": "text",
-                            "id": "heading",
-                            "default": "",
-                            "label": "Heading"
-                        },
-                        {
-                            "type": "color",
-                            "id": "heading_color",
-                            "default": "#000",
-                            "label": "Headin Text Color"
-                        },
-                        {
-                            "type": "text",
-                            "id": "subHeading",
-                            "default": "",
-                            "label": "Sub-heading"
-                        },
-                        {
-                            "type": "color",
-                            "id": "subheading_color",
-                            "default": "#000",
-                            "label": "Subheading Text Color"
-                        },
-                        {
-                            "type": "url",
-                            "id": "ctaLink",
-                            "default": "",
-                            "label": "Redirect Link"
-                        },
-                        {
-                            "type": "text",
-                            "id": "ctaText",
-                            "default": "ShopNow",
-                            "label": "Button Text"
-                        }
-                    ],
-                    "blocks": [],
-                    "name": "videoBanner",
-                    "label": "Hero Video"
-                },
-                {
-                    "props": [
-                        {
                             "type": "text",
                             "id": "heading",
                             "default": "",
@@ -1752,83 +1655,6 @@
                             }
                         ]
                     }
-                },
-                {
-                    "props": [
-                        {
-                            "type": "select",
-                            "id": "slide_height",
-                            "options": [
-                                {
-                                    "value": "adapt",
-                                    "text": "Adapt to first video"
-                                },
-                                {
-                                    "value": "small",
-                                    "text": "Small"
-                                },
-                                {
-                                    "value": "medium",
-                                    "text": "Medium"
-                                },
-                                {
-                                    "value": "large",
-                                    "text": "Large"
-                                }
-                            ],
-                            "default": "adapt",
-                            "label": "Slide height",
-                            "info": "Size of the slide"
-                        },
-                        {
-                            "type": "checkbox",
-                            "id": "full_width",
-                            "default": false,
-                            "label": "Full width",
-                            "info": "Check to allow items to take entire width of the viewport"
-                        },
-                        {
-                            "type": "checkbox",
-                            "id": "autoplay",
-                            "default": false,
-                            "label": "AutoPlay Slides",
-                            "info": "Check to autoplay slides"
-                        },
-                        {
-                            "type": "range",
-                            "id": "slide_interval",
-                            "min": 1,
-                            "max": 10,
-                            "step": 1,
-                            "unit": "sec",
-                            "label": "Change slides every",
-                            "default": 2,
-                            "info": "Autoplay slide duration"
-                        }
-                    ],
-                    "blocks": [
-                        {
-                            "type": "video_item",
-                            "name": "Video Slide",
-                            "props": [
-                                {
-                                    "id": "videoUrl",
-                                    "type": "url",
-                                    "label": "Video URL",
-                                    "default": ""
-                                },
-                                {
-                                    "type": "checkbox",
-                                    "id": "showcontrols",
-                                    "default": false,
-                                    "label": "Show Controls on Video",
-                                    "info": "Check to show controls on video"
-                                }
-                            ]
-                        }
-                    ],
-                    "name": "videoCarousel",
-                    "label": "Video Carousel"
                 }
             ],
             "src": "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/company/873/applications/5cc04264ad924cea93ded855/theme/sources/sBLScYX4a-archive.zip"
