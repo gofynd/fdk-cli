@@ -63,7 +63,7 @@ export const AVAILABLE_ENVS = {
     tirabeauty: 'api.tirabeauty.com',
 
     // Netmeds
-    nmz3: 'api.nzm3.de',
+    nmz3: 'api.nmz3.de',
 };
 
 type EnvType = keyof typeof AVAILABLE_ENVS;
