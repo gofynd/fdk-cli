@@ -2762,7 +2762,7 @@ export default class Theme {
             fs.mkdirSync(destinationFolder, { recursive: true });
         }
         
-        const outer_items = ["package.json", "theme", "babel.config.js", "fdk.config.js", ".fdk", ".git", ".gitignore", ".husky"]
+        const outer_items = ["package.json", "package-lock.json", "debug.log", "assets.json", "pages.json", "theme", "babel.config.js", "fdk.config.js", ".fdk", ".git", ".gitignore", ".husky", "node_modules", "config.json"]
         const moved_files = []
         files.forEach((fileOrFolder) => {
             if (outer_items.includes(fileOrFolder)) return;
