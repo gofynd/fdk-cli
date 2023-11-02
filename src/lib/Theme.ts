@@ -800,9 +800,7 @@ export default class Theme {
             let { data: theme } =
                 await ThemeService.getThemeById(currentContext);
 
-            let available_sections = await Theme.getAvailableReactSectionsForSync();
-            await Theme.validateAvailableSections(available_sections);
-            await Theme.validateSectionWithDB(theme.available_sections, available_sections);
+          
 
             
             // Clear previosu builds
@@ -842,6 +840,14 @@ export default class Theme {
             Logger.info('Uploading theme assets/images');
             await Theme.assetsImageUploader();
 
+            Logger.info('Uploading theme assets/fonts');
+            await Theme.assetsFontsUploader();
+            
+            let available_sections = await Theme.getAvailableReactSectionsForSync();
+            
+            await Theme.validateAvailableSections(available_sections);
+
+            await Theme.validateSectionWithDB(theme.available_sections, available_sections);
 
             Logger.info('Uploading bundle files');
             let pArr = await Theme.uploadReactThemeBundle({ buildPath });
@@ -1074,8 +1080,8 @@ export default class Theme {
             typeof options['port'] === 'string'
                 ? parseInt(options['port'])
                 : typeof options['port'] === 'number'
-                    ? options['port']
-                    : DEFAULT_PORT;
+                ? options['port']
+                : DEFAULT_PORT;
         const port = await getPort(serverPort);
         if (port !== serverPort)
             Logger.warn(
@@ -1086,28 +1092,29 @@ export default class Theme {
         let { data: appInfo } =
             await ConfigurationService.getApplicationDetails();
         let domain = Array.isArray(appInfo.domains)
-            ? `https://${appInfo.domains.filter((d) => d.is_primary)[0].name
-            }`
+            ? `https://${appInfo.domains.filter((d) => d.is_primary)[0].name}`
             : `https://${appInfo.domain.name}`;
 
-        // Todo: remove this, added for locally testing 
+        // Todo: remove this, added for locally testing
         let host = getBaseURL();
         return {
-            domain, port, host
-        }
-    }
+            domain,
+            port,
+            host,
+        };
+    };
     public static serveVueTheme = async (options) => {
         try {
-            const { port, domain, host } = await Theme.commonSetup(options)
-            
+            const { port, domain, host } = await Theme.commonSetup(options);
+
             const isSSR =
                 typeof options['ssr'] === 'boolean'
                     ? options['ssr']
                     : options['ssr'] == 'true'
-                        ? true
-                        : false;
+                    ? true
+                    : false;
             !isSSR ? Logger.warn('Disabling SSR') : null;
-            
+
             // initial build
             Logger.info(`Locally building`);
             Theme.createVueConfig();
@@ -1144,16 +1151,15 @@ export default class Theme {
     };
     public static serveReactTheme = async (options) => {
         try {
-            const { port, domain, host } = await Theme.commonSetup(options)
-            
+            const { port, domain, host } = await Theme.commonSetup(options);
+
             const isHMREnabled =
                 typeof options['hmr'] === 'boolean'
                     ? options['hmr']
                     : options['hmr'] == 'true'
-                        ? true
-                        : false;
-            
-            
+                    ? true
+                    : false;
+
             // initial build
             Logger.info(`Locally building`);
             // Create index.js with section file imports
@@ -2340,8 +2346,9 @@ export default class Theme {
                 Theme.BUILD_FOLDER,
                 'custom-templates/custom-templates.commonjs.js',
             );
-    
-            const customTemplates = require(sectionPath)?.customTemplates?.default;
+
+            const customTemplates =
+                require(sectionPath)?.customTemplates?.default;
             if (!customTemplates) {
                 Logger.error('Custom Templates Not Available');
             }
@@ -2840,9 +2847,18 @@ export default class Theme {
         if (!fs.existsSync(destinationFolder)) {
             fs.mkdirSync(destinationFolder, { recursive: true });
         }
-        
-        const outer_items = ["package.json", "theme", "babel.config.js", "fdk.config.js", ".fdk", ".git", ".gitignore", ".husky"]
-        const moved_files = []
+
+        const outer_items = [
+            'package.json',
+            'theme',
+            'babel.config.js',
+            'fdk.config.js',
+            '.fdk',
+            '.git',
+            '.gitignore',
+            '.husky',
+        ];
+        const moved_files = [];
         files.forEach((fileOrFolder) => {
             if (outer_items.includes(fileOrFolder)) return;
             const sourcePath = path.join(sourceFolder, fileOrFolder);

@@ -55,7 +55,7 @@ export const startServer = async () => {
 
     const { app } = await getApp();
     const serverIn = require('http').createServer(app);
-    Auth.server = serverIn.listen(port, err => {
+    Auth.server = serverIn.listen(port, (err) => {
         if (err) console.log(err);
     });
 
@@ -69,7 +69,7 @@ async function checkVersionCompatibility() {
 export default class Auth {
     static server = null;
     static isOrganizationChange = false;
-    constructor() { }
+    constructor() {}
     public static async login() {
         await checkVersionCompatibility();
         Logger.info(
@@ -169,6 +169,6 @@ export default class Auth {
         } else return false;
     };
     static stopSever = async () => {
-        Auth.server.close(() => { });
+        Auth.server.close(() => {});
     };
 }

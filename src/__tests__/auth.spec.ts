@@ -42,12 +42,8 @@ jest.mock('configstore', () => {
 export async function login() {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
     const app = await startServer();
-    const req = request(app)
-    await program.parseAsync([
-        'ts-node',
-        './src/fdk.ts',
-        'login',
-    ]);
+    const req = request(app);
+    await program.parseAsync(['ts-node', './src/fdk.ts', 'login']);
     return await req.post('/token').send(tokenData);
 }
 

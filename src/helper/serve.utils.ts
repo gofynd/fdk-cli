@@ -36,7 +36,7 @@ export function reload() {
 }
 
 export function getLocalBaseUrl() {
-	return "http://127.0.0.1";
+    return 'http://127.0.0.1';
 }
 
 export function getFullLocalUrl(port) {
@@ -88,11 +88,11 @@ function applyProxy(app: any) {
     );
 }
 
-async function setupServer({domain}){
+async function setupServer({ domain }) {
     const currentContext = getActiveContext();
-	const app = express();
-	const server = require('http').createServer(app);
-	const io = require('socket.io')(server);
+    const app = express();
+    const server = require('http').createServer(app);
+    const io = require('socket.io')(server);
 
     io.on('connection', function (socket) {
         sockets.push(socket);
@@ -105,35 +105,43 @@ async function setupServer({domain}){
     app.use(express.json());
 
     app.use('/public', async (req, res, done) => {
+		const themeId = currentContext.theme_id;
         const { url } = req;
         try {
             if (publicCache[url]) {
-                for (const [key, value] of Object.entries(publicCache[url].headers)) {
+                for (const [key, value] of Object.entries(
+                    publicCache[url].headers,
+                )) {
                     res.header(key, `${value}`);
                 }
                 return res.send(publicCache[url].body);
             }
-            const networkRes = await axios.get(urlJoin(domain, 'public', url));
+            const networkRes = await axios.get(urlJoin(domain, 'public', url, `?themeId=${themeId}`));
             publicCache[url] = publicCache[url] || {};
             publicCache[url].body = networkRes.data;
             publicCache[url].headers = networkRes.headers;
             res.set(publicCache[url].headers);
-            console.log("HEADERS>>>>>>>>>>", url, ">>>", publicCache[url].headers);
+            console.log(
+                'HEADERS>>>>>>>>>>',
+                url,
+                '>>>',
+                publicCache[url].headers,
+            );
             return res.send(publicCache[url].body);
         } catch (e) {
-            console.log("Error loading file ", url)
+            console.log('Error loading file ', url);
         }
-	});
+    });
 
     app.get('/_healthz', (req, res) => {
         res.json({ ok: 'ok' });
     });
 
-    return { currentContext, app, server, io }
+    return { currentContext, app, server, io };
 }
 
 export async function startServer({ domain, host, isSSR, port }) {
-	const { currentContext, app, server, io } = await setupServer({domain});
+    const { currentContext, app, server, io } = await setupServer({ domain });
 
     applyProxy(app);
 
@@ -180,11 +188,11 @@ export async function startServer({ domain, host, isSSR, port }) {
                 url: jetfireUrl.toString(),
                 headers: {
                     'Content-Yype': 'application/json',
-                    Accept: 'application/json'
+                    Accept: 'application/json',
                 },
                 data: {
                     theme_url: themeUrl,
-                    domain: getFullLocalUrl(port)
+                    domain: getFullLocalUrl(port),
                 },
             });
 
@@ -308,7 +316,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 }
 
 export async function startReactServer({ domain, host, isHMREnabled, port }) {
-    const { currentContext, app, server, io } = await setupServer({domain});
+    const { currentContext, app, server, io } = await setupServer({ domain });
 
     if (isHMREnabled) {
         let webpackConfigFromTheme = {};
