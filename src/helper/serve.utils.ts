@@ -105,6 +105,7 @@ async function setupServer({ domain }) {
     app.use(express.json());
 
     app.use('/public', async (req, res, done) => {
+		const themeId = currentContext.theme_id;
         const { url } = req;
         try {
             if (publicCache[url]) {
@@ -115,7 +116,7 @@ async function setupServer({ domain }) {
                 }
                 return res.send(publicCache[url].body);
             }
-            const networkRes = await axios.get(urlJoin(domain, 'public', url));
+            const networkRes = await axios.get(urlJoin(domain, 'public', url, `?themeId=${themeId}`));
             publicCache[url] = publicCache[url] || {};
             publicCache[url].body = networkRes.data;
             publicCache[url].headers = networkRes.headers;
