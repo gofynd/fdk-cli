@@ -90,6 +90,7 @@ async function createThemeFromZip() {
                     theme_id: '622894659baaca3be88c9d65',
                     application_token: '8DXpyVsKD',
                     env: 'fyndx1',
+                    theme_type: 'vue2',
                 },
             },
         },
@@ -110,6 +111,7 @@ async function createTheme() {
         selectedCompany: 'cli-test',
         selectedApplication: 'anurag',
         selectedTheme: 'Namaste',
+        themeType: 'vue2',
     });
     await program.parseAsync([
         'ts-node',

@@ -8,7 +8,6 @@ export default function themeCommandBuilder() {
         .alias('add')
         .description('Create Theme')
         .requiredOption('-n, --name [name]', 'Theme name')
-        .option('--type <string>', 'Theme Type', 'vue2')
         .asyncAction(Theme.createTheme);
 
     theme
