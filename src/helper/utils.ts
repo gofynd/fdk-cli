@@ -132,7 +132,7 @@ export const requireFile = (path) => {
 export const evaluateModule = (code) => {
     var script = new vm.Script(NativeModule.wrap(code), {
         displayErrors: true,
-    });
+    } as vm.ScriptOptions);
     var compiledWrapper = script.runInNewContext();
     var m = { exports: {} } as any;
 
