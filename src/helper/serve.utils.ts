@@ -121,12 +121,6 @@ async function setupServer({ domain }) {
             publicCache[url].body = networkRes.data;
             publicCache[url].headers = networkRes.headers;
             res.set(publicCache[url].headers);
-            console.log(
-                'HEADERS>>>>>>>>>>',
-                url,
-                '>>>',
-                publicCache[url].headers,
-            );
             return res.send(publicCache[url].body);
         } catch (e) {
             console.log('Error loading file ', url);
@@ -146,10 +140,12 @@ export async function startServer({ domain, host, isSSR, port }) {
     applyProxy(app);
 
     app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
-    app.get(['/__webpack_hmr', 'manifest.json'], async (req, res, next) => {
+    app.get(['/__webpack_hmr', '/manifest.json'], async (req, res, next) => {
         return res.end();
     });
     app.get('/*', async (req, res) => {
+        console.log(req.url);
+        
         const BUNDLE_PATH = path.join(
             process.cwd(),
             path.join('.fdk', 'dist', 'themeBundle.common.js'),
