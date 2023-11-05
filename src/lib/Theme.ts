@@ -54,14 +54,13 @@ import open from 'open';
 import chokidar from 'chokidar';
 import { downloadFile } from '../helper/download';
 import Env from './Env';
-import Debug from './Debug';
 import Spinner from '../helper/spinner';
 import {
     themeVueConfigTemplate,
     settingLoader,
 } from '../helper/theme.vue.config';
 import { simpleGit } from 'simple-git';
-import ConfigStore, { CONFIG_KEYS } from './Config';
+import { THEME_TYPE } from '../helper/constants';
 
 shortid.characters('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_@');
 
@@ -614,7 +613,7 @@ export default class Theme {
 
             Logger.info('Copying template config files');
             shouldDelete = true;
-            if (themeData.theme_type === 'react') {
+            if (themeData.theme_type === THEME_TYPE.react) {
                 await Theme.copyTemplateFiles(
                     Theme.REACT_TEMPLATE_DIRECTORY,
                     targetDirectory,
@@ -778,10 +777,10 @@ export default class Theme {
     public static syncThemeWrapper = async () => {
         const currentContext = getActiveContext();
         switch (currentContext.theme_type) {
-            case 'react':
+            case THEME_TYPE.react:
                 await Theme.syncReactTheme(currentContext);
                 break;
-            case 'vue2':
+            case THEME_TYPE.vue2:
                 await Theme.syncVueTheme(currentContext);
                 break;
             default:
@@ -1060,10 +1059,10 @@ export default class Theme {
         try {
             const currentContext = getActiveContext();
             switch (currentContext.theme_type) {
-                case 'react':
+                case THEME_TYPE.react:
                     await Theme.serveReactTheme(options);
                     break;
-                case 'vue2':
+                case THEME_TYPE.vue2:
                     await Theme.serveVueTheme(options);
                     break;
                 default:
@@ -1892,12 +1891,12 @@ export default class Theme {
             theme.assets.common_js = theme.assets.commonJs || {};
             theme.assets.common_js.link = commonJsUrl;
             theme.assets.css = theme.assets.css || {};
-            if (theme.theme_type === 'vue2') {
+            if (theme.theme_type === THEME_TYPE.react) {
+                theme.assets.css.links = cssUrls; // theme_type = 'react'
+            } else {
                 theme.assets.css.links = cssUrls.filter((x) =>
                     x.endsWith('_themeBundle.css'),
                 );
-            } else {
-                theme.assets.css.links = cssUrls; // theme_type = 'react'
             }
             theme.assets.css.link = '';
             // TODO Issue here
@@ -2885,10 +2884,10 @@ export default class Theme {
         // Generate production build so that we can get assets and available sections in config file while creating zip
         await Theme.ensureThemeTypeInPackageJson();
         const activeContext = getActiveContext();
-        if (activeContext.theme_type === 'vue2') {
-            await Theme.generateAssetsVue();
-        } else if (activeContext.theme_type === 'react') {
+        if (activeContext.theme_type === THEME_TYPE.react) {
             await Theme.generateAssetsReact();
+        } else {
+            await Theme.generateAssetsVue();
         }
         let content = { name: '' };
         let spinner;
@@ -3001,9 +3000,7 @@ export default class Theme {
             if (!packageJsonData.theme_metadata?.theme_type) {
                 const context = getActiveContext();
                 if (!context.theme_type) {
-                    throw new CommandError(
-                        COMMON_LOG_MESSAGES.ThemeTypeNotAvailableInContext,
-                    );
+                    context.theme_type = THEME_TYPE.vue2 as any
                 }
                 if (!packageJsonData.theme_metadata) {
                     packageJsonData.theme_metadata = {};
