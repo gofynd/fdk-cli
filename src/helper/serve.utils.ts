@@ -144,8 +144,6 @@ export async function startServer({ domain, host, isSSR, port }) {
         return res.end();
     });
     app.get('/*', async (req, res) => {
-        console.log(req.url);
-        
         const BUNDLE_PATH = path.join(
             process.cwd(),
             path.join('.fdk', 'dist', 'themeBundle.common.js'),
