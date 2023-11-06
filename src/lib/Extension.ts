@@ -6,7 +6,6 @@ import path from 'path';
 import execa from 'execa';
 import rimraf from 'rimraf';
 
-import Partner from './Partner';
 import Spinner from '../helper/spinner';
 import CommandError, { ErrorCodes } from './CommandError';
 import ExtensionService from './api/services/extension.service';
@@ -15,11 +14,9 @@ import {
     Object,
     validateEmpty,
     replaceContent,
-    getPartnerAccessToken,
 } from '../helper/extension_utils';
 
 import { createDirectory, writeFile, readFile } from '../helper/file.utils';
-import configStore, { CONFIG_KEYS } from './Config';
 import { getBaseURL } from './api/services/url';
 import {
     installNpmPackages,
@@ -164,7 +161,6 @@ export default class Extension {
                     spinner.start();
                     let extension_data: Object =
                         await ExtensionService.registerExtension(
-                            answers.partner_access_token,
                             {
                                 name: answers.name,
                                 base_url: 'http://localdev.fynd.com',
@@ -237,8 +233,6 @@ export default class Extension {
     // command handler for "extension init"
     public static async initExtensionHandler(options: Object) {
         try {
-            let partner_access_token = getPartnerAccessToken();
-
             let answers: Object = {};
 
             await inquirer
@@ -323,14 +317,7 @@ export default class Extension {
                 extensionTypeQuestions,
             );
 
-            if (!partner_access_token) {
-                partner_access_token = (
-                    await Partner.connectHandler({ readOnly: true, ...options })
-                ).partner_access_token;
-            }
-
             answers.launch_url = 'http://localdev.fyndx0.de';
-            answers.partner_access_token = partner_access_token;
             answers.project_url = PROJECT_REPOS[prompt_answers.project_type];
             answers = {
                 ...answers,
@@ -344,9 +331,8 @@ export default class Extension {
     }
 
     // command handler for "extension setup"
-    public static async setupExtensionHandler(options) {
+    public static async setupExtensionHandler(options: Object) {
         try {
-            let partner_access_token = getPartnerAccessToken();
             let answers: Object;
 
             let questions = [
@@ -354,12 +340,6 @@ export default class Extension {
                     type: 'input',
                     name: 'extension_api_key',
                     message: 'Enter Extension API Key :',
-                    validate: validateEmpty,
-                },
-                {
-                    type: 'input',
-                    name: 'extension_api_secret',
-                    message: 'Enter Extension API Secret :',
                     validate: validateEmpty,
                 },
                 {
@@ -394,20 +374,12 @@ export default class Extension {
             answers = { ...answers, ...(await inquirer.prompt(questions)) };
             answers.project_url = PROJECT_REPOS[answers.project_type];
 
-            if (!partner_access_token) {
-                partner_access_token = (
-                    await Partner.connectHandler({ readOnly: true, ...options })
-                ).partner_access_token;
-            }
-
             let extension_data: Object;
             let spinner = new Spinner('Verifying API Keys');
             try {
                 spinner.start();
                 extension_data = await ExtensionService.getExtensionData(
                     answers.extension_api_key,
-                    answers.extension_api_secret,
-                    partner_access_token,
                 );
                 if (!extension_data) {
                     throw new Error();
@@ -422,6 +394,7 @@ export default class Extension {
             }
 
             answers.base_url = extension_data.base_url;
+            answers.extension_api_secret = extension_data["client_data"]["secret"][0];
             answers.name = extension_data.name;
 
             if (options['targetDir']) {
