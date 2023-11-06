@@ -33,7 +33,7 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
     return this.action(async (...args: any[]) => {
 
         try {
-
+            console.log('local');
             let parent = args[1].parent;
             while (true) {
                 if (parent.parent) parent = parent.parent;
@@ -52,28 +52,29 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
             const latest = await checkCliVersionAsync();
             Debug(`Latest version: ${latest} | ${semver.lt(packageJSON.version, latest)}`);
 
-            const versionChange = semver.diff(packageJSON.version, latest);
-            const major = versionChange === 'major';
-            const color = major ? 'red' : 'green';
+            // Temporary commented out to support backward compatibility
+//             const versionChange = semver.diff(packageJSON.version, latest);
+//             const major = versionChange === 'major';
+//             const color = major ? 'red' : 'green';
 
-            const logMessage = `There is a new version of ${packageJSON.name} available (${latest}).
-You are currently using ${packageJSON.name} ${packageJSON.version}.
-Install fdk-cli globally using the package manager of your choice.
-${major ? `\nNote: You need to update \`${packageJSON.name}\` first inorder to use it.` : ''}
-Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
+//             const logMessage = `There is a new version of ${packageJSON.name} available (${latest}).
+// You are currently using ${packageJSON.name} ${packageJSON.version}.
+// Install fdk-cli globally using the package manager of your choice.
+// ${major ? `\nNote: You need to update \`${packageJSON.name}\` first inorder to use it.` : ''}
+// Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
 
-            if (latest && semver.lt(packageJSON.version, latest)) {
-                console.log(
-                    boxen(
-                        major ? chalk.red(logMessage) : chalk.green(logMessage),
-                        { borderColor: color, padding: 1 }
-                    )
-                );
+//             if (latest && semver.lt(packageJSON.version, latest)) {
+//                 console.log(
+//                     boxen(
+//                         major ? chalk.red(logMessage) : chalk.green(logMessage),
+//                         { borderColor: color, padding: 1 }
+//                     )
+//                 );
 
-                if (semver.diff(packageJSON.version, latest) === 'major') {
-                    process.exit(1);
-                }
-            }
+//                 if (semver.diff(packageJSON.version, latest) === 'major') {
+//                     process.exit(1);
+//                 }
+//             }
 
             // check if user is logged in and context is set
             const envCommand = args[1].parent.name();
