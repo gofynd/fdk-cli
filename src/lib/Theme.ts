@@ -54,14 +54,16 @@ import open from 'open';
 import chokidar from 'chokidar';
 import { downloadFile } from '../helper/download';
 import Env from './Env';
-import Debug from './Debug';
 import Spinner from '../helper/spinner';
 import {
     themeVueConfigTemplate,
     settingLoader,
 } from '../helper/theme.vue.config';
 import { simpleGit } from 'simple-git';
-import ConfigStore, { CONFIG_KEYS } from './Config';
+import { THEME_TYPE } from '../helper/constants';
+
+shortid.characters('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_@');
+
 export default class Theme {
     /*
         new theme from default template -> create
@@ -150,6 +152,36 @@ export default class Theme {
             return settingsJson;
         } catch (err) {
             throw new CommandError(`Error reading ${path} file.!!!`);
+        }
+    }
+    public static async validateSectionWithDB(available_sections_in_db, available_sections){
+        // validate available section
+        const db_section_names = available_sections_in_db.map(section => section.name)
+        const local_section_names = available_sections.map(section => section.name)
+        const mismatched_sections = _.difference(db_section_names, local_section_names)
+
+        if(mismatched_sections.length > 0){
+            const questions = [
+                {
+                    type: 'confirm',
+                    name: 'proceed',
+                    message: `Certain theme sections are unavailable in your code. Proceeding with the sync may result in potential side effects and issues. Would you like to continue?`,
+                },
+            ];
+
+            const log_section_details = mismatched_sections.map(name => `❌ ${name} section is not present in your code`).join("\n")
+
+            // Show which section is not present and in which page it is set as an preset section.
+            // Ex. ❌ hero_image section used in home page is not available
+            console.log('\n' + chalk.yellow(log_section_details) + '\n');
+
+            await inquirer.prompt(questions).then(async answers => {
+                if (answers.proceed) {
+                    Logger.info('Proceeding without unavailable sections...');
+                } else {
+                    throw new Error(`Please review the sections. Some of the sections that were available in the theme are missing from your code.`)
+                }
+            });
         }
     }
 
@@ -581,7 +613,7 @@ export default class Theme {
 
             Logger.info('Copying template config files');
             shouldDelete = true;
-            if (themeData.theme_type === 'react') {
+            if (themeData.theme_type === THEME_TYPE.react) {
                 await Theme.copyTemplateFiles(
                     Theme.REACT_TEMPLATE_DIRECTORY,
                     targetDirectory,
@@ -745,10 +777,10 @@ export default class Theme {
     public static syncThemeWrapper = async () => {
         const currentContext = getActiveContext();
         switch (currentContext.theme_type) {
-            case 'react':
+            case THEME_TYPE.react:
                 await Theme.syncReactTheme(currentContext);
                 break;
-            case 'vue2':
+            case THEME_TYPE.vue2:
                 await Theme.syncVueTheme(currentContext);
                 break;
             default:
@@ -767,6 +799,9 @@ export default class Theme {
             let { data: theme } =
                 await ThemeService.getThemeById(currentContext);
 
+          
+
+            
             // Clear previosu builds
             Theme.clearPreviousBuild();
 
@@ -804,9 +839,14 @@ export default class Theme {
             Logger.info('Uploading theme assets/images');
             await Theme.assetsImageUploader();
 
-            let available_sections =
-                await Theme.getAvailableReactSectionsForSync();
+            Logger.info('Uploading theme assets/fonts');
+            await Theme.assetsFontsUploader();
+            
+            let available_sections = await Theme.getAvailableReactSectionsForSync();
+            
             await Theme.validateAvailableSections(available_sections);
+
+            await Theme.validateSectionWithDB(theme.available_sections, available_sections);
 
             Logger.info('Uploading bundle files');
             let pArr = await Theme.uploadReactThemeBundle({ buildPath });
@@ -900,7 +940,8 @@ export default class Theme {
 
             let available_sections = await Theme.getAvailableSectionsForSync();
             await Theme.validateAvailableSections(available_sections);
-
+            await Theme.validateSectionWithDB(theme.available_sections, available_sections);
+            
             // Create index.js with section file imports
             await Theme.createSectionsIndexFile(available_sections);
 
@@ -1018,10 +1059,10 @@ export default class Theme {
         try {
             const currentContext = getActiveContext();
             switch (currentContext.theme_type) {
-                case 'react':
+                case THEME_TYPE.react:
                     await Theme.serveReactTheme(options);
                     break;
-                case 'vue2':
+                case THEME_TYPE.vue2:
                     await Theme.serveVueTheme(options);
                     break;
                 default:
@@ -1850,12 +1891,12 @@ export default class Theme {
             theme.assets.common_js = theme.assets.commonJs || {};
             theme.assets.common_js.link = commonJsUrl;
             theme.assets.css = theme.assets.css || {};
-            if (theme.theme_type === 'vue2') {
+            if (theme.theme_type === THEME_TYPE.react) {
+                theme.assets.css.links = cssUrls; // theme_type = 'react'
+            } else {
                 theme.assets.css.links = cssUrls.filter((x) =>
                     x.endsWith('_themeBundle.css'),
                 );
-            } else {
-                theme.assets.css.links = cssUrls; // theme_type = 'react'
             }
             theme.assets.css.link = '';
             // TODO Issue here
@@ -2805,18 +2846,9 @@ export default class Theme {
         if (!fs.existsSync(destinationFolder)) {
             fs.mkdirSync(destinationFolder, { recursive: true });
         }
-
-        const outer_items = [
-            'package.json',
-            'theme',
-            'babel.config.js',
-            'fdk.config.js',
-            '.fdk',
-            '.git',
-            '.gitignore',
-            '.husky',
-        ];
-        const moved_files = [];
+        
+        const outer_items = ["package.json", "package-lock.json", "debug.log", "assets.json", "pages.json", "theme", "babel.config.js", "fdk.config.js", ".fdk", ".git", ".gitignore", ".husky", "node_modules", "config.json"]
+        const moved_files = []
         files.forEach((fileOrFolder) => {
             if (outer_items.includes(fileOrFolder)) return;
             const sourcePath = path.join(sourceFolder, fileOrFolder);
@@ -2852,10 +2884,10 @@ export default class Theme {
         // Generate production build so that we can get assets and available sections in config file while creating zip
         await Theme.ensureThemeTypeInPackageJson();
         const activeContext = getActiveContext();
-        if (activeContext.theme_type === 'vue2') {
-            await Theme.generateAssetsVue();
-        } else if (activeContext.theme_type === 'react') {
+        if (activeContext.theme_type === THEME_TYPE.react) {
             await Theme.generateAssetsReact();
+        } else {
+            await Theme.generateAssetsVue();
         }
         let content = { name: '' };
         let spinner;
@@ -2968,9 +3000,7 @@ export default class Theme {
             if (!packageJsonData.theme_metadata?.theme_type) {
                 const context = getActiveContext();
                 if (!context.theme_type) {
-                    throw new CommandError(
-                        COMMON_LOG_MESSAGES.ThemeTypeNotAvailableInContext,
-                    );
+                    context.theme_type = THEME_TYPE.vue2 as any
                 }
                 if (!packageJsonData.theme_metadata) {
                     packageJsonData.theme_metadata = {};
