@@ -416,6 +416,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
                 themeURLs,
                 cliMeta: {
                     port,
+                    domain: getFullLocalUrl(port),
                 },
             })
             .catch((error) => {
