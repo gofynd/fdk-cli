@@ -69,6 +69,7 @@
   "dependencies": {
     "@babel/core": "7.14.3",
     "@babel/plugin-transform-modules-commonjs": "^7.14.0",
+    "@gofynd/fp-signature": "^1.0.0",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.10",
     "@types/open": "^6.2.1",
     "acorn": "^8.10.0",
