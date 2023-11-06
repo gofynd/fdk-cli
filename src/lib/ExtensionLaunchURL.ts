@@ -80,21 +80,13 @@ export default class ExtensionLaunchURL {
 
     public static async getLaunchURLHandler(options: Object) {
         try {
-            let partner_access_token = getPartnerAccessToken();
-
-            if (!partner_access_token) {
-                partner_access_token = (
-                    await Partner.connectHandler({ readOnly: true, ...options })
-                ).partner_access_token;
-            }
 
             let spinner = new Spinner('Fetching Launch URL');
             try {
                 spinner.start();
                 let extension_data =
-                    await ExtensionService.getExtensionDataUsingToken(
+                    await ExtensionService.getExtensionData(
                         options.apiKey,
-                        partner_access_token,
                     );
                 let launchURL: string = extension_data.base_url;
 

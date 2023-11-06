@@ -2,10 +2,12 @@ import { URLS } from './url';
 import { getCommonHeaderOptions } from './utils';
 import ApiClient from '../ApiClient';
 
-type RegisterExtensionPaylaod = {
+type RegisterExtensionPayload = {
     name: string;
     extention_type: 'private' | 'public';
     base_url: string;
+    scope?: [string]
+    logo?: Object
 };
 
 type UpdateLaunchURLPayload = {
@@ -14,12 +16,15 @@ type UpdateLaunchURLPayload = {
 
 export default {
     registerExtension: async (
-        partner_access_token: string,
-        data: RegisterExtensionPaylaod,
+        data: RegisterExtensionPayload,
     ) => {
         try {
             let headers = getCommonHeaderOptions().headers;
-            headers['x-partner-token'] = partner_access_token;
+            data.scope = ['company/profile'];
+            data.logo = { 
+                small: 'https://res.cloudinary.com/dwzm9bysq/image/upload/v1566539375/production/media/store/logo/jwosxsgh9ufoucdxpm10.png',
+                large: 'https://res.cloudinary.com/dwzm9bysq/image/upload/v1566539375/production/media/store/logo/jwosxsgh9ufoucdxpm10.png'
+            }
 
             let axiosOptions = Object.assign(
                 {},
@@ -42,18 +47,9 @@ export default {
 
     getExtensionData: async (
         extension_api_key: string,
-        extension_api_secret: string,
-        partner_access_token: string,
     ) => {
         try {
-            const authorizationToken = Buffer.from(
-                `${extension_api_key}:${extension_api_secret}`,
-                'utf-8',
-            ).toString('base64');
-
             let headers = getCommonHeaderOptions().headers;
-            headers['Authorization'] = `Bearer ${authorizationToken}`;
-            headers['x-partner-token'] = partner_access_token;
 
             let response = await ApiClient.get(
                 URLS.GET_EXTENSION_DETAILS(extension_api_key),
