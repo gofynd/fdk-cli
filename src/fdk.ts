@@ -52,28 +52,30 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
             const latest = await checkCliVersionAsync();
             Debug(`Latest version: ${latest} | ${semver.lt(packageJSON.version, latest)}`);
 
-            const versionChange = semver.diff(packageJSON.version, latest);
-            const major = versionChange === 'major';
-            const color = major ? 'red' : 'green';
+            // Commented major version diff check to support backward compatibility on FP < 1.8 versions.
 
-            const logMessage = `There is a new version of ${packageJSON.name} available (${latest}).
-You are currently using ${packageJSON.name} ${packageJSON.version}.
-Install fdk-cli globally using the package manager of your choice.
-${major ? `\nNote: You need to update \`${packageJSON.name}\` first inorder to use it.` : ''}
-Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
+            // const versionChange = semver.diff(packageJSON.version, latest);
+//             const major = versionChange === 'major';
+//             const color = major ? 'red' : 'green';
 
-            if (latest && semver.lt(packageJSON.version, latest)) {
-                console.log(
-                    boxen(
-                        major ? chalk.red(logMessage) : chalk.green(logMessage),
-                        { borderColor: color, padding: 1 }
-                    )
-                );
+//             const logMessage = `There is a new version of ${packageJSON.name} available (${latest}).
+// You are currently using ${packageJSON.name} ${packageJSON.version}.
+// Install fdk-cli globally using the package manager of your choice.
+// ${major ? `\nNote: You need to update \`${packageJSON.name}\` first inorder to use it.` : ''}
+// Run \`npm install -g ${packageJSON.name}\` to get the latest version.`
 
-                if (semver.diff(packageJSON.version, latest) === 'major') {
-                    process.exit(1);
-                }
-            }
+//             if (latest && semver.lt(packageJSON.version, latest)) {
+//                 console.log(
+//                     boxen(
+//                         major ? chalk.red(logMessage) : chalk.green(logMessage),
+//                         { borderColor: color, padding: 1 }
+//                     )
+//                 );
+
+//                 if (semver.diff(packageJSON.version, latest) === 'major') {
+//                     process.exit(1);
+//                 }
+//             }
 
             // check if user is logged in and context is set
             const envCommand = args[1].parent.name();
