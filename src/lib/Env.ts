@@ -5,10 +5,10 @@ import chalk from 'chalk';
 import axios from 'axios';
 import urljoin from 'url-join';
 import { isValidDomain } from '../helper/utils';
+import Debug from './Debug';
 
 export const AVAILABLE_ENVS = {
     // Fynd
-    fyndx0: 'api.fyndx0.de',
     fyndx1: 'api.fyndx1.de',
     fyndx5: 'api.fyndx5.de',
     fynd: 'api.fynd.com',
@@ -61,6 +61,9 @@ export const AVAILABLE_ENVS = {
     tiraz0: 'api.tiraz0.de',
     tiraz5: 'api.tiraz5.de',
     tirabeauty: 'api.tirabeauty.com',
+
+    // Netmeds
+    nmz3: 'api.nmz3.de',
 };
 
 type EnvType = keyof typeof AVAILABLE_ENVS;
@@ -81,16 +84,23 @@ export default class Env {
             throw new CommandError(COMMON_LOG_MESSAGES.EnvNotSet);
         }
         const msg = AVAILABLE_ENVS[ctx]
-            ? `Active Environment: ${chalk.bold(ctx)}, URL: ${chalk.bold(AVAILABLE_ENVS[ctx])}`
+            ? `Active Environment: ${chalk.bold(ctx)}\nAPI URL: ${chalk.bold(
+                  AVAILABLE_ENVS[ctx],
+              )}`
             : `Currently using Platform URL: ${chalk.bold(ctx)}`;
         Logger.info(msg);
     }
     public static async listEnvs() {
         try {
             const ACTIVE_ENVIRONMENT = Env.getEnvValue();
-            Logger.info(chalk.bold.blueBright(`List of supported Environments:`));
-            Object.keys(AVAILABLE_ENVS).forEach(key => {
-                if (ACTIVE_ENVIRONMENT && key.toString() === ACTIVE_ENVIRONMENT.toString()) {
+            Logger.info(
+                chalk.bold.blueBright(`List of supported Environments:`),
+            );
+            Object.keys(AVAILABLE_ENVS).forEach((key) => {
+                if (
+                    ACTIVE_ENVIRONMENT &&
+                    key.toString() === ACTIVE_ENVIRONMENT.toString()
+                ) {
                     Logger.info(`${chalk.bold.greenBright(key)}*`);
                 } else {
                     Logger.info(chalk.bold.gray(key));
@@ -108,7 +118,9 @@ export default class Env {
             }
 
             if (options.url && options.name) {
-                throw new Error('Please provide only one option: either --name or --url.');
+                throw new Error(
+                    'Please provide only one option: either --name or --url.',
+                );
             }
 
             if (options.name) {
@@ -116,7 +128,11 @@ export default class Env {
                     Env.setEnv(options.name);
                     Logger.info(`Env set to: ${chalk.bold(options.name)}`);
                 } else {
-                    Logger.error(`*${chalk.bold(options.name)}* environment is not supported.\n`);
+                    Logger.error(
+                        `*${chalk.bold(
+                            options.name,
+                        )}* environment is not supported.\n`,
+                    );
                     Env.listEnvs();
                 }
             } else if (options.url) {
@@ -127,17 +143,22 @@ export default class Env {
                     const url = urljoin(
                         'https://',
                         options.url,
-                        '/service/application/content/_healthz'
+                        '/service/application/content/_healthz',
                     );
                     const response = await axios.get(url);
 
-                    if (response?.data?.ok) {
+                    if (response?.status === 200) {
                         Env.setEnv(options.url);
-                        Logger.info(`CLI will start using: ${chalk.bold(options.url)}`);
+                        Logger.info(
+                            `CLI will start using: ${chalk.bold(options.url)}`,
+                        );
                     } else {
-                        throw new Error('Provided url is not valid platform URL.');
+                        throw new Error(
+                            'Provided url is not valid platform URL.',
+                        );
                     }
                 } catch (err) {
+                    Debug(err);
                     throw new Error('Provided url is not valid platform URL.');
                 }
             }

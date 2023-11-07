@@ -1,0 +1,491 @@
+{
+  "list": [
+    {
+      "name": "Default",
+      "page": [
+        {
+          "settings": {
+            "props": {
+              "reviews": false,
+              "add_to_compare": false,
+              "product_request": false,
+              "store_selection": true,
+              "compare_products": false,
+              "variants": true,
+              "ratings": false,
+              "similar_products": true,
+              "bulk_prices": false
+            }
+          },
+          "page": "product-description"
+        },
+        {
+          "settings": {
+            "props": {
+              "show_info_message": true,
+              "gst": false,
+              "staff_selection": true,
+              "enable_customer": false,
+              "enable_guest": false
+            }
+          },
+          "page": "cart-landing"
+        },
+        {
+          "page": "brands",
+          "settings": {
+            "props": {
+              "title": "Brands Landing",
+              "logo_only": true,
+              "description": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."
+            }
+          }
+        },
+        {
+          "page": "product-listing",
+          "settings": {
+            "props": {
+              "hide_brand": true,
+              "infinite_scroll": false
+            }
+          }
+        },
+        {
+          "page": "collection-listing",
+          "settings": {
+            "props": {
+              "infinite_scroll": false,
+              "description": "Hello"
+            }
+          }
+        }
+      ],
+      "global_config": {
+        "static": {
+          "props": {
+            "colors": {
+              "primary_color": "#7043f7",
+              "secondary_color": "#02d1cb",
+              "accent_color": "#FFFFFF",
+              "link_color": "#7043f7",
+              "button_secondary_color": "#000000",
+              "bg_color": "#F8F8F8"
+            },
+            "auth": {
+              "show_header_auth": true,
+              "show_footer_auth": true
+            },
+            "palette": {
+              "general_setting": {
+                "theme": {
+                  "page_background": "#fff9f3",
+                  "theme_accent": "#bea5a9"
+                },
+                "text": {
+                  "text_heading": "#000507",
+                  "text_body": "#010e15",
+                  "text_label": "#35596c",
+                  "text_secondary": "#678391"
+                },
+                "button": {
+                  "button_primary": "#023047",
+                  "button_secondary": "#ffffff",
+                  "button_link": "#552531"
+                },
+                "sale_discount": {
+                  "sale_badge_background": "#f1faee",
+                  "sale_badge_text": "#410102",
+                  "sale_discount_text": "#1867b0",
+                  "sale_timer": "#e63946"
+                },
+                "header": {
+                  "header_background": "#ffffff",
+                  "header_nav": "#000507",
+                  "header_icon": "#000507"
+                },
+                "footer": {
+                  "footer_background": "#023047",
+                  "footer_bottom_background": "#022a3f",
+                  "footer_heading_text": "#f9f6f6",
+                  "footer_body_text": "#FFFFFF",
+                  "footer_icon": "#FFFFFF"
+                }
+              },
+              "advance_setting": {
+                "overlay_popup": {
+                  "dialog_backgroung": "#ffffff",
+                  "overlay": "#010e15"
+                },
+                "divider_stroke_highlight": {
+                  "divider_strokes": "#f2edee",
+                  "highlight": "#dfd2d4"
+                },
+                "user_alerts": {
+                  "success_background": "#e9f9ed",
+                  "success_text": "#1C958F",
+                  "error_background": "#fff5f5",
+                  "error_text": "#B24141",
+                  "info_background": "#fff359",
+                  "info_text": "#D28F51"
+                }
+              }
+            },
+            "extension": {
+              "header_top": [],
+              "header_bottom": [],
+              "footer_top": [],
+              "footer_bottom": []
+            }
+          }
+        },
+        "custom": {
+          "props": {
+            "header_icon_color": "#000000",
+            "menu_position": "bottom",
+            "artwork": "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/company/11197/applications/60b8c8a67b0862f85a672571/theme/pictures/free/original/theme-image-1668580342482.jpeg",
+            "enable_artwork": false,
+            "footer_bg_color": "#792a2a",
+            "footer_text_color": "#9f8484",
+            "footer_border_color": "#a6e7bf",
+            "footer_nav_hover_color": "#59e8b9",
+            "menu_layout_desktop": "layout_3",
+            "logo": "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/company/11197/applications/60b8c8a67b0862f85a672571/theme/pictures/free/original/theme-image-1678646615944.png",
+            "logo_width": 774,
+            "footer_description": "Crafted with love",
+            "logo_menu_alignment": "layout_1",
+            "header_layout": "double",
+            "section_margin_top": 89,
+            "font_header": {
+              "variants": {
+                "light": {
+                  "name": "300",
+                  "file": "https://fonts.gstatic.com/s/playfairdisplay/v30/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvUDQZNLo_U2r.ttf"
+                },
+                "regular": {
+                  "name": "regular",
+                  "file": "https://fonts.gstatic.com/s/playfairdisplay/v30/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvUDQZNLo_U2r.ttf"
+                },
+                "medium": {
+                  "name": "500",
+                  "file": "https://fonts.gstatic.com/s/playfairdisplay/v30/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKd3vUDQZNLo_U2r.ttf"
+                },
+                "semi_bold": {
+                  "name": "600",
+                  "file": "https://fonts.gstatic.com/s/playfairdisplay/v30/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKebukDQZNLo_U2r.ttf"
+                },
+                "bold": {
+                  "name": "700",
+                  "file": "https://fonts.gstatic.com/s/playfairdisplay/v30/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKeiukDQZNLo_U2r.ttf"
+                }
+              },
+              "family": "Playfair Display"
+            },
+            "font_body": {
+              "variants": {
+                "light": {
+                  "name": "300",
+                  "file": "https://fonts.gstatic.com/s/worksans/v18/QGY_z_wNahGAdqQ43RhVcIgYT2Xz5u32KxfXNigDp6_cOyA.ttf"
+                },
+                "regular": {
+                  "name": "regular",
+                  "file": "https://fonts.gstatic.com/s/worksans/v18/QGY_z_wNahGAdqQ43RhVcIgYT2Xz5u32K0nXNigDp6_cOyA.ttf"
+                },
+                "medium": {
+                  "name": "500",
+                  "file": "https://fonts.gstatic.com/s/worksans/v18/QGY_z_wNahGAdqQ43RhVcIgYT2Xz5u32K3vXNigDp6_cOyA.ttf"
+                },
+                "semi_bold": {
+                  "name": "600",
+                  "file": "https://fonts.gstatic.com/s/worksans/v18/QGY_z_wNahGAdqQ43RhVcIgYT2Xz5u32K5fQNigDp6_cOyA.ttf"
+                },
+                "bold": {
+                  "name": "700",
+                  "file": "https://fonts.gstatic.com/s/worksans/v18/QGY_z_wNahGAdqQ43RhVcIgYT2Xz5u32K67QNigDp6_cOyA.ttf"
+                }
+              },
+              "family": "Work Sans"
+            },
+            "section_margin_bottom": 16
+          }
+        }
+      }
+    },
+    {
+      "name": "Dark",
+      "page": [
+        {
+          "settings": {
+            "props": {
+              "reviews": false,
+              "add_to_compare": false,
+              "product_request": false,
+              "store_selection": true,
+              "compare_products": false,
+              "variants": true,
+              "ratings": false,
+              "similar_products": true,
+              "bulk_prices": false
+            }
+          },
+          "page": "product-description"
+        },
+        {
+          "settings": {
+            "props": {
+              "show_info_message": true,
+              "gst": false,
+              "staff_selection": false,
+              "enable_customer": false,
+              "enable_guest": false
+            }
+          },
+          "page": "cart-landing"
+        }
+      ],
+      "global_config": {
+        "static": {
+          "props": {
+            "colors": {
+              "primary_color": "#7043f7",
+              "secondary_color": "#02d1cb",
+              "accent_color": "#FFFFFF",
+              "link_color": "#7043f7",
+              "button_secondary_color": "#000000",
+              "bg_color": "#F8F8F8"
+            },
+            "auth": {
+              "show_header_auth": false,
+              "show_footer_auth": false
+            },
+            "palette": {
+              "general_setting": {
+                "theme": {
+                  "page_background": "#F8F8F8",
+                  "theme_accent": "#FFFFFF"
+                },
+                "text": {
+                  "text_heading": "#02d1cb",
+                  "text_body": "#3C3131",
+                  "text_label": "#7D7676",
+                  "text_secondary": "#9C9C9C"
+                },
+                "button": {
+                  "button_primary": "#7043f7",
+                  "button_secondary": "#000000",
+                  "button_link": "#7043f7"
+                },
+                "sale_discount": {
+                  "sale_badge_background": "#FFFFFF",
+                  "sale_badge_text": "#1C958F",
+                  "sale_discount_text": "#1C958F",
+                  "sale_timer": "#994449"
+                },
+                "header": {
+                  "header_background": "#F3F3ED",
+                  "header_nav": "#261A1A",
+                  "header_icon": "#261A1A"
+                },
+                "footer": {
+                  "footer_background": "#2C231E",
+                  "footer_bottom_background": "#231812",
+                  "footer_heading_text": "#FFFFFF",
+                  "footer_body_text": "#FFFFFF",
+                  "footer_icon": "#FFFFFF"
+                }
+              },
+              "advance_setting": {
+                "overlay_popup": {
+                  "dialog_backgroung": "#FFFFFF",
+                  "overlay": "#14130E"
+                },
+                "divider_stroke_highlight": {
+                  "divider_strokes": "#D4D1D1",
+                  "highlight": "#EDECE9"
+                },
+                "user_alerts": {
+                  "success_background": "#C2DBC9",
+                  "success_text": "#1C958F",
+                  "error_background": "#E6D5D5",
+                  "error_text": "#B24141",
+                  "info_background": "#EBD3BC",
+                  "info_text": "#D28F51"
+                }
+              }
+            },
+            "extension": {
+              "header_top": [],
+              "header_bottom": [],
+              "footer_top": [],
+              "footer_bottom": []
+            }
+          }
+        },
+        "custom": {
+          "props": {}
+        }
+      }
+    },
+    {
+      "name": "Blue",
+      "page": [
+        {
+          "settings": {
+            "props": {
+              "reviews": false,
+              "add_to_compare": false,
+              "product_request": false,
+              "store_selection": true,
+              "compare_products": false,
+              "variants": true,
+              "ratings": false,
+              "similar_products": true,
+              "bulk_prices": false
+            }
+          },
+          "page": "product-description"
+        },
+        {
+          "settings": {
+            "props": {
+              "show_info_message": true,
+              "gst": false,
+              "staff_selection": false,
+              "enable_customer": false,
+              "enable_guest": false
+            }
+          },
+          "page": "cart-landing"
+        }
+      ],
+      "global_config": {
+        "static": {
+          "props": {
+            "colors": {
+              "primary_color": "#7043f7",
+              "secondary_color": "#02d1cb",
+              "accent_color": "#FFFFFF",
+              "link_color": "#7043f7",
+              "button_secondary_color": "#000000",
+              "bg_color": "#F8F8F8"
+            },
+            "auth": {
+              "show_header_auth": false,
+              "show_footer_auth": false
+            },
+            "palette": {
+              "general_setting": {
+                "theme": {
+                  "page_background": "#F8F8F8",
+                  "theme_accent": "#FFFFFF"
+                },
+                "text": {
+                  "text_heading": "#02d1cb",
+                  "text_body": "#3C3131",
+                  "text_label": "#7D7676",
+                  "text_secondary": "#9C9C9C"
+                },
+                "button": {
+                  "button_primary": "#7043f7",
+                  "button_secondary": "#000000",
+                  "button_link": "#7043f7"
+                },
+                "sale_discount": {
+                  "sale_badge_background": "#FFFFFF",
+                  "sale_badge_text": "#1C958F",
+                  "sale_discount_text": "#1C958F",
+                  "sale_timer": "#994449"
+                },
+                "header": {
+                  "header_background": "#F3F3ED",
+                  "header_nav": "#261A1A",
+                  "header_icon": "#261A1A"
+                },
+                "footer": {
+                  "footer_background": "#2C231E",
+                  "footer_bottom_background": "#231812",
+                  "footer_heading_text": "#FFFFFF",
+                  "footer_body_text": "#FFFFFF",
+                  "footer_icon": "#FFFFFF"
+                }
+              },
+              "advance_setting": {
+                "overlay_popup": {
+                  "dialog_backgroung": "#FFFFFF",
+                  "overlay": "#14130E"
+                },
+                "divider_stroke_highlight": {
+                  "divider_strokes": "#D4D1D1",
+                  "highlight": "#EDECE9"
+                },
+                "user_alerts": {
+                  "success_background": "#C2DBC9",
+                  "success_text": "#1C958F",
+                  "error_background": "#E6D5D5",
+                  "error_text": "#B24141",
+                  "info_background": "#EBD3BC",
+                  "info_text": "#D28F51"
+                }
+              }
+            },
+            "extension": {
+              "header_top": [],
+              "header_bottom": [],
+              "footer_top": [],
+              "footer_bottom": []
+            }
+          }
+        },
+        "custom": {
+          "props": {}
+        }
+      }
+    }
+  ],
+  "current": "Default",
+  "preset": {
+    "pages": [
+      {
+        "sections": [
+          {
+              "label": "",
+              "blocks": [],
+              "source": "themeBundle",
+              "predicate": {
+                  "screen": {
+                      "mobile": true,
+                      "desktop": true,
+                      "tablet": true
+                  },
+                  "user": {
+                      "authenticated": true,
+                      "anonymous": true
+                  },
+                  "route": {
+                      "selected": "none",
+                      "exact_url": ""
+                  }
+              },
+              "name": "raw-html",
+              "props": {
+                  "code": {
+                      "type": "code",
+                      "value": "<h1>\n  Welcome to skyfire\n</h1>"
+                  }
+              },
+              "preset": {}
+          }
+      ],
+        "value": "home"
+      }
+    ]
+  },
+  "information": {
+    "features": [
+      "10 stunning configurable sections",
+      "Revamped Cart and Checkout",
+      "Dual configurable font",
+      "Easily configurable colors",
+      "Faster Page Loading"
+    ]
+  }
+}

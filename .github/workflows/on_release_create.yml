@@ -1,31 +1,36 @@
-on:
-  release:
-    types: [created]
+# Temporarily commented out
 
-jobs:
-  call-workflow:
-    uses: ./.github/workflows/call_test_cases.yml
+# on:
+#   release:
+#     types: [created]
+# This needs to be added 
+  # create-sentry-release:
+  #   needs: call-workflow
+  #   uses: ./.github/workflows/create_sentry_release.yml
+  #   with:
+  #     release_environment: production
 
-  create-sentry-release:
-    needs: call-workflow
-    uses: ./.github/workflows/create_sentry_release.yml
-    with:
-      release_environment: production
+  # publish-package-npm:
+  #   needs: 
+  #     - call-workflow
+  #     - create-sentry-release
+  #   runs-on: ubuntu-latest
+# jobs:
+#   call-workflow:
+#     uses: ./.github/workflows/call_test_cases.yml
 
-  publish-package-npm:
-    needs: 
-      - call-workflow
-      - create-sentry-release
-    runs-on: ubuntu-latest
+#   publish-package-npm:
+#     needs: call-workflow
+#     runs-on: ubuntu-latest
 
-    steps:
-        - uses: actions/checkout@v3
-        # Setup .npmrc file to publish to npm
-        - uses: actions/setup-node@v3
-          with:
-            node-version: '16.x'
-            registry-url: 'https://registry.npmjs.org'
-        - run: npm install
-        - run: npm publish --access public
-          env:
-            NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}
+#     steps:
+#         - uses: actions/checkout@v3
+#         # Setup .npmrc file to publish to npm
+#         - uses: actions/setup-node@v3
+#           with:
+#             node-version: '16.x'
+#             registry-url: 'https://registry.npmjs.org'
+#         - run: npm install
+#         - run: npm publish --access public
+#           env:
+#             NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}

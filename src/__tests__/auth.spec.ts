@@ -1,106 +1,95 @@
-import axios from 'axios';
 import rimraf from 'rimraf';
 import inquirer from 'inquirer';
-import MockAdapter from 'axios-mock-adapter';
-import { URLS } from '../lib/api/services/url';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
 import mockFunction from './helper';
 import { setEnv } from './helper';
 import { init } from '../fdk';
-import { getCommonHeaderOptions } from "../lib/api/services/utils";
-const packageJSON = require('../../package.json');
-const data = require('./fixtures/email-login.json');
-const mobileData = require('./fixtures/mobile-login.json');
+const tokenData = require('./fixtures/partnertoken.json');
+const request = require('supertest');
+import { startServer, getApp } from '../lib/Auth';
+import { URLS } from '../lib/api/services/url';
+import Logger from '../lib/Logger';
+import MockAdapter from 'axios-mock-adapter';
+import axios from 'axios';
 
 jest.mock('inquirer');
 let program;
 
 jest.mock('configstore', () => {
-    const Store = jest.requireActual<typeof import('configstore')>('configstore');
+    const Store =
+        jest.requireActual<typeof import('configstore')>('configstore');
     return class MockConfigstore {
-        store = new Store('test-cli', undefined, {configPath: './auth-test-cli.json'})
-        all = this.store.all
-        size = this.store.size
+        store = new Store('test-cli', undefined, {
+            configPath: './auth-test-cli.json',
+        });
+        all = this.store.all;
+        size = this.store.size;
         get(key: string) {
-            return this.store.get(key)
+            return this.store.get(key);
         }
         set(key: string, value) {
             this.store.set(key, value);
-        }   
+        }
         delete(key) {
-            this.store.delete(key)
+            this.store.delete(key);
         }
         clear() {
             this.store.clear();
         }
-    }
+    };
 });
 
+export async function login() {
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
+    const app = await startServer();
+    const req = request(app);
+    await program.parseAsync(['ts-node', './src/fdk.ts', 'login']);
+    return await req.post('/token').send(tokenData);
+}
 
 describe('Auth Commands', () => {
     beforeAll(async () => {
         setEnv();
         program = await init('fdk');
         const mock = new MockAdapter(axios);
-        mock.onPost(`${URLS.SEND_OTP()}`).reply(200, mobileData);
-        mock.onPost(`${URLS.VERIFY_OTP()}`).reply(200, data, {
-            'set-cookie': [{ Name: 'Any One' }],
-        });
-        mock.onPost(`${URLS.LOGIN_USER()}`).reply(200, data, {
-            'set-cookie': [{ Name: 'Any One' }],
-        });
+        mock.onGet(`${URLS.IS_VERSION_COMPATIBLE()}`).reply(200);
+        await login();
     });
 
     afterAll(() => {
-        rimraf.sync('./auth-test-cli.json')
+        rimraf.sync('./auth-test-cli.json');
     });
-    it('should successfuly get headers', async () => {
-        const res = getCommonHeaderOptions();
-        const headers = { 'Content-Type': 'application/json', 'x-fp-cli': `${packageJSON.version}`, }
-        expect(res.headers).toMatchObject(headers);
+    it('Should successfully login with partner panel', async () => {
+        expect(configStore.get(CONFIG_KEYS.AUTH_TOKEN).access_token).toBe(
+            'pr-4fb094006ed3a6d749b69875be0418b83238d078',
+        );
     });
-    it('should successfully login user with email', async () => {
+    it('Should ask for change organization when user is already logged in', async () => {
         const inquirerMock = mockFunction(inquirer.prompt);
-        inquirerMock.mockResolvedValue({ password: '1234567' });
-        await program.parseAsync([
-            'ts-node',
-            './src/fdk.ts',
-            'login',
-            '-e',
-            'anything@something.com',
-        ]);
-        const cookies = configStore.get(CONFIG_KEYS.COOKIE);
-        expect(cookies.Name).toMatch('Any One');
+        inquirerMock.mockResolvedValue({ confirmChangeOrg: 'Yes' });
+        await login();
+        expect(configStore.get(CONFIG_KEYS.AUTH_TOKEN).access_token).toBe(
+            'pr-4fb094006ed3a6d749b69875be0418b83238d078',
+        );
     });
-
-    it('should successfully login user with mobile', async () => {
+    it('Should exit when user selects no for organization change', async () => {
         const inquirerMock = mockFunction(inquirer.prompt);
-        inquirerMock.mockResolvedValue({ otp: '123456' });
-        await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '-m', '1234567890']);
-        const cookies = configStore.get(CONFIG_KEYS.COOKIE);
-        expect(cookies.Name).toMatch('Any One');
+        inquirerMock.mockResolvedValue({ confirmChangeOrg: 'No' });
+        await login();
+        expect(configStore.get(CONFIG_KEYS.AUTH_TOKEN).access_token).toBe(
+            'pr-4fb094006ed3a6d749b69875be0418b83238d078',
+        );
     });
 
     it('should console active user', async () => {
-        await program.parseAsync([
-            'ts-node',
-            './src/fdk.ts',
-            'login',
-            '-e',
-            'anything@something.com',
-        ]);
+        let consoleWarnSpy: jest.SpyInstance;
+        consoleWarnSpy = jest.spyOn(Logger, 'info').mockImplementation();
         await program.parseAsync(['ts-node', './src/fdk.ts', 'user']);
-        const currentUser = configStore.get(CONFIG_KEYS.USER);
-        expect(currentUser.emails[0][0]).toMatch(data.user.emails[0][0]);
+        const { current_user: user } = configStore.get(CONFIG_KEYS.AUTH_TOKEN);
+        expect(consoleWarnSpy).toHaveBeenCalledWith('Name: Jinal Virani');
+        expect(user.emails[0].email).toMatch('jinalvirani@gofynd.com');
     });
     it('should successfully logout user', async () => {
-        await program.parseAsync([
-            'ts-node',
-            './src/fdk.ts',
-            'login',
-            '-e',
-            'anything@something.com',
-        ]);
         const inquirerMock = mockFunction(inquirer.prompt);
         inquirerMock.mockResolvedValue({ confirmLogout: 'Yes' });
         await program.parseAsync(['ts-node', './src/fdk.ts', 'logout']);

@@ -1,5 +1,4 @@
-export const themeVueConfigTemplate = 
-`const webpack = require("webpack");
+export const themeVueConfigTemplate = `const webpack = require("webpack");
 const fs = require("fs");
 const path = require("path");
 const { chalk, error, loadModule } = require('@vue/cli-shared-utils')
@@ -9,6 +8,36 @@ const FDK_CONFIG_PATH = "./fdk.config.js";
 let vueConfig = {};
 let fileConfigPath = null;
 const context = process.cwd();
+
+
+class FDKPlugin {
+  apply(compiler) {
+    compiler.hooks.shouldEmit.tap(
+      'FDKPlugin',
+      (compilation) => {
+        console.log('This is an example plugin!');
+        // console.log(compilation.assets)
+
+        // Manipulate the build using the plugin API provided by webpack
+        const files = compilation.getAssets(/* ... */);
+
+        const mainFile = files.find(x => x.name.endsWith("_themeBundle.css"))
+        console.log(mainFile)
+        files.forEach((asset) => {
+          if(asset.name.endsWith(".css") && !asset.name.endsWith("_themeBundle.css") || asset.name.endsWith(".css.map")) {
+            // compilation.deleteAsset(asset.name);
+            const thisFile = compilation.assets[asset.name]
+            if(thisFile.children) {
+              mainFile.source.add(thisFile);
+              // delete compilation.assets[asset.name]
+            }
+          }
+        })
+        return true;
+      }
+    );
+  }
+}
 
 function isObject(item) {
   return (item && typeof item === 'object' && !Array.isArray(item));
@@ -51,6 +80,11 @@ vueConfig = mergeDeep(vueConfig, {
     extract: {
       chunkFilename: process.env.ASSET_HASH && \`\${process.env.ASSET_HASH}_[name].[contenthash].css\` ||
         \`[name].[contenthash].css\`,
+      insert: function (linkTag) {
+        // Do nothing
+        console.log("Not loading css async chunks ")
+      },
+      linkType: false
     },
   }
 });
@@ -62,14 +96,19 @@ const configureWebpack = (config) => {
     loader:set
   }) 
   const isCommonJs = config.output.libraryTarget === "commonjs2";
+  const plugins = [];
+  if(process.env.BUILD_TYPE === 'sync') {
+    plugins.push(new FDKPlugin())
+  }
+  if(isCommonJs) {
+    plugins.push(
+      new webpack.optimize.LimitChunkCountPlugin({
+        maxChunks: 1,
+      })
+    )
+  }
   let customConfig = {
-    plugins: isCommonJs
-      ? [
-        new webpack.optimize.LimitChunkCountPlugin({
-          maxChunks: 1,
-        })
-      ]
-      : [],
+    plugins,
   };
   if (typeof vueConfigureWebpack == "function") {
     customConfig = mergeDeep(vueConfigureWebpack(config), customConfig);
@@ -95,12 +134,12 @@ const chainWebpack = (config) => {
 vueConfig.chainWebpack = chainWebpack;
 vueConfig.configureWebpack = configureWebpack;
 
-module.exports = vueConfig;`
+module.exports = vueConfig;`;
 
-export const settingLoader=`
+export const settingLoader = `
 module.exports = function (source, map) {
   this.callback(null, 'module.exports = function(Component) {Component.options.__settings = ' +
   JSON.parse(JSON.stringify(source))  +
     '}', map)
 }
-`
+`;

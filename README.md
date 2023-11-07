@@ -43,7 +43,7 @@ Add the `--verbose` flag to the command you want to run in debug mode.
 This will create `debug.log` file at the current working directory. In case you encounter any issues, this log file can be shared with maintainers for effective issue resolution.
 #### **Example**
 ```sh
-fdk login -e <your_email> --verbose
+fdk login --verbose
 ```
 
 <div id="commands-overview"></div>
@@ -60,7 +60,7 @@ This command can be broken down as follows:
 | ------------- |-------------| 
 | module     | theme |
 | method     | init |
-| options     | --email email@gmail.com |
+| options     | --verbose |
 
 ## Commands
 ___
@@ -87,12 +87,10 @@ ___
 | [context](#theme-context)     | Add context of a theme |
 | [context-list](#theme-context-list)     | List all available contexts |
 | [active-context](theme-active-context)    | show currently active context |
-| [serve](#theme-serve)     | Start theme serving on localhost |
+| [serve](#theme-serve)     | Start theme serving on 127.0.0.1 |
 | [sync](#theme-sync)     | Sync theme to application |
 | [pull](#theme-pull)     | Pull latest theme code |
 | [pull-config](#theme-pull-config)     | Pull latest theme config |
-| [publish](#theme-publish)     | Publish theme to library |
-| [unpublish](#theme-unpublish)     | Unpublish theme |
 | [open](#theme-open)    | preview theme |
 | [package](#theme-package)    | Create a zip file of theme |
 
@@ -133,11 +131,15 @@ This command sets the active environment to the value provided by the user.
 
 #### **Syntax**
 ```sh
-fdk env set -n [env-name]
+fdk env set [options]
 ```
 #### **Example**
 ```sh
 fdk env set -n fynd
+```
+#### **Example**
+```sh
+fdk env set -u api.fynd.com
 ```
 #### **Command Options**
 | Option        | Description | Required |
@@ -159,11 +161,11 @@ fdk env get
 ```
 ___
 ### Authentication Commands
-After setting the environment the user has to login to the cli. They can use their email ID or phone number to login.
+After setting the environment the user has to login to the cli.
 <div id="login"></div>
 
 #### **login**
-This command allows user to login with email or password
+This command allows user to login via partner panel.
 #### **Syntax**
 ```sh
 fdk login
@@ -171,18 +173,12 @@ fdk login
 #### **Command Options**
 | Option        | Description           | 
 | ------------- |-------------| 
-| --email, -e   | Email |
-| --mobile, -m    | Mobile |
 | --help    | Show help |
 | --verbose, -v | enable debug mode |
 
 #### **Example**
 ```sh
-fdk login -e [your-email]
-```
-
-```sh
-fdk login -m [your-mobile]
+fdk login
 ```
 
 <div id="user"></div>
@@ -217,18 +213,15 @@ This command is used to create a new theme for your application
 fdk theme new [options]
 ```
 #### **Command Options**
-| Option        | Description           | 
-| ------------- |-------------| 
-| --token, -t    | Theme token |
-| --name, -n    | Theme name |
-| --help    | Show help |
-| --verbose, -v | enable debug mode |
-
-You can find the theme token under the themes panel of Fynd Platform. [Reference](https://hdn-1.addsale.com/x0/company/1/applications/000000000000000000000001/theme/pictures/free/original/theme-image-1628752638519.png)
+| Option        | Description | Required |
+| ------------- |-------------|----------|
+| --name, -n    | Theme name | Yes |
+| --help    | Show help | No |
+| --verbose, -v | enable debug mode | No |
 
 #### **Example**
 ```sh
-fdk theme new -t [theme-token] -n [your-theme-name] 
+fdk theme new -n [your-theme-name] 
 ```
 
 ___
@@ -243,18 +236,14 @@ This command is used to initialize an exisiting theme on your local system.
 fdk theme init [options]
 ```
 #### **Command Options**
-| Option        | Description           | 
+| Option        | Description | 
 | ------------- |-------------| 
-| --token, -t   | Theme token |
 | --help    | Show help |
 | --verbose, -v | enable debug mode |
 
-You can find the theme token under the themes panel of Fynd Platform. [Reference](https://hdn-1.addsale.com/x0/company/1/applications/000000000000000000000001/theme/pictures/free/original/theme-image-1628752713854.png)
-
-
 #### **Example**
 ```sh
-fdk theme init -t [your-theme-token]
+fdk theme init
 ```
 ___
 
@@ -268,20 +257,18 @@ This command is used to add a new context.
 fdk theme context [options]
 ```
 #### **Command Options**
-| Option        | Description           | 
-| ------------- |-------------| 
-| --token, -t    | Theme token |
-| --name, -n    | Context name |
-| --help    | Show help |
-| --verbose, -v | enable debug mode |
-
-You can find the theme token under the theme panel of Fynd Platform. [Reference](https://hdn-1.addsale.com/x0/company/1/applications/000000000000000000000001/theme/pictures/free/original/theme-image-1628752713854.png)
+| Option        | Description | Required | 
+| ------------- |-------------| -------- |
+| --name, -n    | Context name | Yes |
+| --help    | Show help | No |
+| --verbose, -v | enable debug mode | No |
 
 #### **Example**
 ```sh
-fdk theme context -t [your-theme-token] -n [context-name] 
+fdk theme context -n [context-name] 
 ```
 ___
+
 <div id="theme-context-list"></div>
 
 #### **context-list**
@@ -357,24 +344,7 @@ This command is used to pull latest theme config.
 fdk theme pull-config
 ```
 ___
-<div id="theme-publish"></div>
 
-#### publish
-This command is used to publish your theme.
-#### **Syntax**
-```sh
-fdk theme publish
-```
-___
-<div id="theme-unpublish"></div>
-
-#### **unpublish**
-This command is used to unpublish your theme.
-#### **Syntax**
-```sh
-fdk theme unpublish
-```
-___
 <div id="theme-package"></div>
 
 #### **package**
@@ -398,6 +368,9 @@ Extensions are pluggable snippets of code that can be installed in your applicat
 Set the active environment before running extension commands
 ```sh
 fdk env set -n fynd
+```
+```sh
+fdk env set -u api.fynd.com
 ```
 
 

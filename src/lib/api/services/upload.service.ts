@@ -9,21 +9,16 @@ import Spinner from '../../../helper/spinner';
 export default {
     startUpload: async (data, namespace) => {
         try {
-            const activeContext = getActiveContext();
             const axiosOption = Object.assign(
                 {},
                 {
                     data: data,
                 },
-                getCommonHeaderOptions()
+                getCommonHeaderOptions(),
             );
             const res = await ApiClient.post(
-                URLS.START_UPLOAD_FILE(
-                    activeContext.application_id,
-                    activeContext.company_id,
-                    namespace
-                ),
-                axiosOption
+                URLS.START_UPLOAD_FILE(namespace),
+                axiosOption,
             );
             return res;
         } catch (error) {
@@ -34,9 +29,10 @@ export default {
         let spinner = new Spinner();
         let textMessage;
         try {
-            const activeContext = getActiveContext();
             let stats = fs.statSync(filepath);
-            textMessage = `Uploading file ${path.basename(filepath)}  [${Math.round(stats.size / 1024)} KB]`
+            textMessage = `Uploading file ${path.basename(
+                filepath,
+            )}  [${Math.round(stats.size / 1024)} KB]`;
             spinner.start(textMessage);
             let contentType = mime.getType(path.extname(filepath));
             if (contentType === 'image/jpg') {
@@ -52,15 +48,11 @@ export default {
                 {
                     data: startData,
                 },
-                getCommonHeaderOptions()
+                getCommonHeaderOptions(),
             );
             const res1 = await ApiClient.post(
-                URLS.START_UPLOAD_FILE(
-                    activeContext.application_id,
-                    activeContext.company_id,
-                    namespace
-                ),
-                axiosOption
+                URLS.START_UPLOAD_FILE(namespace),
+                axiosOption,
             );
             const startResponse = res1 ? res1.data : res1;
 
@@ -83,15 +75,11 @@ export default {
                         ...startData,
                     },
                 },
-                getCommonHeaderOptions()
+                getCommonHeaderOptions(),
             );
             const res3 = await ApiClient.post(
-                URLS.COMPLETE_UPLOAD_FILE(
-                    activeContext.application_id,
-                    activeContext.company_id,
-                    namespace
-                ),
-                axiosOption
+                URLS.COMPLETE_UPLOAD_FILE(namespace),
+                axiosOption,
             );
             let completeResponse = res3 ? res3.data : res3;
             spinner.succeed(textMessage);
