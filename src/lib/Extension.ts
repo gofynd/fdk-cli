@@ -125,7 +125,6 @@ export default class Extension {
         if (project_type === NODE_VUE || project_type === NODE_REACT) {
             // installing dependencies for Node projects
             await installNpmPackages(answers.targetDir);
-            await installNpmPackages(answers.targetDir);
         } else if (
             project_type === PYTHON_VUE ||
             project_type === PYTHON_REACT

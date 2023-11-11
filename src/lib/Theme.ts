@@ -62,7 +62,9 @@ import {
 import { simpleGit } from 'simple-git';
 import { THEME_TYPE } from '../helper/constants';
 
-shortid.characters('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_@');
+shortid.characters(
+    '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_@',
+);
 
 export default class Theme {
     /*
@@ -154,13 +156,23 @@ export default class Theme {
             throw new CommandError(`Error reading ${path} file.!!!`);
         }
     }
-    public static async validateSectionWithDB(available_sections_in_db, available_sections){
+    public static async validateSectionWithDB(
+        available_sections_in_db,
+        available_sections,
+    ) {
         // validate available section
-        const db_section_names = available_sections_in_db.map(section => section.name)
-        const local_section_names = available_sections.map(section => section.name)
-        const mismatched_sections = _.difference(db_section_names, local_section_names)
+        const db_section_names = available_sections_in_db.map(
+            (section) => section.name,
+        );
+        const local_section_names = available_sections.map(
+            (section) => section.name,
+        );
+        const mismatched_sections = _.difference(
+            db_section_names,
+            local_section_names,
+        );
 
-        if(mismatched_sections.length > 0){
+        if (mismatched_sections.length > 0) {
             const questions = [
                 {
                     type: 'confirm',
@@ -169,17 +181,21 @@ export default class Theme {
                 },
             ];
 
-            const log_section_details = mismatched_sections.map(name => `❌ ${name} section is not present in your code`).join("\n")
+            const log_section_details = mismatched_sections
+                .map((name) => `❌ ${name} section is not present in your code`)
+                .join('\n');
 
             // Show which section is not present and in which page it is set as an preset section.
             // Ex. ❌ hero_image section used in home page is not available
             console.log('\n' + chalk.yellow(log_section_details) + '\n');
 
-            await inquirer.prompt(questions).then(async answers => {
+            await inquirer.prompt(questions).then(async (answers) => {
                 if (answers.proceed) {
                     Logger.info('Proceeding without unavailable sections...');
                 } else {
-                    throw new Error(`Please review the sections. Some of the sections that were available in the theme are missing from your code.`)
+                    throw new Error(
+                        `Please review the sections. Some of the sections that were available in the theme are missing from your code.`,
+                    );
                 }
             });
         }
@@ -799,9 +815,6 @@ export default class Theme {
             let { data: theme } =
                 await ThemeService.getThemeById(currentContext);
 
-          
-
-            
             // Clear previosu builds
             Theme.clearPreviousBuild();
 
@@ -841,12 +854,16 @@ export default class Theme {
 
             Logger.info('Uploading theme assets/fonts');
             await Theme.assetsFontsUploader();
-            
-            let available_sections = await Theme.getAvailableReactSectionsForSync();
-            
+
+            let available_sections =
+                await Theme.getAvailableReactSectionsForSync();
+
             await Theme.validateAvailableSections(available_sections);
 
-            await Theme.validateSectionWithDB(theme.available_sections, available_sections);
+            await Theme.validateSectionWithDB(
+                theme.available_sections,
+                available_sections,
+            );
 
             Logger.info('Uploading bundle files');
             let pArr = await Theme.uploadReactThemeBundle({ buildPath });
@@ -940,8 +957,11 @@ export default class Theme {
 
             let available_sections = await Theme.getAvailableSectionsForSync();
             await Theme.validateAvailableSections(available_sections);
-            await Theme.validateSectionWithDB(theme.available_sections, available_sections);
-            
+            await Theme.validateSectionWithDB(
+                theme.available_sections,
+                available_sections,
+            );
+
             // Create index.js with section file imports
             await Theme.createSectionsIndexFile(available_sections);
 
@@ -1127,7 +1147,11 @@ export default class Theme {
             await startServer({ domain, host, isSSR, port });
 
             // open browser
-            await open(getFullLocalUrl(port));
+            try {
+                await open(getFullLocalUrl(port));
+            } catch (err) {
+                console.log(`Open in browser: ${getFullLocalUrl(port)}`);
+            }
             Logger.info(chalk.bold.green(`Watching files for changes`));
             let watcher = chokidar.watch(path.resolve(process.cwd(), 'theme'), {
                 persistent: true,
@@ -1197,7 +1221,11 @@ export default class Theme {
 
             // open browser
             Logger.info(chalk.bold.green(`opening browser here`));
-            await open(getFullLocalUrl(port));
+            try {
+                await open(getFullLocalUrl(port));
+            } catch {
+                console.log(`Open in browser: ${getFullLocalUrl(port)}`);
+            }
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
@@ -2846,9 +2874,24 @@ export default class Theme {
         if (!fs.existsSync(destinationFolder)) {
             fs.mkdirSync(destinationFolder, { recursive: true });
         }
-        
-        const outer_items = ["package.json", "package-lock.json", "debug.log", "assets.json", "pages.json", "theme", "babel.config.js", "fdk.config.js", ".fdk", ".git", ".gitignore", ".husky", "node_modules", "config.json"]
-        const moved_files = []
+
+        const outer_items = [
+            'package.json',
+            'package-lock.json',
+            'debug.log',
+            'assets.json',
+            'pages.json',
+            'theme',
+            'babel.config.js',
+            'fdk.config.js',
+            '.fdk',
+            '.git',
+            '.gitignore',
+            '.husky',
+            'node_modules',
+            'config.json',
+        ];
+        const moved_files = [];
         files.forEach((fileOrFolder) => {
             if (outer_items.includes(fileOrFolder)) return;
             const sourcePath = path.join(sourceFolder, fileOrFolder);
@@ -3000,7 +3043,7 @@ export default class Theme {
             if (!packageJsonData.theme_metadata?.theme_type) {
                 const context = getActiveContext();
                 if (!context.theme_type) {
-                    context.theme_type = THEME_TYPE.vue2 as any
+                    context.theme_type = THEME_TYPE.vue2 as any;
                 }
                 if (!packageJsonData.theme_metadata) {
                     packageJsonData.theme_metadata = {};

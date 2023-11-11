@@ -113,9 +113,19 @@ export default class Auth {
                 let partnerDomain = env.replace('api', 'partners');
                 domain = `https://${partnerDomain}`;
             }
-            if (Auth.isOrganizationChange || !isLoggedIn) {
-                await open(
-                    `${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(`${getLocalBaseUrl()}:${port}`)}`,
+            try {
+                if (Auth.isOrganizationChange || !isLoggedIn) {
+                    await open(
+                        `${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
+                            `${getLocalBaseUrl()}:${port}`,
+                        )}`,
+                    );
+                }
+            } catch (err) {
+                console.log(
+                    `Open link on browser: ${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
+                        `${getLocalBaseUrl()}:${port}`,
+                    )}`,
                 );
             }
         } catch (error) {
