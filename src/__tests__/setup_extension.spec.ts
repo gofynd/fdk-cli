@@ -58,6 +58,7 @@ describe('Setup extension command', () => {
         });
 
         jest.spyOn(Extension, 'installDependencies').mockResolvedValue();
+        jest.spyOn(Extension, 'checkDependencies').mockReturnValue();
     });
 
     it('should clone node vue tempalte files', async () => {
