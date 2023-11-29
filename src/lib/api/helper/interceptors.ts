@@ -4,8 +4,8 @@ const { transformRequestOptions } = require('../../../helper/utils');
 const { sign } = require('./signature');
 import Debug from '../../Debug';
 import CommandError, { ErrorCodes } from '../../CommandError';
-import AuthenticationService from '../services/auth.service';
 import ConfigStore, { CONFIG_KEYS } from '../../Config';
+import { MAX_RETRY } from '../../../helper/constants';
 import { COMMON_LOG_MESSAGES } from '../../../lib/Logger';
 
 function getTransformer(config) {
@@ -24,12 +24,6 @@ function getTransformer(config) {
     );
 }
 
-function getCompanyId(path: string): number {
-    const pathArr = path.split('/');
-    const companyId = pathArr[pathArr.findIndex((p) => p === 'company') + 1];
-
-    return Number(companyId);
-}
 function interceptorFn(options) {
     return async (config) => {
         try {
@@ -97,7 +91,7 @@ function interceptorFn(options) {
             }
             return config;
         } catch (error) {
-            throw new Error(error);
+            throw error;
         }
     };
 }
@@ -151,12 +145,17 @@ export function responseErrorInterceptor() {
                     ErrorCodes.LARGE_PAYLOAD.code,
                 );
             }
-            // The request was made but no error.response was received
-            Debug(`\nError => Code: ${error.code} Message: ${error.message}\n`);
-            throw new CommandError(
-                `${ErrorCodes.ECONN_RESET.message}`,
-                ErrorCodes.ECONN_RESET.code,
-            );
+            // Check if axios already tried 3 times and then getting into error interceptor
+            // then directly send error network error
+            if (error.config?.['axios-retry']?.retryCount === MAX_RETRY) {
+                Debug(
+                    `\nError => Code: ${error.code} Message: ${error.message} Url: ${error.config.url}\n`,
+                );
+                throw new Error('Please retry, possibly some network issue!!');
+            }
+
+            // If axios haven't tried 3(MAX_RETRY) times, then throw whatever error you got from last API call try
+            throw error;
         } else {
             throw new Error(
                 'There was an issue in setting up the request, Please raise issue',

@@ -5,7 +5,6 @@ import vm from 'vm';
 import CommandError, { ErrorCodes } from '../lib/CommandError';
 import { COMMON_LOG_MESSAGES } from '../lib/Logger';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
-import { createDirectory } from './file.utils';
 import execa from 'execa';
 import Debug from '../lib/Debug';
 import * as babel from '@babel/core';
@@ -13,13 +12,11 @@ import * as fsNode from 'fs';
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
 import * as escodegen from 'escodegen';
+import { createDirectory } from './file.utils';
+import { DEFAULT_CONTEXT } from '../lib/ThemeContext';
 
 const FDK_PATH = () => path.join(process.cwd(), '.fdk');
 const CONTEXT_PATH = () => path.join(FDK_PATH(), 'context.json');
-const DEFAULT_CONTEXT = {
-    theme: { active_context: '', contexts: {} },
-    partners: {},
-};
 
 export type ThemeType = 'react' | 'vue2' | null;
 
@@ -78,24 +75,23 @@ export const getActiveContext = (): ThemeContextInterface => {
     );
 };
 
-export const createContext = async (context) => {
-    try {
-        if (!isAThemeDirectory()) createDirectory(FDK_PATH());
-        if (!hasContext()) {
-            await fs.writeJSON(CONTEXT_PATH(), DEFAULT_CONTEXT);
-        }
-        let contextsData = await fs.readJSON(CONTEXT_PATH());
-        if (contextsData.theme.contexts[context.name])
-            throw new CommandError('Context with the same name already exists');
-        context.env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
-        contextsData.theme.active_context = context.name;
-        contextsData.theme.contexts[context.name] = context;
-        await fs.writeJSON(CONTEXT_PATH(), contextsData, {
-            spaces: 2,
-        });
-    } catch (error) {
-        throw new CommandError(error.message, error.code);
+export const createContext = async context => {
+  try {
+    // this is needed for theme creation command, as we are cloning theme template and directly passing context.
+    if (!isAThemeDirectory()) createDirectory(FDK_PATH());
+    if (!hasContext()) {
+        await fs.writeJSON(CONTEXT_PATH(), DEFAULT_CONTEXT);
     }
+    let contextsData = await fs.readJSON(CONTEXT_PATH());
+    context.env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+    contextsData.theme.active_context = context.name;
+    contextsData.theme.contexts[context.name] = context;
+    await fs.writeJSON(CONTEXT_PATH(), contextsData, {
+      spaces: 2,
+    });
+  } catch (error) {
+    throw new CommandError(error.message, error.code);
+  }
 };
 
 export const isAThemeDirectory = () => {
@@ -136,7 +132,7 @@ export const requireFile = (path) => {
 export const evaluateModule = (code) => {
     var script = new vm.Script(NativeModule.wrap(code), {
         displayErrors: true,
-    });
+    } as vm.ScriptOptions);
     var compiledWrapper = script.runInNewContext();
     var m = { exports: {} } as any;
 
@@ -289,6 +285,11 @@ export function debounce<T extends (...args: any[]) => void>(
         }, delay);
     };
 }
+
+export const isNetworkErrorCode = (code) =>
+    ['ECONNABORTED', 'EPIPE', 'ENOTFOUND', 'ETIMEDOUT', 'ECONNRESET'].includes(
+        code,
+    );
 
 export const isValidDomain = (domain) => {
     const domainRegex = /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
