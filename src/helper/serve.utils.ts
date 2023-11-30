@@ -353,6 +353,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
     app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
 
     app.use((request, response, next) => {
+        // Filtering so that HMR file requests are not routed to skyfire pods
         if (request.url.indexOf('.hot-update.json') !== -1) {
             return response.json({ c: ['themeBundle'], r: [], m: [] });
         }
