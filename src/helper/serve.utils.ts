@@ -356,6 +356,9 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
         if (request.url.indexOf('.hot-update.json') !== -1) {
             return response.json({ c: ['themeBundle'], r: [], m: [] });
         }
+        if (request.url.indexOf('.hot-update.js') !== -1) {
+            return response.send('');
+        }
         next();
     });
 
