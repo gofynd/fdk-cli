@@ -1,12 +1,12 @@
 const combineURLs = require('axios/lib/helpers/combineURLs');
 const isAbsoluteURL = require('axios/lib/helpers/isAbsoluteURL');
-const { transformRequestOptions } = require('../../../helper/utils');
 const { sign } = require('./signature');
 import Debug from '../../Debug';
 import CommandError, { ErrorCodes } from '../../CommandError';
 import ConfigStore, { CONFIG_KEYS } from '../../Config';
 import { MAX_RETRY } from '../../../helper/constants';
 import { COMMON_LOG_MESSAGES } from '../../../lib/Logger';
+import { transformRequestOptions }  from '../../../helper/utils';
 
 function getTransformer(config) {
     const { transformRequest } = config;
