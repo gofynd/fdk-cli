@@ -185,7 +185,7 @@ export const installJavaPackages = async (
 ) => {
     return new Promise(async (resolve, reject) => {
         await execa('mvn', ['clean'], { cwd: targetDir });
-        let exec = execa('mvn', ['package'], { cwd: targetDir });
+        let exec = execa('mvn', ['package', '-DskipTests'], { cwd: targetDir });
         exec.stdout.on('data', (data) => {
             Debug(data);
         });
