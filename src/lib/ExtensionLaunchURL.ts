@@ -2,9 +2,7 @@ import fs from 'fs';
 import {
     replaceContent,
     Object,
-    getPartnerAccessToken,
 } from '../helper/extension_utils';
-import Partner from './Partner';
 import { readFile, writeFile } from '../helper/file.utils';
 import chalk from 'chalk';
 import ExtensionService from './api/services/extension.service';
@@ -14,17 +12,8 @@ import Spinner from '../helper/spinner';
 export default class ExtensionLaunchURL {
     public static async setLaunchURLHandler(options) {
         try {
-            let partner_access_token = getPartnerAccessToken();
-
-            if (!partner_access_token) {
-                partner_access_token = (
-                    await Partner.connectHandler({ readOnly: true, ...options })
-                ).partner_access_token;
-            }
-
             ExtensionLaunchURL.updateLaunchURL(
                 options.apiKey,
-                partner_access_token,
                 options.url,
             );
         } catch (error) {
@@ -34,7 +23,6 @@ export default class ExtensionLaunchURL {
 
     public static async updateLaunchURL(
         extension_api_key: string,
-        partner_access_token: string,
         launch_url: string,
     ): Promise<void> {
         try {
@@ -44,7 +32,6 @@ export default class ExtensionLaunchURL {
                 let manualUpdateRequired = false;
                 await ExtensionService.updateLaunchURL(
                     extension_api_key,
-                    partner_access_token,
                     { base_url: launch_url },
                 );
 

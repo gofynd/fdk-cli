@@ -61,32 +61,12 @@ export default {
         }
     },
 
-    getExtensionDataUsingToken: async (
-        extension_api_key: string,
-        partner_access_token: string,
-    ) => {
-        try {
-            let headers = getCommonHeaderOptions().headers;
-            headers['x-partner-token'] = partner_access_token;
-
-            let response = await ApiClient.get(
-                URLS.GET_EXTENSION_DETAILS(extension_api_key),
-                { headers: headers },
-            );
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
     updateLaunchURL: async (
         extension_api_key: string,
-        partner_access_token: string,
         data: UpdateLaunchURLPayload,
     ) => {
         try {
             let headers = getCommonHeaderOptions().headers;
-            headers['x-partner-token'] = partner_access_token;
 
             let axiosOptions = Object.assign(
                 {},
@@ -102,22 +82,6 @@ export default {
                 URLS.UPDATE_EXTENSION_DETAILS(extension_api_key),
                 axiosOptions,
             );
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    getOrganizationData: async (partner_access_token: string) => {
-        try {
-            let headers = getCommonHeaderOptions().headers;
-            headers['x-partner-token'] = partner_access_token;
-
-            let response = await ApiClient.get(
-                URLS.GET_ORGANIZATION_DATA(partner_access_token),
-                { headers: headers },
-            );
-            response.data.partner_access_token = partner_access_token;
             return response.data;
         } catch (error) {
             throw error;

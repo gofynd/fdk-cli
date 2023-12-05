@@ -41,7 +41,6 @@ describe('Setup extension command', () => {
     beforeAll(async () => {
         program = await init('fdk');
         configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'fynd');
-        configStore.set(CONFIG_KEYS.PARTNER_ACCESS_TOKEN, 'mocktoken');
     });
 
     afterAll(async () => {
@@ -54,7 +53,9 @@ describe('Setup extension command', () => {
 
     beforeEach(async () => {
         jest.spyOn(axios, 'get').mockResolvedValue({
-            data: { base_url: 'https://abc.com', name: 'Test_Extension' },
+            data: { base_url: 'https://abc.com', name: 'Test_Extension', client_data: {
+                secret: ['api_secret']
+            } },
         });
 
         jest.spyOn(Extension, 'installDependencies').mockResolvedValue();

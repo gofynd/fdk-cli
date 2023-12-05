@@ -6,10 +6,6 @@ export interface Object {
     [key: string]: any;
 }
 
-export const getPartnerAccessToken = (): string => {
-    return configStore.get(CONFIG_KEYS.PARTNER_ACCESS_TOKEN);
-};
-
 export const getDefaultContextData = (): Object => {
     return {
         partners: {

@@ -149,8 +149,8 @@ export const URLS = {
     },
     UPDATE_EXTENSION_DETAILS: (extension_api_key: string): string => {
         return urlJoin(
-            MIXMASTER_URL('panel'),
-            `/extensions/${extension_api_key}`,
+            MIXMASTER_URL('partner'),
+            `organization/${organization_id}/extension/${extension_api_key}`,
         );
     },
     GET_ORGANIZATION_DATA: (partner_access_token: string): string => {
