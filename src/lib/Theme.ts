@@ -74,12 +74,6 @@ export default class Theme {
         pull-config
     */
     static TEMPLATE_DIRECTORY = path.join(__dirname, '..', '..', 'template');
-    static REACT_TEMPLATE_DIRECTORY = path.join(
-        __dirname,
-        '..',
-        '..',
-        'react-template',
-    );
     static TEMP_REACT_TEMPLATE_DIRECTORY = path.join(
         __dirname,
         '..',
@@ -481,8 +475,8 @@ export default class Theme {
         try {
             Logger.info('Copying template files');
             await Theme.copyTemplateFiles(
-                Theme.TEMP_REACT_TEMPLATE_DIRECTORY,
                 targetDirectory,
+                Theme.TEMP_REACT_TEMPLATE_DIRECTORY,
                 true,
             );
             Logger.info('Copied template files');
@@ -613,18 +607,9 @@ export default class Theme {
 
             Logger.info('Copying template config files');
             shouldDelete = true;
-            if (themeData.theme_type === THEME_TYPE.react) {
-                await Theme.copyTemplateFiles(
-                    Theme.REACT_TEMPLATE_DIRECTORY,
-                    targetDirectory,
-                    true,
-                );
-            } else {
-                await Theme.copyTemplateFiles(
-                    Theme.TEMPLATE_DIRECTORY,
-                    targetDirectory,
-                );
-            }
+            await Theme.copyTemplateFiles(
+                targetDirectory,
+            );
 
             let context: any = {
                 name: themeName + '-' + Env.getEnvValue(),
@@ -1274,8 +1259,8 @@ export default class Theme {
     };
     // private methods
     private static async copyTemplateFiles(
-        templateDirectory,
         targetDirectory,
+        templateDirectory?,
         isReactTheme?,
     ) {
         try {
