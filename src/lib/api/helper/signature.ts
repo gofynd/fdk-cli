@@ -126,7 +126,6 @@ class RequestSigner {
     signature() {
         let kCredentials = '1234567';
         let strTosign = this.stringToSign();
-        // console.log(strTosign);
         return `v1.1:${hmac(kCredentials, strTosign, 'hex')}`;
     }
 
