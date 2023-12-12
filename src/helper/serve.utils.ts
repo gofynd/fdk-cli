@@ -420,7 +420,8 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
                     port,
                     domain: getFullLocalUrl(port),
                 },
-                headers
+            }, {
+            headers
             })
             .catch((error) => {
                 console.log(error);
