@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import execa from 'execa';
 import rimraf from 'rimraf';
+import which from 'which';
 
 import Spinner from '../helper/spinner';
 import CommandError, { ErrorCodes } from './CommandError';
@@ -230,6 +231,39 @@ export default class Extension {
         }
     }
 
+    // check for system dependencies
+    static checkDependencies(project_type: string) {
+
+        const missingDependencies: string[] = [];
+        const requiredDependencies: string[] = ['npm'];
+
+        if (project_type === JAVA_REACT || project_type === JAVA_VUE) {
+            requiredDependencies.push('mvn');
+        }
+
+        if (project_type === PYTHON_REACT || project_type === PYTHON_VUE) {
+            const osPlatform = process.platform;
+
+            if (osPlatform === 'darwin' || osPlatform === 'linux') {
+                requiredDependencies.push('python3');
+            } else if (osPlatform === 'win32') {
+                requiredDependencies.push('python');
+            }
+        }
+
+        for (const dependency of requiredDependencies) {
+            try {
+                which.sync(dependency);
+            } catch(error) {
+                missingDependencies.push(dependency);
+            }
+        }
+
+        if (missingDependencies.length > 0) {
+            throw new CommandError(`Missing Dependencies: ${missingDependencies.join(', ')} \nInstall the required dependencies on your system before creating an extension.`);
+        }
+    }
+
     // command handler for "extension init"
     public static async initExtensionHandler(options: Object) {
         try {
@@ -317,6 +351,8 @@ export default class Extension {
                 extensionTypeQuestions,
             );
 
+            Extension.checkDependencies(prompt_answers.project_type);
+
             answers.launch_url = 'http://localdev.fyndx0.de';
             answers.project_url = PROJECT_REPOS[prompt_answers.project_type];
             answers = {
@@ -373,6 +409,8 @@ export default class Extension {
 
             answers = { ...answers, ...(await inquirer.prompt(questions)) };
             answers.project_url = PROJECT_REPOS[answers.project_type];
+
+            Extension.checkDependencies(answers.project_type)
 
             let extension_data: Object;
             let spinner = new Spinner('Verifying API Keys');

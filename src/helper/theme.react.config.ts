@@ -192,6 +192,7 @@ const baseConfig = (ctx) => {
 const baseSectionConfig = ({ buildPath, context }) => {
 	return {
 		mode: 'production',
+		target: 'node',
 		entry: path.resolve(context, 'theme/sections/index.js'),
 		module: {
 			rules: [
@@ -251,6 +252,7 @@ const baseSectionConfig = ({ buildPath, context }) => {
 const baseCustomTemplateConfig = ({ buildPath, context }) => {
 	return {
 		mode: 'production',
+		target: 'node',
 		entry: path.resolve(context, 'theme/custom-templates/index.jsx'),
 		module: {
 			rules: [

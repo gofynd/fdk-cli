@@ -6,7 +6,7 @@ import CommandError, { ErrorCodes } from '../../CommandError';
 import ConfigStore, { CONFIG_KEYS } from '../../Config';
 import { MAX_RETRY } from '../../../helper/constants';
 import { COMMON_LOG_MESSAGES } from '../../../lib/Logger';
-import {transformRequestOptions} from "../../../helper/utils";
+import { transformRequestOptions }  from '../../../helper/utils';
 
 function getTransformer(config) {
     const { transformRequest } = config;
