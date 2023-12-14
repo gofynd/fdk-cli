@@ -212,7 +212,7 @@ export async function init(programName: string) {
     configStore.set(CONFIG_KEYS.API_VERSION, '1.0');
     // set default environment
     if (!configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE))
-        configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'fynd');
+        configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'api.fynd.com');
     program.on('command:*', (subCommand: any) => {
         let msg = `"${subCommand.join(
             ' ',

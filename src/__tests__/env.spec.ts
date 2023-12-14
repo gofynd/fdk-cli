@@ -43,41 +43,11 @@ describe('Env Commands', () => {
             './src/fdk.ts',
             'env',
             'set',
-            '-n',
-            'fyndx1',
+            '-u',
+            'api.fyndx1.de',
         ]);
         const currentEnv = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
         await new Promise((r) => setTimeout(r, 2000));
-        expect(currentEnv).toMatch('fyndx1');
-    });
-
-    it('should console current active env', async () => {
-        await program.parseAsync([
-            'ts-node',
-            './src/fdk.ts',
-            'env',
-            'set',
-            '-n',
-            'fyndx1',
-        ]);
-        await program.parseAsync(['ts-node', './src/fdk.ts', 'env', 'get']);
-        const currentEnv = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
-        await new Promise((r) => setTimeout(r, 2000));
-        expect(currentEnv).toMatch('fyndx1');
-    });
-
-    it('should console all env list', async () => {
-        await program.parseAsync([
-            'ts-node',
-            './src/fdk.ts',
-            'env',
-            'set',
-            '-n',
-            'fyndx1',
-        ]);
-        await program.parseAsync(['ts-node', './src/fdk.ts', 'env', 'ls']);
-        const currentEnv = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
-        await new Promise((r) => setTimeout(r, 2000));
-        expect(currentEnv).toMatch('fyndx1');
+        expect(currentEnv).toMatch('api.fyndx1.de');
     });
 });

@@ -6,6 +6,7 @@ import axios from 'axios';
 import urljoin from 'url-join';
 import { isValidDomain } from '../helper/utils';
 import Debug from './Debug';
+import { getPlatformUrls } from './api/services/url';
 
 
 export default class Env {
@@ -30,7 +31,7 @@ export default class Env {
         try {
             // todo: remove name warning in 4.0.6
             if (options.name) {
-                console.warn(chalk.yellow('Warning: The -n/--name option is deprecated. Please use -u/--url instead.'));
+                console.warn(chalk.yellow(`Warning: The -n/--name option is deprecated. Please use -u/--url option instead. Ref: ${getPlatformUrls().partners}/help/docs/partners/themes/vuejs/command-reference#environment-commands-1`));
                 throw new Error('Please use -u/--url option.');
             }
             if (!options.url) {
