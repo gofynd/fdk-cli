@@ -213,12 +213,15 @@ export async function init(programName: string) {
     // set default environment
     const current_env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)
 
-    // todo: remove this warning in future version of fdk cli, whem everybody get used to set env by url.
-    if(!current_env.includes("api."))
-        console.warn(chalk.yellow('Warning: Reseting active environment to api.fynd.com. Please use `fdk env set -u <env-api-url>` to change active environment.'))
-
     if (!current_env || !current_env.includes("api."))
-        configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'api.fynd.com');
+    configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'api.fynd.com');
+
+    // todo: remove this warning in future version of fdk cli, whem everybody get used to set env by url.
+    if(!current_env.includes("api.")){
+        console.warn(chalk.yellow('Warning: Reseting active environment to api.fynd.com. Please use `fdk env set -u <env-api-url>` to change active environment.'))
+        throw 'Please use `fdk env set -u <env-api-url>` and change active environment';
+    }
+
     program.on('command:*', (subCommand: any) => {
         let msg = `"${subCommand.join(
             ' ',
