@@ -135,16 +135,11 @@ fdk env set [options]
 ```
 #### **Example**
 ```sh
-fdk env set -n fynd
-```
-#### **Example**
-```sh
 fdk env set -u api.fynd.com
 ```
 #### **Command Options**
 | Option        | Description | Required |
 | ------------- |-------------|----------|
-| --name, -n   | Environment name | Yes |
 | --url, -u   | Platform API domain | Yes |
 | --help    | Show help | No |
 | --verbose, -v | enable debug mode | No |
@@ -366,9 +361,6 @@ fdk theme open
 Extensions are pluggable snippets of code that can be installed in your applications so improve the feature set of your application. To know more visit - [Fynd Partners](https://partners.fynd.com/)
 
 Set the active environment before running extension commands
-```sh
-fdk env set -n fynd
-```
 ```sh
 fdk env set -u api.fynd.com
 ```
