@@ -134,7 +134,6 @@ export default class Auth {
                     let partnerDomain = env.replace('api', 'partners');
                     domain = `https://${partnerDomain}`;
                 }
-                domain = "http://localdev.fyndx1.de:8088"
                 await open(
                     `${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(`${getLocalBaseUrl()}:${port}`)}`,
                 );
