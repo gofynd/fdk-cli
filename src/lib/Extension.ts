@@ -162,6 +162,7 @@ export default class Extension {
                 const data: RegisterExtensionPayload = {
                     name: answers.name,
                     base_url: 'http://localdev.fynd.com',
+                    // We are just passing this url as temporary when preview url is called it gets updated with the ngrok url
                     extention_type: answers.type.toLowerCase(),
                 }
                 const { current_user: user } = ConfigStore.get(
