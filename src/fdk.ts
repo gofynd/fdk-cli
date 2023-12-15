@@ -217,7 +217,7 @@ export async function init(programName: string) {
     configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'api.fynd.com');
 
     // todo: remove this warning in future version of fdk cli, whem everybody get used to set env by url.
-    if(!current_env.includes("api.")){
+    if(current_env && !current_env.includes("api.")){
         console.warn(chalk.yellow('Warning: Reseting active environment to api.fynd.com. Please use `fdk env set -u <env-api-url>` to change active environment.'))
         process.exit(0);
     }
