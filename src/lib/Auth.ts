@@ -12,6 +12,8 @@ import { AVAILABLE_ENVS } from './Env';
 import ThemeService from './api/services/theme.service';
 import { getLocalBaseUrl } from '../helper/serve.utils';
 
+const SERVER_TIMER = 60000;
+
 async function checkTokenExpired(auth_token) {
     const { expiry_time } = auth_token;
     const currentTimestamp = Math.floor(Date.now() / 1000);
@@ -30,7 +32,7 @@ export const getApp = async () => {
 
     app.post('/token', async (req, res) => {
         try {
-            if (Auth.isOrganizationChange)
+            if (Auth.wantToChangeOrganization)
                 ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
             const expiryTimestamp =
                 Math.floor(Date.now() / 1000) + req.body.auth_token.expires_in;
@@ -38,7 +40,7 @@ export const getApp = async () => {
             ConfigStore.set(CONFIG_KEYS.AUTH_TOKEN, req.body.auth_token);
             ConfigStore.set(CONFIG_KEYS.ORGANIZATION, req.body.organization);
             Auth.stopSever();
-            if (Auth.isOrganizationChange)
+            if (Auth.wantToChangeOrganization)
                 Logger.info('Organization changed successfully');
             else Logger.info('User logged in successfully');
             res.status(200).json({ message: 'success' });
@@ -50,13 +52,30 @@ export const getApp = async () => {
     return { app };
 };
 
+function startTimer(){
+    Auth.timer_id = setTimeout(() => {
+        console.log(chalk.magenta('Server timeout: Please run fdk login command again.'));
+        Auth.stopSever()
+    }, SERVER_TIMER)
+}
+
+function resetTimer(){
+    if (Auth.timer_id) { 
+        clearTimeout(Auth.timer_id)
+        Auth.timer_id = null;
+    }
+}
 export const startServer = async () => {
     if (Auth.server) return Auth.server;
 
     const { app } = await getApp();
     const serverIn = require('http').createServer(app);
     Auth.server = serverIn.listen(port, (err) => {
-        if (err) console.log(err);
+        if (err) {
+            console.log(err);
+        }else{
+            startTimer();
+        }
     });
 
     return Auth.server;
@@ -68,7 +87,8 @@ async function checkVersionCompatibility() {
 
 export default class Auth {
     static server = null;
-    static isOrganizationChange = false;
+    static timer_id;
+    static wantToChangeOrganization = false;
     constructor() {}
     public static async login() {
         await checkVersionCompatibility();
@@ -79,7 +99,6 @@ export default class Auth {
             ),
         );
         const isLoggedIn = await Auth.isAlreadyLoggedIn();
-        await startServer();
         if (isLoggedIn) {
             const questions = [
                 {
@@ -92,28 +111,30 @@ export default class Auth {
             ];
             await inquirer.prompt(questions).then(async (answers) => {
                 if (answers.confirmChangeOrg === 'No') {
-                    Auth.isOrganizationChange = false;
-                    await Auth.stopSever();
+                    Auth.wantToChangeOrganization = false;
                     return;
                 } else {
-                    Auth.isOrganizationChange = true;
+                    Auth.wantToChangeOrganization = true;
+                    await startServer();
                 }
             });
-        }
+        } else 
+            await startServer();
         const env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
         try {
-            let domain = null;
-            if (AVAILABLE_ENVS[env]) {
-                let partnerDomain = AVAILABLE_ENVS[env].replace(
-                    'api',
-                    'partners',
-                );
-                domain = `https://${partnerDomain}`;
-            } else {
-                let partnerDomain = env.replace('api', 'partners');
-                domain = `https://${partnerDomain}`;
-            }
-            if (Auth.isOrganizationChange || !isLoggedIn) {
+            if (Auth.wantToChangeOrganization || !isLoggedIn) {
+                let domain = null;
+                if (AVAILABLE_ENVS[env]) {
+                    let partnerDomain = AVAILABLE_ENVS[env].replace(
+                        'api',
+                        'partners',
+                    );
+                    domain = `https://${partnerDomain}`;
+                } else {
+                    let partnerDomain = env.replace('api', 'partners');
+                    domain = `https://${partnerDomain}`;
+                }
+                domain = "http://localdev.fyndx1.de:8088"
                 await open(
                     `${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(`${getLocalBaseUrl()}:${port}`)}`,
                 );
@@ -169,6 +190,7 @@ export default class Auth {
         } else return false;
     };
     static stopSever = async () => {
-        Auth.server.close(() => {});
+        Auth.server?.close?.(() => {});
+        resetTimer();
     };
 }
