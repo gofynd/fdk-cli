@@ -2,12 +2,14 @@ import { URLS } from './url';
 import { getCommonHeaderOptions } from './utils';
 import ApiClient from '../ApiClient';
 
-type RegisterExtensionPayload = {
+export type RegisterExtensionPayload = {
     name: string;
     extention_type: 'private' | 'public';
     base_url: string;
-    scope?: [string]
-    logo?: Object
+    scope?: [string];
+    logo?: Object;
+    developed_by_name?: string;
+    contact_email?: string
 };
 
 type UpdateLaunchURLPayload = {
@@ -113,4 +115,5 @@ export default {
             throw error;
         }
     },
+
 };

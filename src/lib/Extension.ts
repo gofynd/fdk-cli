@@ -9,7 +9,8 @@ import which from 'which';
 
 import Spinner from '../helper/spinner';
 import CommandError, { ErrorCodes } from './CommandError';
-import ExtensionService from './api/services/extension.service';
+import ExtensionService, { RegisterExtensionPayload } from './api/services/extension.service';
+import ConfigStore, {CONFIG_KEYS} from './Config';
 
 import {
     Object,
@@ -158,16 +159,24 @@ export default class Extension {
 
             if (isRegisterExtension) {
                 spinner = new Spinner('Registering Extension');
+                const data: RegisterExtensionPayload = {
+                    name: answers.name,
+                    base_url: 'http://localdev.fynd.com',
+                    extention_type: answers.type.toLowerCase(),
+                }
+                const { current_user: user } = ConfigStore.get(
+                    CONFIG_KEYS.AUTH_TOKEN,
+                );
+                const activeEmail = 
+                    user.emails.find((e) => e.active && e.primary)?.email;
+                data.developed_by_name = `${user.first_name} ${user.last_name}`;
+                if(activeEmail){
+                data.contact_email = activeEmail;
+                }
                 try {
                     spinner.start();
                     let extension_data: Object =
-                        await ExtensionService.registerExtension(
-                            {
-                                name: answers.name,
-                                base_url: 'http://localdev.fynd.com',
-                                extention_type: answers.type.toLowerCase(),
-                            },
-                        );
+                        await ExtensionService.registerExtension(data);
                     answers.extension_api_key = extension_data.client_id;
                     answers.extension_api_secret = extension_data.secret;
                     answers.base_url = extension_data.launch_url;

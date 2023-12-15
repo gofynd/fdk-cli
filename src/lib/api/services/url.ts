@@ -153,13 +153,6 @@ export const URLS = {
             `organization/${organization_id}/extension/${extension_api_key}`,
         );
     },
-    GET_ORGANIZATION_DATA: (partner_access_token: string): string => {
-        return urlJoin(
-            MIXMASTER_URL('panel'),
-            `/accesstoken/${partner_access_token}/organization`,
-        );
-    },
-
     // Preview URL
     GET_DEVELOPMENT_ACCOUNTS: (page_no: number, page_size: number): string => {
         return urlJoin(

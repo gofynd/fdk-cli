@@ -102,11 +102,6 @@ ___
 | [preview-url](#extension-preview-url)   | Get extension preview url
 | [launch-url](#extension-launch-url)     | Get/set lanuch url |
 
-### Partner Commands
-| Command        | Description           | 
-| ------------- |-------------| 
-| [connect](#partner-connect)     | Add partner access token |
-
 <div id="commands-reference"><div/>
 
 ## Commands Reference
@@ -473,28 +468,6 @@ fdk extension launch-url set --url [url] --api-key [Extension API Key]
 ```sh
 fdk extension launch-url get --api-key [Extension API Key]
 ```
-___
-### Partner Commands
-
-<div id="partner-connect"></div>
-
-#### connect
-This command is used to add your partner access token to update extension details on partners panel.
-#### **Syntax**
-```sh
-fdk partner connect [options]
-```
-#### **Command Options**
-| Option        | Description           | 
-| ------------- |-------------| 
-| --help    | Show help |
-| --verbose, -v | enable debug mode |
-
-#### **Example**
-```sh
-fdk partner connect
-```
-___
 
 <div id="OtherProjects"></div>
 
