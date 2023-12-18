@@ -2,7 +2,6 @@ import CommandError from './CommandError';
 import Logger from './Logger';
 import inquirer from 'inquirer';
 import ConfigStore, { CONFIG_KEYS } from './Config';
-import { ALLOWD_ENV } from '../helper/constants';
 import open from 'open';
 import express from 'express';
 var cors = require('cors');
@@ -11,8 +10,9 @@ import chalk from 'chalk';
 import { AVAILABLE_ENVS } from './Env';
 import ThemeService from './api/services/theme.service';
 import { getLocalBaseUrl } from '../helper/serve.utils';
+import Debug from './Debug';
 
-const SERVER_TIMER = 60000;
+const SERVER_TIMER = 60000 * 2;
 
 async function checkTokenExpired(auth_token) {
     const { expiry_time } = auth_token;
@@ -53,6 +53,7 @@ export const getApp = async () => {
 };
 
 function startTimer(){
+    Debug("Server timer starts")
     Auth.timer_id = setTimeout(() => {
         console.log(chalk.magenta('Server timeout: Please run fdk login command again.'));
         Auth.stopSever()
@@ -61,6 +62,7 @@ function startTimer(){
 
 function resetTimer(){
     if (Auth.timer_id) { 
+        Debug("Server timer reset")
         clearTimeout(Auth.timer_id)
         Auth.timer_id = null;
     }
