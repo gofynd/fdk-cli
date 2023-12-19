@@ -12,7 +12,7 @@ import ThemeService from './api/services/theme.service';
 import { getLocalBaseUrl } from '../helper/serve.utils';
 import Debug from './Debug';
 
-const SERVER_TIMER = 60000 * 2;
+const SERVER_TIMER = 60000 * 5;
 
 async function checkTokenExpired(auth_token) {
     const { expiry_time } = auth_token;
