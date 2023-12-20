@@ -10,6 +10,7 @@ import chalk from 'chalk';
 import ExtensionService from './api/services/extension.service';
 import CommandError from './CommandError';
 import Spinner from '../helper/spinner';
+import path from 'path';
 
 export default class ExtensionLaunchURL {
     public static async setLaunchURLHandler(options) {
@@ -38,7 +39,7 @@ export default class ExtensionLaunchURL {
         launch_url: string,
     ): Promise<void> {
         try {
-            let java_env_file_path = './src/main/resources/application.yml';
+            let java_env_file_path = path.join('src', 'main', 'resources', 'application.yml');
             let spinner = new Spinner('Updating Launch URL');
             try {
                 spinner.start();
