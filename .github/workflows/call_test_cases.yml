@@ -30,6 +30,7 @@ jobs:
 
     - name: Install packages and run test cases
       run: |
+        export NODE_OPTIONS=--max_old_space_size=4096
         npm install
         npm test
 
