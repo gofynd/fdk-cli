@@ -8,6 +8,7 @@ import chalk from 'chalk';
 import ExtensionService from './api/services/extension.service';
 import CommandError from './CommandError';
 import Spinner from '../helper/spinner';
+import path from 'path';
 
 export default class ExtensionLaunchURL {
     public static async setLaunchURLHandler(options) {
@@ -26,6 +27,7 @@ export default class ExtensionLaunchURL {
         launch_url: string,
     ): Promise<void> {
         try {
+            let java_env_file_path = path.join('src', 'main', 'resources', 'application.yml');
             let spinner = new Spinner('Updating Launch URL');
             try {
                 spinner.start();
@@ -43,7 +45,17 @@ export default class ExtensionLaunchURL {
                         `EXTENSION_BASE_URL="${launch_url}"\n`,
                     );
                     writeFile('./.env', envData);
-                } else {
+                }
+                else if (fs.existsSync(java_env_file_path)) {
+                    let envData = readFile(java_env_file_path);
+                    envData = replaceContent(
+                        envData,
+                        `base_url.*[\n]`,
+                        `base_url: '${launch_url}'\n`,
+                    );
+                    writeFile(java_env_file_path, envData);
+                }
+                else {
                     manualUpdateRequired = true;
                 }
                 spinner.succeed();
