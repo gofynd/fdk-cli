@@ -1,6 +1,7 @@
 import { URLS } from './url';
 import { getCommonHeaderOptions } from './utils';
 import ApiClient from '../ApiClient';
+import CommandError, { ErrorCodes } from '../../CommandError';
 
 export type RegisterExtensionPayload = {
     name: string;
@@ -115,5 +116,26 @@ export default {
             throw error;
         }
     },
-
+    getFyndPlatformVersion: async () => {
+        try {
+            let axiosOptions = Object.assign({}, getCommonHeaderOptions()); 
+            let response = await ApiClient.get(URLS.FYND_PLATFORM_VERSION(), axiosOptions);
+            return response.data;
+        }
+        catch(err){
+            if(err.response.status === 400){
+                throw new CommandError(
+                    ErrorCodes.FP_VERSION_NOT_AVAILABLE.message,
+                    ErrorCodes.FP_VERSION_NOT_AVAILABLE.code,
+                );
+            }
+            if(err.response.status === 404){
+                throw new CommandError(
+                    `/fpversion route not available at nginx please add this route`,
+                    ErrorCodes.FP_VERSION_NOT_AVAILABLE.code,
+                );
+            }
+            throw err; 
+        }
+    }
 };

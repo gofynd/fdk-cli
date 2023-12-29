@@ -68,6 +68,16 @@ export const ErrorCodes = {
         message: 'Network issue',
         code: 'FDK-0009',
     },
+    IN_COMPATIBLE_THEME_VERSION: {
+        message: (currentVersion)=> {
+         return `Your Fyndplatform version is currently ${currentVersion}. For compatibility, this fdk/cli requires Fyndplatform version 1.9.1 or newer. To align with your current Fynd Platform version, please downgrade your fdk/cli to any of the latest versions less than 5.0.0.`
+        },
+        code: 'FDK-002'
+    },
+    FP_VERSION_NOT_AVAILABLE: {
+       message: 'Fyndplatform version not available please add the version with a variable PLATFORM_VERSION in your cluster or sandbox',
+       code: 'FDK-002'
+    }
 };
 
 export default class CommandError extends Error {

@@ -13,6 +13,7 @@ import Extension, {
     PYTHON_VUE,
 } from '../lib/Extension';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
+import { URLS } from '../lib/api/services/url';
 
 let program;
 const envFileData = `EXTENSION_API_KEY="api_key"\nEXTENSION_API_SECRET="api_secret"\nEXTENSION_BASE_URL="https://abc.com"\nEXTENSION_CLUSTER_URL="https://api.fynd.com"`;
@@ -52,12 +53,24 @@ describe('Setup extension command', () => {
     });
 
     beforeEach(async () => {
-        jest.spyOn(axios, 'get').mockResolvedValue({
-            data: { base_url: 'https://abc.com', name: 'Test_Extension', client_data: {
-                secret: ['api_secret']
-            } },
-        });
-
+        jest.spyOn(axios, 'get').mockImplementation((url) => {
+            if (url === URLS.FYND_PLATFORM_VERSION()) {
+              return Promise.resolve({
+                data: {
+                  "version": "1.9.1"
+                },
+              });
+            }
+            return Promise.resolve({
+              data: {
+                base_url: 'https://abc.com',
+                name: 'Test_Extension',
+                client_data: {
+                  secret: ['api_secret']
+                }
+              },
+            });
+          });
         jest.spyOn(Extension, 'installDependencies').mockResolvedValue();
         jest.spyOn(Extension, 'checkDependencies').mockReturnValue();
     });

@@ -46,7 +46,27 @@ jest.mock('configstore', () => {
 });
 
 describe('Extension preview-url command', () => {
-    beforeAll(async () => {});
+    beforeAll(async () => {
+        jest.spyOn(axios, "get").mockResolvedValue({
+            data: {"version": "1.9.1"},
+        })
+        jest.spyOn(axios, 'get').mockImplementation((url) => {
+            let data = {};
+            if (url === URLS.FYND_PLATFORM_VERSION()) {
+                data = {
+                    data: {
+                      "version": "1.9.1"
+                    },
+                  };
+            }
+            else if(url === URLS.GET_DEVELOPMENT_ACCOUNTS(1, 9999)){
+                data = {
+                    data: {items: [{ company: { uid: COMPANY_ID, name: 'cli-test' } }]},
+                }
+            }
+            return Promise.resolve(data);
+          });
+    });
 
     afterAll(async () => {
         // restore console log mock so it does not affect other test cases
@@ -63,12 +83,6 @@ describe('Extension preview-url command', () => {
 
         // mock axios
         const mockAxios = new MockAdapter(axios);
-
-        mockAxios
-            .onGet(`${URLS.GET_DEVELOPMENT_ACCOUNTS(1, 9999)}`)
-            .reply(200, {
-                items: [{ company: { uid: COMPANY_ID, name: 'cli-test' } }],
-            });
 
         mockAxios
             .onPatch(`${URLS.UPDATE_EXTENSION_DETAILS(EXTENSION_KEY)}`)

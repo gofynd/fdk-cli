@@ -21,9 +21,9 @@ import {
     AUTHENTICATION_COMMANDS,
     ENVIRONMENT_COMMANDS,
     EXTENSION_COMMANDS,
-    PARTNER_COMMANDS,
     ALL_THEME_COMMANDS,
 } from './helper/constants';
+import ExtensionService from './lib/api/services/extension.service';
 const packageJSON = require('../package.json');
 
 async function checkTokenExpired(auth_token) {
@@ -105,7 +105,6 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
             const authCommand = args[1].name();
             const themeCommand = args[1].name();
             const extensionCommand = args[1].name();
-            const partnerCommand = args[1].name();
 
             if (
                 !(
@@ -131,11 +130,6 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
                 !(
                     EXTENSION_COMMANDS.findIndex((c) =>
                         extensionCommand.includes(c),
-                    ) !== -1
-                ) &&
-                !(
-                    PARTNER_COMMANDS.findIndex((c) =>
-                        partnerCommand.includes(c),
                     ) !== -1
                 ) &&
                 !configStore.get(CONFIG_KEYS.AUTH_TOKEN)
@@ -176,6 +170,15 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
                         );
                     }
                 }
+            }
+            if(parent.args.includes('extension')) {
+                    const { version } = await ExtensionService.getFyndPlatformVersion();
+                    if(!semver.gte(version, '1.9.1')){
+                        throw new CommandError(
+                            ErrorCodes.IN_COMPATIBLE_THEME_VERSION.message(version),
+                            ErrorCodes.IN_COMPATIBLE_THEME_VERSION.code,
+                        );
+                    }
             }
             await asyncFn(...args);
         } catch (err) {

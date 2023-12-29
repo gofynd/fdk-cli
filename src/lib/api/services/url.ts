@@ -170,4 +170,8 @@ export const URLS = {
     IS_VERSION_COMPATIBLE: () => {
         return urlJoin(BLITZKRIEG_PANEL_URL(), '/_compatibility');
     },
+
+    FYND_PLATFORM_VERSION: () => {
+        return urlJoin(getBaseURL(), "/fpversion");
+    }
 };

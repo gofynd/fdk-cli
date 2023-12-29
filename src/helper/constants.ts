@@ -14,7 +14,6 @@ export const ENVIRONMENT_COMMANDS = ['env'];
 export const AUTHENTICATION_COMMANDS = ['auth', 'login', 'logout'];
 export const EXTENSION_COMMANDS = ['init', 'setup', 'get', 'set'];
 export const MAX_RETRY = 5;
-export const PARTNER_COMMANDS = ['connect'];
 export const THEME_TYPE = {
     vue2: "vue2",
     react: "react"
