@@ -38,8 +38,8 @@ export const ErrorCodes = {
     NO_COMPANY_FOUND: {
         message: (company_type = 'live', domain) => {
             if (company_type === 'live')
-                return `No live company found, please request live company access from partners panel under your selected organization.  For more details, refer to the documentation link: ${domain}/help/docs/partners/architecture/development-accounts/#request-access-for-the-live-company-from-a-seller`;
-            return `No development company found, please create development company from partners panel under your selected organization. For more details, refer to the documentation link: ${domain}/help/docs/partners/architecture/development-accounts`;
+                return `No live company found, please request live company access from partners panel under your selected organization.  For more details, refer to the documentation link: ${domain}/help/docs/guide/partner-panel/accounts#requesting-access-to-a-live-account-of-client`;
+            return `No development company found, please create development company from partners panel under your selected organization. For more details, refer to the documentation link: ${domain}/help/docs/guide/partner-panel/accounts#creating-and-managing-development-accounts`;
         },
         code: 'FDK-0009',
     },
