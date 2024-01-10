@@ -6,11 +6,11 @@ on:
         - v[0-9]+.[0-9]+.[0-9]+-beta.[0-9]+
 
 jobs:
-  # run-test-cases:
-  #   uses: ./.github/workflows/call_test_cases.yml
+  run-test-cases:
+    uses: ./.github/workflows/call_test_cases.yml
 
   publish-test-release:
-    # needs: run-test-cases
+    needs: run-test-cases
     runs-on: ubuntu-latest
 
     steps:
@@ -22,6 +22,6 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: npm install
       - run: node ./scripts/unstableReleaseCheck.js
-      # - run: npm publish --tag beta --access public
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}
+      - run: npm publish --tag beta --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}
