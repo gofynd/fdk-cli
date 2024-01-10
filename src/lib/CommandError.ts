@@ -72,6 +72,12 @@ export const ErrorCodes = {
         message: 'Network issue',
         code: 'FDK-0009',
     },
+
+    //ngrok
+    NGROK_CONNECTION_ISSUE: {
+        message: "Unable to establish ngrok tunnel",
+        code: 'FDK-0011'
+    }
 };
 
 export default class CommandError extends Error {
