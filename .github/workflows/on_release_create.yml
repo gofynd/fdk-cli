@@ -1,13 +1,12 @@
-# Temporarily commented out
+on:
+    release:
+        types: [created]
 
-# on:
-#   release:
-#     types: [created]
+jobs:
+    call-workflow:
+        uses: ./.github/workflows/call_test_cases.yml
 
-# jobs:
-#   call-workflow:
-#     uses: ./.github/workflows/call_test_cases.yml
-
+    
 #   publish-package-npm:
 #     needs: call-workflow
 #     runs-on: ubuntu-latest
