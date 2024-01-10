@@ -24,6 +24,7 @@ import {
     PARTNER_COMMANDS,
     ALL_THEME_COMMANDS,
 } from './helper/constants';
+import * as Sentry from '@sentry/node';
 const packageJSON = require('../package.json');
 
 async function checkTokenExpired(auth_token) {
@@ -179,6 +180,10 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
             }
             await asyncFn(...args);
         } catch (err) {
+            // TODO: Error reporting from user logic can be added here
+            // on report call sentry capture exception
+            Sentry.captureException(err);
+
             // TODO: Find better ways to consolidate error messages
             if (err instanceof CommandError) {
                 const message = `${err.code} - ${err.message} `;
