@@ -12,7 +12,7 @@ import ThemeService from './api/services/theme.service';
 import { getLocalBaseUrl } from '../helper/serve.utils';
 import Debug from './Debug';
 
-const SERVER_TIMER = 60000 * 5;
+const SERVER_TIMER = 60000 * 2;
 
 async function checkTokenExpired(auth_token) {
     const { expiry_time } = auth_token;
@@ -56,6 +56,7 @@ function startTimer(){
     Debug("Server timer starts")
     Auth.timer_id = setTimeout(() => {
         console.log(chalk.magenta('Server timeout: Please run fdk login command again.'));
+        Debug("Server timeout: Please run fdk login command again.");
         Auth.stopSever()
     }, SERVER_TIMER)
 }
@@ -75,6 +76,7 @@ export const startServer = async () => {
     Auth.server = serverIn.listen(port, (err) => {
         if (err) {
             console.log(err);
+            Debug(err);
         }else{
             startTimer();
         }
