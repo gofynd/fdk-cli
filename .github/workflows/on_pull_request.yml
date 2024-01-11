@@ -4,5 +4,5 @@ on:
       - master
 
 jobs:
-  call-workflow:
+  run-test-cases:
     uses: ./.github/workflows/call_test_cases.yml
