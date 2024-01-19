@@ -30,7 +30,9 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}
 
       - name: Publish to GitHub Packages (alpha)
-        run: npm publish --tag alpha --access public --registry=https://npm.pkg.github.com/
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=\${NODE_AUTH_TOKEN}" >> ~/.npmrc 
+          npm publish --tag alpha --access public --registry=https://npm.pkg.github.com/
         if: contains(github.ref, '-alpha')
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
