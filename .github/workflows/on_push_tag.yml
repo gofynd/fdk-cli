@@ -28,6 +28,7 @@ jobs:
     uses: ./.github/workflows/create_sentry_release.yml
     with:
       release_environment: development
+    secrets: inherit
   
   publish-test-release:
     needs: 

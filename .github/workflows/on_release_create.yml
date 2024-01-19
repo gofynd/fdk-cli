@@ -26,6 +26,7 @@ jobs:
         uses: ./.github/workflows/create_sentry_release.yml
         with:
           release_environment: production
+        secrets: inherit
 
     publish-package-npm:
         needs: 
