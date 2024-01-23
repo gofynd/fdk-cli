@@ -12,13 +12,19 @@ jobs:
 
         steps:
             - uses: actions/checkout@v3
-            # Setup .npmrc file to publish to npm
+
             - uses: actions/setup-node@v3
               with:
                 node-version: '16.x'
                 registry-url: 'https://registry.npmjs.org'
-            - run: npm install
-            - run: node ./scripts/stableReleaseCheck.js 
-            - run: npm publish --access public
+            
+            - name: Install NPM package
+              run: npm install
+            
+            - name: Release Check
+              run: node ./scripts/stableReleaseCheck.js 
+            
+            - name: Publish to npmjs
+              run: npm publish --access public
               env:
                 NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}

@@ -1,4 +1,4 @@
-name: Publish Package to npmjs(beta) or GitHub Packages(alpha)
+name: Run Validation on TAG and Publish Package to npmjs(beta)
 on:
   push:
     tags:
@@ -15,24 +15,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      # Setup .npmrc file to publish to npm
+
       - uses: actions/setup-node@v3
         with:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
-      - run: npm install
-      - run: node ./scripts/unstableReleaseCheck.js
+      
+      - name: Install NPM package
+        run: npm install
+      
+      - name: Release Check
+        run: node ./scripts/unstableReleaseCheck.js
 
       - name: Publish to npmjs (beta)
         run: npm publish --tag beta --access public
         if: contains(github.ref, '-beta')
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}
-
-      - name: Publish to GitHub Packages (alpha)
-        run: |
-          echo "//npm.pkg.github.com/:_authToken=\${NODE_AUTH_TOKEN}" >> ~/.npmrc 
-          npm publish --tag alpha --access public --registry=https://npm.pkg.github.com/
-        if: contains(github.ref, '-alpha')
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
