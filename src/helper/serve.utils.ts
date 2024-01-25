@@ -21,6 +21,10 @@ const { transformRequest } = axios.defaults;
 import webpackDevMiddleware from 'webpack-dev-middleware';
 import webpackHotMiddleware from 'webpack-hot-middleware';
 import webpack from 'webpack';
+import prettier from 'prettier';
+import { DiffDOM } from "diff-dom"
+
+
 import createBaseWebpackConfig from '../helper/theme.react.config';
 const packageJSON = require('../../package.json');
 
@@ -428,9 +432,62 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
                 return { data: error };
             });
         let $ = cheerio.load(html);
+        const serverRendererData = $('#app').html();
+
         $('head').prepend(`
+        <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        #cli_local_overlay {
+            position: fixed;
+            z-index: 9999;
+            inset: 0;
+            display: grid;
+            grid-template-columns: 33% 33% 33%;
+            overflow: hidden;
+            gap: 6px;
+            background: #000000;
+        }
+
+        #clientHTML {
+            padding: 20px;
+            box-sizing: border-box;
+            color: #fff;
+            overflow-x: scroll;
+            background-color: #333;
+        }
+
+        #serverHTML {
+            padding: 20px;
+            box-sizing: border-box;
+            color: #fff;
+            overflow-x: scroll;
+            background-color: #333;
+        }
+        #dfrcHTML {
+            padding: 20px;
+            box-sizing: border-box;
+            color: #fff;
+            overflow-x: scroll;
+            background-color: #333;
+        }
+
+        #closeOverlay {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            color: #fff;
+        }
+    </style>
+
 				<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+              
 				<script>
+
 				var socket = io();
 				socket.on('reload',function(){
 					${isHMREnabled
@@ -455,6 +512,63 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 				});
 				</script>
 			`);
+        
+        $('body').append(`
+        <div id="cli_local_overlay">
+
+            <div id="serverHTML">
+            ${serverRendererData}</div>
+            <div id="clientHTML"></div>
+            <div id="dfrcHTML"></div>
+            <div id="closeOverlay" onclick="closeOverlay()">Close</div>
+        </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prettier/2.0.3/standalone.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prettier/2.0.3/parser-html.min.js" integrity="sha512-DrpA7iAMX9jbdDayBwvC+lNpTJRrjb7p1YoK+R0qLmdKOSwLkg6n7cjHOfGP5gnB4RxGdUim1CeKG3UD2PYO5w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+    const serverContainer = document.getElementById('serverHTML');
+    const clientContainer = document.getElementById('clientHTML');
+
+    serverContainer.addEventListener("scroll", function (e) {
+        clientContainer.scrollTop = e.target.scrollTop;
+        clientContainer.scrollLeft = e.target.scrollLeft;
+    })
+
+    function closeOverlay() {
+        document.getElementById('cli_local_overlay').style.display = 'none';
+    }
+     function formatAndDisplayCode(code) {
+         const formattedCode = prettier.format(code, { parser: 'html', plugins: prettierPlugins });
+
+         console.log({formattedCode})
+         return formattedCode;
+        //  document.getElementById('formattedCode').innerHTML = '<xmp>'+formattedCode+'</xmp>';
+     }
+     const HYDRATION_ERROR = /Minified React error #(418|422|423|419)/ig;
+                window.onerror = (error) => {
+                    console.log(error);
+                    const isHydrationError = HYDRATION_ERROR.test(error);
+                    if (isHydrationError) {
+                        console.log('======= HYDARTION ERROR======');
+                        const serverHTML = document.getElementById('serverHTML').innerHTML;
+                        const serverFormated=formatAndDisplayCode(serverHTML);
+                        document.getElementById('serverHTML').innerHTML = '<h1>Server Code</h1> + <xmp>'+serverFormated+ '</xmp>';
+
+
+                        const clientHTML = document.getElementById('app').innerHTML;
+                        const clientFormated=formatAndDisplayCode(clientHTML);
+
+                        document.getElementById('clientHTML').innerHTML = '<h1>Client Code</h1> + <xmp>'+clientFormated+ '</xmp>';
+
+
+                        console.log({serverHTML, clientHTML})
+                    }
+                };
+
+
+
+    </script>
+        `);
         res.send($.html({ decodeEntities: false }));
     });
 
