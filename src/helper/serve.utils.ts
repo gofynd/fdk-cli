@@ -443,13 +443,20 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 
         #cli_local_overlay {
             position: fixed;
+            display:none;
             z-index: 9999;
             inset: 0;
-            display: grid;
-            grid-template-columns: 33% 33% 33%;
             overflow: hidden;
             gap: 6px;
             background: #000000;
+        }
+        #markupWrapper{
+            display: grid;
+            grid-template-columns: 33% 33% 33%;
+            overflow: scroll;
+            height: 100%;
+            gap: 6px;
+  
         }
 
         #clientHTML {
@@ -481,6 +488,14 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
             right: 10px;
             cursor: pointer;
             color: #fff;
+        }
+        #hydrationTitle{
+            color: red;
+            background: #333;
+            font-size: 30px;
+            text-align: center;
+            padding: 5px;
+            border: 2px solid white;
         }
     </style>
 
@@ -515,34 +530,43 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
         
         $('body').append(`
         <div id="cli_local_overlay">
+            <div id="hydrationTitle">Hydration Error !!</div>
+            <div id='markupWrapper'>
+                <div id="serverHTML">
+                ${serverRendererData}</div>
+                <div id="clientHTML"></div>
+                <pre id="dfrcHTML">
+                <h1 style="margin: 10px 0px;">Highlighted Difference</h1>
+                </pre>
+                <div id="closeOverlay" onclick="closeOverlay()">Close</div>
+            </div>
 
-            <div id="serverHTML">
-            ${serverRendererData}</div>
-            <div id="clientHTML"></div>
-            <div id="dfrcHTML"></div>
-            <div id="closeOverlay" onclick="closeOverlay()">Close</div>
+
         </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prettier/2.0.3/standalone.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prettier/2.0.3/parser-html.min.js" integrity="sha512-DrpA7iAMX9jbdDayBwvC+lNpTJRrjb7p1YoK+R0qLmdKOSwLkg6n7cjHOfGP5gnB4RxGdUim1CeKG3UD2PYO5w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/5.1.0/diff.min.js" integrity="sha512-vco9RAxEuv4PQ+iTQyuKElwoUOcsVdp+WgU6Lgo82ASpDfF7vI66LlWz+CZc2lMdn52tjjLOuHvy8BQJFp8a1A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
     <script>
     const serverContainer = document.getElementById('serverHTML');
     const clientContainer = document.getElementById('clientHTML');
+    const differContainer = document.getElementById('dfrcHTML');
 
     serverContainer.addEventListener("scroll", function (e) {
         clientContainer.scrollTop = e.target.scrollTop;
         clientContainer.scrollLeft = e.target.scrollLeft;
+        differContainer.scrollTop = e.target.scrollTop;
+        differContainer.scrollLeft = e.target.scrollLeft;
     })
 
     function closeOverlay() {
         document.getElementById('cli_local_overlay').style.display = 'none';
     }
-     function formatAndDisplayCode(code) {
+     function formatCode(code) {
          const formattedCode = prettier.format(code, { parser: 'html', plugins: prettierPlugins });
 
-         console.log({formattedCode})
          return formattedCode;
-        //  document.getElementById('formattedCode').innerHTML = '<xmp>'+formattedCode+'</xmp>';
      }
      const HYDRATION_ERROR = /Minified React error #(418|422|423|419)/ig;
                 window.onerror = (error) => {
@@ -550,18 +574,45 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
                     const isHydrationError = HYDRATION_ERROR.test(error);
                     if (isHydrationError) {
                         console.log('======= HYDARTION ERROR======');
+                        document.getElementById('cli_local_overlay').style.display='block';
                         const serverHTML = document.getElementById('serverHTML').innerHTML;
-                        const serverFormated=formatAndDisplayCode(serverHTML);
-                        document.getElementById('serverHTML').innerHTML = '<h1>Server Code</h1> + <xmp>'+serverFormated+ '</xmp>';
+                        const serverFormated=formatCode(serverHTML);
+                        document.getElementById('serverHTML').innerHTML = '<h1 style="margin: 10px 0px;">Server Markup</h1>' + '<xmp>' + serverFormated + '</xmp>';
+
 
 
                         const clientHTML = document.getElementById('app').innerHTML;
-                        const clientFormated=formatAndDisplayCode(clientHTML);
+                        const clientFormated=formatCode(clientHTML);
 
-                        document.getElementById('clientHTML').innerHTML = '<h1>Client Code</h1> + <xmp>'+clientFormated+ '</xmp>';
+                        document.getElementById('clientHTML').innerHTML = 
+                        '<h1 style="margin: 10px 0px;">Client Markup</h1>' + '<xmp>' + clientFormated + '</xmp>';
 
 
-                        console.log({serverHTML, clientHTML})
+                        let span = null;
+
+                        const diff = Diff.diffLines(serverFormated, clientFormated),
+                            display = document.getElementById('dfrcHTML'),
+                            fragment = document.createDocumentFragment();
+                        diff.forEach((part) => {
+                        // green for additions, red for deletions
+                        // grey for common parts
+                        const color = part.added ? 'green' :
+                            part.removed ? 'red' : 'grey';
+                        const backgroundColor = part.added ? 'chartreuse' :
+                        part.removed ? 'bisque' : 'initial';
+
+                        const fontWeight = (part.removed || part.added) && '900';
+
+                        span = document.createElement('span');
+                        span.style.color = color;
+                        span.style.backgroundColor = backgroundColor;
+                        span.style.fontWeight = fontWeight;
+                        span.appendChild(document
+                            .createTextNode(part.value));
+                        fragment.appendChild(span);
+                        });
+
+                        display.appendChild(fragment);
                     }
                 };
 
