@@ -21,8 +21,6 @@ const { transformRequest } = axios.defaults;
 import webpackDevMiddleware from 'webpack-dev-middleware';
 import webpackHotMiddleware from 'webpack-hot-middleware';
 import webpack from 'webpack';
-import prettier from 'prettier';
-import { DiffDOM } from "diff-dom"
 
 
 import createBaseWebpackConfig from '../helper/theme.react.config';
