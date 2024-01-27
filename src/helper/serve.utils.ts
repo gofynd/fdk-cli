@@ -21,8 +21,6 @@ const { transformRequest } = axios.defaults;
 import webpackDevMiddleware from 'webpack-dev-middleware';
 import webpackHotMiddleware from 'webpack-hot-middleware';
 import webpack from 'webpack';
-
-
 import createBaseWebpackConfig from '../helper/theme.react.config';
 const packageJSON = require('../../package.json');
 
