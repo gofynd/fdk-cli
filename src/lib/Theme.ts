@@ -1160,6 +1160,12 @@ export default class Theme {
                     ? options['hmr']
                     : options['hmr'] == 'true'
                     ? true
+                        : false;
+            const showHydrationOverlay =    
+                typeof options['overlay'] === 'boolean'
+                    ? options['overlay']
+                    : options['overlay'] == 'true'
+                    ? true
                     : false;
 
             // initial build
@@ -1182,6 +1188,7 @@ export default class Theme {
                 host,
                 port,
                 isHMREnabled,
+                showHydrationOverlay,
             });
 
             Logger.info(chalk.bold.green(`Watching files for changes`));

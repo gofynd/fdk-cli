@@ -25,6 +25,7 @@ export default function themeCommandBuilder() {
         .description('Serve theme')
         .option('--ssr <boolean>', 'Server side rendering', true)
         .option('--hmr <boolean>', 'Enable HMR Support', true)
+        .option('--overlay <boolean>', 'Enable Hydration Overlay', true)
         .option('--port <number>', 'Custom port')
         .asyncAction(Theme.serveTheme);
 

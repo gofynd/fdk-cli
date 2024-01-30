@@ -307,7 +307,7 @@ export async function startServer({ domain, host, isSSR, port }) {
     });
 }
 
-export async function startReactServer({ domain, host, isHMREnabled, port }) {
+export async function startReactServer({ domain, host, isHMREnabled, port,showHydrationOverlay }) {
     const { currentContext, app, server, io } = await setupServer({ domain });
 
     if (isHMREnabled) {
@@ -428,9 +428,67 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
                 return { data: error };
             });
         let $ = cheerio.load(html);
+        const serverRendererData = $('#app').html();
+
         $('head').prepend(`
+        <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        #cli_local_overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ad66135e;
+            padding: 69px;
+            background: rgb(0 0 0 / 70%);
+            z-index: 9999;
+        }
+        #markupWrapper{
+            overflow: scroll;
+            height: 100%;
+            gap: 6px;
+  
+        }
+        #dfrcHTML {
+            padding: 20px;
+            box-sizing: border-box;
+            color: #fff;
+            overflow-x: scroll;
+            background-color: #333;
+        }
+
+        #closeOverlay {
+            position: fixed;
+            top: 80px;
+            right: 80px;
+            cursor: pointer;
+            color: #fff;
+            font-weight: 900;
+            font-size: 20px;
+        
+        
+        }
+        #hydrationTitle{
+            height: 100%;
+            padding: 8px 0px;
+            color: #ff0000b8;
+            background: #333;
+            font-size: 30px;
+            text-align: center;
+            border-bottom: 2px solid grey;
+        }
+    </style>
+
 				<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+              
 				<script>
+
 				var socket = io();
 				socket.on('reload',function(){
 					${isHMREnabled
@@ -455,6 +513,97 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 				});
 				</script>
 			`);
+        if (showHydrationOverlay) {
+            $('body').append(`
+         <div id="serverHTML" style="display: none;" >${serverRendererData}</div>
+         <div id="cli_local_overlay">
+        
+            <div id="hydrationTitle">Hydration Error !!</div>
+            <div style="
+                display: flex;
+                gap: 6px;
+                background: #333;
+                text-align: center;
+                justify-content: center;
+            ">
+                
+                <span style="color: red;background-color: bisque;font-weight: 900;width: 100px;">Server code
+                </span>
+                <span style="color: green;background-color: chartreuse;font-weight: 900;width: 100px;">Client code
+            </span>
+            </div>
+            <div id='markupWrapper'>
+                <pre id="dfrcHTML">
+                </pre>
+                <div id="closeOverlay" onclick="closeOverlay()">Close</div>
+         </div>
+
+
+        </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prettier/2.0.3/standalone.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prettier/2.0.3/parser-html.min.js" integrity="sha512-DrpA7iAMX9jbdDayBwvC+lNpTJRrjb7p1YoK+R0qLmdKOSwLkg6n7cjHOfGP5gnB4RxGdUim1CeKG3UD2PYO5w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/5.1.0/diff.min.js" integrity="sha512-vco9RAxEuv4PQ+iTQyuKElwoUOcsVdp+WgU6Lgo82ASpDfF7vI66LlWz+CZc2lMdn52tjjLOuHvy8BQJFp8a1A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script>
+
+    function closeOverlay() {
+        document.getElementById('cli_local_overlay').style.display = 'none';
+    }
+     function formatCode(code) {
+         const formattedCode = prettier.format(code, { parser: 'html', plugins: prettierPlugins });
+
+         return formattedCode;
+     }
+     const HYDRATION_ERROR = /Minified React error #(418|422|423|419)/ig;
+     let isDisplayed = false;
+                window.onerror = (error) => {
+                    console.log(error);
+                    const isHydrationError = HYDRATION_ERROR.test(error);
+                    if (isHydrationError && !isDisplayed) {
+                        isDisplayed = true
+                        console.log('======= HYDARTION ERROR======');
+                        document.getElementById('cli_local_overlay').style.display='grid';
+                        const serverHTML = document.getElementById('serverHTML').innerHTML;
+                        const serverFormated=formatCode(serverHTML);
+                       
+                        const clientHTML = document.getElementById('app').innerHTML;
+                        const clientFormated=formatCode(clientHTML);
+
+                     
+                        let span = null;
+
+                        const diff = Diff.diffLines(serverFormated, clientFormated),
+                            display = document.getElementById('dfrcHTML'),
+                            fragment = document.createDocumentFragment();
+                        diff.forEach((part) => {
+                        // green for additions, red for deletions
+                        // grey for common parts
+                        const color = part.added ? 'green' :
+                            part.removed ? 'red' : 'grey';
+                        const backgroundColor = part.added ? 'chartreuse' :
+                        part.removed ? 'bisque' : 'initial';
+
+                        const fontWeight = (part.removed || part.added) && '900';
+
+                        span = document.createElement('span');
+                        span.style.color = color;
+                        span.style.backgroundColor = backgroundColor;
+                        span.style.fontWeight = fontWeight;
+                        span.appendChild(document
+                            .createTextNode(part.value));
+                        fragment.appendChild(span);
+                        });
+
+                        display.appendChild(fragment);
+                    }
+                };
+
+
+
+    </script>
+        `);
+        }
         res.send($.html({ decodeEntities: false }));
     });
 
