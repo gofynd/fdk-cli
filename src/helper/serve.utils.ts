@@ -307,7 +307,7 @@ export async function startServer({ domain, host, isSSR, port }) {
     });
 }
 
-export async function startReactServer({ domain, host, isHMREnabled, port }) {
+export async function startReactServer({ domain, host, isHMREnabled, port,showHydrationOverlay }) {
     const { currentContext, app, server, io } = await setupServer({ domain });
 
     if (isHMREnabled) {
@@ -438,37 +438,22 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
         }
 
         #cli_local_overlay {
+            display: none;
             position: fixed;
-            display:none;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ad66135e;
+            padding: 69px;
+            background: rgb(0 0 0 / 70%);
             z-index: 9999;
-            inset: 0;
-            overflow: hidden;
-            gap: 6px;
-            background: #000000;
         }
         #markupWrapper{
-            display: grid;
-            grid-template-columns: 33% 33% 33%;
             overflow: scroll;
             height: 100%;
             gap: 6px;
   
-        }
-
-        #clientHTML {
-            padding: 20px;
-            box-sizing: border-box;
-            color: #fff;
-            overflow-x: scroll;
-            background-color: #333;
-        }
-
-        #serverHTML {
-            padding: 20px;
-            box-sizing: border-box;
-            color: #fff;
-            overflow-x: scroll;
-            background-color: #333;
         }
         #dfrcHTML {
             padding: 20px;
@@ -480,18 +465,23 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 
         #closeOverlay {
             position: fixed;
-            top: 10px;
-            right: 10px;
+            top: 80px;
+            right: 80px;
             cursor: pointer;
             color: #fff;
+            font-weight: 900;
+            font-size: 20px;
+        
+        
         }
         #hydrationTitle{
-            color: red;
+            height: 100%;
+            padding: 8px 0px;
+            color: #ff0000b8;
             background: #333;
             font-size: 30px;
             text-align: center;
-            padding: 5px;
-            border: 2px solid white;
+            border-bottom: 2px solid grey;
         }
     </style>
 
@@ -523,19 +513,30 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 				});
 				</script>
 			`);
+        if (showHydrationOverlay) {
+            $('body').append(`
+         <div id="serverHTML" style="display: none;" >${serverRendererData}</div>
+         <div id="cli_local_overlay">
         
-        $('body').append(`
-        <div id="cli_local_overlay">
             <div id="hydrationTitle">Hydration Error !!</div>
+            <div style="
+                display: flex;
+                gap: 6px;
+                background: #333;
+                text-align: center;
+                justify-content: center;
+            ">
+                
+                <span style="color: red;background-color: bisque;font-weight: 900;width: 100px;">Server code
+                </span>
+                <span style="color: green;background-color: chartreuse;font-weight: 900;width: 100px;">Client code
+            </span>
+            </div>
             <div id='markupWrapper'>
-                <div id="serverHTML">
-                ${serverRendererData}</div>
-                <div id="clientHTML"></div>
                 <pre id="dfrcHTML">
-                <h1 style="margin: 10px 0px;">Highlighted Difference</h1>
                 </pre>
                 <div id="closeOverlay" onclick="closeOverlay()">Close</div>
-            </div>
+         </div>
 
 
         </div>
@@ -545,16 +546,6 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/5.1.0/diff.min.js" integrity="sha512-vco9RAxEuv4PQ+iTQyuKElwoUOcsVdp+WgU6Lgo82ASpDfF7vI66LlWz+CZc2lMdn52tjjLOuHvy8BQJFp8a1A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
     <script>
-    const serverContainer = document.getElementById('serverHTML');
-    const clientContainer = document.getElementById('clientHTML');
-    const differContainer = document.getElementById('dfrcHTML');
-
-    serverContainer.addEventListener("scroll", function (e) {
-        clientContainer.scrollTop = e.target.scrollTop;
-        clientContainer.scrollLeft = e.target.scrollLeft;
-        differContainer.scrollTop = e.target.scrollTop;
-        differContainer.scrollLeft = e.target.scrollLeft;
-    })
 
     function closeOverlay() {
         document.getElementById('cli_local_overlay').style.display = 'none';
@@ -565,25 +556,21 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
          return formattedCode;
      }
      const HYDRATION_ERROR = /Minified React error #(418|422|423|419)/ig;
+     let isDisplayed = false;
                 window.onerror = (error) => {
                     console.log(error);
                     const isHydrationError = HYDRATION_ERROR.test(error);
-                    if (isHydrationError) {
+                    if (isHydrationError && !isDisplayed) {
+                        isDisplayed = true
                         console.log('======= HYDARTION ERROR======');
-                        document.getElementById('cli_local_overlay').style.display='block';
+                        document.getElementById('cli_local_overlay').style.display='grid';
                         const serverHTML = document.getElementById('serverHTML').innerHTML;
                         const serverFormated=formatCode(serverHTML);
-                        document.getElementById('serverHTML').innerHTML = '<h1 style="margin: 10px 0px;">Server Markup</h1>' + '<xmp>' + serverFormated + '</xmp>';
-
-
-
+                       
                         const clientHTML = document.getElementById('app').innerHTML;
                         const clientFormated=formatCode(clientHTML);
 
-                        document.getElementById('clientHTML').innerHTML = 
-                        '<h1 style="margin: 10px 0px;">Client Markup</h1>' + '<xmp>' + clientFormated + '</xmp>';
-
-
+                     
                         let span = null;
 
                         const diff = Diff.diffLines(serverFormated, clientFormated),
@@ -616,6 +603,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 
     </script>
         `);
+        }
         res.send($.html({ decodeEntities: false }));
     });
 
