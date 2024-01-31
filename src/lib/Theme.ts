@@ -61,6 +61,7 @@ import {
 } from '../helper/theme.vue.config';
 import { simpleGit } from 'simple-git';
 import { THEME_TYPE } from '../helper/constants';
+import { validateImage } from '../helper/image';
 
 const nanoid = customAlphabet(
     '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
@@ -801,10 +802,6 @@ export default class Theme {
                 : Logger.warn('Please add domain to context');
             let { data: theme } =
                 await ThemeService.getThemeById(currentContext);
-
-          
-
-            
             // Clear previosu builds
             Theme.clearPreviousBuild();
 
@@ -839,6 +836,13 @@ export default class Theme {
                 isHMREnabled: false,
             });
 
+            const packageJSONData = Theme.getPackageJsonData();
+            const hasAnyMetadataField = packageJSONData.theme_metadata?.images?.desktop || packageJSONData.theme_metadata?.images?.mobile || packageJSONData.theme_metadata?.description;
+            let placeholderUploads;
+            if(theme.is_private && hasAnyMetadataField  ){
+               placeholderUploads = await Theme.uploadPrivateThemePlaceHolder();
+            }
+
             Logger.info('Uploading theme assets/images');
             await Theme.assetsImageUploader();
 
@@ -869,7 +873,23 @@ export default class Theme {
                 available_sections,
                 allowedDefaultProps,
             );
-
+            if(theme.is_private && hasAnyMetadataField){
+                let tempMeta = theme.meta || {};
+                newTheme.meta = {...tempMeta, images: {
+                    desktop: placeholderUploads.desktop || theme.meta?.images?.desktop || '',
+                    mobile: placeholderUploads.mobile || theme.meta?.images?.mobile || '',
+                }, description: placeholderUploads.description || theme.meta?.description || '' }
+            }
+            if(theme.is_private && !hasAnyMetadataField && (theme.meta?.description || theme.meta?.images?.desktop || theme.meta?.images?.desktop)){
+                newTheme.meta = {
+                    "description": "",
+                    "industry": [],
+                    "payment": {
+                        "is_paid": false,
+                        "amount": 0
+                    }
+                };
+            }
             Logger.info('Updating theme');
             await ThemeService.updateTheme(newTheme);
 
@@ -974,6 +994,12 @@ export default class Theme {
             if (!fs.existsSync(path.join(process.cwd(), Theme.BUILD_FOLDER))) {
                 throw new Error('Build Failed');
             }
+            const packageJSONData = Theme.getPackageJsonData();
+            const hasAnyMetadataField = packageJSONData.theme_metadata?.images?.desktop || packageJSONData.theme_metadata?.images?.mobile || packageJSONData.theme_metadata?.description;
+            let placeholderUploads;
+            if(theme.is_private && hasAnyMetadataField  ){
+               placeholderUploads = await Theme.uploadPrivateThemePlaceHolder();
+            }
 
             Logger.info('Uploading theme assets/images');
             await Theme.assetsImageUploader();
@@ -1016,6 +1042,23 @@ export default class Theme {
                 allowedDefaultProps,
             );
 
+            if(theme.is_private && hasAnyMetadataField){
+               let tempMeta = theme.meta || {};
+               newTheme.meta = {...tempMeta, images: {
+                desktop: placeholderUploads.desktop || theme.meta?.images?.desktop || '',
+                mobile: placeholderUploads.mobile || theme.meta?.images?.mobile || '',
+               }, description: placeholderUploads.description || theme.meta?.description || '' }
+            }
+            if(theme.is_private && !hasAnyMetadataField && (theme.meta?.description || theme.meta?.images?.desktop || theme.meta?.images?.desktop)){
+                newTheme.meta = {
+                    "description": "",
+                    "industry": [],
+                    "payment": {
+                        "is_paid": false,
+                        "amount": 0
+                    }
+                };
+            }
             Logger.info('Updating theme');
             await ThemeService.updateTheme(newTheme);
 
@@ -2992,13 +3035,22 @@ export default class Theme {
         }
     };
 
-    private static ensureThemeTypeInPackageJson = async () => {
+    private static getPackageJsonData = ()=> {
         try {
             const packageJsonPath = path.resolve(
                 process.cwd(),
                 './package.json',
             );
             const packageJsonData = require(packageJsonPath);
+            return packageJsonData;
+        } catch (err) {
+            throw err;
+        }
+    }; 
+
+    private static ensureThemeTypeInPackageJson = async () => {
+        try {
+            const packageJsonData = Theme.getPackageJsonData();
             // Parse the JSON content of package.json
             if (!packageJsonData.theme_metadata?.theme_type) {
                 const context = getActiveContext();
@@ -3011,7 +3063,10 @@ export default class Theme {
 
                 packageJsonData.theme_metadata.theme_type = context.theme_type;
                 await fs.promises.writeFile(
-                    packageJsonPath,
+                    path.resolve(
+                        process.cwd(),
+                        './package.json',
+                    ),
                     JSON.stringify(packageJsonData, null, 2),
                     'utf8',
                 );
@@ -3020,4 +3075,36 @@ export default class Theme {
             throw err;
         }
     };
+
+    private static uploadPrivateThemePlaceHolder = async () => {
+        const packageJsonData = Theme.getPackageJsonData();
+        const description = packageJsonData.theme_metadata?.description;
+        const packageJsonDesktopPath = packageJsonData.theme_metadata?.images?.desktop;
+        const packageJsonMobilePath = packageJsonData.theme_metadata?.images?.mobile;
+        let desktopImageUploadPath, mobileImageUploadPath;
+        if((packageJsonDesktopPath && !packageJsonMobilePath) || (!packageJsonDesktopPath && packageJsonMobilePath)){
+            throw new CommandError('Both desktop and mobile image is required for private theme image to get updated');
+        }
+        if(packageJsonData.theme_metadata?.images?.desktop){
+            const desktopPath = path.resolve(process.cwd(),packageJsonData.theme_metadata.images.desktop);
+            validateImage(desktopPath,5,6,1230,1024);
+            let { complete } = await UploadService.uploadFile(
+                 desktopPath,
+                'application-theme-images',
+                `${nanoid()}${path.basename(desktopPath)}`
+            );
+            desktopImageUploadPath = complete?.cdn?.url;
+        }
+        if(packageJsonData.theme_metadata?.images?.mobile){
+            const mobilePath = path.resolve(process.cwd(),packageJsonData.theme_metadata.images.mobile);
+            validateImage(mobilePath,9,16,570,320);
+            let { complete } = await UploadService.uploadFile(
+                mobilePath,
+                'application-theme-images',
+                `${nanoid()}${path.basename(mobilePath)}`
+            );
+            mobileImageUploadPath = complete?.cdn?.url;
+        }
+        return {desktop: desktopImageUploadPath, mobile: mobileImageUploadPath, description};
+    }
 }
