@@ -1,13 +1,38 @@
+name: Publish stable Package to npmjs
 on:
     release:
         types: [created]
 
 jobs:
+    release-check:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: '16.x'
+                  registry-url: 'https://registry.npmjs.org'
+            - run: npm install
+            - run: node ./scripts/stableReleaseCheck.js
+
     run-test-cases:
+        needs: release-check
         uses: ./.github/workflows/call_test_cases.yml
 
+    create-sentry-release:
+        needs: 
+            - release-check
+            - run-test-cases
+        uses: ./.github/workflows/create_sentry_release.yml
+        with:
+          release_environment: production
+        secrets: inherit
+
     publish-package-npm:
-        needs: run-test-cases
+        needs: 
+            - release-check
+            - run-test-cases
+            - create-sentry-release
         runs-on: ubuntu-latest
 
         steps:
@@ -27,4 +52,4 @@ jobs:
             - name: Publish to npmjs
               run: npm publish --access public
               env:
-                NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}
