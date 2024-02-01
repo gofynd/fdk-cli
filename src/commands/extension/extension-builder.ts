@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import Extension from '../../lib/Extension';
 import ExtensionLaunchURL from '../../lib/ExtensionLaunchURL';
 import ExtensionPreviewURL from '../../lib/ExtensionPreviewURL';
+import FunctionCommands from '../../lib/Function';
 
 export default function extensionCommandBuilder() {
     const extension = new Command('extension').description(
@@ -54,5 +55,35 @@ export default function extensionCommandBuilder() {
         .asyncAction(ExtensionLaunchURL.setLaunchURLHandler);
 
     extension.addCommand(launch_url);
+    
+
+    // function commands
+    const function_commands = new Command('function').description(
+        'Extension Function commands'
+    );
+    function_commands
+        .command('sync')
+        .description('Sync function')
+        .requiredOption(
+            '-n, --name <function-name>',
+            'function name'
+        )
+        .asyncAction(FunctionCommands.syncHandler);
+
+    function_commands
+        .command('create')
+        .description('Create Extension Function')
+        .option(
+            '-n, --name <function-name>',
+            'function name'
+        )
+        .option(
+            '-t, --type <function-type>',
+            'function type'
+        )
+        .asyncAction(FunctionCommands.createHandler);
+    extension.addCommand(function_commands);
+
+
     return extension;
 }

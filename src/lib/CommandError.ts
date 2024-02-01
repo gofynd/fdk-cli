@@ -77,6 +77,16 @@ export const ErrorCodes = {
     NGROK_CONNECTION_ISSUE: {
         message: "Unable to establish ngrok tunnel",
         code: 'FDK-0011'
+    },
+
+    // functions 21...29
+    INVALID_FUNCTION_NAME: {
+        message: (reason: string): string => `Invalid Function name: ${reason}`,
+        code: 'FDK-0021'
+    },
+    INVALID_FUNCTION_TYPE: {
+        message: `Invalid Function type`,
+        code: 'FDK-0022'
     }
 };
 
