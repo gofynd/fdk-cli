@@ -12,6 +12,19 @@
 Fynd development Kit (FDK CLI) is a cli tool developed by Fynd to create and update themes, extensions and various other components of the [Fynd Platform](https://platform.fynd.com/).
 ### Quick Links
 | [Fynd Platform](https://platform.fynd.com/) | [Fynd Partners](https://partners.fynd.com/) | [Documentation](https://documentation.fynd.com/) | [Other Projects](#other-fynd-projects) | [Contributing](CONTRIBUTING.md) | 
+
+# Prerequisites
+___
+
+- Git
+- Nodejs
+-  Optional Prerequisites
+	- Maven (To use `fdk extension init` for java extension initialization)
+	- pip (To use `fdk extension init` for python extension initialization)
+
+**Note:** Experimental support for Windows is available, but please be aware that it may not be fully stable.
+
+
 # Installation
 ___
 ```sh
