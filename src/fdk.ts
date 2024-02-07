@@ -24,6 +24,7 @@ import {
     PARTNER_COMMANDS,
     ALL_THEME_COMMANDS,
 } from './helper/constants';
+import { getPlatformUrls } from './lib/api/services/url';
 import * as Sentry from '@sentry/node';
 const packageJSON = require('../package.json');
 
@@ -52,7 +53,7 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
                 else break;
             }
 
-            if(parent._optionValues.verbose || parent._optionValues.debug) {
+            if (parent._optionValues.verbose || parent._optionValues.debug) {
                 parent._optionValues.verbose = true;
                 parent._optionValues.debug = true;
             }
@@ -215,16 +216,37 @@ export async function init(programName: string) {
     program
         .name(programName)
         .version(packageJSON.version)
-        .option('-v, --verbose', 'Display detailed output for debugging purposes')
-        .option('-d, --debug', 'Display detailed output for debugging purposes');
-        
+        .option(
+            '-v, --verbose',
+            'Display detailed output for debugging purposes',
+        )
+        .option(
+            '-d, --debug',
+            'Display detailed output for debugging purposes',
+        );
+
     //register commands with commander instance
     registerCommands(program);
     //set API versios
     configStore.set(CONFIG_KEYS.API_VERSION, '1.0');
     // set default environment
-    if (!configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE))
-        configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'fynd');
+    const current_env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+
+    if (!current_env || !current_env.includes('api.'))
+        configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'api.fynd.com');
+
+    // todo: remove this warning in future version of fdk cli, whem everybody get used to set env by url.
+    if (current_env && !current_env.includes('api.')) {
+        console.warn(
+            chalk.yellow(
+                `Warning: Reseting active environment to api.fynd.com. Please use \`fdk env set -u <env-api-url>\` to change active environment. Ref: ${
+                    getPlatformUrls().partners
+                }/help/docs/partners/themes/vuejs/command-reference#environment-commands-1`,
+            ),
+        );
+        process.exit(0);
+    }
+
     program.on('command:*', (subCommand: any) => {
         let msg = `"${subCommand.join(
             ' ',

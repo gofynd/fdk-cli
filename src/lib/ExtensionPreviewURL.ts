@@ -58,7 +58,7 @@ export default class ExtensionPreviewURL {
                 configStore.delete(CONFIG_KEYS.NGROK_AUTHTOKEN);
                 throw new CommandError(
                     ErrorCodes.NGROK_CONNECTION_ISSUE.message,
-                    ErrorCodes.NGROK_CONNECTION_ISSUE.code
+                    ErrorCodes.NGROK_CONNECTION_ISSUE.code,
                 );
             }
 

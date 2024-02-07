@@ -8,7 +8,6 @@ import express from 'express';
 var cors = require('cors');
 const port = 7071;
 import chalk from 'chalk';
-import { AVAILABLE_ENVS } from './Env';
 import ThemeService from './api/services/theme.service';
 import { getLocalBaseUrl } from '../helper/serve.utils';
 
@@ -103,16 +102,8 @@ export default class Auth {
         const env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
         try {
             let domain = null;
-            if (AVAILABLE_ENVS[env]) {
-                let partnerDomain = AVAILABLE_ENVS[env].replace(
-                    'api',
-                    'partners',
-                );
-                domain = `https://${partnerDomain}`;
-            } else {
-                let partnerDomain = env.replace('api', 'partners');
-                domain = `https://${partnerDomain}`;
-            }
+            let partnerDomain = env.replace('api', 'partners');
+            domain = `https://${partnerDomain}`;
             if (Auth.isOrganizationChange || !isLoggedIn) {
                 await open(
                     `${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(`${getLocalBaseUrl()}:${port}`)}`,
