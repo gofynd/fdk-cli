@@ -37,6 +37,17 @@ export default function extensionCommandBuilder() {
         .option('--company-id <id>', 'Company ID')
         .option('--update-authtoken', 'Update Ngrok Authtoken')
         .asyncAction(ExtensionPreviewURL.previewUrlExtensionHandler);
+    
+    extension
+        .command('add-context')
+        .description('Add Extension Context')
+        .option('--api-key <api-key>', 'Extension API Key')
+        .asyncAction(Extension.addExtensionContext);
+    
+    extension
+        .command('context-list')
+        .description('Update the active context of extension')
+        .asyncAction(FunctionCommands.changeContext);
 
     const launch_url = new Command('launch-url').description(
         'launch url commands',
@@ -64,9 +75,9 @@ export default function extensionCommandBuilder() {
     function_commands
         .command('sync')
         .description('Sync function')
-        .requiredOption(
-            '-n, --name <function-name>',
-            'function name'
+        .option(
+            '-n, --name <function-slug>',
+            'function slug'
         )
         .asyncAction(FunctionCommands.syncHandler);
 
@@ -82,6 +93,11 @@ export default function extensionCommandBuilder() {
             'function type'
         )
         .asyncAction(FunctionCommands.createHandler);
+    
+    function_commands
+        .command('init')
+        .description('Initialize existing extension function')
+        .asyncAction(FunctionCommands.initializeFunction);
     extension.addCommand(function_commands);
 
 

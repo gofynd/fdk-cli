@@ -157,6 +157,41 @@ export const URLS = {
         );
     },
 
+    GET_EXTENSIONS_LIST: (page_no: number = 1, page_size: number = 5): string => {
+        return urlJoin(
+            MIXMASTER_URL('partner'),
+            `/organization/${organization_id}/extension?page_size=${page_size}&page_no=${page_no}`
+        )
+    },
+
+    GET_EXTENSION_FUNCTIONS: (extension_id: string, page_no?:number, page_size?: number ): string => {
+        return urlJoin(
+            MIXMASTER_URL('partner'),
+            `/organization/${organization_id}/extension/${extension_id}/function?page_size=${page_size}&page_no=${page_no}`
+        )
+    },
+
+    GET_FUNCTION_BY_FUNCTION_ID_OR_SLUG: (extension_id: string, function_id_or_slug: string): string => {
+        return urlJoin(
+            MIXMASTER_URL('partner'),
+            `/organization/${organization_id}/extension/${extension_id}/function/${function_id_or_slug}`
+        )
+    },
+
+    FUNCTION_VERSION_BY_VERSION_ID: (extension_id: string, function_id: string, version_id: string): string => {
+        return urlJoin(
+            MIXMASTER_URL('partner'),
+            `/organization/${organization_id}/extension/${extension_id}/function/${function_id}/version/${version_id}`
+        )
+    },
+
+    GET_FUNCTIONS_ALL_EVENTS: (): string => {
+        return urlJoin(
+            MIXMASTER_URL('panel'),
+            'function/event'
+        );
+    },
+
     // Preview URL
     GET_DEVELOPMENT_ACCOUNTS: (page_no: number, page_size: number): string => {
         return urlJoin(

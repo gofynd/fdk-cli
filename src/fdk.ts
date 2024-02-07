@@ -11,7 +11,7 @@ import { registerCommands } from './commands';
 import configStore, { CONFIG_KEYS } from './lib/Config';
 import fs from 'fs-extra';
 import { initializeLogger } from './lib/Logger';
-import { isAThemeDirectory } from './helper/utils';
+import { isAThemeOrExtensionDirectory } from './helper/utils';
 import inquirer from 'inquirer';
 import path from 'path';
 import Env from './lib/Env';
@@ -160,7 +160,7 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
                     throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
             }
             if (
-                THEME_COMMANDS.findIndex((c) => themeCommand.includes(c)) !== -1
+                THEME_COMMANDS.findIndex((c) => themeCommand.includes(c)) !== -1 && envCommand !== "function"
             ) {
                 const activeContextEnv = getActiveContext().env;
                 // need to check if env is set by url [Ex. Env.getEnvValue() will give api.fynd.com | Here activeContextEnv is "fynd"]
@@ -172,7 +172,7 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
                 }
             }
             if (parent.args.includes('theme')) {
-                if (!isAThemeDirectory()) {
+                if (!isAThemeOrExtensionDirectory()) {
                     const answer = await promptForFDKFolder();
                     if (!answer) {
                         throw new CommandError(

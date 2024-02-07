@@ -153,4 +153,105 @@ export default {
             throw error;
         }
     },
+
+    getExtensionFunctionsList: async(extension_id: string, page_no?: number, page_size?: number)=> {
+        try{
+            let axiosOptions = Object.assign({}, getCommonHeaderOptions());
+            let response = await ApiClient.get(
+                URLS.GET_EXTENSION_FUNCTIONS(extension_id, page_no, page_size),
+                axiosOptions
+            );
+            return response.data;
+        }
+        catch(err){
+            throw err;
+        }
+    },
+
+    getFunctionByFunctionIdOrSlug: async (extension_id: string,function_id_or_slug: string)=> {
+        try{
+            let axiosOptions = Object.assign({}, getCommonHeaderOptions());
+            let response = await ApiClient.get(
+                URLS.GET_FUNCTION_BY_FUNCTION_ID_OR_SLUG(extension_id, function_id_or_slug),
+                axiosOptions
+            );
+            return response.data;
+        }
+        catch(err){
+            if(err?.response?.status === 404 && err?.response?.data?.message === "Function not found"){
+                return false;
+            }
+            throw err;
+        }
+    },
+
+    getFunctionsAllEvent: async () => {
+        try{
+            let axiosOptions = Object.assign({}, getCommonHeaderOptions());
+            let response = await ApiClient.get(
+                URLS.GET_FUNCTIONS_ALL_EVENTS(),
+                axiosOptions
+            );
+            return response.data;
+        }
+        catch(err){
+            throw err;
+        }
+    },
+
+    createExtensionFunction: async (data, extension_id: string)=> {
+        try{
+            let axiosOptions = Object.assign({},{data: data }, getCommonHeaderOptions());
+            let response = await ApiClient.post(
+                URLS.GET_EXTENSION_FUNCTIONS(extension_id),
+                axiosOptions
+            );
+            return response.data;
+        }
+        catch(err){
+            throw err; 
+        }
+    },
+
+    updateExtensionFunction: async (data, extension_id: string, function_id: string)=> {
+        try{
+            let axiosOptions = Object.assign({},{data: data }, getCommonHeaderOptions());
+            let response = await ApiClient.put(
+                URLS.GET_FUNCTION_BY_FUNCTION_ID_OR_SLUG(extension_id, function_id),
+                axiosOptions
+            );
+            return response.data;
+        }
+        catch(err){
+            throw err; 
+        }
+    },
+
+    updateFunctionVersion: async (data, extension_id: string, function_id: string, version_id: string)=> {
+        try{
+            let axiosOptions = Object.assign({},{data: data }, getCommonHeaderOptions());
+            let response = await ApiClient.put(
+                URLS.FUNCTION_VERSION_BY_VERSION_ID(extension_id, function_id, version_id),
+                axiosOptions
+            );
+            return response.data;
+        }
+        catch(err){
+            throw err; 
+        }
+    },
+
+    getFunctionVersionByVersionId: async (extension_id: string, function_id: string, version_id: string) => {
+        try{
+            let axiosOptions = Object.assign({}, getCommonHeaderOptions());
+            let response = await ApiClient.get(
+                URLS.FUNCTION_VERSION_BY_VERSION_ID(extension_id, function_id, version_id),
+                axiosOptions
+            );
+            return response.data;
+        }
+        catch(err){
+            throw err; 
+        }
+    }
 };

@@ -4,7 +4,7 @@ import {
     createContext,
     getActiveContext,
     hasContext,
-    isAThemeDirectory,
+    isAThemeOrExtensionDirectory,
 } from '../helper/utils';
 import ConfigurationService from './api/services/configuration.service';
 import ThemeService from './api/services/theme.service';
@@ -15,13 +15,13 @@ import inquirer from 'inquirer';
 import { createDirectory } from '../helper/file.utils';
 const FDK_PATH = () => path.join(process.cwd(), '.fdk');
 const CONTEXT_PATH = () => path.join(FDK_PATH(), 'context.json');
-export const DEFAULT_CONTEXT = { theme: {active_context: '', contexts: {}}, partners: {} };
+export const DEFAULT_CONTEXT = { theme: {active_context: '', contexts: {}}, partners: {}};
 export default class ThemeContext {
     constructor() {}
 
     public static async addThemeContext(options) {
         try {   
-            if (!isAThemeDirectory()) createDirectory(FDK_PATH());
+            if (!isAThemeOrExtensionDirectory()) createDirectory(FDK_PATH());
             if (!hasContext()) {
               await fs.writeJSON(CONTEXT_PATH(), DEFAULT_CONTEXT);
             }
@@ -55,7 +55,7 @@ export default class ThemeContext {
 
     public static async listThemeContext() {
         try {
-            if (!isAThemeDirectory()) {
+            if (!isAThemeOrExtensionDirectory()) {
                 throw new CommandError(
                     ErrorCodes.INVALID_THEME_DIRECTORY.message,
                     ErrorCodes.INVALID_THEME_DIRECTORY.code,

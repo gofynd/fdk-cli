@@ -51,6 +51,13 @@ export const validateEmpty = (input: any): boolean => {
     return input !== '';
 };
 
+export const validateEmptyArray = (input: any): boolean => {
+    if(input.length === 0){
+        return false;
+    }
+    return true;
+};
+
 export const replaceContent = (
     content: string,
     searchPattern: string,
