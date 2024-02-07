@@ -14,7 +14,6 @@ Fynd development Kit (FDK CLI) is a cli tool developed by Fynd to create and upd
 | [Fynd Platform](https://platform.fynd.com/) | [Fynd Partners](https://partners.fynd.com/) | [Documentation](https://documentation.fynd.com/) | [Other Projects](#other-fynd-projects) | [Contributing](CONTRIBUTING.md) | 
 
 # Prerequisites
-___
 
 - Git
 - Nodejs
@@ -26,12 +25,10 @@ ___
 
 
 # Installation
-___
 ```sh
 npm install -g @gofynd/fdk-cli
 ```
 # Basic Commands
-___
 To help you get started, there are some basic commands you can use.
 
 ```sh
