@@ -15,8 +15,8 @@ import * as escodegen from 'escodegen';
 import { createDirectory } from './file.utils';
 import { DEFAULT_CONTEXT } from '../lib/ThemeContext';
 
-const FDK_PATH = () => path.join(process.cwd(), '.fdk');
-const CONTEXT_PATH = () => path.join(FDK_PATH(), 'context.json');
+export const FDK_PATH = () => path.join(process.cwd(), '.fdk');
+export const CONTEXT_PATH = () => path.join(FDK_PATH(), 'context.json');
 
 export type ThemeType = 'react' | 'vue2' | null;
 
@@ -60,7 +60,7 @@ export const decodeBase64 = (encodedString) => {
 };
 
 export const getActiveContext = (): ThemeContextInterface => {
-    if (isAThemeDirectory() && hasContext()) {
+    if (isAThemeOrExtensionDirectory() && hasContext()) {
         const contextData = fs.readJSONSync(CONTEXT_PATH());
         if (!contextData)
             throw new CommandError(
@@ -75,10 +75,26 @@ export const getActiveContext = (): ThemeContextInterface => {
     );
 };
 
+export const getExtensionActiveContext = () => {
+    if (isAThemeOrExtensionDirectory() && hasExtensionContext()) {
+        const contextData = fs.readJSONSync(CONTEXT_PATH());
+        if (!contextData)
+            throw new CommandError(
+                `${ErrorCodes.INVALID_CONTEXT.message}.\n${COMMON_LOG_MESSAGES.ContextNotSet}`,
+                ErrorCodes.INVALID_CONTEXT.code,
+            );
+        return contextData.extension.contexts[contextData.extension.active_context];
+    }
+    throw new CommandError(
+        ErrorCodes.INVALID_EXTENSION_DIRECTORY.message,
+        ErrorCodes.INVALID_EXTENSION_DIRECTORY.code,
+    );
+};
+
 export const createContext = async context => {
   try {
     // this is needed for theme creation command, as we are cloning theme template and directly passing context.
-    if (!isAThemeDirectory()) createDirectory(FDK_PATH());
+    if (!isAThemeOrExtensionDirectory()) createDirectory(FDK_PATH());
     if (!hasContext()) {
         await fs.writeJSON(CONTEXT_PATH(), DEFAULT_CONTEXT);
     }
@@ -94,13 +110,38 @@ export const createContext = async context => {
   }
 };
 
-export const isAThemeDirectory = () => {
+export const createExtenstionContext = async context => {
+    try {
+        // this is needed for extension init command, as we are cloning extension template and will be using for functions.
+        if (!isAThemeOrExtensionDirectory()) createDirectory(FDK_PATH());
+        if (!hasExtensionContext()) {
+            await fs.writeJSON(CONTEXT_PATH(), { extension: {active_context: "", contexts: {}}});
+        }
+        let contextsData = await fs.readJSON(CONTEXT_PATH());
+        contextsData.extension.active_context = context.extension_id;
+        contextsData.extension.contexts[context.extension_id] = context;
+        await fs.writeJSON(CONTEXT_PATH(), contextsData, {
+            spaces: 2,
+        });
+        } catch (error) {
+            throw new CommandError(error.message, error.code);
+        }
+}
+
+export const isAThemeOrExtensionDirectory = () => {
     return fs.existsSync(FDK_PATH());
 };
 export const hasContext = () => {
     return (
         fs.existsSync(CONTEXT_PATH()) &&
         fs.readJSONSync(CONTEXT_PATH()).theme.contexts
+    );
+};
+
+export const hasExtensionContext = () => {
+    return (
+        fs.existsSync(CONTEXT_PATH()) &&
+        fs.readJSONSync(CONTEXT_PATH()).extension.contexts
     );
 };
 

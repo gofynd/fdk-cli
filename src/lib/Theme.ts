@@ -1,11 +1,9 @@
 import {
     asyncForEach,
     createContext,
-    decodeBase64,
     evaluateModule,
     getActiveContext,
     pageNameModifier,
-    isAThemeDirectory,
     installNpmPackages,
     ThemeContextInterface,
     parseBundleFilename,

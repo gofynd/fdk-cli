@@ -77,6 +77,44 @@ export const ErrorCodes = {
     NGROK_CONNECTION_ISSUE: {
         message: "Unable to establish ngrok tunnel",
         code: 'FDK-0011'
+    },
+
+    // functions 21...29
+    INVALID_FUNCTION_NAME: {
+        message: (reason: string): string => `Invalid Function name: ${reason}`,
+        code: 'FDK-0021'
+    },
+    INVALID_FUNCTION_TYPE: {
+        message: `Invalid Function type`,
+        code: 'FDK-0022'
+    },
+    FUNCTION_WITH_SLUG_ALREADY_EXIST:{
+        message: (slug: string): string => `Function with slug ${slug} already exists please change your function name`,
+        code: 'FDK-0023'
+    },
+    NO_EXTENSION_FOUND:{
+        message: `No Extension found in your organization please create an extension to start with functions`,
+        code: 'FDK-0024'
+    },
+    FOLDER_ALREADY_EXISTS:{
+        message: (folderName: string): string => `Folder with name ${folderName} already exists in your functions folder so please update your folder name or create function with new name` ,
+        code: 'FDK-0025'  
+    },
+    INVALID_EXTENSION_DIRECTORY: {
+        message: 'Current directory is not an Extension directory. Make sure its an extension directory if its then try after adding the extension context',
+        code: 'FDK-00026',
+    },
+    MISMATCH_ORGANIZATION_ID: {
+        message:(currentOrganization, contextOrganization) => `Organization mismatch please update login through correct organization current organization is ${currentOrganization} and extension organization is ${contextOrganization}`,
+        code: 'FDK-00027',
+    },
+    INVALID_FUNCTION_SLUG: {
+        message:(availableSlugs) => `Invalid Slug please provide correct function slug name ${ availableSlugs ? `available slugs are ${availableSlugs}` : ''}`,
+        code: 'FDK-00028',
+    },
+    NO_FUNCTION_FOUND_IN_EXTENSION: {
+        message: `No Functions found in Extension please create an function to proceed with init`,
+        code: 'FDK-00029',       
     }
 };
 

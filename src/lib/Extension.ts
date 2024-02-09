@@ -1,7 +1,7 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 import boxen from 'boxen';
-import fs from 'fs';
+import fs from 'fs-extra';
 import path from 'path';
 import execa from 'execa';
 import rimraf from 'rimraf';
@@ -26,6 +26,11 @@ import {
     installNpmPackages,
     installJavaPackages,
     installPythonDependencies,
+    createExtenstionContext,
+    isAThemeOrExtensionDirectory,
+    hasExtensionContext,
+    FDK_PATH,
+    CONTEXT_PATH,
 } from '../helper/utils';
 
 export const NODE_VUE = 'Node + Vue.js';
@@ -175,6 +180,9 @@ export default class Extension {
                     answers.extension_api_key = extension_data.client_id;
                     answers.extension_api_secret = extension_data.secret;
                     answers.base_url = extension_data.launch_url;
+                    process.chdir(path.join(process.cwd(), answers.name));
+                    await createExtenstionContext({ name: answers.name, extension_id: extension_data.client_id, cluster_url: getBaseURL(), organization_id: configStore.get(CONFIG_KEYS.ORGANIZATION) });
+                    process.chdir(path.join(process.cwd(), '../'));
                     spinner.succeed();
                 } catch (error) {
                     spinner.fail();
@@ -484,6 +492,47 @@ export default class Extension {
             await Extension.createExtension(answers, false);
         } catch (error) {
             throw new CommandError(error.message, error.code);
+        }
+    }
+
+    public static async addExtensionContext(options) {
+        try{
+            let partner_access_token = getPartnerAccessToken();
+            let extensionApiKey = options.apiKey;
+            if(!extensionApiKey){
+                const answers = await inquirer.prompt([
+                    {
+                        type: 'input',
+                        name: 'name',
+                        prefix:`${chalk.yellow('Note: You can find your extension API key in your extension details section on the partners panel.')}`,
+                        message: `\nEnter Extension api key :`,
+                        validate: validateEmpty,
+
+                    },
+                ]);
+                extensionApiKey = answers.name;
+            }
+            if (!partner_access_token) {
+                partner_access_token = (
+                    await Partner.connectHandler({ readOnly: true })
+                ).partner_access_token;
+            }
+            const extensionDetails = await ExtensionService.getExtensionDataUsingToken(extensionApiKey, partner_access_token);
+            if (!isAThemeOrExtensionDirectory()) createDirectory(FDK_PATH());
+            if (!hasExtensionContext()) {
+                await fs.writeJSON(CONTEXT_PATH(), { extension: {active_context: "", contexts: {}}});
+            }
+            const context = {
+                name: extensionDetails.name,
+                extension_id: extensionApiKey, 
+                cluster_url: getBaseURL(), 
+                organization_id: configStore.get(CONFIG_KEYS.ORGANIZATION)
+            };
+            await createExtenstionContext(context);
+            console.log(chalk.green(`Extension context Added for extension ${extensionDetails.name}`));
+        }
+        catch(err){
+            throw err;
         }
     }
 }

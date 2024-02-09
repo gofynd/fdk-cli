@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import Extension from '../../lib/Extension';
 import ExtensionLaunchURL from '../../lib/ExtensionLaunchURL';
 import ExtensionPreviewURL from '../../lib/ExtensionPreviewURL';
+import FunctionCommands from '../../lib/Function';
 
 export default function extensionCommandBuilder() {
     const extension = new Command('extension').description(
@@ -36,6 +37,17 @@ export default function extensionCommandBuilder() {
         .option('--company-id <id>', 'Company ID')
         .option('--update-authtoken', 'Update Ngrok Authtoken')
         .asyncAction(ExtensionPreviewURL.previewUrlExtensionHandler);
+    
+    extension
+        .command('add-context')
+        .description('Add Extension Context')
+        .option('--api-key <api-key>', 'Extension API Key')
+        .asyncAction(Extension.addExtensionContext);
+    
+    extension
+        .command('context-list')
+        .description('Update the active context of extension')
+        .asyncAction(FunctionCommands.changeContext);
 
     const launch_url = new Command('launch-url').description(
         'launch url commands',
@@ -54,5 +66,40 @@ export default function extensionCommandBuilder() {
         .asyncAction(ExtensionLaunchURL.setLaunchURLHandler);
 
     extension.addCommand(launch_url);
+    
+
+    // function commands
+    const function_commands = new Command('function').description(
+        'Extension Function commands'
+    );
+    function_commands
+        .command('sync')
+        .description('Sync function')
+        .option(
+            '-n, --name <function-slug>',
+            'function slug'
+        )
+        .asyncAction(FunctionCommands.syncHandler);
+
+    function_commands
+        .command('create')
+        .description('Create Extension Function')
+        .option(
+            '-n, --name <function-name>',
+            'function name'
+        )
+        .option(
+            '-t, --type <function-type>',
+            'function type'
+        )
+        .asyncAction(FunctionCommands.createHandler);
+    
+    function_commands
+        .command('init')
+        .description('Initialize existing extension function')
+        .asyncAction(FunctionCommands.initializeFunction);
+    extension.addCommand(function_commands);
+
+
     return extension;
 }
