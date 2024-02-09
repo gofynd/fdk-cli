@@ -16,7 +16,7 @@ export default class FunctionCommands {
         try {
         const currentContext = await FunctionCommands.checkExtensionRepository();
         let slug = options?.name;
-        const functionFolderPath = path.join(process.cwd(), 'function');
+        const functionFolderPath = path.join(process.cwd(), 'functions');
         const items = fs.readdirSync(functionFolderPath);
         const folders = items.filter(item => fs.statSync(path.join(functionFolderPath, item)).isDirectory());
         if(!slug){
@@ -99,7 +99,7 @@ export default class FunctionCommands {
                 ) 
             }
 
-            const functionFolderPath = path.join(process.cwd(),'function');
+            const functionFolderPath = path.join(process.cwd(),'functions');
             if(!fs.existsSync(functionFolderPath)){
                 fs.mkdirSync(functionFolderPath, {recursive: true});
             }
@@ -127,13 +127,13 @@ export default class FunctionCommands {
             
             const indexData = selectedEventsData.map((element) => `function ${element.slug}(context, payload) {\n\n}\n`).join('\n');
             
-            const configFilePath = path.join(process.cwd(), 'function', slug, 'config.js');
-            const indexFilePath = path.join(process.cwd(), 'function', slug, 'index.js');
+            const configFilePath = path.join(process.cwd(), 'functions', slug, 'config.js');
+            const indexFilePath = path.join(process.cwd(), 'functions', slug, 'index.js');
             
             await fs.outputFile(configFilePath, `const config = ${JSON.stringify(config, null, 2)};\n module.exports = config;`);
             await fs.outputFile(indexFilePath, indexData);
             
-            console.log(chalk.green(`Functions created successfully. You can verify the functions at ${path.join(process.cwd(), 'function', slug)}`));
+            console.log(chalk.green(`Functions created successfully. You can verify the functions at ${path.join(process.cwd(), 'functions', slug)}`));
             
         } catch(error) {
             throw new CommandError(error.message, error.code);
@@ -161,7 +161,7 @@ export default class FunctionCommands {
                     ErrorCodes.INVALID_FUNCTION_SLUG.code
                 ); 
             }
-            const functionFolderPath = path.join(process.cwd(),'function');
+            const functionFolderPath = path.join(process.cwd(),'functions');
             const slugFolderPath = path.join(functionFolderPath, selectedFunctionData.slug);
             if(fs.existsSync(path.join(slugFolderPath))){
                 throw new CommandError(
