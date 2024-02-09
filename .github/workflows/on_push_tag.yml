@@ -6,11 +6,35 @@ on:
       - v[0-9]+.[0-9]+.[0-9]+-beta.[0-9]+
 
 jobs:
-  run-test-cases:
-    uses: ./.github/workflows/call_test_cases.yml
+  release-check:
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@v3
+        - uses: actions/setup-node@v3
+          with:
+              node-version: '16.x'
+              registry-url: 'https://registry.npmjs.org'
+        - run: npm install
+        - run: node ./scripts/unstableReleaseCheck.js
 
+  run-test-cases:
+    needs: release-check
+    uses: ./.github/workflows/call_test_cases.yml
+  
+  create-sentry-release:
+    needs: 
+      - release-check
+      - run-test-cases
+    uses: ./.github/workflows/create_sentry_release.yml
+    with:
+      release_environment: development
+    secrets: inherit
+  
   publish-test-release:
-    needs: run-test-cases
+    needs: 
+      - release-check
+      - run-test-cases
+      - create-sentry-release
     runs-on: ubuntu-latest
 
     steps:
