@@ -1,6 +1,6 @@
 const combineURLs = require('axios/lib/helpers/combineURLs');
 const isAbsoluteURL = require('axios/lib/helpers/isAbsoluteURL');
-const { sign } = require('./signature');
+const { sign } = require("@gofynd/fp-signature");
 import Debug from '../../Debug';
 import CommandError, { ErrorCodes } from '../../CommandError';
 import ConfigStore, { CONFIG_KEYS } from '../../Config';
@@ -81,13 +81,13 @@ function interceptorFn(options) {
                     body: transformedData,
                     headers: headersToSign,
                 };
-                sign(signingOptions);
+                const signature = sign(signingOptions);
                 // console.log(signingOptions);
                 // config.headers = signingOptions.headers;
                 config.headers['x-fp-date'] =
-                    signingOptions.headers['x-fp-date'];
+                signature['x-fp-date'];
                 config.headers['x-fp-signature'] =
-                    signingOptions.headers['x-fp-signature'];
+                signature['x-fp-signature'];
             }
             return config;
         } catch (error) {

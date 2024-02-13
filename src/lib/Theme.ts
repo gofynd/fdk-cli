@@ -28,7 +28,7 @@ import cheerio from 'cheerio';
 import glob from 'glob';
 import _ from 'lodash';
 import { createDirectory, writeFile, readFile } from '../helper/file.utils';
-import shortid from 'shortid';
+import { customAlphabet } from 'nanoid';
 import ThemeService from './api/services/theme.service';
 import UploadService from './api/services/upload.service';
 import ExtensionService from './api/services/extension.service';
@@ -62,7 +62,10 @@ import {
 import { simpleGit } from 'simple-git';
 import { THEME_TYPE } from '../helper/constants';
 
-shortid.characters('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_@');
+const nanoid = customAlphabet(
+    '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+    9
+  );
 
 export default class Theme {
     /*
@@ -397,7 +400,7 @@ export default class Theme {
             const imageCdnUrl = await Theme.getImageCdnBaseUrl();
             const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
             Theme.createVueConfig();
-            const assetHash = shortid.generate();
+            const assetHash = nanoid();
             await build({
                 buildFolder: Theme.BUILD_FOLDER,
                 imageCdnUrl,
@@ -942,7 +945,7 @@ export default class Theme {
                 imageCdnUrl = await Theme.getImageCdnBaseUrl();
                 assetCdnUrl = await Theme.getAssetCdnBaseUrl();
                 Theme.createVueConfig();
-                assetHash = shortid.generate();
+                assetHash = nanoid();
                 Logger.info('Building Assets');
                 // Building .js & .css bundles using vue-cli
                 await build({
@@ -2525,7 +2528,7 @@ export default class Theme {
         const imageCdnUrl = await Theme.getImageCdnBaseUrl();
         const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
         Theme.createVueConfig();
-        const assetHash = shortid.generate();
+        const assetHash = nanoid();
         Logger.info('Building Assets for Vue Theme');
         // Building .js & .css bundles using vue-cli
         await build({
