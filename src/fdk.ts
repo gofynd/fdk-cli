@@ -25,7 +25,6 @@ import {
     ALL_THEME_COMMANDS,
 } from './helper/constants';
 const packageJSON = require('../package.json');
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 async function checkTokenExpired(auth_token) {
     if (!auth_token) return true;
