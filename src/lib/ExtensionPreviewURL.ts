@@ -17,6 +17,10 @@ import {
 } from '../helper/extension_utils';
 import Spinner from '../helper/spinner';
 import CommandError, { ErrorCodes } from './CommandError';
+import semver from "semver";
+import { CLI_EXT_VER_FOR_PTOKEN } from '../helper/constants';
+import open from 'open';
+import Extension from './Extension';
 
 export default class ExtensionPreviewURL {
     organizationInfo: Object;
@@ -32,9 +36,13 @@ export default class ExtensionPreviewURL {
             // initialize class instance
             const extension = new ExtensionPreviewURL();
             extension.options = options;
+            const {notPartnerTokenPltfmVersion} = await Extension.isPartnerTokenCliVersion();
 
             // get the companyId
-            extension.organizationInfo = await extension.getOrganizationInfo();
+            // This is just been kept for backward compatibility as of now once v1.10.0 gets deployed on all cluster please remove this
+            if(notPartnerTokenPltfmVersion){
+                extension.organizationInfo = await extension.getOrganizationInfo();
+            }
             if (!extension.options.companyId) {
                 extension.options.companyId = await extension.getCompanyId();
             }
@@ -63,14 +71,24 @@ export default class ExtensionPreviewURL {
             }
 
             // update launch url on partners panel
-            await ExtensionLaunchURL.updateLaunchURL(
-                extension.options.apiKey,
-                extension.organizationInfo.partner_access_token,
-                extension.publicNgrokURL,
-            );
-
+            // This is just been kept for backward compatibility as of now once v1.10.0 gets deployed on all cluster please remove this
+            if(notPartnerTokenPltfmVersion){
+                await ExtensionLaunchURL.updateLaunchURL(
+                    extension.options.apiKey,
+                    extension.organizationInfo.partner_access_token,
+                    extension.publicNgrokURL,
+                );
+            }
+            else{
+                await ExtensionLaunchURL.updateLaunchURLPartners(
+                    extension.options.apiKey,
+                    extension.publicNgrokURL
+                );
+            }
             // get preview URL
             const previewURL = extension.getPreviewURL();
+
+            await open(previewURL);
 
             console.log(
                 boxen(
@@ -93,6 +111,7 @@ export default class ExtensionPreviewURL {
                 ),
             );
         } catch (error) {
+            console.log(error, "Error");
             throw new CommandError(error.message, error.code);
         }
     }
