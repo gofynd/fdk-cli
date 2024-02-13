@@ -77,6 +77,11 @@ export const ErrorCodes = {
     FP_VERSION_NOT_AVAILABLE: {
        message: 'Fyndplatform version not available please add the version with a variable PLATFORM_VERSION in your cluster or sandbox',
        code: 'FDK-002'
+    },
+    //ngrok
+    NGROK_CONNECTION_ISSUE: {
+        message: "Unable to establish ngrok tunnel",
+        code: 'FDK-0011'
     }
 };
 

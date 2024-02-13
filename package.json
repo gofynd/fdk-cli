@@ -1,6 +1,6 @@
 {
   "name": "@gofynd/fdk-cli",
-  "version": "5.0.0-alpha.1",
+  "version": "5.0.1",
   "main": "index.js",
   "license": "MIT",
   "bin": {
@@ -21,6 +21,7 @@
   "scripts": {
     "clean": "rimraf ./dist",
     "build": "npm run clean && tsc && npm run copy-files",
+    "build:sourcemap": "npm run clean && tsc -p ./tsconfig.sourcemap.json && npm run copy-files",
     "copy-files": "copyfiles -u 1 src/**/*.html dist/",
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build",
@@ -71,6 +72,7 @@
     "@babel/plugin-transform-modules-commonjs": "^7.14.0",
     "@gofynd/fp-signature": "^1.0.1",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.10",
+    "@sentry/node": "^7.92.0",
     "@types/open": "^6.2.1",
     "acorn": "^8.10.0",
     "acorn-walk": "^8.2.0",
@@ -105,8 +107,9 @@
     "mini-css-extract-plugin": "^2.7.6",
     "mongodb": "^3.5.4",
     "mongoose": "^5.8.0",
+    "nanoid": "^3.3.7",
     "ncp": "^2.0.0",
-    "ngrok": "^4.3.3",
+    "ngrok": "5.0.0-beta.2",
     "open": "^8.2.1",
     "ora": "^5.4.0",
     "password-validator": "^5.1.1",
@@ -115,7 +118,6 @@
     "require-from-string": "^2.0.2",
     "rimraf": "^3.0.2",
     "semver": "^6.3.0",
-    "shortid": "^2.2.16",
     "simple-git": "^3.15.0",
     "socket.io": "^2.3.0",
     "source-map": "^0.7.3",
