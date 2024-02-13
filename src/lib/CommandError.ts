@@ -27,10 +27,6 @@ export const ErrorCodes = {
         message: 'Invalid API Key/API Secret passed',
         code: 'FDK-0006',
     },
-    INVALID_PARTNER_TOKEN: {
-        message: 'Invalid of Expired Partner access token',
-        code: 'FDK-0007',
-    },
     NO_DEVELOPMENT_COMPANY: {
         message: 'Development account not found',
         code: 'FDK-0008',
@@ -72,7 +68,16 @@ export const ErrorCodes = {
         message: 'Network issue',
         code: 'FDK-0009',
     },
-
+    IN_COMPATIBLE_THEME_VERSION: {
+        message: (currentVersion)=> {
+         return `Your Fyndplatform version is currently ${currentVersion}. For compatibility, this fdk/cli requires Fyndplatform version 1.9.1 or newer. To align with your current Fynd Platform version, please downgrade your fdk/cli to any of the latest versions less than 5.0.0.`
+        },
+        code: 'FDK-002'
+    },
+    FP_VERSION_NOT_AVAILABLE: {
+       message: 'Fyndplatform version not available please add the version with a variable PLATFORM_VERSION in your cluster or sandbox',
+       code: 'FDK-002'
+    },
     //ngrok
     NGROK_CONNECTION_ISSUE: {
         message: 'Unable to establish ngrok tunnel',

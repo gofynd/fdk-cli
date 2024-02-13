@@ -136,27 +136,23 @@ export const URLS = {
 
     // Extension
     REGISTER_EXTENSION: (): string => {
-        return urlJoin(MIXMASTER_URL('panel'), `/extensions/`);
+        return urlJoin(
+            MIXMASTER_URL('partner'),
+            `organization/${organization_id}/extension`
+        )
     },
     GET_EXTENSION_DETAILS: (extension_api_key: string): string => {
         return urlJoin(
-            MIXMASTER_URL('panel'),
-            `/extensions/details/${extension_api_key}`,
-        );
+            MIXMASTER_URL('partner'),
+            `organization/${organization_id}/extension/${extension_api_key}`
+        )
     },
     UPDATE_EXTENSION_DETAILS: (extension_api_key: string): string => {
         return urlJoin(
-            MIXMASTER_URL('panel'),
-            `/extensions/${extension_api_key}`,
+            MIXMASTER_URL('partner'),
+            `organization/${organization_id}/extension/${extension_api_key}`,
         );
     },
-    GET_ORGANIZATION_DATA: (partner_access_token: string): string => {
-        return urlJoin(
-            MIXMASTER_URL('panel'),
-            `/accesstoken/${partner_access_token}/organization`,
-        );
-    },
-
     // Preview URL
     GET_DEVELOPMENT_ACCOUNTS: (page_no: number, page_size: number): string => {
         return urlJoin(
@@ -174,4 +170,8 @@ export const URLS = {
     IS_VERSION_COMPATIBLE: () => {
         return urlJoin(BLITZKRIEG_PANEL_URL(), '/_compatibility');
     },
+
+    FYND_PLATFORM_VERSION: () => {
+        return urlJoin(getBaseURL(), "/fpversion");
+    }
 };

@@ -10,9 +10,7 @@ import { URLS } from '../lib/api/services/url';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
 
 // fixtures
-const TOKEN = 'mocktoken';
 const EXTENSION_KEY = 'mockextensionapikey';
-const ORGANIZATION_ID = 'mockorganizationid';
 const NGROK_TEST_URL = 'https://test_url.ngrok.io';
 const COMPANY_ID = '1';
 const PORT = '3000';
@@ -48,7 +46,27 @@ jest.mock('configstore', () => {
 });
 
 describe('Extension preview-url command', () => {
-    beforeAll(async () => {});
+    beforeAll(async () => {
+        jest.spyOn(axios, "get").mockResolvedValue({
+            data: {"version": "1.9.1"},
+        })
+        jest.spyOn(axios, 'get').mockImplementation((url) => {
+            let data = {};
+            if (url === URLS.FYND_PLATFORM_VERSION()) {
+                data = {
+                    data: {
+                      "version": "1.9.1"
+                    },
+                  };
+            }
+            else if(url === URLS.GET_DEVELOPMENT_ACCOUNTS(1, 9999)){
+                data = {
+                    data: {items: [{ company: { uid: COMPANY_ID, name: 'cli-test' } }]},
+                }
+            }
+            return Promise.resolve(data);
+          });
+    });
 
     afterAll(async () => {
         // restore console log mock so it does not affect other test cases
@@ -65,15 +83,6 @@ describe('Extension preview-url command', () => {
 
         // mock axios
         const mockAxios = new MockAdapter(axios);
-        mockAxios
-            .onGet(`${URLS.GET_ORGANIZATION_DATA(TOKEN)}`)
-            .reply(200, { id: ORGANIZATION_ID });
-
-        mockAxios
-            .onGet(`${URLS.GET_DEVELOPMENT_ACCOUNTS(1, 9999)}`)
-            .reply(200, {
-                items: [{ company: { uid: COMPANY_ID, name: 'cli-test' } }],
-            });
 
         mockAxios
             .onPatch(`${URLS.UPDATE_EXTENSION_DETAILS(EXTENSION_KEY)}`)
@@ -112,7 +121,6 @@ describe('Extension preview-url command', () => {
 
         const promptSpy = jest
             .spyOn(inquirer, 'prompt')
-            .mockResolvedValueOnce({ partner_access_token: TOKEN })
             .mockResolvedValueOnce({ company_id: COMPANY_ID })
             .mockResolvedValueOnce({ extension_api_key: EXTENSION_KEY })
             .mockResolvedValueOnce({ ngrok_authtoken: AUTH_TOKEN });
@@ -128,13 +136,12 @@ describe('Extension preview-url command', () => {
 
         expect(logSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
         expect(logSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
-        expect(promptSpy).toBeCalledTimes(4);
+        expect(promptSpy).toBeCalledTimes(3);
     });
 
     it('should successfully return preview url without any prompt', async () => {
         configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);
         configStore.set(CONFIG_KEYS.NGROK_AUTHTOKEN, AUTH_TOKEN);
-        configStore.set(CONFIG_KEYS.PARTNER_ACCESS_TOKEN, TOKEN);
 
         jest.spyOn(inquirer, 'prompt');
 
@@ -157,7 +164,6 @@ describe('Extension preview-url command', () => {
 
     it('should prompt for ngrok url and return preview url', async () => {
         configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);
-        configStore.set(CONFIG_KEYS.PARTNER_ACCESS_TOKEN, TOKEN);
 
         jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({
             ngrok_authtoken: 'auth_token',
@@ -183,7 +189,6 @@ describe('Extension preview-url command', () => {
 
     it("should prompt ngrok url and update it's value on configstore", async () => {
         configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);
-        configStore.set(CONFIG_KEYS.PARTNER_ACCESS_TOKEN, TOKEN);
         configStore.set(CONFIG_KEYS.NGROK_AUTHTOKEN, AUTH_TOKEN);
 
         jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({

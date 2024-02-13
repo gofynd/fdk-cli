@@ -5,18 +5,17 @@ import urljoin from 'url-join';
 import inquirer from 'inquirer';
 
 import Debug from './Debug';
-import Partner from './Partner';
 import { getPlatformUrls } from './api/services/url';
 import configStore, { CONFIG_KEYS } from './Config';
 import ExtensionLaunchURL from './ExtensionLaunchURL';
 import ExtensionService from './api/services/extension.service';
 import {
-    getPartnerAccessToken,
     Object,
     validateEmpty,
 } from '../helper/extension_utils';
 import Spinner from '../helper/spinner';
 import CommandError, { ErrorCodes } from './CommandError';
+import open from 'open';
 
 export default class ExtensionPreviewURL {
     organizationInfo: Object;
@@ -34,7 +33,6 @@ export default class ExtensionPreviewURL {
             extension.options = options;
 
             // get the companyId
-            extension.organizationInfo = await extension.getOrganizationInfo();
             if (!extension.options.companyId) {
                 extension.options.companyId = await extension.getCompanyId();
             }
@@ -65,12 +63,13 @@ export default class ExtensionPreviewURL {
             // update launch url on partners panel
             await ExtensionLaunchURL.updateLaunchURL(
                 extension.options.apiKey,
-                extension.organizationInfo.partner_access_token,
                 extension.publicNgrokURL,
             );
 
             // get preview URL
             const previewURL = extension.getPreviewURL();
+
+            await open(previewURL);
 
             console.log(
                 boxen(
@@ -104,20 +103,6 @@ export default class ExtensionPreviewURL {
             `/company/${this.options.companyId}`,
             `/extensions/${this.options.apiKey}`,
         );
-    }
-
-    private async getOrganizationInfo() {
-        let partner_access_token = getPartnerAccessToken();
-        if (partner_access_token) {
-            return await ExtensionService.getOrganizationData(
-                partner_access_token,
-            );
-        } else {
-            return await Partner.connectHandler({
-                readOnly: true,
-                ...this.options,
-            });
-        }
     }
 
     private async getCompanyId() {
