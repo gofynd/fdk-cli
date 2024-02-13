@@ -75,23 +75,23 @@ export const getActiveContext = (): ThemeContextInterface => {
     );
 };
 
-export const createContext = async context => {
-  try {
-    // this is needed for theme creation command, as we are cloning theme template and directly passing context.
-    if (!isAThemeDirectory()) createDirectory(FDK_PATH());
-    if (!hasContext()) {
-        await fs.writeJSON(CONTEXT_PATH(), DEFAULT_CONTEXT);
+export const createContext = async (context) => {
+    try {
+        // this is needed for theme creation command, as we are cloning theme template and directly passing context.
+        if (!isAThemeDirectory()) createDirectory(FDK_PATH());
+        if (!hasContext()) {
+            await fs.writeJSON(CONTEXT_PATH(), DEFAULT_CONTEXT);
+        }
+        let contextsData = await fs.readJSON(CONTEXT_PATH());
+        context.env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+        contextsData.theme.active_context = context.name;
+        contextsData.theme.contexts[context.name] = context;
+        await fs.writeJSON(CONTEXT_PATH(), contextsData, {
+            spaces: 2,
+        });
+    } catch (error) {
+        throw new CommandError(error.message, error.code);
     }
-    let contextsData = await fs.readJSON(CONTEXT_PATH());
-    context.env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
-    contextsData.theme.active_context = context.name;
-    contextsData.theme.contexts[context.name] = context;
-    await fs.writeJSON(CONTEXT_PATH(), contextsData, {
-      spaces: 2,
-    });
-  } catch (error) {
-    throw new CommandError(error.message, error.code);
-  }
 };
 
 export const isAThemeDirectory = () => {

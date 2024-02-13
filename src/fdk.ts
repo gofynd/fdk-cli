@@ -52,7 +52,7 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
                 else break;
             }
 
-            if(parent._optionValues.verbose || parent._optionValues.debug) {
+            if (parent._optionValues.verbose || parent._optionValues.debug) {
                 parent._optionValues.verbose = true;
                 parent._optionValues.debug = true;
             }
@@ -215,9 +215,15 @@ export async function init(programName: string) {
     program
         .name(programName)
         .version(packageJSON.version)
-        .option('-v, --verbose', 'Display detailed output for debugging purposes')
-        .option('-d, --debug', 'Display detailed output for debugging purposes');
-        
+        .option(
+            '-v, --verbose',
+            'Display detailed output for debugging purposes',
+        )
+        .option(
+            '-d, --debug',
+            'Display detailed output for debugging purposes',
+        );
+
     //register commands with commander instance
     registerCommands(program);
     //set API versios

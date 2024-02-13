@@ -39,7 +39,12 @@ export default class ExtensionLaunchURL {
         launch_url: string,
     ): Promise<void> {
         try {
-            let java_env_file_path = path.join('src', 'main', 'resources', 'application.yml');
+            let java_env_file_path = path.join(
+                'src',
+                'main',
+                'resources',
+                'application.yml',
+            );
             let spinner = new Spinner('Updating Launch URL');
             try {
                 spinner.start();
@@ -58,8 +63,7 @@ export default class ExtensionLaunchURL {
                         `EXTENSION_BASE_URL="${launch_url}"\n`,
                     );
                     writeFile('./.env', envData);
-                }
-                else if (fs.existsSync(java_env_file_path)) {
+                } else if (fs.existsSync(java_env_file_path)) {
                     let envData = readFile(java_env_file_path);
                     envData = replaceContent(
                         envData,
@@ -67,8 +71,7 @@ export default class ExtensionLaunchURL {
                         `base_url: '${launch_url}'\n`,
                     );
                     writeFile(java_env_file_path, envData);
-                }
-                else {
+                } else {
                     manualUpdateRequired = true;
                 }
                 spinner.succeed();

@@ -126,7 +126,6 @@ export default class Extension {
         if (project_type === NODE_VUE || project_type === NODE_REACT) {
             // installing dependencies for Node projects
             await installNpmPackages(answers.targetDir);
-            await installNpmPackages(answers.targetDir);
         } else if (
             project_type === PYTHON_VUE ||
             project_type === PYTHON_REACT
@@ -237,7 +236,6 @@ export default class Extension {
 
     // check for system dependencies
     static checkDependencies(project_type: string) {
-
         const missingDependencies: string[] = [];
         const requiredDependencies: string[] = ['npm'];
 
@@ -258,13 +256,17 @@ export default class Extension {
         for (const dependency of requiredDependencies) {
             try {
                 which.sync(dependency);
-            } catch(error) {
+            } catch (error) {
                 missingDependencies.push(dependency);
             }
         }
 
         if (missingDependencies.length > 0) {
-            throw new CommandError(`Missing Dependencies: ${missingDependencies.join(', ')} \nInstall the required dependencies on your system before creating an extension.`);
+            throw new CommandError(
+                `Missing Dependencies: ${missingDependencies.join(
+                    ', ',
+                )} \nInstall the required dependencies on your system before creating an extension.`,
+            );
         }
     }
 
@@ -430,7 +432,7 @@ export default class Extension {
             answers = { ...answers, ...(await inquirer.prompt(questions)) };
             answers.project_url = PROJECT_REPOS[answers.project_type];
 
-            Extension.checkDependencies(answers.project_type)
+            Extension.checkDependencies(answers.project_type);
 
             if (!partner_access_token) {
                 partner_access_token = (
