@@ -38,8 +38,8 @@ export const ErrorCodes = {
     NO_COMPANY_FOUND: {
         message: (company_type = 'live', domain) => {
             if (company_type === 'live')
-                return `No live company found, please request live company access from partners panel under your selected organization.  For more details, refer to the documentation link: ${domain}/help/docs/partners/architecture/development-accounts/#request-access-for-the-live-company-from-a-seller`;
-            return `No development company found, please create development company from partners panel under your selected organization. For more details, refer to the documentation link: ${domain}/help/docs/partners/architecture/development-accounts`;
+                return `No live company found, please request live company access from partners panel under your selected organization.  For more details, refer to the documentation link: ${domain}/help/docs/guide/partner-panel/accounts#requesting-access-to-a-live-account-of-client`;
+            return `No development company found, please create development company from partners panel under your selected organization. For more details, refer to the documentation link: ${domain}/help/docs/guide/partner-panel/accounts#creating-and-managing-development-accounts`;
         },
         code: 'FDK-0009',
     },
@@ -72,12 +72,23 @@ export const ErrorCodes = {
         message: 'Network issue',
         code: 'FDK-0009',
     },
+
+    //ngrok
+    NGROK_CONNECTION_ISSUE: {
+        message: 'Unable to establish ngrok tunnel',
+        code: 'FDK-0011',
+    },
 };
 
 export default class CommandError extends Error {
     code: string;
     response?: any;
-    constructor(message?: string, code?: string, response?: any, ...args: any[]) {
+    constructor(
+        message?: string,
+        code?: string,
+        response?: any,
+        ...args: any[]
+    ) {
         super(message);
         // If e.toString() was called to get `message` we don't want it to look
         // like "Error: Error:".
@@ -90,7 +101,7 @@ export default class CommandError extends Error {
         Object.setPrototypeOf(this, CommandError.prototype);
         this.code = code || 'FDK-0004';
         this.message = message || 'Something went wrong';
-        this.response = response || "Response not Received";
+        this.response = response || 'Response not Received';
         process.exitCode = 1;
     }
 }

@@ -28,6 +28,11 @@ const BUILD_FOLDER = './.fdk/dist';
 let port = 5001;
 let sockets = [];
 let publicCache = {};
+let headers = {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+    'x-fp-cli': `${packageJSON.version}`,
+};
 
 export function reload() {
     sockets.forEach((s) => {
@@ -105,7 +110,7 @@ async function setupServer({ domain }) {
     app.use(express.json());
 
     app.use('/public', async (req, res, done) => {
-		const themeId = currentContext.theme_id;
+        const themeId = currentContext.theme_id;
         const { url } = req;
         try {
             if (publicCache[url]) {
@@ -116,7 +121,9 @@ async function setupServer({ domain }) {
                 }
                 return res.send(publicCache[url].body);
             }
-            const networkRes = await axios.get(urlJoin(domain, 'public', url, `?themeId=${themeId}`));
+            const networkRes = await axios.get(
+                urlJoin(domain, 'public', url, `?themeId=${themeId}`),
+            );
             publicCache[url] = publicCache[url] || {};
             publicCache[url].body = networkRes.data;
             publicCache[url].headers = networkRes.headers;
@@ -180,10 +187,7 @@ export async function startServer({ domain, host, isSSR, port }) {
             const { data: html } = await axios({
                 method: 'POST',
                 url: jetfireUrl.toString(),
-                headers: {
-                    'Content-Yype': 'application/json',
-                    Accept: 'application/json',
-                },
+                headers,
                 data: {
                     theme_url: themeUrl,
                     domain: getFullLocalUrl(port),
@@ -353,8 +357,12 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
     app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
 
     app.use((request, response, next) => {
+        // Filtering so that HMR file requests are not routed to skyfire pods
         if (request.url.indexOf('.hot-update.json') !== -1) {
             return response.json({ c: ['themeBundle'], r: [], m: [] });
+        }
+        if (request.url.indexOf('.hot-update.js') !== -1) {
+            return response.send('');
         }
         next();
     });
@@ -412,13 +420,19 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
         await Promise.all(promises);
 
         const { data: html } = await axios
-            .post(skyfireUrl.toString(), {
-                themeURLs,
-                cliMeta: {
-                    port,
-                    domain: getFullLocalUrl(port),
+            .post(
+                skyfireUrl.toString(),
+                {
+                    themeURLs,
+                    cliMeta: {
+                        port,
+                        domain: getFullLocalUrl(port),
+                    },
                 },
-            })
+                {
+                    headers,
+                },
+            )
             .catch((error) => {
                 console.log(error);
                 return { data: error };
@@ -448,7 +462,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 						window.location.reload();
 					`
                     }
-					
+
 				});
 				</script>
 			`);

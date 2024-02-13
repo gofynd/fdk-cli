@@ -24,6 +24,7 @@ import {
     PARTNER_COMMANDS,
     ALL_THEME_COMMANDS,
 } from './helper/constants';
+import * as Sentry from '@sentry/node';
 const packageJSON = require('../package.json');
 
 async function checkTokenExpired(auth_token) {
@@ -49,6 +50,11 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
             while (true) {
                 if (parent.parent) parent = parent.parent;
                 else break;
+            }
+
+            if (parent._optionValues.verbose || parent._optionValues.debug) {
+                parent._optionValues.verbose = true;
+                parent._optionValues.debug = true;
             }
 
             if (parent._optionValues.verbose) {
@@ -179,11 +185,15 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
             }
             await asyncFn(...args);
         } catch (err) {
+            // TODO: Error reporting from user logic can be added here
+
             // TODO: Find better ways to consolidate error messages
             if (err instanceof CommandError) {
                 const message = `${err.code} - ${err.message} `;
                 Logger.error(message);
             } else {
+                // on report call sentry capture exception
+                Sentry.captureException(err);
                 Logger.error(err);
             }
             Debug(err);
@@ -205,7 +215,15 @@ export async function init(programName: string) {
     program
         .name(programName)
         .version(packageJSON.version)
-        .option('-v, --verbose', 'A value that can be increased');
+        .option(
+            '-v, --verbose',
+            'Display detailed output for debugging purposes',
+        )
+        .option(
+            '-d, --debug',
+            'Display detailed output for debugging purposes',
+        );
+
     //register commands with commander instance
     registerCommands(program);
     //set API versios
