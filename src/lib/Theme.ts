@@ -3061,4 +3061,9 @@ export default class Theme {
             throw err;
         }
     };
+
+    public static serveDocs = async (options) => {
+        const tag = options.tag;
+        console.log({tag})
+    }
 }

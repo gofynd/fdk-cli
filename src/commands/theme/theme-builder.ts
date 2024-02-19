@@ -66,5 +66,11 @@ export default function themeCommandBuilder() {
         .description('generate zip file of theme')
         .asyncAction(Theme.generateThemeZip);
 
+    theme
+        .command('serve-docs')
+        .description('serve fdk store docs')
+        .requiredOption('-t, --tag [tag]', 'Tag Name')
+        .asyncAction(Theme.previewTheme);
+
     return theme;
 }
