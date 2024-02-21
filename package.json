@@ -24,8 +24,7 @@
     "copy-files": "copyfiles -u 1 src/**/*.html dist/",
     "watch": "tsc --watch",
     "test": "jest --runInBand",
-    "pretty": "./node_modules/.bin/prettier --config ./.prettierrc --write './src/**/*.*'",
-    "publish-check": "node scripts"
+    "pretty": "./node_modules/.bin/prettier --config ./.prettierrc --write './src/**/*.*'"
   },
   "devDependencies": {
     "@types/async": "^3.2.6",
