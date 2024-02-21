@@ -21,10 +21,8 @@
   "scripts": {
     "clean": "rimraf ./dist",
     "build": "npm run clean && tsc && npm run copy-files",
-    "build:sourcemap": "npm run clean && tsc -p ./tsconfig.sourcemap.json && npm run copy-files",
     "copy-files": "copyfiles -u 1 src/**/*.html dist/",
     "watch": "tsc --watch",
-    "prepublishOnly": "npm run build",
     "test": "jest --runInBand",
     "pretty": "./node_modules/.bin/prettier --config ./.prettierrc --write './src/**/*.*'",
     "publish-check": "node scripts"
