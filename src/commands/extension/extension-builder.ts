@@ -3,6 +3,7 @@ import Extension from '../../lib/Extension';
 import ExtensionLaunchURL from '../../lib/ExtensionLaunchURL';
 import ExtensionPreviewURL from '../../lib/ExtensionPreviewURL';
 import FunctionCommands from '../../lib/Function';
+import ExtensionContext from '../../lib/ExtensionContext';
 
 export default function extensionCommandBuilder() {
     const extension = new Command('extension').description(
@@ -38,17 +39,21 @@ export default function extensionCommandBuilder() {
         .option('--update-authtoken', 'Update Ngrok Authtoken')
         .asyncAction(ExtensionPreviewURL.previewUrlExtensionHandler);
     
+
+    // context commands
     extension
         .command('add-context')
         .description('Add Extension Context')
         .option('--api-key <api-key>', 'Extension API Key')
-        .asyncAction(Extension.addExtensionContext);
+        .asyncAction(ExtensionContext.addExtensionContextHandler);
     
     extension
         .command('context-list')
         .description('Update the active context of extension')
-        .asyncAction(FunctionCommands.changeContext);
+        .asyncAction(ExtensionContext.changeContextHandler);
 
+
+    // launch url commands
     const launch_url = new Command('launch-url').description(
         'launch url commands',
     );
@@ -76,7 +81,7 @@ export default function extensionCommandBuilder() {
         .command('sync')
         .description('Sync function')
         .option(
-            '-n, --name <function-slug>',
+            '-s, --slug <function-slug>',
             'function slug'
         )
         .asyncAction(FunctionCommands.syncHandler);
@@ -97,7 +102,12 @@ export default function extensionCommandBuilder() {
     function_commands
         .command('init')
         .description('Initialize existing extension function')
+        .option(
+            '-s, --slug <function-slug>',
+            'function slug'
+        )
         .asyncAction(FunctionCommands.initializeFunction);
+
     extension.addCommand(function_commands);
 
 

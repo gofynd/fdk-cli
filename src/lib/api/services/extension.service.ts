@@ -1,6 +1,12 @@
 import { URLS } from './url';
 import { getCommonHeaderOptions } from './utils';
 import ApiClient from '../ApiClient';
+import { 
+    Function,
+    CreateFunctionPayload, 
+    UpdateFunctionPayload, 
+    UpdateFunctionVersionPayload 
+} from '../../../helper/functions.types';
 
 type RegisterExtensionPaylaod = {
     name: string;
@@ -141,6 +147,7 @@ export default {
             throw error;
         }
     },
+
     getLiveAccounts: async (page_no: number, page_size: number) => {
         try {
             let axiosOptions = Object.assign({}, getCommonHeaderOptions());
@@ -168,18 +175,18 @@ export default {
         }
     },
 
-    getFunctionByFunctionIdOrSlug: async (extension_id: string,function_id_or_slug: string)=> {
+    getFunctionByFunctionIdOrSlug: async (extension_id: string, function_id_or_slug: string): Promise<[boolean, Function?]> => {
         try{
             let axiosOptions = Object.assign({}, getCommonHeaderOptions());
             let response = await ApiClient.get(
                 URLS.GET_FUNCTION_BY_FUNCTION_ID_OR_SLUG(extension_id, function_id_or_slug),
                 axiosOptions
             );
-            return response.data;
+            return [true, response.data];
         }
         catch(err){
             if(err?.response?.status === 404 && err?.response?.data?.message === "Function not found"){
-                return false;
+                return [false];
             }
             throw err;
         }
@@ -199,7 +206,7 @@ export default {
         }
     },
 
-    createExtensionFunction: async (data, extension_id: string)=> {
+    createExtensionFunction: async (data: CreateFunctionPayload, extension_id: string)=> {
         try{
             let axiosOptions = Object.assign({},{data: data }, getCommonHeaderOptions());
             let response = await ApiClient.post(
@@ -213,7 +220,7 @@ export default {
         }
     },
 
-    updateExtensionFunction: async (data, extension_id: string, function_id: string)=> {
+    updateExtensionFunction: async (data: UpdateFunctionPayload, extension_id: string, function_id: string) => {
         try{
             let axiosOptions = Object.assign({},{data: data }, getCommonHeaderOptions());
             let response = await ApiClient.put(
@@ -227,7 +234,7 @@ export default {
         }
     },
 
-    updateFunctionVersion: async (data, extension_id: string, function_id: string, version_id: string)=> {
+    updateFunctionVersion: async (data: UpdateFunctionVersionPayload, extension_id: string, function_id: string, version_id: string) => {
         try{
             let axiosOptions = Object.assign({},{data: data }, getCommonHeaderOptions());
             let response = await ApiClient.put(
@@ -252,6 +259,19 @@ export default {
         }
         catch(err){
             throw err; 
+        }
+    },
+
+    getExtension: async (extension_api_key: string) => {
+        try {
+            let axiosOptions = Object.assign({}, getCommonHeaderOptions());
+            let response = await ApiClient.get(
+                URLS.GET_EXTENSION(extension_api_key),
+                axiosOptions
+            )
+            return response.data;
+        } catch(error) {
+            throw error;
         }
     }
 };

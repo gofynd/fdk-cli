@@ -1,4 +1,5 @@
 import CommandError, { ErrorCodes } from "../lib/CommandError";
+import { ConfigEvent } from "./functions.types";
 
 export const validateFunctionName = (name: string): void => {
     const minLength: number = 3;
@@ -28,13 +29,36 @@ export const validateFunctionName = (name: string): void => {
     }
 }
 
+export const validateUniqueEventNames = (events: ConfigEvent[]): boolean => {
+    const eventNames = new Set();
+
+    for (const event of events) {
+        if (eventNames.has(event.name)) {
+            throw new CommandError(
+                ErrorCodes.INVALID_FUNCTION_EVENTS_ARRAY.message,
+                ErrorCodes.INVALID_FUNCTION_EVENTS_ARRAY.code
+            )
+        }
+
+        eventNames.add(event.name);
+    }
+
+    return true;
+}
 
 export const convertToSlug = (name: string): string => {
     return name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 }
 
-
 export const FUNCTION_TYPE = {
     IN_HOOK: 'inhook',
     INGRESS: 'ingress'
+}
+
+export const FOLDER_NAME = 'functions';
+
+export const USER_ACTIONS = {
+    PULL: 'pull',
+    PUSH: 'push',
+    CANCEL: 'cancel'
 }

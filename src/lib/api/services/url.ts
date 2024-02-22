@@ -138,6 +138,14 @@ export const URLS = {
     REGISTER_EXTENSION: (): string => {
         return urlJoin(MIXMASTER_URL('panel'), `/extensions/`);
     },
+
+    GET_EXTENSION: (extension_id: string): string => {
+        return urlJoin(
+            MIXMASTER_URL('partner'),
+            `/organization/${organization_id}/extension/${extension_id}`
+        )
+    },
+
     GET_EXTENSION_DETAILS: (extension_api_key: string): string => {
         return urlJoin(
             MIXMASTER_URL('panel'),

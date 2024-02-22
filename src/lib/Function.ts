@@ -1,76 +1,169 @@
 import inquirer from "inquirer";
 import CommandError, { ErrorCodes } from "./CommandError";
-import { FUNCTION_TYPE, convertToSlug, validateFunctionName } from "../helper/functions.utils";
+import { 
+    FOLDER_NAME, 
+    FUNCTION_TYPE, 
+    USER_ACTIONS, 
+    convertToSlug, 
+    validateFunctionName, 
+    validateUniqueEventNames
+} from "../helper/functions.utils";
 import { validateEmpty, validateEmptyArray } from "../helper/extension_utils";
-import { CreateFunctionOptions, FunctionType } from "../helper/functions.types";
+import { ConfigEvent, CreateOptions, Event, EventChoices, FunctionConfig, FunctionType, SyncOptions, UserActions } from "../helper/functions.types";
 import ExtensionService from './api/services/extension.service';
 import path from "path";
 import fs from "fs-extra";
-import { getExtensionActiveContext } from '../helper/utils';
-import configStore ,{ CONFIG_KEYS } from './Config';
+import { 
+    checkExtensionRepository, 
+} from "../helper/extension_context.utils";
 import chalk from 'chalk';
 
 export default class FunctionCommands {
 
-    public static async syncHandler(options) {
+    public static async syncHandler(options: SyncOptions) {
         try {
-        const currentContext = await FunctionCommands.checkExtensionRepository();
-        let slug = options?.name;
-        const functionFolderPath = path.join(process.cwd(), 'functions');
-        const items = fs.readdirSync(functionFolderPath);
-        const folders = items.filter(item => fs.statSync(path.join(functionFolderPath, item)).isDirectory());
-        if(!slug){
-            const answer = await inquirer.prompt([
-                {
-                    type: 'list',
-                    choices: folders,
-                    name: 'slug',
-                    message: 'Select Function Slug to Sync:',
-                    validate: validateEmpty
+            const currentContext = checkExtensionRepository();
+
+            const functionFolderPath = path.join(process.cwd(), FOLDER_NAME);
+            const items = fs.readdirSync(functionFolderPath);
+            const folders = items.filter(item => fs.statSync(path.join(functionFolderPath, item)).isDirectory());
+
+            let slug = options.slug;
+            if (!slug) {
+                slug = await FunctionCommands.promptFunctionSlugChoice(folders);
+            }
+            
+            if(!folders.includes(slug)){
+                throw new CommandError(ErrorCodes.INVALID_FUNCTION_SLUG.message(folders.join(', ')), ErrorCodes.INVALID_FUNCTION_SLUG.code);
+            }
+
+            const slugFolderPath = path.join(functionFolderPath, slug);
+            const configData: FunctionConfig = require(path.join(slugFolderPath, 'config.js'));
+            const codeSnippet: string = fs.readFileSync(path.join(slugFolderPath, 'index.js'), 'utf-8');
+
+            if (configData.slug !== slug) {
+                throw new CommandError(
+                    ErrorCodes.FUNCTION_SLUG_MISMATCH.message,
+                    ErrorCodes.FUNCTION_SLUG_MISMATCH.code
+                )
+            }
+
+
+            // TODO: validate if there is exactly one function in index.js for each event
+            validateUniqueEventNames(configData.events);
+
+            const [isFunctionExists, data] = await ExtensionService.getFunctionByFunctionIdOrSlug(currentContext.extension_id, slug);
+
+            if (!isFunctionExists) {
+                // create function with version data
+                const requestPayload = {
+                    name: configData.name,
+                    description: configData.description ?? " ",
+                    type: configData.type,
+                    events: configData.events.map((el) => ({event_slug: el.name, event_version: el.version})),
+                    code_snippet: codeSnippet
                 }
-            ]);
-            slug = answer.slug;
-        }
-        if(!folders.includes(slug)){
-            throw new CommandError(ErrorCodes.INVALID_FUNCTION_SLUG.message(folders.join(', ')), ErrorCodes.INVALID_FUNCTION_SLUG.code);
-        }
-        const isSlugAlreadyCreated = await ExtensionService.getFunctionByFunctionIdOrSlug(currentContext.extension_id, slug);
-        let functionData;
-        const slugFolderPath = path.join(functionFolderPath, slug);
-        const slugConfigJsData = require(path.join(slugFolderPath, 'config.js'));
-        const payload = {
-            name: slugConfigJsData.name,
-            description: slugConfigJsData.description || 'example-description',
-            type: slugConfigJsData.type
-        };
-        if(!isSlugAlreadyCreated){
-            functionData = await ExtensionService.createExtensionFunction(payload, currentContext.extension_id);
-            console.log(chalk.green(`Function Created Successfully`));
-        }
-        else{
-            functionData = await ExtensionService.updateExtensionFunction(payload,currentContext.extension_id, isSlugAlreadyCreated._id);
-            console.log(chalk.green(`Function Updated Successfully`));
-        }
-        const code_snippet = fs.readFileSync(path.join(slugFolderPath, 'index.js'),  { encoding: 'utf-8' });
-        const versionUpdatePayload = {
-            code_snippet: code_snippet,
-            events: slugConfigJsData.events.map((el)=> ({event_slug: el.name, event_version: 
-            el.version})),
-            description: slugConfigJsData.description || 'example-description',
-            name: slugConfigJsData.name,
-            type: slugConfigJsData.type
-        };
-        await ExtensionService.updateFunctionVersion(versionUpdatePayload, currentContext.extension_id, functionData._id, functionData.version_id );
-        console.log(chalk.green(`Function ${slugConfigJsData.name} synced succesfully.`));
+                await ExtensionService.createExtensionFunction(requestPayload, currentContext.extension_id);
+                console.log(chalk.green(`Function "${slug}" synced successfully`));
+                return;
+            }
+            
+            // If function exists
+
+            // compare changes
+            const isFunctionUpdated = (configData.name !== data.name || configData.description !== data.description);
+            const isFunctionVersionUpdated = (FunctionCommands.isEventsUpdated(configData.events, data.events) || codeSnippet !== data.code_snippet);
+
+            if (!isFunctionUpdated && !isFunctionVersionUpdated) {
+                throw new CommandError(
+                    ErrorCodes.NO_CHANGES.message,
+                    ErrorCodes.NO_CHANGES.code
+                )
+            }
+
+            // give options to user if pull/push/cancel
+            const userAction = await FunctionCommands.promptUserActions();
+
+            if (userAction === USER_ACTIONS.CANCEL) {
+                console.log(
+                    chalk.green(`Sync operation cancelled`)
+                );
+                return;
+            }
+            
+            if (userAction === USER_ACTIONS.PULL) {
+                const config: FunctionConfig = {
+                    name: data.name,
+                    description: data.description,
+                    slug: data.slug,
+                    type: data.type,
+                    events: data.events.map((el) => ({name: el.event_slug, version: el.event_version}))
+                }
+
+                await fs.outputFile(path.join(slugFolderPath, 'config.js'), `const config = ${JSON.stringify(config, null, 2)};\n module.exports = config;`);
+                await fs.outputFile(path.join(slugFolderPath, 'index.js'), data.code_snippet);
+
+                console.log(
+                    chalk.green(`Function '${slug}' pulled successfully`)
+                );
+
+                return;
+            }
+
+            if (userAction === USER_ACTIONS.PUSH) {
+                
+                if (isFunctionUpdated) {
+                    await ExtensionService.updateExtensionFunction(
+                        { name: configData.name, description: configData.description },
+                        currentContext.extension_id,
+                        data._id
+                    )
+                }
+
+                if (isFunctionVersionUpdated) {
+                    await ExtensionService.updateFunctionVersion(
+                        { code_snippet: codeSnippet, events: configData.events.map((el) => ({event_slug:el.name, event_version:el.version})) },
+                        currentContext.extension_id,
+                        data._id,
+                        data.version_id
+                    )
+                }
+                console.log(
+                    chalk.green(`Function '${slug}' pushed successfully`)
+                );
+
+                return;
+            }
+
         } catch(error) {
             throw new CommandError(error.message, error.code);
         }
     }
 
+    static isEventsUpdated(configEvents: ConfigEvent[], events: Event[]): boolean {
+        // check if events are updated or not
+        if (configEvents.length !== events.length) {
+            return true;
+        }
 
-    public static async createHandler(options: CreateFunctionOptions) {
+        const configEventMap = new Map<string, string>();
+        configEvents.forEach(event => {
+            configEventMap.set(event.name, event.version);
+        })
+
+        for (const event of events) {
+            const configVersion = configEventMap.get(event.event_slug);
+            if (!configVersion || configVersion !== event.event_version) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static async createHandler(options: CreateOptions) {
         try {
-            const currentContext = await FunctionCommands.checkExtensionRepository();
+            const currentContext = checkExtensionRepository();
             const { extension_id } = currentContext;
             if (!options.name) {
                 options.name = await FunctionCommands.promptFunctionName();
@@ -88,24 +181,22 @@ export default class FunctionCommands {
                     ErrorCodes.INVALID_FUNCTION_TYPE.code
                 )
             }
-            // const { _id: extensionId } = await FunctionCommands.selectExtension();
 
-            const isSlugAlreadyUsed = await ExtensionService.getFunctionByFunctionIdOrSlug(extension_id, slug);
+            const [isSlugExists, data] = await ExtensionService.getFunctionByFunctionIdOrSlug(extension_id, slug);
             
-            if(isSlugAlreadyUsed){
+            if(isSlugExists){
                 throw new CommandError(
                     ErrorCodes.FUNCTION_WITH_SLUG_ALREADY_EXIST.message(slug),
                     ErrorCodes.FUNCTION_WITH_SLUG_ALREADY_EXIST.code
                 ) 
             }
 
-            const functionFolderPath = path.join(process.cwd(),'functions');
+            const functionFolderPath = path.join(process.cwd(), FOLDER_NAME);
             if(!fs.existsSync(functionFolderPath)){
                 fs.mkdirSync(functionFolderPath, {recursive: true});
             }
-            const events = await ExtensionService.getFunctionsAllEvent();
-            const selectedEventsSlug = await FunctionCommands.selectFunctionEvents(events.map((el)=> ({name: el.name, value: el.slug})));
-            const slugFolderPath = path.join(functionFolderPath,slug);
+
+            const slugFolderPath = path.join(functionFolderPath, slug);
             if(fs.existsSync(slugFolderPath)){
                 throw new CommandError(
                     ErrorCodes.FOLDER_ALREADY_EXISTS.message(slug),
@@ -115,6 +206,12 @@ export default class FunctionCommands {
             else{
                 fs.mkdirSync(slugFolderPath, {recursive: true});
             }
+
+            const events = await ExtensionService.getFunctionsAllEvent();
+            const selectedEventsSlug = await FunctionCommands.selectFunctionEvents(
+                events.map((el)=> ({name: el.name, value: el.slug}))
+            );
+            
             const selectedEventsData = events.filter((el) => selectedEventsSlug.includes(el.slug));
 
             const config = {
@@ -126,61 +223,59 @@ export default class FunctionCommands {
             };
             
             const indexData = selectedEventsData.map((element) => `function ${element.slug}(context, payload) {\n\n}\n`).join('\n');
+            const configFileData = `const config = ${JSON.stringify(config, null, 2)};\n module.exports = config;`
             
-            const configFilePath = path.join(process.cwd(), 'functions', slug, 'config.js');
-            const indexFilePath = path.join(process.cwd(), 'functions', slug, 'index.js');
+            const configFilePath = path.join(process.cwd(), FOLDER_NAME, slug, 'config.js');
+            const indexFilePath = path.join(process.cwd(), FOLDER_NAME, slug, 'index.js');
             
-            await fs.outputFile(configFilePath, `const config = ${JSON.stringify(config, null, 2)};\n module.exports = config;`);
+            await fs.outputFile(configFilePath, configFileData);
             await fs.outputFile(indexFilePath, indexData);
             
-            console.log(chalk.green(`Functions created successfully. You can verify the functions at ${path.join(process.cwd(), 'functions', slug)}`));
+            console.log(chalk.green(`Function created successfully. You can verify the functions at ${path.join(process.cwd(), FOLDER_NAME, slug)}`));
             
         } catch(error) {
             throw new CommandError(error.message, error.code);
         }
     }
 
-    public static async initializeFunction() {
+    public static async initializeFunction(options) {
         try{
-            const currentContext = await FunctionCommands.checkExtensionRepository();
-            const pageSize = 1000;
-            let pageNo = 1;
-            let functionList = await ExtensionService.getExtensionFunctionsList(currentContext.extension_id, pageNo, pageSize);
-            const answers = await inquirer.prompt([
-                {
-                    type: 'input',
-                    name: 'functions',
-                    message: 'Enter Function slug:',
-                    validate: validateEmpty
-                }
-            ]);
-            const selectedFunctionData = functionList.items.find((el)=> el.slug === answers.functions);
-            if(!selectedFunctionData){
+            const currentContext = checkExtensionRepository();
+
+            let slug = options.slug;
+            if (!slug) {
+                slug = await FunctionCommands.promptFunctionSlug();
+            }
+
+            const [isSlugExists, functionData] = await ExtensionService.getFunctionByFunctionIdOrSlug(currentContext.extension_id, slug);
+
+            if (!isSlugExists) {
                 throw new CommandError(
                     ErrorCodes.INVALID_FUNCTION_SLUG.message(''),
                     ErrorCodes.INVALID_FUNCTION_SLUG.code
-                ); 
+                );
             }
-            const functionFolderPath = path.join(process.cwd(),'functions');
-            const slugFolderPath = path.join(functionFolderPath, selectedFunctionData.slug);
+
+            const functionFolderPath = path.join(process.cwd(),  FOLDER_NAME);
+            const slugFolderPath = path.join(functionFolderPath, functionData.slug);
+
             if(fs.existsSync(path.join(slugFolderPath))){
                 throw new CommandError(
-                    ErrorCodes.FOLDER_ALREADY_EXISTS.message(selectedFunctionData.slug),
+                    ErrorCodes.FOLDER_ALREADY_EXISTS.message(functionData.slug),
                     ErrorCodes.FOLDER_ALREADY_EXISTS.code
                 ); 
             }
-            const functionSnippet = await ExtensionService.getFunctionVersionByVersionId(currentContext.extension_id,selectedFunctionData._id,selectedFunctionData.version_id);
 
             const config = {
-                name: functionSnippet.function_data.name,
-                slug: functionSnippet.function_data.slug,
-                description: functionSnippet.function_data.description,
-                type: functionSnippet.function_data.type,
-                events: functionSnippet.events.map((el)=> ({name: el.event_slug, version: el.event_version }))
+                name: functionData.name,
+                slug: functionData.slug,
+                description: functionData.description,
+                type: functionData.type,
+                events: functionData.events.map((el) => ({name: el.event_slug, version: el.event_version}))
             };
 
             await fs.outputFile(path.join(slugFolderPath, 'config.js'), `const config = ${JSON.stringify(config, null, 2)};\n module.exports = config;`);
-            await fs.outputFile(path.join(slugFolderPath, 'index.js'), functionSnippet.code_snippet);
+            await fs.outputFile(path.join(slugFolderPath, 'index.js'), functionData.code_snippet);
 
             console.log(chalk.green(`Function initialized successfully you can verify the function at ${path.join(slugFolderPath)}`));
         }
@@ -189,34 +284,27 @@ export default class FunctionCommands {
         }
     }
 
-    public static async changeContext () {
-        try{
-        getExtensionActiveContext();
-        const contextJsonPath = path.join(process.cwd(),'.fdk', 'context.json');
-        const completeContext = fs.readJSONSync(contextJsonPath);
-        const contextData = completeContext.extension.contexts;
-        const contextArray = Object.keys(contextData).map((el)=> contextData[el]);
-        const choices = contextArray.map((el)=> ({name: `${el.name} (${el.extension_id})`, 
-        value: el.extension_id }));
-        let answers = await inquirer.prompt([
+    static async promptFunctionSlugChoice(choices): Promise<string> {
+        const answer = await inquirer.prompt([
             {
                 type: 'list',
                 choices: choices,
-                prefix: `${chalk.yellowBright(`Note: List of context followed by Extension name and extension api key`)}`,
-                name: 'context_id',
-                message: '\nSelect the Context to use for extension:',
+                name: 'slug',
+                message: 'Select Function Slug to Sync:',
                 validate: validateEmpty
             }
-        ]);
-        const activeContextId = answers.context_id;
-        completeContext.extension.active_context = activeContextId;
-        await fs.writeJSONSync(contextJsonPath, completeContext);
+        ])
+        return answer.slug;
+    }
 
-        console.log(chalk.green(`Context changed to Extension ${contextData[activeContextId].name} Successfully`));
-        }
-        catch(err){
-            throw err;
-        }
+    static async promptFunctionSlug(): Promise<string> {
+        const answer = await inquirer.prompt([{
+            type: 'input',
+            name: 'function_slug',
+            message: 'Enter Function slug:',
+            validate: validateEmpty
+        }])
+        return answer.function_slug;
     }
 
     static async promptFunctionName(): Promise<string> {
@@ -236,25 +324,20 @@ export default class FunctionCommands {
     }
 
     static async promptFunctionType(): Promise<FunctionType> {
-        try {
-            let answers = await inquirer.prompt([
-                {
-                    type: 'list',
-                    choices: Object.values(FUNCTION_TYPE),
-                    default: FUNCTION_TYPE.IN_HOOK,
-                    name: 'function_type',
-                    message: 'Select Function type:',
-                    validate: validateEmpty
-                }
-            ])
-            return answers.function_type;
-        }
-        catch(err){
-        console.log(err);
-        };
+        const answers = await inquirer.prompt([
+            {
+                type: 'list',
+                choices: Object.values(FUNCTION_TYPE),
+                default: FUNCTION_TYPE.IN_HOOK,
+                name: 'function_type',
+                message: 'Select Function type:',
+                validate: validateEmpty
+            }
+        ])
+        return answers.function_type;
     }
 
-    static async selectFunctionEvents(choices) {
+    static async selectFunctionEvents(choices: EventChoices): Promise<Array<String>> { 
         const answers = await inquirer.prompt([{
             type: "checkbox",
             choices,
@@ -265,13 +348,30 @@ export default class FunctionCommands {
         return answers.selectedEvents;
     }
 
-    static async checkExtensionRepository() {
-        const extensionContext = getExtensionActiveContext();
-        const currentOrganization = configStore.get(CONFIG_KEYS.ORGANIZATION);
-        if(extensionContext.organization_id !== currentOrganization){
-            throw new CommandError(ErrorCodes.MISMATCH_ORGANIZATION_ID.message(currentOrganization, extensionContext.organization_id), ErrorCodes.MISMATCH_ORGANIZATION_ID.code);
-        };
-        return extensionContext;
+    static async promptUserActions(): Promise<UserActions> {
+        const choices = [
+            {
+                name: 'pull - take a pull of function from Partners panel and update in local',
+                value: USER_ACTIONS.PULL
+            },
+            {
+                name: 'push - push your local function changes to Partners panel',
+                value: USER_ACTIONS.PUSH
+            },
+            {
+                name: 'cancel - cancel sync operation',
+                value: USER_ACTIONS.CANCEL
+            }
+        ]
+        const answers = await inquirer.prompt([
+            {
+                type: 'list',
+                choices: choices,
+                default: USER_ACTIONS.PULL,
+                name: 'action',
+                message: `${chalk.yellow('Code is updated either using Partners panel or using CLI')} \nPlease choose one of the below option:`
+            }
+        ])
+        return answers.action;
     }
-
 }

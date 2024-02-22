@@ -26,12 +26,15 @@ import {
     installNpmPackages,
     installJavaPackages,
     installPythonDependencies,
-    createExtenstionContext,
     isAThemeOrExtensionDirectory,
-    hasExtensionContext,
     FDK_PATH,
     CONTEXT_PATH,
 } from '../helper/utils';
+
+import { 
+    createExtensionContext,
+    hasExtensionContext
+} from '../helper/extension_context.utils';
 
 export const NODE_VUE = 'Node + Vue.js';
 export const NODE_REACT = 'Node + React.js';
@@ -181,7 +184,7 @@ export default class Extension {
                     answers.extension_api_secret = extension_data.secret;
                     answers.base_url = extension_data.launch_url;
                     process.chdir(path.join(process.cwd(), answers.name));
-                    await createExtenstionContext({ name: answers.name, extension_id: extension_data.client_id, cluster_url: getBaseURL(), organization_id: configStore.get(CONFIG_KEYS.ORGANIZATION) });
+                    await createExtensionContext({ name: answers.name, extension_id: extension_data.client_id, cluster_url: getBaseURL(), organization_id: configStore.get(CONFIG_KEYS.ORGANIZATION) });
                     process.chdir(path.join(process.cwd(), '../'));
                     spinner.succeed();
                 } catch (error) {
@@ -528,7 +531,7 @@ export default class Extension {
                 cluster_url: getBaseURL(), 
                 organization_id: configStore.get(CONFIG_KEYS.ORGANIZATION)
             };
-            await createExtenstionContext(context);
+            await createExtensionContext(context);
             console.log(chalk.green(`Extension context Added for extension ${extensionDetails.name}`));
         }
         catch(err){

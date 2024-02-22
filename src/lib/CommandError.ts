@@ -79,7 +79,7 @@ export const ErrorCodes = {
         code: 'FDK-0011'
     },
 
-    // functions 21...29
+    // functions
     INVALID_FUNCTION_NAME: {
         message: (reason: string): string => `Invalid Function name: ${reason}`,
         code: 'FDK-0021'
@@ -102,19 +102,31 @@ export const ErrorCodes = {
     },
     INVALID_EXTENSION_DIRECTORY: {
         message: 'Current directory is not an Extension directory. Make sure its an extension directory if its then try after adding the extension context',
-        code: 'FDK-00026',
+        code: 'FDK-0026',
     },
     MISMATCH_ORGANIZATION_ID: {
         message:(currentOrganization, contextOrganization) => `Organization mismatch please update login through correct organization current organization is ${currentOrganization} and extension organization is ${contextOrganization}`,
-        code: 'FDK-00027',
+        code: 'FDK-0027',
     },
     INVALID_FUNCTION_SLUG: {
         message:(availableSlugs) => `Invalid Slug please provide correct function slug name ${ availableSlugs ? `available slugs are ${availableSlugs}` : ''}`,
-        code: 'FDK-00028',
+        code: 'FDK-0028',
     },
     NO_FUNCTION_FOUND_IN_EXTENSION: {
         message: `No Functions found in Extension please create an function to proceed with init`,
-        code: 'FDK-00029',       
+        code: 'FDK-0029',       
+    },
+    INVALID_FUNCTION_EVENTS_ARRAY: {
+        message: 'Duplicate events are found in events array',
+        code: 'FDK-0030'
+    },
+    FUNCTION_SLUG_MISMATCH: {
+        message: 'Slug mismatch in config file',
+        code: 'FDK-0031'
+    },
+    NO_CHANGES: {
+        message: 'No changes to sync',
+        code: 'FDK-0032'
     }
 };
 
