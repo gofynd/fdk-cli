@@ -1,6 +1,6 @@
 {
   "name": "@gofynd/fdk-cli",
-  "version": "5.0.2",
+  "version": "5.0.3",
   "main": "index.js",
   "license": "MIT",
   "bin": {
@@ -21,13 +21,10 @@
   "scripts": {
     "clean": "rimraf ./dist",
     "build": "npm run clean && tsc && npm run copy-files",
-    "build:sourcemap": "npm run clean && tsc -p ./tsconfig.sourcemap.json && npm run copy-files",
     "copy-files": "copyfiles -u 1 src/**/*.html dist/",
     "watch": "tsc --watch",
-    "prepublishOnly": "npm run build",
     "test": "jest --runInBand",
-    "pretty": "./node_modules/.bin/prettier --config ./.prettierrc --write './src/**/*.*'",
-    "publish-check": "node scripts"
+    "pretty": "./node_modules/.bin/prettier --config ./.prettierrc --write './src/**/*.*'"
   },
   "devDependencies": {
     "@types/async": "^3.2.6",

@@ -27,6 +27,11 @@ import {
 import * as Sentry from '@sentry/node';
 const packageJSON = require('../package.json');
 
+Sentry.init({
+    dsn: 'https://2a51996f413264190b01b4bdf0e410ea@o71740.ingest.sentry.io/4506539889721344',
+    release: packageJSON.version
+});
+
 async function checkTokenExpired(auth_token) {
     if (!auth_token) return true;
     const { expiry_time } = auth_token;

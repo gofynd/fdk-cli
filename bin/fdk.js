@@ -8,14 +8,6 @@ const currentNodeVersion = process.versions.node;
 const semver = currentNodeVersion.split('.');
 const major = Number(semver[0]);
 
-const Sentry = require('@sentry/node');
-const packageJson = require('../package.json');
-
-Sentry.init({
-    dsn: 'https://2a51996f413264190b01b4bdf0e410ea@o71740.ingest.sentry.io/4506539889721344',
-    release: packageJson.version,
-});
-
 const bootstrap = () => {
     const { init, parseCommands } = require('../dist/fdk');
     const program = init('fdk');
