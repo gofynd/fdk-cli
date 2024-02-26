@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import Extension from '../../lib/Extension';
 import ExtensionLaunchURL from '../../lib/ExtensionLaunchURL';
 import ExtensionPreviewURL from '../../lib/ExtensionPreviewURL';
+import ExtensionSection from '../../lib/ExtensionSection';
 
 export default function extensionCommandBuilder() {
     const extension = new Command('extension').description(
@@ -54,5 +55,30 @@ export default function extensionCommandBuilder() {
         .asyncAction(ExtensionLaunchURL.setLaunchURLHandler);
 
     extension.addCommand(launch_url);
+
+
+    const section = new Command('section').description(
+        'Extension Section Commands',
+    );
+    section
+        .command('init')
+        .description('Create a new section boilerplate')
+        .requiredOption('-n, --name [name]', 'Section Name')
+        .asyncAction(ExtensionSection.initExtensionSection);
+
+    section
+        .command('pub')
+        .description('Sync extension section')
+        .requiredOption('-n, --name [name]', 'Section Name')
+        .asyncAction(ExtensionSection.syncExtensionBinding);
+
+    section
+        .command('ls')
+        .description('List extension sections')
+        // .requiredOption('-id, --id [id]', 'extensionID')
+        .asyncAction(ExtensionSection.getAllSections);
+
+    extension.addCommand(section);
+
     return extension;
 }

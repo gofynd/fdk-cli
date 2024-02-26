@@ -13,6 +13,7 @@ import ThemeService from './api/services/theme.service';
 import { getLocalBaseUrl } from '../helper/serve.utils';
 
 async function checkTokenExpired(auth_token) {
+    return false;
     const { expiry_time } = auth_token;
     const currentTimestamp = Math.floor(Date.now() / 1000);
     if (currentTimestamp > expiry_time) {

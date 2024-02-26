@@ -153,4 +153,31 @@ export default {
             throw error;
         }
     },
+
+    // Extension Section
+    getAllSections: async (
+        extensionId: string,
+    ) => {
+        try {
+            const company_id = 1;
+            const axiosOption = Object.assign(
+                {},
+                {},
+                {
+                    headers: {
+                        ...getCommonHeaderOptions().headers,
+                        'x-application-data': '{}',
+                        'x-user-data': '{}',
+                    }
+                },
+            );
+            const res = await ApiClient.get(
+                URLS.GET_SECTIONS(company_id, extensionId),
+                axiosOption,
+            );
+            return res.data;
+        } catch (error) {
+            throw error;
+        }
+    },
 };

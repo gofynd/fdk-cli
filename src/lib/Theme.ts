@@ -1201,6 +1201,7 @@ export default class Theme {
 
             await startReactServer({
                 domain,
+                // domain: 'http://127.0.0.1:80',
                 host,
                 port,
                 isHMREnabled,
@@ -1350,8 +1351,9 @@ export default class Theme {
             Theme.BUILD_FOLDER,
             'sections/sections.commonjs.js',
         );
-
-        const imported = require(sectionPath)?.sections?.default;
+            console.log({sectionPath});
+            const imported = require(sectionPath)?.sections?.default;
+            console.log({imported});
 
         if (!imported) {
             Logger.error('Error occured');
@@ -1991,6 +1993,7 @@ export default class Theme {
             theme.is_private = true;
             return theme;
         } catch (err) {
+            console.log(err)
             throw new CommandError(`Failed to set theme data `);
         }
     };

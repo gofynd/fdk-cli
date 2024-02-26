@@ -157,6 +157,20 @@ export const URLS = {
         );
     },
 
+    // Extension Section
+    PUBLISH_SECTIONS: (company_id: number, extension_id: string) => {
+        return urlJoin(
+            'http://localhost:7071/service/partner/theme/v1.0/',
+            `organization/${organization_id}/company/${company_id}/extension-section/${extension_id}`,
+        );
+    },
+    GET_SECTIONS: (company_id: number, extension_id: string) => {
+        return urlJoin(
+            'http://localhost:7071/service/partner/theme/v1.0/',
+            `organization/${organization_id}/company/${company_id}/extension-section/${extension_id}`,
+        );
+    },
+
     // Preview URL
     GET_DEVELOPMENT_ACCOUNTS: (page_no: number, page_size: number): string => {
         return urlJoin(
