@@ -109,7 +109,7 @@ export const ErrorCodes = {
         code: 'FDK-0027',
     },
     INVALID_FUNCTION_SLUG: {
-        message:(availableSlugs) => `Invalid Slug please provide correct function slug name ${ availableSlugs ? `available slugs are ${availableSlugs}` : ''}`,
+        message:(availableSlugs: string) => `Invalid Slug. Please provide valid function slug${ availableSlugs ? `, available slugs are ${availableSlugs}` : ''}`,
         code: 'FDK-0028',
     },
     NO_FUNCTION_FOUND_IN_EXTENSION: {

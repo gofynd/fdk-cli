@@ -5,16 +5,32 @@ import {
     FUNCTION_TYPE, 
     USER_ACTIONS, 
     convertToSlug, 
+    readFunctionCode, 
+    readFunctionConfig, 
     validateFunctionName, 
-    validateUniqueEventNames
+    validateUniqueEventNames,
+    writeFunctionCode,
+    writeFunctionConfig
 } from "../helper/functions.utils";
 import { validateEmpty, validateEmptyArray } from "../helper/extension_utils";
-import { ConfigEvent, CreateOptions, Event, EventChoices, FunctionConfig, FunctionType, SyncOptions, UserActions } from "../helper/functions.types";
+import { 
+    ConfigEvent, 
+    CreateOptions, 
+    Event, 
+    EventChoices, 
+    Function,
+    FunctionType, 
+    InitOptions, 
+    SyncOptions, 
+    UpdateFunctionVersionResponse, 
+    UserActions 
+} from "../helper/functions.types";
 import ExtensionService from './api/services/extension.service';
 import path from "path";
 import fs from "fs-extra";
-import { 
-    checkExtensionRepository, 
+import {
+    checkExtensionRepository,
+    updateFunctionContext, 
 } from "../helper/extension_context.utils";
 import chalk from 'chalk';
 
@@ -28,18 +44,17 @@ export default class FunctionCommands {
             const items = fs.readdirSync(functionFolderPath);
             const folders = items.filter(item => fs.statSync(path.join(functionFolderPath, item)).isDirectory());
 
-            let slug = options.slug;
-            if (!slug) {
-                slug = await FunctionCommands.promptFunctionSlugChoice(folders);
-            }
+            const slug = options.slug || await FunctionCommands.promptFunctionSlugChoice(folders);
             
             if(!folders.includes(slug)){
-                throw new CommandError(ErrorCodes.INVALID_FUNCTION_SLUG.message(folders.join(', ')), ErrorCodes.INVALID_FUNCTION_SLUG.code);
+                throw new CommandError(
+                    ErrorCodes.INVALID_FUNCTION_SLUG.message(folders.join(', ')), 
+                    ErrorCodes.INVALID_FUNCTION_SLUG.code
+                );
             }
 
-            const slugFolderPath = path.join(functionFolderPath, slug);
-            const configData: FunctionConfig = require(path.join(slugFolderPath, 'config.js'));
-            const codeSnippet: string = fs.readFileSync(path.join(slugFolderPath, 'index.js'), 'utf-8');
+            const configData = readFunctionConfig(slug);
+            const codeSnippet = readFunctionCode(slug);
 
             if (configData.slug !== slug) {
                 throw new CommandError(
@@ -48,8 +63,6 @@ export default class FunctionCommands {
                 )
             }
 
-
-            // TODO: validate if there is exactly one function in index.js for each event
             validateUniqueEventNames(configData.events);
 
             const [isFunctionExists, data] = await ExtensionService.getFunctionByFunctionIdOrSlug(currentContext.extension_id, slug);
@@ -63,8 +76,9 @@ export default class FunctionCommands {
                     events: configData.events.map((el) => ({event_slug: el.name, event_version: el.version})),
                     code_snippet: codeSnippet
                 }
-                await ExtensionService.createExtensionFunction(requestPayload, currentContext.extension_id);
-                console.log(chalk.green(`Function "${slug}" synced successfully`));
+                const data = await ExtensionService.createExtensionFunction(requestPayload, currentContext.extension_id);
+                updateFunctionContext(currentContext, slug, data.modified_at, data.version_data.modified_at);
+                console.log(chalk.green(`Function '${slug}' synced successfully`));
                 return;
             }
             
@@ -72,7 +86,10 @@ export default class FunctionCommands {
 
             // compare changes
             const isFunctionUpdated = (configData.name !== data.name || configData.description !== data.description);
-            const isFunctionVersionUpdated = (FunctionCommands.isEventsUpdated(configData.events, data.events) || codeSnippet !== data.code_snippet);
+            const isFunctionVersionUpdated = (
+                FunctionCommands.isEventsUpdated(configData.events, data.version_data.events) 
+                || codeSnippet !== data.version_data.code_snippet
+            );
 
             if (!isFunctionUpdated && !isFunctionVersionUpdated) {
                 throw new CommandError(
@@ -81,59 +98,108 @@ export default class FunctionCommands {
                 )
             }
 
-            // give options to user if pull/push/cancel
-            const userAction = await FunctionCommands.promptUserActions();
-
-            if (userAction === USER_ACTIONS.CANCEL) {
-                console.log(
-                    chalk.green(`Sync operation cancelled`)
-                );
-                return;
-            }
+            // check for conflicts
+            let isThereConflicts: boolean = false;
             
-            if (userAction === USER_ACTIONS.PULL) {
-                const config: FunctionConfig = {
-                    name: data.name,
-                    description: data.description,
-                    slug: data.slug,
-                    type: data.type,
-                    events: data.events.map((el) => ({name: el.event_slug, version: el.event_version}))
+            let newFunctionTimestamp: string;
+            let newVersionTimestamp: string;
+            
+            const index = currentContext.functions.findIndex((value) => (value.slug === slug));
+            if (index !== -1) {
+                const [functionTimestamp, versionTimestamp] = Buffer.from(currentContext.functions[index].hash, 'base64').toString('utf-8').split('=');
+
+                if (isFunctionUpdated && new Date(data.modified_at) > new Date(functionTimestamp)) {
+                    isThereConflicts =  true;
                 }
 
-                await fs.outputFile(path.join(slugFolderPath, 'config.js'), `const config = ${JSON.stringify(config, null, 2)};\n module.exports = config;`);
-                await fs.outputFile(path.join(slugFolderPath, 'index.js'), data.code_snippet);
-
-                console.log(
-                    chalk.green(`Function '${slug}' pulled successfully`)
-                );
-
-                return;
+                if (isFunctionVersionUpdated && new Date(data.version_data.modified_at) > new Date(versionTimestamp)) {
+                    isThereConflicts = true;
+                }
             }
 
-            if (userAction === USER_ACTIONS.PUSH) {
+            if (isThereConflicts) {
+
+                // give options to user if pull/push/cancel
+                const userAction = await FunctionCommands.promptUserActions();
+    
+                if (userAction === USER_ACTIONS.CANCEL) {
+                    console.log(
+                        chalk.green(`Sync operation cancelled`)
+                    );
+                    return;
+                }
                 
+                if (userAction === USER_ACTIONS.PULL) {                    
+                    writeFunctionConfig(data.name, data.description, data.slug, data.type, data.version_data.events)
+                    writeFunctionCode(data.slug, data.version_data.code_snippet)
+                    updateFunctionContext(currentContext, slug, data.modified_at, data.version_data.modified_at)
+
+                    console.log(
+                        chalk.green(`Function '${slug}' pulled successfully`)
+                    );
+                    return;
+                }
+    
+                if (userAction === USER_ACTIONS.PUSH) {
+                    
+                    if (isFunctionUpdated) {
+                        const updatedFunctionData: Function = await ExtensionService.updateExtensionFunction(
+                            { name: configData.name, description: configData.description },
+                            currentContext.extension_id,
+                            data._id
+                        )
+                        newFunctionTimestamp = updatedFunctionData.modified_at;
+                        newVersionTimestamp = data.version_data.modified_at;
+                    }
+    
+                    if (isFunctionVersionUpdated) {
+                        const updatedVersionData: UpdateFunctionVersionResponse = await ExtensionService.updateFunctionVersion(
+                            { code_snippet: codeSnippet, events: configData.events.map((el) => ({event_slug:el.name, event_version:el.version})) },
+                            currentContext.extension_id,
+                            data._id,
+                            data.version_data._id
+                        )
+                        newFunctionTimestamp = updatedVersionData.function_data.modified_at;
+                        newVersionTimestamp = updatedVersionData.modified_at;
+                    }
+
+                    console.log(
+                        chalk.green(`Function '${slug}' pushed successfully`)
+                    );
+                    return;
+                }
+            }
+
+            else {
                 if (isFunctionUpdated) {
-                    await ExtensionService.updateExtensionFunction(
+                    const updatedFunctionData: Function = await ExtensionService.updateExtensionFunction(
                         { name: configData.name, description: configData.description },
                         currentContext.extension_id,
                         data._id
                     )
+                    newFunctionTimestamp = updatedFunctionData.modified_at;
+                    newVersionTimestamp = data.version_data.modified_at;
                 }
 
                 if (isFunctionVersionUpdated) {
-                    await ExtensionService.updateFunctionVersion(
+                    const updatedVersionData: UpdateFunctionVersionResponse = await ExtensionService.updateFunctionVersion(
                         { code_snippet: codeSnippet, events: configData.events.map((el) => ({event_slug:el.name, event_version:el.version})) },
                         currentContext.extension_id,
                         data._id,
-                        data.version_id
+                        data.version_data._id
                     )
+                    newVersionTimestamp = updatedVersionData.modified_at;
+                    newFunctionTimestamp = updatedVersionData.function_data.modified_at;
                 }
+
                 console.log(
-                    chalk.green(`Function '${slug}' pushed successfully`)
+                    chalk.green(`Function '${slug}' synced successfully`)
                 );
 
                 return;
             }
+
+            updateFunctionContext(currentContext, slug, newFunctionTimestamp, newVersionTimestamp);
 
         } catch(error) {
             throw new CommandError(error.message, error.code);
@@ -213,23 +279,10 @@ export default class FunctionCommands {
             );
             
             const selectedEventsData = events.filter((el) => selectedEventsSlug.includes(el.slug));
-
-            const config = {
-                name: options.name,
-                slug,
-                description: '',
-                type: options.type,
-                events: selectedEventsData.map((el) => ({ name: el.name, version: el.version })),
-            };
+            const indexData = selectedEventsData.map((element) => `function ${element.slug}(context, payload) {\n\n}\n`).join('\n');        
             
-            const indexData = selectedEventsData.map((element) => `function ${element.slug}(context, payload) {\n\n}\n`).join('\n');
-            const configFileData = `const config = ${JSON.stringify(config, null, 2)};\n module.exports = config;`
-            
-            const configFilePath = path.join(process.cwd(), FOLDER_NAME, slug, 'config.js');
-            const indexFilePath = path.join(process.cwd(), FOLDER_NAME, slug, 'index.js');
-            
-            await fs.outputFile(configFilePath, configFileData);
-            await fs.outputFile(indexFilePath, indexData);
+            writeFunctionConfig(options.name, '', slug, options.type, selectedEventsData)
+            writeFunctionCode(slug, indexData)
             
             console.log(chalk.green(`Function created successfully. You can verify the functions at ${path.join(process.cwd(), FOLDER_NAME, slug)}`));
             
@@ -238,16 +291,12 @@ export default class FunctionCommands {
         }
     }
 
-    public static async initializeFunction(options) {
+    public static async initializeFunction(options: InitOptions) {
         try{
             const currentContext = checkExtensionRepository();
 
-            let slug = options.slug;
-            if (!slug) {
-                slug = await FunctionCommands.promptFunctionSlug();
-            }
-
-            const [isSlugExists, functionData] = await ExtensionService.getFunctionByFunctionIdOrSlug(currentContext.extension_id, slug);
+            const slug = options.slug || await FunctionCommands.promptFunctionSlug();
+            const [isSlugExists, data] = await ExtensionService.getFunctionByFunctionIdOrSlug(currentContext.extension_id, slug);
 
             if (!isSlugExists) {
                 throw new CommandError(
@@ -256,28 +305,20 @@ export default class FunctionCommands {
                 );
             }
 
-            const functionFolderPath = path.join(process.cwd(),  FOLDER_NAME);
-            const slugFolderPath = path.join(functionFolderPath, functionData.slug);
+            const slugFolderPath = path.join(process.cwd(), FOLDER_NAME, data.slug);
 
             if(fs.existsSync(path.join(slugFolderPath))){
                 throw new CommandError(
-                    ErrorCodes.FOLDER_ALREADY_EXISTS.message(functionData.slug),
+                    ErrorCodes.FOLDER_ALREADY_EXISTS.message(data.slug),
                     ErrorCodes.FOLDER_ALREADY_EXISTS.code
-                ); 
+                );
             }
 
-            const config = {
-                name: functionData.name,
-                slug: functionData.slug,
-                description: functionData.description,
-                type: functionData.type,
-                events: functionData.events.map((el) => ({name: el.event_slug, version: el.event_version}))
-            };
+            updateFunctionContext(currentContext, data.slug, data.modified_at, data.version_data.modified_at);
+            writeFunctionConfig(data.name, data.description, data.slug, data.type, data.version_data.events);
+            writeFunctionCode(data.slug, data.version_data.code_snippet);
 
-            await fs.outputFile(path.join(slugFolderPath, 'config.js'), `const config = ${JSON.stringify(config, null, 2)};\n module.exports = config;`);
-            await fs.outputFile(path.join(slugFolderPath, 'index.js'), functionData.code_snippet);
-
-            console.log(chalk.green(`Function initialized successfully you can verify the function at ${path.join(slugFolderPath)}`));
+            console.log(chalk.green(`Function initialized successfully.\nVerify the function at ${path.join(slugFolderPath)}`));
         }
         catch(err){
             throw err;

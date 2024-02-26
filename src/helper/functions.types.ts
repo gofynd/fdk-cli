@@ -1,34 +1,41 @@
-export type CreateOptions = {
+export interface CreateOptions {
     name?: string;
     type?: FunctionType
+}
+
+export interface SyncOptions {
+    slug?: string
+}
+
+export interface InitOptions {
+    slug?: string
 }
 
 export type FunctionType = 'inhook' | 'ingress';
 
 export type UserActions = 'pull' | 'push' | 'cancel';
 
-export type EventChoices = {
+export interface EventChoices {
     name: string;
     value: string
 }[];
 
-export type Author = {
+export interface Author {
     created_by: string,
     modified_by: string
 }
 
-export type Event = {
+export interface Event {
     event_slug: string,
     event_version: string
 }
 
-export type ConfigEvent = {
+export interface ConfigEvent {
     name: string,
     version: string
 }
 
-export type Function = {
-    author: Author,
+export interface Function {
     _id: string,
     name: string,
     slug: string,
@@ -36,21 +43,34 @@ export type Function = {
     organization_id: string,
     extension_id: string,
     type: FunctionType,
-    version: string,
     created_at: string,
     modified_at: string,
+    author: Author,
     __v: number,
+}
+
+export interface FunctionVersion {
+    _id: string,
+    function_id: string,
+    current_status: string,
+    version: string,
     events: Event[],
     code_snippet: string,
-    current_status: string,
-    version_id: string
+    author: Author,
+    created_at: string,
+    modified_at: string,
+    __v: number
 }
 
-export type SyncOptions = {
-    slug?: string
+export interface FunctionResponse extends Function {
+    version_data: FunctionVersion
 }
 
-export type CreateFunctionPayload = {
+export interface UpdateFunctionVersionResponse extends FunctionVersion {
+    function_data: Function
+}
+
+export interface CreateFunctionPayload {
     name: string,
     description: string,
     type: FunctionType,
@@ -60,7 +80,7 @@ export type CreateFunctionPayload = {
     code_snippet: string,
 }
 
-export type FunctionConfig = {
+export interface FunctionConfig {
     name: string,
     slug: string,
     description: string,
@@ -68,12 +88,12 @@ export type FunctionConfig = {
     events: ConfigEvent[]
 }
 
-export type UpdateFunctionPayload = {
+export interface UpdateFunctionPayload {
     name: string,
     description: string
 }
 
-export type UpdateFunctionVersionPayload = {
+export interface UpdateFunctionVersionPayload {
     code_snippet: string,
     events: Event[]
 }

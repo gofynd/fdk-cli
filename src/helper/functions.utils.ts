@@ -1,5 +1,7 @@
 import CommandError, { ErrorCodes } from "../lib/CommandError";
-import { ConfigEvent } from "./functions.types";
+import { ConfigEvent, Event, FunctionConfig, FunctionType } from "./functions.types";
+import path from 'path';
+import fs from 'fs-extra';
 
 export const validateFunctionName = (name: string): void => {
     const minLength: number = 3;
@@ -61,4 +63,33 @@ export const USER_ACTIONS = {
     PULL: 'pull',
     PUSH: 'push',
     CANCEL: 'cancel'
+}
+
+export const writeFunctionConfig = (name: string, description: string, slug: string, type: FunctionType, events: Event[]):void => {
+    const filePath = path.join(process.cwd(), FOLDER_NAME, slug, 'config.js');
+    const configData: FunctionConfig = {
+        name,
+        description,
+        slug,
+        type,
+        events: events.map((el) => ({name: el.event_slug, version: el.event_version}))
+    }
+    const fileData = `const config = ${JSON.stringify(configData, null, 2)};\nmodule.exports = config;`
+
+    fs.outputFileSync(filePath, fileData);
+}
+
+export const readFunctionConfig = (slug: string): FunctionConfig => {
+    const filePath = path.join(process.cwd(), FOLDER_NAME, slug, 'config.js');
+    return require(filePath);
+}
+
+export const writeFunctionCode = (slug: string, code_snippet: string): void => {
+    const filePath = path.join(process.cwd(), FOLDER_NAME, slug, 'index.js');
+    fs.outputFileSync(filePath, code_snippet);
+}
+
+export const readFunctionCode = (slug: string): string => {
+    const filePath = path.join(process.cwd(), FOLDER_NAME, slug, 'index.js');
+    return fs.readFileSync(filePath, 'utf-8');
 }

@@ -1,11 +1,11 @@
 import { URLS } from './url';
 import { getCommonHeaderOptions } from './utils';
 import ApiClient from '../ApiClient';
-import { 
-    Function,
+import {
     CreateFunctionPayload, 
     UpdateFunctionPayload, 
-    UpdateFunctionVersionPayload 
+    UpdateFunctionVersionPayload, 
+    FunctionResponse
 } from '../../../helper/functions.types';
 
 type RegisterExtensionPaylaod = {
@@ -175,7 +175,7 @@ export default {
         }
     },
 
-    getFunctionByFunctionIdOrSlug: async (extension_id: string, function_id_or_slug: string): Promise<[boolean, Function?]> => {
+    getFunctionByFunctionIdOrSlug: async (extension_id: string, function_id_or_slug: string): Promise<[true, FunctionResponse] | [false]> => {
         try{
             let axiosOptions = Object.assign({}, getCommonHeaderOptions());
             let response = await ApiClient.get(
@@ -206,7 +206,7 @@ export default {
         }
     },
 
-    createExtensionFunction: async (data: CreateFunctionPayload, extension_id: string)=> {
+    createExtensionFunction: async (data: CreateFunctionPayload, extension_id: string): Promise<FunctionResponse> => {
         try{
             let axiosOptions = Object.assign({},{data: data }, getCommonHeaderOptions());
             let response = await ApiClient.post(
