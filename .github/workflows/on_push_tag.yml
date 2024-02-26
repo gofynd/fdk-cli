@@ -76,7 +76,7 @@ jobs:
       #     RELEASE_VERSION: ${{ steps.fdk-cli-version.outputs.current-version }}
 
       - name: Delete SourceMap files
-        run: rm -rf ./dist/**/*.map
+        run: find ./dist -type f -name '*.map' -exec rm -f {} \;
 
       - name: Publish to npmjs (beta)
         run: npm publish --tag beta --access public
