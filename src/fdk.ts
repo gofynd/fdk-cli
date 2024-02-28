@@ -240,7 +240,7 @@ export async function init(programName: string) {
     if (!current_env || !current_env.includes('api.'))
         configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'api.fynd.com');
 
-    // todo: remove this warning in future version of fdk cli, whem everybody get used to set env by url.
+    // todo: remove this warning in future version of fdk cli, when everybody get used to set env by url.
     if (current_env && !current_env.includes('api.')) {
         console.warn(
             chalk.yellow(
