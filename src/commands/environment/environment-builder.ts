@@ -18,7 +18,7 @@ export default function environmentCommandBuilder() {
         });
 
     env.command('set')
-        // todo: remove -n option in 4.0.6
+        // todo: remove -n option in future version
         .option('-n, --name [env-name]', 'Environment name')
         .option('-u, --url [api-domain]', 'API domain')
         .description('Set new environment')
