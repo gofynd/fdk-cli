@@ -1,3 +1,5 @@
+import { FOLDER_NAME } from "../helper/functions.utils";
+
 const ERROR_PREFIX = 'Error: ';
 const ENOENT_PREFIX = 'ENOENT: ';
 export const ErrorCodes = {
@@ -127,6 +129,14 @@ export const ErrorCodes = {
     NO_CHANGES: {
         message: 'No changes to sync',
         code: 'FDK-0032'
+    },
+    NO_FUNCTIONS_FOLDER: {
+        message: `${FOLDER_NAME} folder does not exists at current directory`,
+        code: 'FDK-0033'
+    },
+    NO_FUNCTIONS_IN_FOLDER: {
+        message: `No functions found inside ./${FOLDER_NAME} directory`,
+        code: 'FDK-0034'
     }
 };
 

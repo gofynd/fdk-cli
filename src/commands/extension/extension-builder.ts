@@ -108,6 +108,15 @@ export default function extensionCommandBuilder() {
         )
         .asyncAction(FunctionCommands.initializeFunction);
 
+    function_commands
+        .command('test')
+        .description('Run tests')
+        .option(
+            '-s, --slug <function-slug>',
+            'function slug'
+        )
+        .asyncAction(FunctionCommands.testHandler)
+
     extension.addCommand(function_commands);
 
 

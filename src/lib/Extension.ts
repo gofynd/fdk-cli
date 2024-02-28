@@ -497,45 +497,4 @@ export default class Extension {
             throw new CommandError(error.message, error.code);
         }
     }
-
-    public static async addExtensionContext(options) {
-        try{
-            let partner_access_token = getPartnerAccessToken();
-            let extensionApiKey = options.apiKey;
-            if(!extensionApiKey){
-                const answers = await inquirer.prompt([
-                    {
-                        type: 'input',
-                        name: 'name',
-                        prefix:`${chalk.yellow('Note: You can find your extension API key in your extension details section on the partners panel.')}`,
-                        message: `\nEnter Extension api key :`,
-                        validate: validateEmpty,
-
-                    },
-                ]);
-                extensionApiKey = answers.name;
-            }
-            if (!partner_access_token) {
-                partner_access_token = (
-                    await Partner.connectHandler({ readOnly: true })
-                ).partner_access_token;
-            }
-            const extensionDetails = await ExtensionService.getExtensionDataUsingToken(extensionApiKey, partner_access_token);
-            if (!isAThemeOrExtensionDirectory()) createDirectory(FDK_PATH());
-            if (!hasExtensionContext()) {
-                await fs.writeJSON(CONTEXT_PATH(), { extension: {active_context: "", contexts: {}}});
-            }
-            const context = {
-                name: extensionDetails.name,
-                extension_id: extensionApiKey, 
-                cluster_url: getBaseURL(), 
-                organization_id: configStore.get(CONFIG_KEYS.ORGANIZATION)
-            };
-            await createExtensionContext(context);
-            console.log(chalk.green(`Extension context Added for extension ${extensionDetails.name}`));
-        }
-        catch(err){
-            throw err;
-        }
-    }
 }

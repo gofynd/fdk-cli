@@ -5,6 +5,8 @@ import {
     FUNCTION_TYPE, 
     USER_ACTIONS, 
     convertToSlug, 
+    getAvailableFunctionList, 
+    getStatusString, 
     readFunctionCode, 
     readFunctionConfig, 
     validateFunctionName, 
@@ -22,6 +24,8 @@ import {
     FunctionType, 
     InitOptions, 
     SyncOptions, 
+    TestOptions, 
+    TestResult, 
     UpdateFunctionVersionResponse, 
     UserActions 
 } from "../helper/functions.types";
@@ -40,15 +44,12 @@ export default class FunctionCommands {
         try {
             const currentContext = checkExtensionRepository();
 
-            const functionFolderPath = path.join(process.cwd(), FOLDER_NAME);
-            const items = fs.readdirSync(functionFolderPath);
-            const folders = items.filter(item => fs.statSync(path.join(functionFolderPath, item)).isDirectory());
-
-            const slug = options.slug || await FunctionCommands.promptFunctionSlugChoice(folders);
+            const slugList = getAvailableFunctionList()
+            const slug = options.slug || await FunctionCommands.promptFunctionSlugChoice(slugList);
             
-            if(!folders.includes(slug)){
+            if(!slugList.includes(slug)){
                 throw new CommandError(
-                    ErrorCodes.INVALID_FUNCTION_SLUG.message(folders.join(', ')), 
+                    ErrorCodes.INVALID_FUNCTION_SLUG.message(slugList.join(', ')),
                     ErrorCodes.INVALID_FUNCTION_SLUG.code
                 );
             }
@@ -314,14 +315,77 @@ export default class FunctionCommands {
                 );
             }
 
-            updateFunctionContext(currentContext, data.slug, data.modified_at, data.version_data.modified_at);
             writeFunctionConfig(data.name, data.description, data.slug, data.type, data.version_data.events);
             writeFunctionCode(data.slug, data.version_data.code_snippet);
+            updateFunctionContext(currentContext, data.slug, data.modified_at, data.version_data.modified_at);
 
             console.log(chalk.green(`Function initialized successfully.\nVerify the function at ${path.join(slugFolderPath)}`));
         }
         catch(err){
             throw err;
+        }
+    }
+
+    public static async testHandler(options: TestOptions) {
+        try {
+            const currentContext = checkExtensionRepository();
+
+            const slugList = getAvailableFunctionList();
+            const slug = options.slug || await FunctionCommands.promptFunctionSlugChoice(slugList);
+
+            if(!slugList.includes(slug)){
+                throw new CommandError(
+                    ErrorCodes.INVALID_FUNCTION_SLUG.message(slugList.join(', ')),
+                    ErrorCodes.INVALID_FUNCTION_SLUG.code
+                );
+            }
+
+            const codeSnippet = readFunctionCode(slug);
+            const config = readFunctionConfig(slug);
+
+            const [isFunctionExists, functionData] = await ExtensionService.getFunctionByFunctionIdOrSlug(currentContext.extension_id, slug);
+
+            if (!isFunctionExists) {
+                throw new CommandError(
+                    ErrorCodes.INVALID_FUNCTION_SLUG.message(''),
+                    ErrorCodes.INVALID_FUNCTION_SLUG.code
+                )
+            }
+
+            const testResult = await ExtensionService.runFunctionTests(currentContext.extension_id, functionData._id, { 
+                code: codeSnippet, 
+                events: config.events.map((el) => ({event_slug: el.name, event_version: el.version}))
+            })        
+
+            FunctionCommands.printTestResultString(testResult);
+
+        } catch(error) {
+            throw new CommandError(error.message, error.code);
+        }
+    }
+
+    static printTestResultString(testResult: TestResult): void {
+        let count = 1;
+
+        for (const testCase of testResult.items) {
+            console.log(chalk.blue(`${count}. ${testCase.name} ${getStatusString(testCase.status)}\n`));
+            
+            for (const testEvent of testCase.events) {
+                console.log(chalk.blue(`  - ${testEvent.event_slug} ${testEvent.event_version} ${getStatusString(testEvent.status)}`));
+
+                for (const eventResult of testEvent.results) {
+                    eventResult.type
+                    if (eventResult.status === 'PASS') {
+                        console.log(chalk.green(`    \u2714 ${eventResult.type} - ${eventResult.message}`));
+                    } else {
+                        console.log(chalk.red(`    \u2716 ${eventResult.type} - ${eventResult.message}`));
+                    }
+                }
+
+                console.log();
+            }
+
+            count++;
         }
     }
 

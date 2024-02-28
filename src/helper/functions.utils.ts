@@ -2,6 +2,7 @@ import CommandError, { ErrorCodes } from "../lib/CommandError";
 import { ConfigEvent, Event, FunctionConfig, FunctionType } from "./functions.types";
 import path from 'path';
 import fs from 'fs-extra';
+import chalk from "chalk";
 
 export const validateFunctionName = (name: string): void => {
     const minLength: number = 3;
@@ -93,3 +94,31 @@ export const readFunctionCode = (slug: string): string => {
     const filePath = path.join(process.cwd(), FOLDER_NAME, slug, 'index.js');
     return fs.readFileSync(filePath, 'utf-8');
 }
+
+export const getAvailableFunctionList = (): string[] => {
+    const folderPath = path.join(process.cwd(), FOLDER_NAME);
+
+    if(!fs.existsSync(folderPath)) {
+        throw new CommandError(
+            ErrorCodes.NO_FUNCTIONS_FOLDER.message,
+            ErrorCodes.NO_FUNCTIONS_FOLDER.code
+        )
+    }
+
+    const items = fs.readdirSync(folderPath);
+    const slugList = items.filter(item => fs.statSync(path.join(folderPath, item)).isDirectory());
+
+    if (slugList.length === 0) {
+        throw new CommandError(
+            ErrorCodes.NO_FUNCTIONS_IN_FOLDER.message,
+            ErrorCodes.NO_FUNCTIONS_IN_FOLDER.code
+        )
+    }
+
+    return slugList;
+}
+
+export const getStatusString = (status: string): string => {
+    return status === 'PASS' ? chalk.green(`${status} \u2714`) : chalk.red(`${status} \u2716`);
+}
+

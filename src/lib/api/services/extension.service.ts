@@ -5,7 +5,8 @@ import {
     CreateFunctionPayload, 
     UpdateFunctionPayload, 
     UpdateFunctionVersionPayload, 
-    FunctionResponse
+    FunctionResponse,
+    RunTestPayload
 } from '../../../helper/functions.types';
 
 type RegisterExtensionPaylaod = {
@@ -272,6 +273,19 @@ export default {
             return response.data;
         } catch(error) {
             throw error;
+        }
+    },
+
+    runFunctionTests: async (extension_id: string, function_id: string, data: RunTestPayload) => {
+        try {
+            const axiosOptions = Object.assign({}, {data: data}, getCommonHeaderOptions());
+            const response = await ApiClient.post(
+                URLS.FUNCTION_TEST(extension_id, function_id),
+                axiosOptions
+            )
+            return response.data;
+        } catch(err) {
+            throw err;
         }
     }
 };

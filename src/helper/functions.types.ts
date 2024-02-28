@@ -11,6 +11,10 @@ export interface InitOptions {
     slug?: string
 }
 
+export interface TestOptions {
+    slug?: string
+}
+
 export type FunctionType = 'inhook' | 'ingress';
 
 export type UserActions = 'pull' | 'push' | 'cancel';
@@ -96,4 +100,37 @@ export interface UpdateFunctionPayload {
 export interface UpdateFunctionVersionPayload {
     code_snippet: string,
     events: Event[]
+}
+
+export type TestStatus = 'PASS' | 'FAIL';
+
+export interface RunTestPayload {
+    code: string,
+    events: Event[]
+}
+
+export interface EventResult {
+    status: TestStatus,
+    message: string,
+    type: string,
+    data?: Record<string, any>
+}
+
+export interface TestEvent {
+    results: EventResult[],
+    status: TestStatus,
+    event_slug: string,
+    event_version: string
+}
+
+export interface TestCase {
+    name: string,
+    id: string,
+    events: TestEvent[],
+    status: TestStatus
+}
+
+export interface TestResult {
+    items: TestCase[],
+    status: TestStatus
 }

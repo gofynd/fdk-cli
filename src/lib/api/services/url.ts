@@ -30,6 +30,8 @@ const CONFIGURATION_URL = () =>
     getBaseURL() + '/service/partner/partners/v' + apiVersion;
 const MIXMASTER_URL = (serverType: string) =>
     getBaseURL() + `/service/${serverType}/partners/v` + apiVersion;
+const FUNCTION_URL = (serverType: string) => 
+    getBaseURL() + `/service/${serverType}/function/v` + apiVersion;
 const ASSET_URL = () => getBaseURL() + '/service/partner/assets/v' + apiVersion;
 
 export const URLS = {
@@ -172,6 +174,7 @@ export const URLS = {
         )
     },
 
+    // functions
     GET_EXTENSION_FUNCTIONS: (extension_id: string, page_no?:number, page_size?: number ): string => {
         return urlJoin(
             MIXMASTER_URL('partner'),
@@ -198,6 +201,13 @@ export const URLS = {
             MIXMASTER_URL('panel'),
             'function/event'
         );
+    },
+
+    FUNCTION_TEST: (extension_id: string, function_id: string): string => {
+        return urlJoin(
+            FUNCTION_URL('partner'),
+            `/organization/${organization_id}/extension/${extension_id}/function/${function_id}/test`
+        )
     },
 
     // Preview URL
