@@ -2,7 +2,6 @@ name: Run Validation on TAG and Publish Package to npmjs(beta)
 on:
   push:
     tags:
-      - v[0-9]+.[0-9]+.[0-9]+-alpha.[0-9]+
       - v[0-9]+.[0-9]+.[0-9]+-beta.[0-9]+
 
 jobs:
@@ -17,6 +16,7 @@ jobs:
         - run: npm install
         - run: node ./scripts/unstableReleaseCheck.js
 
+        
   run-test-cases:
     needs: release-check
     uses: ./.github/workflows/call_test_cases.yml
@@ -29,7 +29,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v3
         with:
@@ -75,11 +78,14 @@ jobs:
       #     SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
       #     RELEASE_VERSION: ${{ steps.fdk-cli-version.outputs.current-version }}
 
+      - name: Adding Sentry DSN
+        run: | 
+          echo "{\"dsn\": \"${{ secrets.SENTRY_DSN }}\"}" > ./dist/sentry.json
+          
       - name: Delete SourceMap files
         run: find ./dist -type f -name '*.map' -exec rm -f {} \;
 
       - name: Publish to npmjs (beta)
         run: npm publish --tag beta --access public
-        if: contains(github.ref, '-beta')
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}
