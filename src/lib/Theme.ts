@@ -1147,7 +1147,11 @@ export default class Theme {
             await startServer({ domain, host, isSSR, port });
 
             // open browser
-            await open(getFullLocalUrl(port));
+            try {
+                await open(getFullLocalUrl(port));
+            } catch (err) {
+                console.log(`Open in browser: ${getFullLocalUrl(port)}`);
+            }
             Logger.info(chalk.bold.green(`Watching files for changes`));
             let watcher = chokidar.watch(path.resolve(process.cwd(), 'theme'), {
                 persistent: true,
@@ -1217,7 +1221,11 @@ export default class Theme {
 
             // open browser
             Logger.info(chalk.bold.green(`opening browser here`));
-            await open(getFullLocalUrl(port));
+            try {
+                await open(getFullLocalUrl(port));
+            } catch {
+                console.log(`Open in browser: ${getFullLocalUrl(port)}`);
+            }
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }

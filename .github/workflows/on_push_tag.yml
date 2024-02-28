@@ -20,21 +20,12 @@ jobs:
   run-test-cases:
     needs: release-check
     uses: ./.github/workflows/call_test_cases.yml
-  
-  create-sentry-release:
-    needs: 
-      - release-check
-      - run-test-cases
-    uses: ./.github/workflows/create_sentry_release.yml
-    with:
-      release_environment: development
-    secrets: inherit
+   
   
   publish-test-release:
     needs: 
       - release-check
       - run-test-cases
-      - create-sentry-release
     runs-on: ubuntu-latest
 
     steps:
@@ -47,9 +38,45 @@ jobs:
       
       - name: Install NPM package
         run: npm install
+        
+      - name: get version
+        id: fdk-cli-version
+        uses: martinbeentjes/npm-get-version-action@v1.3.1
       
-      - name: Release Check
-        run: node ./scripts/unstableReleaseCheck.js
+      - name: Build the project
+        run: npm run build
+
+      - name: Installing sentry
+        run: npm i -g @sentry/cli@2.28.6
+
+      - name: Add Debug Id to dist
+        run: sentry-cli sourcemaps inject --org ${{ env.SENTRY_ORG }} --project ${{ env.SENTRY_PROJECT }} ./dist
+        env:
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+
+      - name: Upload source map to Sentry
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        with:
+          environment: development
+          sourcemaps: './dist'
+          version: ${{ steps.fdk-cli-version.outputs.current-version }}
+
+      # # Alternative of above to try in local
+      # - name: Upload source map to Sentry
+      #   run: sentry-cli sourcemaps upload --org ${{ env.SENTRY_ORG }} --project ${{ env.SENTRY_PROJECT }} --release ${{ env.RELEASE_VERSION }} --auth-token ${{ env.SENTRY_AUTH_TOKEN }} ./dist
+      #   env:
+      #     SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      #     SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+      #     SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+      #     RELEASE_VERSION: ${{ steps.fdk-cli-version.outputs.current-version }}
+
+      - name: Delete SourceMap files
+        run: find ./dist -type f -name '*.map' -exec rm -f {} \;
 
       - name: Publish to npmjs (beta)
         run: npm publish --tag beta --access public
