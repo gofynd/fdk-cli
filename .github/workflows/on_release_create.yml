@@ -26,7 +26,10 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v3
+            - name: checkout repository
+              uses: actions/checkout@v3
+              with:
+                fetch-depth: 0
 
             - uses: actions/setup-node@v3
               with:
@@ -72,6 +75,10 @@ jobs:
             #     SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
             #     RELEASE_VERSION: ${{ steps.fdk-cli-version.outputs.current-version }}
       
+            - name: Adding Sentry DSN
+              run: | 
+                echo "{\"dsn\": \"${{ secrets.SENTRY_DSN }}\"}" > ./dist/sentry.json
+
             - name: Delete SourceMap files
               run: find ./dist -type f -name '*.map' -exec rm -f {} \;
             

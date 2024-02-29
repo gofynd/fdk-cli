@@ -28,10 +28,14 @@ import { getPlatformUrls } from './lib/api/services/url';
 import * as Sentry from '@sentry/node';
 const packageJSON = require('../package.json');
 
-Sentry.init({
-    dsn: 'https://2a51996f413264190b01b4bdf0e410ea@o71740.ingest.sentry.io/4506539889721344',
-    release: packageJSON.version
-});
+const sentryFilePath = path.join(__dirname, './sentry.json');
+const sentryDSN = fs.existsSync(sentryFilePath) ? fs.readJsonSync(sentryFilePath)["dsn"] : undefined;
+if(sentryDSN){
+    Sentry.init({
+        dsn: sentryDSN,
+        release: packageJSON.version
+    });
+}
 
 async function checkTokenExpired(auth_token) {
     if (!auth_token) return true;
