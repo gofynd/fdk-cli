@@ -124,7 +124,9 @@ export default class ExtensionSection {
         // const uploadURLs = await ExtensionSection.uploadSectionFiles(sectionName);
 
         const availableSections = await ExtensionSection.getAvailableSections();
-        console.log(availableSections)
+        console.log(availableSections);
+
+        // const sections = await extensionService.uploadBindingSections(extensionId, sectionName);
     }
 
     static async buildExtensionCode(sectionName: string, isLocal: Boolean = false) {
