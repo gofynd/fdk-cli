@@ -24,13 +24,18 @@ import {
     PARTNER_COMMANDS,
     ALL_THEME_COMMANDS,
 } from './helper/constants';
+import { getPlatformUrls } from './lib/api/services/url';
 import * as Sentry from '@sentry/node';
 const packageJSON = require('../package.json');
 
-Sentry.init({
-    dsn: 'https://2a51996f413264190b01b4bdf0e410ea@o71740.ingest.sentry.io/4506539889721344',
-    release: packageJSON.version
-});
+const sentryFilePath = path.join(__dirname, './sentry.json');
+const sentryDSN = fs.existsSync(sentryFilePath) ? fs.readJsonSync(sentryFilePath)["dsn"] : undefined;
+if(sentryDSN){
+    Sentry.init({
+        dsn: sentryDSN,
+        release: packageJSON.version
+    });
+}
 
 async function checkTokenExpired(auth_token) {
     if (!auth_token) return true;
@@ -234,8 +239,23 @@ export async function init(programName: string) {
     //set API versios
     configStore.set(CONFIG_KEYS.API_VERSION, '1.0');
     // set default environment
-    if (!configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE))
-        configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'fynd');
+    const current_env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+
+    if (!current_env || !current_env.includes('api.'))
+        configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'api.fynd.com');
+
+    // todo: remove this warning in future version of fdk cli, when everybody get used to set env by url.
+    if (current_env && !current_env.includes('api.')) {
+        console.warn(
+            chalk.yellow(
+                `Warning: Reseting active environment to api.fynd.com. Please use \`fdk env set -u <env-api-url>\` to change active environment. Ref: ${
+                    getPlatformUrls().partners
+                }/help/docs/partners/themes/vuejs/command-reference#environment-commands-1`,
+            ),
+        );
+        process.exit(0);
+    }
+
     program.on('command:*', (subCommand: any) => {
         let msg = `"${subCommand.join(
             ' ',

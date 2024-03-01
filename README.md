@@ -77,7 +77,6 @@ ___
 ### Environment Commands
 | Command        | Description           | 
 | ------------- |-------------| 
-| [env ls](#env-ls)     | List environments |
 | [env get](#env-get)     | Shows current environment |
 | [env set](#env-set)     | Set active environment to the value provided by the user. Default environment: `fynd`|
 
@@ -122,19 +121,9 @@ ___
 ## Commands Reference
 ___
 ### Environment Commands
-Before you setup a theme using FDK CLI you will have to set an environment in which you will be initializing your theme
-<div id="env-ls"></div>
-
-#### **env ls**
-This command displays a list of all supported environments.
-#### **Syntax**
-```sh
-fdk env ls
-```
+Before you start using FDK CLI you will have to set an environment
 
 <div id="env-set"></div>
-
-___
 
 #### **env set**
 This command sets the active environment to the value provided by the user.
@@ -145,16 +134,11 @@ fdk env set [options]
 ```
 #### **Example**
 ```sh
-fdk env set -n fynd
-```
-#### **Example**
-```sh
 fdk env set -u api.fynd.com
 ```
 #### **Command Options**
 | Option        | Description | Required |
 | ------------- |-------------|----------|
-| --name, -n   | Environment name | Yes |
 | --url, -u   | Platform API domain | Yes |
 | --help    | Show help | No |
 | --verbose, -v | enable debug mode | No |
@@ -164,7 +148,7 @@ fdk env set -u api.fynd.com
 ___
 
 #### **env get**
-This command displays the active environment set by the user. Default environment: `fynd`
+This command displays the active environment set by the user. Default environment: `api.fynd.com`
 #### **Syntax**
 ```sh
 fdk env get
@@ -376,9 +360,6 @@ fdk theme open
 Extensions are pluggable snippets of code that can be installed in your applications so improve the feature set of your application. To know more visit - [Fynd Partners](https://partners.fynd.com/)
 
 Set the active environment before running extension commands
-```sh
-fdk env set -n fynd
-```
 ```sh
 fdk env set -u api.fynd.com
 ```
