@@ -122,8 +122,8 @@ export const ErrorCodes = {
         message: 'Duplicate events are found in events array',
         code: 'FDK-0030'
     },
-    FUNCTION_SLUG_MISMATCH: {
-        message: 'Slug mismatch in config file',
+    INVALID_FUNCTION_CONFIG: {
+        message: (message: string) => `Invalid config: ${message}`,
         code: 'FDK-0031'
     },
     NO_CHANGES: {
@@ -142,6 +142,14 @@ export const ErrorCodes = {
         message: (message: string) => `Invalid tests: ${message}`,
         code: `FDK-0035`
     },
+    INVALID_SLUG_FOLDER: {
+        message: (slug: string) => `${slug} is empty or does not exist`,
+        code: `FDK-0036`
+    },
+    MISSING_FILE: {
+        message: (slug: string, file: string) => `Required file ${file} is missing in the ${slug} directory`,
+        code:  `FDK-0037`
+    }
 };
 
 export default class CommandError extends Error {

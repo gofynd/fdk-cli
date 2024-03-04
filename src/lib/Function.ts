@@ -7,14 +7,10 @@ import {
     convertToSlug, 
     filterTestResponse, 
     getAvailableFunctionList, 
+    getFunctionData, 
     getStatusString, 
-    readFunctionCode, 
-    readFunctionConfig, 
-    readFunctionTest, 
     stringifyTests, 
-    validateFunctionName, 
-    validateFunctionTests, 
-    validateUniqueEventNames,
+    validateFunctionName,
     writeFunctionCode,
     writeFunctionConfig,
     writeFunctionTest
@@ -63,27 +59,7 @@ export default class FunctionCommands {
                 );
             }
 
-            const configData = readFunctionConfig(slug);
-            const codeSnippet = readFunctionCode(slug);
-            const tests = readFunctionTest(slug);
-
-            if (configData.slug !== slug) {
-                throw new CommandError(
-                    ErrorCodes.FUNCTION_SLUG_MISMATCH.message,
-                    ErrorCodes.FUNCTION_SLUG_MISMATCH.code
-                )
-            }
-
-            validateUniqueEventNames(configData.events);
-            try {
-                validateFunctionTests(tests, configData.events)
-            } catch(error) {
-                throw new CommandError(
-                    ErrorCodes.INVALID_FUNCTION_TESTS.message(error.message),
-                    ErrorCodes.INVALID_FUNCTION_TESTS.code
-                )
-            }
-
+            const [configData, codeSnippet, tests] = getFunctionData(slug);
             const [isFunctionExists, data] = await ExtensionService.getFunctionBySlug(currentContext.extension_id, slug);
 
             if (!isFunctionExists) {
@@ -281,14 +257,15 @@ export default class FunctionCommands {
             validateFunctionName(options.name);
             const slug = convertToSlug(options.name);
 
-            options.type = options.type || await FunctionCommands.promptFunctionType();
+            // options.type = options.type || await FunctionCommands.promptFunctionType();
 
-            if (!Object.values(FUNCTION_TYPE).includes(options.type)) {
-                throw new CommandError(
-                    ErrorCodes.INVALID_FUNCTION_TYPE.message,
-                    ErrorCodes.INVALID_FUNCTION_TYPE.code
-                )
-            }
+            // if (!Object.values(FUNCTION_TYPE).includes(options.type)) {
+            //     throw new CommandError(
+            //         ErrorCodes.INVALID_FUNCTION_TYPE.message,
+            //         ErrorCodes.INVALID_FUNCTION_TYPE.code
+            //     )
+            // }
+            options.type = 'inhook';
 
             const [isSlugExists] = await ExtensionService.getFunctionBySlug(extension_id, slug);
             
@@ -383,10 +360,8 @@ export default class FunctionCommands {
                 );
             }
 
-            const codeSnippet = readFunctionCode(slug);
-            const config = readFunctionConfig(slug);
-            const tests = stringifyTests(readFunctionTest(slug));
-
+            const [configData, codeSnippet, tests] = getFunctionData(slug);
+            const updatedTests = stringifyTests(tests)
 
             const [isFunctionExists, functionData] = await ExtensionService.getFunctionBySlug(currentContext.extension_id, slug);
 
@@ -399,8 +374,8 @@ export default class FunctionCommands {
 
             const testResult = await ExtensionService.runFunctionTests(currentContext.extension_id, functionData._id, { 
                 code: codeSnippet, 
-                events: config.events.map((el) => ({event_slug: el.name, event_version: el.version})),
-                tests: tests
+                events: configData.events.map((el) => ({event_slug: el.name, event_version: el.version})),
+                tests: updatedTests
             });
 
             FunctionCommands.printTestResultString(testResult);

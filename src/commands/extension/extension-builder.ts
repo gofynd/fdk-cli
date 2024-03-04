@@ -93,10 +93,10 @@ export default function extensionCommandBuilder() {
             '-n, --name <function-name>',
             'function name'
         )
-        .option(
-            '-t, --type <function-type>',
-            'function type'
-        )
+        // .option(
+        //     '-t, --type <function-type>',
+        //     'function type'
+        // )
         .asyncAction(FunctionCommands.createHandler);
     
     function_commands
