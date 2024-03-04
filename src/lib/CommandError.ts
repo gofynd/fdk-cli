@@ -137,7 +137,11 @@ export const ErrorCodes = {
     NO_FUNCTIONS_IN_FOLDER: {
         message: `No functions found inside ./${FOLDER_NAME} directory`,
         code: 'FDK-0034'
-    }
+    },
+    INVALID_FUNCTION_TESTS: {
+        message: (message: string) => `Invalid tests: ${message}`,
+        code: `FDK-0035`
+    },
 };
 
 export default class CommandError extends Error {

@@ -105,8 +105,9 @@ export default function extensionCommandBuilder() {
         .option(
             '-s, --slug <function-slug>',
             'function slug'
-        )
-        .asyncAction(FunctionCommands.initializeFunction);
+            )
+        .option('-f, --force', 'force pull')
+        .asyncAction(FunctionCommands.initHandler);
 
     function_commands
         .command('test')

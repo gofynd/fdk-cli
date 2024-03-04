@@ -182,10 +182,10 @@ export const URLS = {
         )
     },
 
-    GET_FUNCTION_BY_FUNCTION_ID_OR_SLUG: (extension_id: string, function_id_or_slug: string): string => {
+    GET_FUNCTION_BY_SLUG: (extension_id: string, slug: string): string => {
         return urlJoin(
             MIXMASTER_URL('partner'),
-            `/organization/${organization_id}/extension/${extension_id}/function/${function_id_or_slug}`
+            `/organization/${organization_id}/extension/${extension_id}/function/${slug}`
         )
     },
 
@@ -203,10 +203,24 @@ export const URLS = {
         );
     },
 
-    FUNCTION_TEST: (extension_id: string, function_id: string): string => {
+    RUN_FUNCTION_TEST: (extension_id: string, function_id: string): string => {
         return urlJoin(
             FUNCTION_URL('partner'),
             `/organization/${organization_id}/extension/${extension_id}/function/${function_id}/test`
+        )
+    },
+
+    ALL_FUNCTION_TESTS: (extension_id: string, function_id: string, page_size: number, page_no: number) => {
+        return urlJoin(
+            MIXMASTER_URL('partner'),
+            `/organization/${organization_id}/extension/${extension_id}/function/${function_id}/test-case?page_size=${page_size}&page_no=${page_no}`,
+        )
+    },
+
+    UPDATE_BULK_TESTS: (extension_id: string, function_id: string) => {
+        return urlJoin(
+            MIXMASTER_URL('partner'),
+            `/organization/${organization_id}/extension/${extension_id}/function/${function_id}/test-case/bulk`,
         )
     },
 

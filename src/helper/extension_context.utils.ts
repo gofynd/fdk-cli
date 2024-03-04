@@ -61,11 +61,10 @@ export const createExtensionContext = async (context: ActiveExtensionContext) =>
 }
 
 export const updateFunctionContext = (
-    currentContext: ActiveExtensionContext, slug: string, functionTimestamp: string, versionTimestamp: string
+    currentContext: ActiveExtensionContext, slug: string, hash: string
 ): ActiveExtensionContext => {
 
     const contextPath = CONTEXT_PATH();
-    const hash = Buffer.from(`${functionTimestamp}=${versionTimestamp}`, 'utf-8').toString('base64');
     const hashData: FunctionContext = { hash, slug }
 
     if (Array.isArray(currentContext.functions)) {

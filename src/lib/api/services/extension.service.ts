@@ -6,7 +6,10 @@ import {
     UpdateFunctionPayload, 
     UpdateFunctionVersionPayload, 
     FunctionResponse,
-    RunTestPayload
+    RunTestPayload,
+    FunctionTestModel,
+    FunctionTest,
+    UpdateTestResponse
 } from '../../../helper/functions.types';
 
 type RegisterExtensionPaylaod = {
@@ -176,17 +179,17 @@ export default {
         }
     },
 
-    getFunctionByFunctionIdOrSlug: async (extension_id: string, function_id_or_slug: string): Promise<[true, FunctionResponse] | [false]> => {
+    getFunctionBySlug: async (extension_id: string, slug: string): Promise<[true, FunctionResponse] | [false]> => {
         try{
             let axiosOptions = Object.assign({}, getCommonHeaderOptions());
             let response = await ApiClient.get(
-                URLS.GET_FUNCTION_BY_FUNCTION_ID_OR_SLUG(extension_id, function_id_or_slug),
+                URLS.GET_FUNCTION_BY_SLUG(extension_id, slug),
                 axiosOptions
             );
             return [true, response.data];
         }
         catch(err){
-            if(err?.response?.status === 404 && err?.response?.data?.message === "Function not found"){
+            if(err?.response?.status === 404){
                 return [false];
             }
             throw err;
@@ -225,7 +228,7 @@ export default {
         try{
             let axiosOptions = Object.assign({},{data: data }, getCommonHeaderOptions());
             let response = await ApiClient.put(
-                URLS.GET_FUNCTION_BY_FUNCTION_ID_OR_SLUG(extension_id, function_id),
+                URLS.GET_FUNCTION_BY_SLUG(extension_id, function_id),
                 axiosOptions
             );
             return response.data;
@@ -280,12 +283,38 @@ export default {
         try {
             const axiosOptions = Object.assign({}, {data: data}, getCommonHeaderOptions());
             const response = await ApiClient.post(
-                URLS.FUNCTION_TEST(extension_id, function_id),
+                URLS.RUN_FUNCTION_TEST(extension_id, function_id),
                 axiosOptions
             )
             return response.data;
         } catch(err) {
             throw err;
         }
-    }
+    },
+
+    getAllFunctionTests: async (extension_id: string, function_id: string): Promise<FunctionTestModel[]> => {
+        try {
+            const axiosOptions = Object.assign({}, getCommonHeaderOptions());
+            const response = await ApiClient.get(
+                URLS.ALL_FUNCTION_TESTS(extension_id, function_id, 10000, 1),
+                axiosOptions
+            )
+        return response.data.items;
+        } catch(error) {
+            throw error;
+        }
+    },
+
+    updateFunctionTests: async (data: FunctionTest[], extension_id: string, function_id: string): Promise<UpdateTestResponse> => {
+        try {
+            const axiosOptions = Object.assign({}, {data: data}, getCommonHeaderOptions());
+            const response = await ApiClient.post(
+                URLS.UPDATE_BULK_TESTS(extension_id, function_id),
+                axiosOptions
+            )
+            return response.data
+        } catch(error) {
+            throw error;
+        }
+    },
 };

@@ -8,7 +8,8 @@ export interface SyncOptions {
 }
 
 export interface InitOptions {
-    slug?: string
+    slug?: string,
+    force: boolean,
 }
 
 export interface TestOptions {
@@ -43,6 +44,7 @@ export interface Function {
     _id: string,
     name: string,
     slug: string,
+    hash: string,
     description: string,
     organization_id: string,
     extension_id: string,
@@ -106,7 +108,8 @@ export type TestStatus = 'PASS' | 'FAIL';
 
 export interface RunTestPayload {
     code: string,
-    events: Event[]
+    events: Event[],
+    tests: TestPayload[]
 }
 
 export interface EventResult {
@@ -116,7 +119,7 @@ export interface EventResult {
     data?: Record<string, any>
 }
 
-export interface TestEvent {
+export interface TestResultEvent {
     results: EventResult[],
     status: TestStatus,
     event_slug: string,
@@ -126,11 +129,49 @@ export interface TestEvent {
 export interface TestCase {
     name: string,
     id: string,
-    events: TestEvent[],
+    events: TestResultEvent[],
     status: TestStatus
 }
 
 export interface TestResult {
     items: TestCase[],
     status: TestStatus
+}
+
+export interface TestEvent {
+  event_slug: string;
+  event_version: string;
+  input_data: Record<string, any>;
+  output_data: Record<string, any>;
+}
+
+export interface FunctionTest {
+  name: string;
+  events: TestEvent[];
+}
+
+export interface TestEventModel {
+    event_slug: string;
+    event_version: string;
+    input_data: string;
+    output_data: string;
+}
+
+export interface FunctionTestModel {
+    name: string,
+    function_id: string,
+    events: TestEventModel[],
+    created_at: string,
+    modified_at: string,
+    __v: number
+}
+
+export interface TestPayload {
+    name: string,
+    events: TestEventModel[]
+}
+
+export interface UpdateTestResponse {
+    message: string,
+    function_data: Function
 }

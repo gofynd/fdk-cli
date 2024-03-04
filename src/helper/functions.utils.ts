@@ -1,5 +1,13 @@
 import CommandError, { ErrorCodes } from "../lib/CommandError";
-import { ConfigEvent, Event, FunctionConfig, FunctionType } from "./functions.types";
+import {
+    Event, 
+    ConfigEvent,
+    FunctionType,
+    FunctionTest, 
+    FunctionConfig, 
+    FunctionTestModel,
+    TestPayload,
+} from "./functions.types";
 import path from 'path';
 import fs from 'fs-extra';
 import chalk from "chalk";
@@ -49,6 +57,40 @@ export const validateUniqueEventNames = (events: ConfigEvent[]): boolean => {
     return true;
 }
 
+export const validateFunctionTests = (tests: FunctionTest[], validEvents: ConfigEvent[]): boolean => {
+    const names = new Set();
+
+    for (const test of tests) {
+
+        if(!test.name || !test.events) {
+            throw new Error('All test cases must have required fields name and events');
+        }
+
+        if (names.has(test.name)) {
+            throw new Error(`${test.name} name used for multiple test cases.`);
+        }
+        names.add(test.name);
+
+        if (test.events.length === 0) {
+            throw new Error(`${test.name} must have at least one event.`);
+        }
+
+        for (const event of test.events) {
+            if (!event.event_slug || !event.event_version || !event.input_data || !event.output_data) {
+                throw new Error(`${test.name} events must have all the required fields`);
+            }
+
+            const isValidEvent = validEvents.some(validEvent => validEvent.name=== event.event_slug && validEvent.version === event.event_version);
+            if (!isValidEvent) {
+                throw new Error(`${event.event_slug} ${event.event_version} does not exits in function`);
+            }
+        }
+    }
+
+    return true
+}
+
+
 export const convertToSlug = (name: string): string => {
     return name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 }
@@ -59,6 +101,9 @@ export const FUNCTION_TYPE = {
 }
 
 export const FOLDER_NAME = 'functions';
+export const CONFIG_FILE = 'config.json';
+export const INDEX_FILE = 'index.js';
+export const TEST_FILE = 'test.json';
 
 export const USER_ACTIONS = {
     PULL: 'pull',
@@ -67,7 +112,7 @@ export const USER_ACTIONS = {
 }
 
 export const writeFunctionConfig = (name: string, description: string, slug: string, type: FunctionType, events: Event[]):void => {
-    const filePath = path.join(process.cwd(), FOLDER_NAME, slug, 'config.js');
+    const filePath = path.join(process.cwd(), FOLDER_NAME, slug, CONFIG_FILE);
     const configData: FunctionConfig = {
         name,
         description,
@@ -75,24 +120,33 @@ export const writeFunctionConfig = (name: string, description: string, slug: str
         type,
         events: events.map((el) => ({name: el.event_slug, version: el.event_version}))
     }
-    const fileData = `const config = ${JSON.stringify(configData, null, 2)};\nmodule.exports = config;`
 
-    fs.outputFileSync(filePath, fileData);
+    fs.outputFileSync(filePath, JSON.stringify(configData, null, 4));
 }
 
 export const readFunctionConfig = (slug: string): FunctionConfig => {
-    const filePath = path.join(process.cwd(), FOLDER_NAME, slug, 'config.js');
+    const filePath = path.join(process.cwd(), FOLDER_NAME, slug, CONFIG_FILE);
     return require(filePath);
 }
 
 export const writeFunctionCode = (slug: string, code_snippet: string): void => {
-    const filePath = path.join(process.cwd(), FOLDER_NAME, slug, 'index.js');
+    const filePath = path.join(process.cwd(), FOLDER_NAME, slug, INDEX_FILE);
     fs.outputFileSync(filePath, code_snippet);
 }
 
 export const readFunctionCode = (slug: string): string => {
-    const filePath = path.join(process.cwd(), FOLDER_NAME, slug, 'index.js');
+    const filePath = path.join(process.cwd(), FOLDER_NAME, slug, INDEX_FILE);
     return fs.readFileSync(filePath, 'utf-8');
+}
+
+export const writeFunctionTest = (slug: string, tests: FunctionTest[]): void => {
+    const filePath = path.join(process.cwd(), FOLDER_NAME, slug, TEST_FILE);
+    fs.outputFileSync(filePath, JSON.stringify(tests, null, 4));
+}
+
+export const readFunctionTest = (slug: string): FunctionTest[] => {
+    const filePath = path.join(process.cwd(), FOLDER_NAME, slug, TEST_FILE);
+    return require(filePath);
 }
 
 export const getAvailableFunctionList = (): string[] => {
@@ -122,3 +176,31 @@ export const getStatusString = (status: string): string => {
     return status === 'PASS' ? chalk.green(`${status} \u2714`) : chalk.red(`${status} \u2716`);
 }
 
+export const filterTestResponse = (response: FunctionTestModel[]): FunctionTest[] => {
+    return response.map((item) => {
+        const events = item.events.map((el) => ({
+            event_slug: el.event_slug,
+            event_version: el.event_version,
+            input_data: JSON.parse(el.input_data),
+            output_data: JSON.parse(el.output_data)
+        }))
+        return {
+            name: item.name,
+            events: events
+        }
+    })
+}
+
+export const stringifyTests = (tests: FunctionTest[]): TestPayload[] => {
+    return tests.map((test) => {
+        const events = test.events.map((el) => ({
+            ...el,
+            input_data: JSON.stringify(el.input_data),
+            output_data: JSON.stringify(el.output_data)
+        }))
+        return {
+            name: test.name,
+            events
+        }
+    })
+}
