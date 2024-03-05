@@ -89,7 +89,7 @@ async function createThemeFromZip() {
                     company_id: 1,
                     theme_id: '622894659baaca3be88c9d65',
                     application_token: '8DXpyVsKD',
-                    env: 'fyndx1',
+                    env: 'api.fyndx1.de',
                     theme_type: 'vue2',
                 },
             },

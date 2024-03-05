@@ -7,7 +7,6 @@ import express from 'express';
 var cors = require('cors');
 const port = 7071;
 import chalk from 'chalk';
-import { AVAILABLE_ENVS } from './Env';
 import ThemeService from './api/services/theme.service';
 import { getLocalBaseUrl } from '../helper/serve.utils';
 import Debug from './Debug';
@@ -126,20 +125,22 @@ export default class Auth {
             await startServer();
         const env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
         try {
-            if (Auth.wantToChangeOrganization || !isLoggedIn) {
-                let domain = null;
-                if (AVAILABLE_ENVS[env]) {
-                    let partnerDomain = AVAILABLE_ENVS[env].replace(
-                        'api',
-                        'partners',
+            let domain = null;
+            let partnerDomain = env.replace('api', 'partners');
+            domain = `https://${partnerDomain}`;
+            try {
+                if (Auth.wantToChangeOrganization || !isLoggedIn) {
+                    await open(
+                        `${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
+                            `${getLocalBaseUrl()}:${port}`,
+                        )}`,
                     );
-                    domain = `https://${partnerDomain}`;
-                } else {
-                    let partnerDomain = env.replace('api', 'partners');
-                    domain = `https://${partnerDomain}`;
                 }
-                await open(
-                    `${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(`${getLocalBaseUrl()}:${port}`)}`,
+            } catch (err) {
+                console.log(
+                    `Open link on browser: ${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
+                        `${getLocalBaseUrl()}:${port}`,
+                    )}`,
                 );
             }
         } catch (error) {

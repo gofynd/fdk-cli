@@ -40,7 +40,7 @@ jest.mock('configstore', () => {
 describe('Setup extension command', () => {
     beforeAll(async () => {
         program = await init('fdk');
-        configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'fynd');
+        configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'api.fynd.com');
         configStore.set(CONFIG_KEYS.PARTNER_ACCESS_TOKEN, 'mocktoken');
     });
 

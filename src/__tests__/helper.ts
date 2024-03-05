@@ -15,5 +15,5 @@ export function generateToken(decodedToken) {
 
 export function setEnv() {
     configStore.set(CONFIG_KEYS.CURRENT_ENV, {}); // active_context: {}
-    configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'fyndx1');
+    configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'api.fyndx1.de');
 }
