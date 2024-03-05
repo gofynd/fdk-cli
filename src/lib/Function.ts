@@ -367,8 +367,8 @@ export default class FunctionCommands {
 
             if (!isFunctionExists) {
                 throw new CommandError(
-                    ErrorCodes.INVALID_FUNCTION_SLUG.message(''),
-                    ErrorCodes.INVALID_FUNCTION_SLUG.code
+                    ErrorCodes.SYNC_BEFORE_TEST.message,
+                    ErrorCodes.SYNC_BEFORE_TEST.code
                 )
             }
 
@@ -416,7 +416,7 @@ export default class FunctionCommands {
                 type: 'list',
                 choices: choices,
                 name: 'slug',
-                message: 'Select Function Slug to Sync:',
+                message: 'Select Function Slug:',
                 validate: validateEmpty
             }
         ])

@@ -149,6 +149,10 @@ export const ErrorCodes = {
     MISSING_FILE: {
         message: (slug: string, file: string) => `Required file ${file} is missing in the ${slug} directory`,
         code:  `FDK-0037`
+    },
+    SYNC_BEFORE_TEST: {
+        message: `Please sync your function before running test command`,
+        code: `FDK-0038`
     }
 };
 

@@ -20,9 +20,7 @@ import {
     THEME_COMMANDS,
     AUTHENTICATION_COMMANDS,
     ENVIRONMENT_COMMANDS,
-    EXTENSION_COMMANDS,
-    PARTNER_COMMANDS,
-    ALL_THEME_COMMANDS,
+    FUNCTION_COMMAND,
 } from './helper/constants';
 import * as Sentry from '@sentry/node';
 const packageJSON = require('../package.json');
@@ -107,62 +105,27 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
             }
 
             // check if user is logged in and context is set
-            const envCommand = args[1].parent.name();
-            const authCommand = args[1].name();
-            const themeCommand = args[1].name();
-            const extensionCommand = args[1].name();
-            const partnerCommand = args[1].name();
+            const parentCommand = args[1].parent.name();
+            const currentCommand = args[1].name();
+            
+            const skipAuth = (
+                AUTHENTICATION_COMMANDS.includes(currentCommand) 
+                || ENVIRONMENT_COMMANDS.includes(parentCommand)
+            );
 
-            if (
-                !(
-                    ENVIRONMENT_COMMANDS.findIndex((c) =>
-                        envCommand.includes(c),
-                    ) !== -1
-                ) &&
-                !configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)
-            ) {
-                throw new CommandError(COMMON_LOG_MESSAGES.EnvNotSet);
-            }
-            if (
-                !(
-                    AUTHENTICATION_COMMANDS.findIndex((c) =>
-                        authCommand.includes(c),
-                    ) !== -1
-                ) &&
-                !(
-                    ENVIRONMENT_COMMANDS.findIndex((c) =>
-                        envCommand.includes(c),
-                    ) !== -1
-                ) &&
-                !(
-                    EXTENSION_COMMANDS.findIndex((c) =>
-                        extensionCommand.includes(c),
-                    ) !== -1
-                ) &&
-                !(
-                    PARTNER_COMMANDS.findIndex((c) =>
-                        partnerCommand.includes(c),
-                    ) !== -1
-                ) &&
-                !configStore.get(CONFIG_KEYS.AUTH_TOKEN)
-            ) {
-                throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
-            }
-            if (
-                ALL_THEME_COMMANDS.findIndex((c) =>
-                    themeCommand.includes(c),
-                ) !== -1 ||
-                THEME_COMMANDS.findIndex((c) => themeCommand.includes(c)) !== -1
-            ) {
-                const isTokenExpired = await checkTokenExpired(
-                    configStore.get(CONFIG_KEYS.AUTH_TOKEN),
-                );
-                if (isTokenExpired)
+            if (!skipAuth) {
+                const authToken = configStore.get(CONFIG_KEYS.AUTH_TOKEN);
+                if (!authToken) {
                     throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
-            }
-            if (
-                THEME_COMMANDS.findIndex((c) => themeCommand.includes(c)) !== -1 && envCommand !== "function"
-            ) {
+                }
+
+                const isTokenExpired = await checkTokenExpired(authToken);
+                if (isTokenExpired) {
+                    throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
+                }
+            };
+
+            if (THEME_COMMANDS.includes(currentCommand) && parentCommand !== FUNCTION_COMMAND) {
                 const activeContextEnv = getActiveContext().env;
                 // need to check if env is set by url [Ex. Env.getEnvValue() will give api.fynd.com | Here activeContextEnv is "fynd"]
                 if (
@@ -172,6 +135,7 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
                     throw new CommandError(COMMON_LOG_MESSAGES.contextMismatch);
                 }
             }
+
             if (parent.args.includes('theme')) {
                 if (!isAThemeOrExtensionDirectory()) {
                     const answer = await promptForFDKFolder();
@@ -183,6 +147,7 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
                     }
                 }
             }
+
             await asyncFn(...args);
         } catch (err) {
             // TODO: Error reporting from user logic can be added here
