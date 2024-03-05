@@ -55,9 +55,9 @@ export const getApp = async () => {
 function startTimer(){
     Debug("Server timer starts")
     Auth.timer_id = setTimeout(() => {
-        console.log(chalk.magenta('Server timeout: Please run fdk login command again.'));
-        Debug("Server timeout: Please run fdk login command again.");
-        Auth.stopSever()
+        Auth.stopSever(()=>{
+            throw new CommandError('Server timeout', null, 'Server timeout: Please run fdk login command again.');
+        })
     }, SERVER_TIMER)
 }
 
@@ -192,8 +192,10 @@ export default class Auth {
             else return false;
         } else return false;
     };
-    static stopSever = async () => {
-        Auth.server?.close?.(() => {});
+    static stopSever = async (cb = null) => {
         resetTimer();
+        Auth.server?.close?.(() => {
+            cb?.();
+        });
     };
 }
