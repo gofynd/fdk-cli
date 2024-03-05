@@ -1,0 +1,1252 @@
+{
+  "assets": {
+    "umd_js": {
+      "links": [
+        "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/60afe92972b7a964de57a1d4/theme/assets/18-T7raGD_themeBundle.umd.min.8.js",
+        "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/60afe92972b7a964de57a1d4/theme/assets/18-T7raGD_themeBundle.umd.min.cart.js",
+        "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/60afe92972b7a964de57a1d4/theme/assets/18-T7raGD_themeBundle.umd.min.extras.js",
+        "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/60afe92972b7a964de57a1d4/theme/assets/18-T7raGD_themeBundle.umd.min.products-listing.js",
+        "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/60afe92972b7a964de57a1d4/theme/assets/18-T7raGD_themeBundle.umd.min.products.js",
+        "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/60afe92972b7a964de57a1d4/theme/assets/18-T7raGD_themeBundle.umd.min.profile.js",
+        "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/60afe92972b7a964de57a1d4/theme/assets/18-T7raGD_themeBundle.umd.min.vendors_products-listing.js",
+        "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/60afe92972b7a964de57a1d4/theme/assets/18-T7raGD_themeBundle.umd.min.vendors_products.js",
+        "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/60afe92972b7a964de57a1d4/theme/assets/18-T7raGD_themeBundle.umd.min.js"
+      ]
+    },
+    "common_js": {
+      "link": "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/60afe92972b7a964de57a1d4/theme/assets/18-T7raGD_themeBundle.common.js"
+    },
+    "css": {
+      "links": [
+        "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/60afe92972b7a964de57a1d4/theme/assets/18-T7raGD_cart.6e09912777f051dd8564.css",
+        "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/60afe92972b7a964de57a1d4/theme/assets/18-T7raGD_extras.f8a9789ae6a06b0bd503.css",
+        "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/60afe92972b7a964de57a1d4/theme/assets/18-T7raGD_products-listing.3eb6b28b1ed76d7f114b.css",
+        "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/60afe92972b7a964de57a1d4/theme/assets/18-T7raGD_products.c31c2720cae22d77cac3.css",
+        "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/60afe92972b7a964de57a1d4/theme/assets/18-T7raGD_profile.0869ce96f6566ffd0651.css",
+        "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/60afe92972b7a964de57a1d4/theme/assets/18-T7raGD_themeBundle.css",
+        "https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/60afe92972b7a964de57a1d4/theme/assets/18-T7raGD_vendors_products-listing.c8fe85761d60286348e3.css"
+      ]
+    }
+  },
+  "available_sections": [
+    {
+      "name": "application_banner",
+      "label": "Application Banner",
+      "props": [
+        {
+          "type": "url",
+          "id": "banner_link",
+          "default": "",
+          "label": "Redirect Link"
+        },
+        {
+          "type": "checkbox",
+          "id": "full_width",
+          "default": false,
+          "label": "Full width",
+          "info": "Check to allow items to take entire width of the viewport"
+        },
+        {
+          "type": "range",
+          "id": "margin_top",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "unit": "px",
+          "label": "Section Top Margin",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "margin_bottom",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "unit": "px",
+          "label": "Section Bottom Margin",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "name": "brands_listing",
+      "label": "Brands Listing",
+      "props": [
+        {
+          "type": "text",
+          "id": "title",
+          "default": "",
+          "label": "Title"
+        },
+        {
+          "type": "range",
+          "id": "margin_top",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "unit": "px",
+          "label": "Section Top Margin",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "margin_bottom",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "unit": "px",
+          "label": "Section Bottom Margin",
+          "default": 0
+        },
+        {
+          "type": "header",
+          "id": "header",
+          "value": "Choose Brands to Show"
+        },
+        {
+          "id": "view_options",
+          "type": "select",
+          "options": [
+            {
+              "value": "logo",
+              "text": "Logo View"
+            },
+            {
+              "value": "fullview",
+              "text": "Logo and Banner View"
+            }
+          ],
+          "default": "fullview",
+          "label": "View Options",
+          "info": "Brand card view options"
+        },
+        {
+          "type": "radio",
+          "id": "brand_type",
+          "default": "all",
+          "options": [
+            {
+              "value": "all",
+              "text": "All"
+            },
+            {
+              "value": "department",
+              "text": "Department"
+            },
+            {
+              "value": "handpicked",
+              "text": "Handpicked"
+            }
+          ]
+        },
+        {
+          "type": "department",
+          "id": "department",
+          "label": "Department",
+          "info": "Select a department of brands",
+          "note": "Department only applies if 'department' type is selected"
+        },
+        {
+          "type": "range",
+          "id": "items_per_row",
+          "min": 3,
+          "max": 5,
+          "step": 1,
+          "unit": "",
+          "label": "Items per row",
+          "default": 5,
+          "info": "Maximum items allowed per row"
+        },
+        {
+          "id": "layout",
+          "type": "select",
+          "options": [
+            {
+              "value": "grid",
+              "text": "Grid View"
+            },
+            {
+              "value": "horizontal",
+              "text": "Horizontal View"
+            }
+          ],
+          "default": "horizontal",
+          "label": "Layout",
+          "info": "Alignment of content"
+        },
+        {
+          "type": "text",
+          "id": "cta_text",
+          "default": "View all",
+          "label": "CTA Text"
+        }
+      ],
+      "blocks": [
+        {
+          "type": "brand_item",
+          "name": "Brand Item",
+          "props": [
+            {
+              "type": "brand",
+              "id": "brand",
+              "label": "Select Brand"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "collections_listing",
+      "label": "Collections Listing",
+      "props": [
+        {
+          "type": "text",
+          "id": "title",
+          "default": "",
+          "label": "Title"
+        },
+        {
+          "type": "range",
+          "id": "margin_top",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "unit": "px",
+          "label": "Section Top Margin",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "margin_bottom",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "unit": "px",
+          "label": "Section Bottom Margin",
+          "default": 0
+        },
+        {
+          "type": "radio",
+          "id": "collection_type",
+          "default": "all",
+          "options": [
+            {
+              "value": "all",
+              "text": "All"
+            },
+            {
+              "value": "handpicked",
+              "text": "Handpicked"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "tags_filter",
+          "default": "",
+          "label": "Filter by tags",
+          "info": "Filter by Tags "
+        },
+        {
+          "type": "range",
+          "id": "items_per_row",
+          "min": 3,
+          "max": 5,
+          "step": 1,
+          "unit": "",
+          "label": "Max items per row",
+          "default": 5,
+          "info": "Maximum items allowed per row"
+        },
+        {
+          "id": "layout",
+          "type": "select",
+          "options": [
+            {
+              "value": "grid",
+              "text": "Grid View"
+            },
+            {
+              "value": "horizontal",
+              "text": "Horizontal View"
+            }
+          ],
+          "default": "horizontal",
+          "label": "Layout",
+          "info": "Alignment of content"
+        },
+        {
+          "type": "text",
+          "id": "cta_text",
+          "default": "View all",
+          "label": "CTA Text"
+        }
+      ],
+      "blocks": [
+        {
+          "type": "collection-item",
+          "name": "collection Item",
+          "props": [
+            {
+              "type": "collection",
+              "id": "collection",
+              "label": "Select Collection"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "custom_html",
+      "label": "Custom HTML",
+      "props": [
+        {
+          "type": "code",
+          "id": "code",
+          "label": "Custom HTML",
+          "info": "Add Your custom HTML Code below. You can also use the full screen icon to open a code editor and add your code"
+        },
+        {
+          "type": "range",
+          "id": "margin_top",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "unit": "px",
+          "label": "Section Top Margin",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "margin_bottom",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "unit": "px",
+          "label": "Section Bottom Margin",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "name": "section_extension",
+      "label": "Extensions",
+      "props": [
+        {
+          "type": "extension",
+          "id": "extension",
+          "label": "Extension Positions",
+          "info": "Handle extension in these positions",
+          "positions": [
+            {
+              "value": "section_extension",
+              "text": ""
+            }
+          ],
+          "default": {}
+        },
+        {
+          "type": "range",
+          "id": "margin_top",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "unit": "px",
+          "label": "Section Top Margin",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "margin_bottom",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "unit": "px",
+          "label": "Section Bottom Margin",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "name": "featured_collection",
+      "label": "Featured Collection",
+      "props": [
+        {
+          "type": "text",
+          "id": "title",
+          "default": "Featured Collection",
+          "label": "Title"
+        },
+        {
+          "type": "range",
+          "id": "margin_top",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "unit": "px",
+          "label": "Section Top Margin",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "margin_bottom",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "unit": "px",
+          "label": "Section Bottom Margin",
+          "default": 0
+        },
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection",
+          "info": "Select a collection to display its products"
+        },
+        {
+          "type": "range",
+          "id": "items_per_row",
+          "min": 2,
+          "max": 5,
+          "step": 1,
+          "unit": "",
+          "label": "Products per row",
+          "default": 2,
+          "info": "Maximum items allowed per row"
+        },
+        {
+          "id": "layout",
+          "type": "select",
+          "options": [
+            {
+              "value": "grid",
+              "text": "Grid View"
+            },
+            {
+              "value": "horizontal",
+              "text": "Horizontal View"
+            }
+          ],
+          "default": "horizontal",
+          "label": "Layout",
+          "info": "Alignment of content"
+        },
+        {
+          "type": "checkbox",
+          "id": "autoplay",
+          "default": false,
+          "label": "AutoPlay Slides",
+          "info": "Check to autoplay slides"
+        },
+        {
+          "type": "range",
+          "id": "slide_interval",
+          "min": 1,
+          "max": 10,
+          "step": 1,
+          "unit": "sec",
+          "label": "Change slides after every",
+          "default": 2,
+          "info": "Autoplay slide duration"
+        }
+      ]
+    },
+    {
+      "name": "hero_image",
+      "label": "Hero Image",
+      "props": [
+        {
+          "id": "image",
+          "type": "image_picker",
+          "label": "Hero Image",
+          "default": ""
+        },
+        {
+          "type": "range",
+          "id": "margin_top",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "unit": "px",
+          "label": "Section Top Margin",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "margin_bottom",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "unit": "px",
+          "label": "Section Bottom Margin",
+          "default": 0
+        },
+        {
+          "id": "overlay_layout",
+          "type": "select",
+          "options": [
+            {
+              "value": "left",
+              "text": "Align Left"
+            },
+            {
+              "value": "center",
+              "text": "Align Center"
+            },
+            {
+              "value": "right",
+              "text": "Align Right"
+            }
+          ],
+          "default": "left",
+          "label": "Overlay Layout",
+          "info": "Alignment of overlay content"
+        },
+        {
+          "type": "image_picker",
+          "id": "overlay_image",
+          "default": "",
+          "label": "Overlay image",
+          "info": "Overlay Image"
+        },
+        {
+          "type": "text",
+          "id": "overlay_text",
+          "default": "",
+          "label": "Overlay Text"
+        },
+        {
+          "type": "color",
+          "id": "text_color",
+          "default": "#000",
+          "label": "Text Color"
+        },
+        {
+          "type": "url",
+          "id": "button_link",
+          "default": "",
+          "label": "Redirect Link"
+        },
+        {
+          "type": "text",
+          "id": "button_text",
+          "default": "Shop Now",
+          "label": "Button Text"
+        },
+        {
+          "type": "checkbox",
+          "id": "full_width",
+          "default": true,
+          "label": "Full width",
+          "info": "Check to allow items to take entire width of the viewport"
+        },
+        {
+          "type": "checkbox",
+          "id": "fullscreen_image",
+          "default": false,
+          "label": "Fullscreen Banner ",
+          "info": "Check to allow items to take entire viewport"
+        }
+      ]
+    },
+    {
+      "name": "hero_video-v2",
+      "label": "Hero Video V2",
+      "props": [
+        {
+          "type": "video",
+          "id": "videoFile",
+          "default": false,
+          "label": "Primary Video"
+        },
+        {
+          "id": "videoUrl",
+          "type": "text",
+          "label": "Video URL",
+          "default": "",
+          "info": "Supports MP4 Video & Youtube Video URL"
+        },
+        {
+          "type": "checkbox",
+          "id": "autoplay",
+          "default": true,
+          "label": "Autoplay",
+          "info": "Check to enable autoplay (Video will be muted if autoplay is active)"
+        },
+        {
+          "type": "checkbox",
+          "id": "hidecontrols",
+          "default": true,
+          "label": "Hide Video Controls",
+          "info": "check to disable video controls"
+        },
+        {
+          "type": "checkbox",
+          "id": "showloop",
+          "default": "true",
+          "label": "Play Video in Loop",
+          "info": "check to disable Loop"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "default": "",
+          "label": "Heading"
+        },
+        {
+          "id": "coverUrl",
+          "type": "image_picker",
+          "label": "Thumbnail Image",
+          "default": ""
+        }
+      ]
+    },
+    {
+      "name": "hero_video",
+      "label": "Hero Video",
+      "props": [
+        {
+          "id": "video_url",
+          "type": "text",
+          "label": "Video URL",
+          "default": "",
+          "info": "Supports MP4 Video & Youtube Video URL"
+        },
+        {
+          "type": "range",
+          "id": "margin_top",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "unit": "px",
+          "label": "Section Top Margin",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "margin_bottom",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "unit": "px",
+          "label": "Section Bottom Margin",
+          "default": 0
+        },
+        {
+          "type": "checkbox",
+          "id": "autoplay",
+          "default": false,
+          "label": "Autoplay",
+          "info": "Check to enable autoplay (Video will be muted if autoplay is active)"
+        },
+        {
+          "type": "checkbox",
+          "id": "controls",
+          "default": true,
+          "label": "Video Controls",
+          "info": "Uncheck to disable video controls"
+        },
+        {
+          "type": "checkbox",
+          "id": "full_width",
+          "default": false,
+          "label": "Full width",
+          "info": "Check to allow items to take entire width of the viewport"
+        },
+        {
+          "type": "checkbox",
+          "id": "bg_video",
+          "default": false,
+          "label": "Video In Background",
+          "info": "Use video in background with overlay (Overlay Image & Video Controls will be disabled by default on website)"
+        },
+        {
+          "type": "select",
+          "id": "size",
+          "options": [
+            {
+              "value": "small",
+              "text": "Small"
+            },
+            {
+              "value": "medium",
+              "text": "Medium"
+            },
+            {
+              "value": "large",
+              "text": "Large"
+            },
+            {
+              "value": "adapt",
+              "text": "Adapt"
+            },
+            {
+              "value": "fullscreen",
+              "text": "Fullscreen"
+            }
+          ],
+          "default": "medium",
+          "label": "Video Height",
+          "info": "Height of Video"
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_overlay_image",
+          "default": false,
+          "label": "Enable Overlay Image"
+        },
+        {
+          "id": "cover_url",
+          "type": "image_picker",
+          "label": "Video Overlay Image",
+          "default": ""
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_overlay_color",
+          "default": false,
+          "label": "Enable Overlay Colour"
+        },
+        {
+          "type": "color",
+          "id": "overlay_color",
+          "default": "#000",
+          "label": "Overlay Color"
+        },
+        {
+          "type": "range",
+          "id": "overlay_opacity",
+          "min": 0,
+          "max": 1,
+          "step": 0.1,
+          "unit": "",
+          "label": "Overlay Opacity",
+          "default": 0.5
+        },
+        {
+          "type": "select",
+          "id": "overlay_size",
+          "options": [
+            {
+              "value": "container",
+              "text": "Container (Default)"
+            },
+            {
+              "value": "content",
+              "text": "Content"
+            }
+          ],
+          "default": "container",
+          "label": "Overlay Size"
+        },
+        {
+          "id": "overlay_position",
+          "type": "select",
+          "options": [
+            {
+              "value": "top-left",
+              "text": "Top Left"
+            },
+            {
+              "value": "top-center",
+              "text": "Top Center"
+            },
+            {
+              "value": "top-right",
+              "text": "Top Right"
+            },
+            {
+              "value": "center-left",
+              "text": "Center Left"
+            },
+            {
+              "value": "center-center",
+              "text": "Center (Default)"
+            },
+            {
+              "value": "center-right",
+              "text": "Center Right"
+            },
+            {
+              "value": "bottom-left",
+              "text": "Bottom Left"
+            },
+            {
+              "value": "bottom-center",
+              "text": "Bottom Center"
+            },
+            {
+              "value": "bottom-right",
+              "text": "Bottom right"
+            }
+          ],
+          "default": "center-center",
+          "label": "Overlay position",
+          "info": "Alignment of Overlay content(heading, sub-heading, button)"
+        },
+        {
+          "type": "text",
+          "id": "heading",
+          "default": "",
+          "label": "Heading"
+        },
+        {
+          "type": "color",
+          "id": "heading_color",
+          "default": "#000",
+          "label": "Heading Text Color"
+        },
+        {
+          "type": "text",
+          "id": "sub_heading",
+          "default": "",
+          "label": "Sub-heading"
+        },
+        {
+          "type": "color",
+          "id": "sub_heading_color",
+          "default": "#000",
+          "label": "Sub-heading Text Color"
+        },
+        {
+          "type": "url",
+          "id": "button_link",
+          "default": "",
+          "label": "Redirect Link"
+        },
+        {
+          "type": "text",
+          "id": "button_text",
+          "default": "",
+          "label": "Button Text"
+        }
+      ]
+    },
+    {
+      "name": "image_gallery",
+      "label": "Image Gallery",
+      "props": [
+        {
+          "type": "text",
+          "id": "title",
+          "default": "",
+          "label": "Title"
+        },
+        {
+          "type": "range",
+          "id": "margin_top",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "unit": "px",
+          "label": "Section Top Margin",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "margin_bottom",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "unit": "px",
+          "label": "Section Bottom Margin",
+          "default": 0
+        },
+        {
+          "id": "layout",
+          "type": "select",
+          "options": [
+            {
+              "value": "grid",
+              "text": "Grid View"
+            },
+            {
+              "value": "horizontal",
+              "text": "Horizontal View"
+            }
+          ],
+          "default": "grid",
+          "label": "Layout",
+          "info": "Alignment of content"
+        },
+        {
+          "type": "range",
+          "id": "item_count",
+          "min": 3,
+          "max": 4,
+          "step": 1,
+          "unit": "",
+          "label": "No of items",
+          "default": 4,
+          "info": "Maximum items allowed per row for Horizontal view, for gallery max 5 are viewable and only 5 blocks are required"
+        },
+        {
+          "type": "text",
+          "id": "cta_text",
+          "default": "",
+          "label": "CTA Text"
+        },
+        {
+          "type": "url",
+          "id": "cta_link",
+          "label": "CTA Link",
+          "default": "",
+          "info": "Link to redirect"
+        },
+        {
+          "type": "checkbox",
+          "id": "full_width",
+          "default": false,
+          "label": "Full width",
+          "info": "Check to allow items to take entire width of the viewport"
+        }
+      ],
+      "blocks": [
+        {
+          "type": "gallery_image",
+          "name": "Image",
+          "props": [
+            {
+              "type": "image_picker",
+              "id": "image",
+              "label": "Gallery Image",
+              "default": ""
+            },
+            {
+              "type": "text",
+              "id": "caption",
+              "label": "Image Caption",
+              "default": ""
+            },
+            {
+              "type": "url",
+              "id": "link",
+              "label": "Link",
+              "default": "",
+              "info": "Link to redirect"
+            }
+          ]
+        }
+      ],
+      "preset": {
+        "blocks": [
+          {
+            "name": "Image"
+          },
+          {
+            "name": "Image"
+          },
+          {
+            "name": "Image"
+          },
+          {
+            "name": "Image"
+          }
+        ]
+      }
+    },
+    {
+      "name": "image_slideshow",
+      "label": "Image Slideshow",
+      "props": [
+        {
+          "type": "text",
+          "id": "title",
+          "default": "",
+          "label": "Title"
+        },
+        {
+          "type": "range",
+          "id": "margin_top",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "unit": "px",
+          "label": "Section Top Margin",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "margin_bottom",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "unit": "px",
+          "label": "Section Bottom Margin",
+          "default": 0
+        },
+        {
+          "type": "checkbox",
+          "id": "autoplay",
+          "default": false,
+          "label": "AutoPlay Slides",
+          "info": "Check to autoplay slides"
+        },
+        {
+          "type": "range",
+          "id": "slide_interval",
+          "min": 1,
+          "max": 10,
+          "step": 1,
+          "unit": "sec",
+          "label": "Change slides after every",
+          "default": 2,
+          "info": "Autoplay slide duration"
+        },
+        {
+          "type": "select",
+          "id": "slide_height",
+          "options": [
+            {
+              "value": "adapt",
+              "text": "Adapt to first image"
+            },
+            {
+              "value": "small",
+              "text": "Small"
+            },
+            {
+              "value": "medium",
+              "text": "Medium"
+            },
+            {
+              "value": "large",
+              "text": "Large"
+            }
+          ],
+          "default": "adapt",
+          "label": "Slide height",
+          "info": "Size of the slide"
+        },
+        {
+          "type": "checkbox",
+          "id": "full_width",
+          "default": false,
+          "label": "Full width",
+          "info": "Check to allow items to take entire width of the viewport"
+        }
+      ],
+      "blocks": [
+        {
+          "type": "image_slide",
+          "name": "Slide",
+          "props": [
+            {
+              "type": "image_picker",
+              "id": "image",
+              "label": "Image"
+            },
+            {
+              "type": "url",
+              "id": "slide_link",
+              "label": "Slide Link"
+            }
+          ]
+        }
+      ],
+      "preset": {
+        "blocks": [
+          {
+            "name": "Slide"
+          },
+          {
+            "name": "Slide"
+          },
+          {
+            "name": "Slide"
+          }
+        ]
+      }
+    },
+    {
+      "name": "media_with_text",
+      "label": "Media with text",
+      "props": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "default": "",
+          "label": "Image"
+        },
+        {
+          "id": "video",
+          "type": "url",
+          "label": "Video",
+          "default": ""
+        },
+        {
+          "type": "range",
+          "id": "margin_top",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "unit": "px",
+          "label": "Section Top Margin",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "margin_bottom",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "unit": "px",
+          "label": "Section Bottom Margin",
+          "default": 0
+        },
+        {
+          "id": "cover",
+          "type": "url",
+          "label": "Video Cover Image",
+          "default": ""
+        },
+        {
+          "type": "select",
+          "id": "media_alignment",
+          "options": [
+            {
+              "value": "left",
+              "text": "Left"
+            },
+            {
+              "value": "center",
+              "text": "Center"
+            },
+            {
+              "value": "right",
+              "text": "Right"
+            }
+          ],
+          "default": "left",
+          "label": "Media Alignment"
+        },
+        {
+          "type": "text",
+          "id": "heading",
+          "default": "Media with Text",
+          "label": "Heading"
+        },
+        {
+          "type": "text",
+          "id": "text",
+          "default": "Pair large text with an image to give focus to your chosen product, collection, or blog post. Add details on availability, style, or even provide a review.",
+          "label": "Text"
+        },
+        {
+          "type": "select",
+          "id": "text_alignment",
+          "options": [
+            {
+              "value": "left",
+              "text": "Left"
+            },
+            {
+              "value": "center",
+              "text": "Center"
+            },
+            {
+              "value": "right",
+              "text": "Right"
+            }
+          ],
+          "default": "left",
+          "label": "Text Alignment"
+        }
+      ]
+    },
+    {
+      "name": "testimonials",
+      "label": "Testimonial",
+      "props": [
+        {
+          "type": "text",
+          "id": "title",
+          "default": "",
+          "label": "Title"
+        },
+        {
+          "type": "range",
+          "id": "margin_top",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "unit": "px",
+          "label": "Section Top Margin",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "margin_bottom",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "unit": "px",
+          "label": "Section Bottom Margin",
+          "default": 0
+        },
+        {
+          "type": "checkbox",
+          "id": "autoplay",
+          "default": false,
+          "label": "AutoPlay Slides"
+        },
+        {
+          "type": "range",
+          "id": "slide_interval",
+          "min": 1,
+          "max": 10,
+          "step": 1,
+          "unit": "sec",
+          "label": "Change slides every",
+          "default": 2
+        }
+      ],
+      "blocks": [
+        {
+          "type": "testimonial",
+          "name": "Testimonial",
+          "props": [
+            {
+              "type": "textarea",
+              "id": "testimonialText",
+              "label": "Text for Testimonial",
+              "default": "",
+              "info": "Text for testimonial",
+              "placeholder": "Text"
+            },
+            {
+              "type": "text",
+              "id": "author_name",
+              "label": "Author name"
+            },
+            {
+              "type": "text",
+              "id": "author_description",
+              "default": "",
+              "label": "Author Description"
+            },
+            {
+              "type": "image_picker",
+              "id": "author_image",
+              "default": "",
+              "label": "Author Image"
+            }
+          ]
+        }
+      ],
+      "preset": {
+        "blocks": [
+          {
+            "name": "Testimonial"
+          },
+          {
+            "name": "Testimonial"
+          },
+          {
+            "name": "Testimonial"
+          }
+        ]
+      }
+    }
+  ]
+}

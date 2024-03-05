@@ -1,0 +1,542 @@
+{
+  "pages": [
+    {
+      "value": "blog",
+      "props": [],
+      "sections": [],
+      "sections_meta": [],
+      "type": "system",
+      "text": "Blog"
+    },
+    {
+      "value": "brand-listing",
+      "props": [],
+      "sections": [],
+      "sections_meta": [],
+      "type": "system",
+      "text": "Brand Listing"
+    },
+    {
+      "value": "brands",
+      "props": [
+        {
+          "type": "text",
+          "id": "title",
+          "default": "",
+          "label": "Title"
+        },
+        {
+          "id": "view_options",
+          "type": "select",
+          "options": [
+            {
+              "value": "logo",
+              "text": "Logo View"
+            },
+            {
+              "value": "fullview",
+              "text": "Logo and Banner View"
+            }
+          ],
+          "default": "fullview",
+          "label": "View Options",
+          "info": "Brand card view options"
+        },
+        {
+          "type": "range",
+          "id": "items_per_row",
+          "min": 3,
+          "max": 5,
+          "step": 1,
+          "unit": "",
+          "label": "Items per row",
+          "default": 5,
+          "info": "Maximum items allowed per row"
+        }
+      ],
+      "sections": [],
+      "sections_meta": [],
+      "type": "system",
+      "text": "Brands"
+    },
+    {
+      "value": "cart-delivery",
+      "props": [],
+      "sections": [],
+      "sections_meta": [],
+      "type": "system",
+      "text": "Cart Delivery"
+    },
+    {
+      "value": "cart-landing",
+      "props": [
+        {
+          "type": "checkbox",
+          "id": "gst",
+          "label": "GST",
+          "default": true,
+          "info": "Show GST on cart"
+        },
+        {
+          "type": "checkbox",
+          "id": "comment",
+          "label": "Comment",
+          "default": true,
+          "info": "Show comment on cart"
+        },
+        {
+          "type": "checkbox",
+          "id": "staff_selection",
+          "label": "Staff Selection",
+          "default": true,
+          "info": "Show Staff selection on Cart"
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_customer",
+          "label": "Customer",
+          "default": true,
+          "info": "Placing on behalf of customer"
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_guest",
+          "label": "Enable Guest Checkout",
+          "default": true,
+          "info": "Enable Continue as Guest"
+        },
+        {
+          "type": "checkbox",
+          "id": "is_commentmandatory",
+          "label": "Enable Comment Mandatory",
+          "default": false,
+          "info": "Mark comment field as mandatory on cart"
+        },
+        {
+          "type": "text",
+          "id": "customize_comment",
+          "label": "Comment Title",
+          "default": "Comment",
+          "info": "Customize Comment title on Cart"
+        },
+        {
+          "type": "text",
+          "id": "customize_comment_errortext",
+          "label": "Comment Error Message",
+          "default": "Please add any comments",
+          "info": "Customize Comment Error Message on Cart"
+        },
+        {
+          "type": "extension",
+          "id": "extension",
+          "label": "Extension Positions",
+          "info": "Handle extension in these positions",
+          "positions": [
+            {
+              "value": "below_price_breakup",
+              "text": "Below Price Breakup"
+            }
+          ],
+          "default": {}
+        }
+      ],
+      "sections": [],
+      "sections_meta": [],
+      "type": "system",
+      "text": "Cart Landing"
+    },
+    {
+      "value": "cart-review",
+      "props": [],
+      "sections": [],
+      "sections_meta": [],
+      "type": "system",
+      "text": "Cart Review"
+    },
+    {
+      "value": "categories",
+      "props": [
+        {
+          "type": "text",
+          "id": "heading",
+          "default": "",
+          "label": "Category List Heading"
+        },
+        {
+          "type": "range",
+          "id": "items_per_row",
+          "min": 3,
+          "max": 5,
+          "step": 1,
+          "unit": "",
+          "label": "Items per row",
+          "default": 5,
+          "info": "Maximum items allowed per row"
+        }
+      ],
+      "sections": [],
+      "sections_meta": [],
+      "type": "system",
+      "text": "Categories"
+    },
+    {
+      "value": "category-listing",
+      "props": [],
+      "sections": [],
+      "sections_meta": [],
+      "type": "system",
+      "text": "Category Listing"
+    },
+    {
+      "value": "collection-listing",
+      "props": [
+        {
+          "type": "checkbox",
+          "id": "title",
+          "label": "Show Title",
+          "default": true,
+          "info": "Check to display Collection Title"
+        },
+        {
+          "type": "checkbox",
+          "id": "description",
+          "label": "Show Description",
+          "default": true,
+          "info": "Check to display Collection Description"
+        },
+        {
+          "type": "checkbox",
+          "id": "hidebrandname",
+          "label": "Hide Brand Name",
+          "default": false,
+          "info": "Check to hide Brand name"
+        },
+        {
+          "type": "select",
+          "id": "desc_position",
+          "options": [
+            {
+              "value": "top",
+              "text": "Top"
+            },
+            {
+              "value": "bottom",
+              "text": "Bottom"
+            }
+          ],
+          "default": "top",
+          "label": "Description Position",
+          "info": "Collection description position on page"
+        }
+      ],
+      "sections": [],
+      "sections_meta": [],
+      "type": "system",
+      "text": "Collection Listing"
+    },
+    {
+      "value": "collections",
+      "props": [
+        {
+          "type": "text",
+          "id": "title",
+          "default": "",
+          "label": "Title"
+        },
+        {
+          "type": "range",
+          "id": "items_per_row",
+          "min": 3,
+          "max": 8,
+          "step": 1,
+          "unit": "",
+          "label": "Items per row",
+          "default": 5,
+          "info": "Maximum items allowed per row"
+        }
+      ],
+      "sections": [],
+      "sections_meta": [],
+      "type": "system",
+      "text": "Collections"
+    },
+    {
+      "value": "compare-products",
+      "props": [],
+      "sections": [],
+      "sections_meta": [],
+      "type": "system",
+      "text": "Compare Products"
+    },
+    {
+      "value": "faq",
+      "props": [],
+      "sections": [],
+      "sections_meta": [],
+      "type": "system",
+      "text": "Faq"
+    },
+    {
+      "value": "home",
+      "props": [],
+      "sections": [],
+      "sections_meta": [
+        {
+          "attributes": {
+            "page": "home"
+          }
+        }
+      ],
+      "type": "system",
+      "text": "Home"
+    },
+    {
+      "value": "order-status",
+      "props": [],
+      "sections": [],
+      "sections_meta": [],
+      "type": "system",
+      "text": "Order Status"
+    },
+    {
+      "value": "order-tracking-details",
+      "props": [],
+      "sections": [],
+      "sections_meta": [],
+      "type": "system",
+      "text": "Order Tracking Details"
+    },
+    {
+      "value": "order-tracking",
+      "props": [],
+      "sections": [],
+      "sections_meta": [],
+      "type": "system",
+      "text": "Order Tracking"
+    },
+    {
+      "value": "orders-list",
+      "props": [],
+      "sections": [],
+      "sections_meta": [],
+      "type": "system",
+      "text": "Orders List"
+    },
+    {
+      "value": "product-description",
+      "props": [
+        {
+          "type": "checkbox",
+          "id": "wishlist",
+          "label": "Wishlist",
+          "default": true,
+          "info": "Show Wishlist for product"
+        },
+        {
+          "type": "checkbox",
+          "id": "add_to_compare",
+          "label": "Add to Compare",
+          "default": true,
+          "info": "Allow comparison of products"
+        },
+        {
+          "type": "checkbox",
+          "id": "size_guide",
+          "label": "Size Guide",
+          "default": true,
+          "info": "Show Size Guide"
+        },
+        {
+          "type": "checkbox",
+          "id": "product_request",
+          "label": "Product Request",
+          "default": true,
+          "info": "Show Product Request"
+        },
+        {
+          "type": "checkbox",
+          "id": "buynow",
+          "label": "Buy Now",
+          "default": false,
+          "info": "Show Buy Now button for product"
+        },
+        {
+          "type": "checkbox",
+          "id": "mrp_label",
+          "label": "Display MRP label text",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "tax_label",
+          "default": "Price inclusive of all taxes",
+          "label": "Price tax label text"
+        },
+        {
+          "type": "text",
+          "id": "default_pincode",
+          "label": "Default Pincode",
+          "default": ""
+        },
+        {
+          "type": "checkbox",
+          "id": "default_size",
+          "label": "Default Size",
+          "default": true,
+          "info": "Add default size"
+        },
+        {
+          "type": "checkbox",
+          "id": "share",
+          "label": "Share",
+          "default": true,
+          "info": "Enable Sharing product"
+        },
+        {
+          "type": "checkbox",
+          "id": "store_selection",
+          "label": "Seller Store Selection",
+          "default": true,
+          "info": "Allow to explicitly select stores"
+        },
+        {
+          "type": "checkbox",
+          "id": "compare_products",
+          "label": "Compare Products",
+          "default": true,
+          "info": "Show Most Compared Products"
+        },
+        {
+          "type": "checkbox",
+          "id": "variants",
+          "label": "Product Variants",
+          "default": true,
+          "info": "Show Product Variants"
+        },
+        {
+          "type": "checkbox",
+          "id": "similar_products",
+          "label": "Similar Products",
+          "default": true,
+          "info": "Show Similar Products"
+        },
+        {
+          "type": "checkbox",
+          "id": "bulk_prices",
+          "label": "Bulk Prices",
+          "default": true,
+          "info": "Show Bulk Prices"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_sellers",
+          "label": "Show Sellers",
+          "default": true,
+          "info": "Show sellers"
+        },
+        {
+          "type": "extension",
+          "id": "extension",
+          "label": "Extension Positions",
+          "info": "Handle extension in these positions",
+          "positions": [
+            {
+              "value": "above_image_component",
+              "text": "Above Image Component"
+            },
+            {
+              "value": "below_image_component",
+              "text": "Below Image Component"
+            },
+            {
+              "value": "above_product_info",
+              "text": "Above Product Info"
+            },
+            {
+              "value": "below_price_component",
+              "text": "Below Price Component"
+            },
+            {
+              "value": "below_size_component",
+              "text": "Below Size Component"
+            },
+            {
+              "value": "below_add_to_cart",
+              "text": "Below Add To Cart"
+            },
+            {
+              "value": "below_product_info",
+              "text": "Below Product Info"
+            },
+            {
+              "value": "product_description_bottom",
+              "text": "Bottom Of Product Description"
+            }
+          ],
+          "default": {}
+        }
+      ],
+      "sections": [],
+      "sections_meta": [],
+      "type": "system",
+      "text": "Product Description"
+    },
+    {
+      "value": "product-listing",
+      "props": [
+        {
+          "type": "checkbox",
+          "id": "hidebrandname",
+          "label": "Hide Brand name",
+          "default": false,
+          "info": "Check to hide brand name"
+        }
+      ],
+      "sections": [],
+      "sections_meta": [],
+      "type": "system",
+      "text": "Product Listing"
+    },
+    {
+      "value": "profile-address",
+      "props": [],
+      "sections": [],
+      "sections_meta": [],
+      "type": "system",
+      "text": "Profile Address"
+    },
+    {
+      "value": "profile-details",
+      "props": [],
+      "sections": [],
+      "sections_meta": [],
+      "type": "system",
+      "text": "Profile Details"
+    },
+    {
+      "value": "shipment-details",
+      "props": [],
+      "sections": [],
+      "sections_meta": [],
+      "type": "system",
+      "text": "Shipment Details"
+    },
+    {
+      "value": "wishlist",
+      "props": [],
+      "sections": [],
+      "sections_meta": [],
+      "type": "system",
+      "text": "Wishlist"
+    },
+    {
+      "value": "c:::testpage",
+      "text": "Testpage",
+      "path": "c/testpage",
+      "props": [],
+      "sections": [],
+      "sections_meta": [],
+      "type": "custom"
+    }
+  ]
+}

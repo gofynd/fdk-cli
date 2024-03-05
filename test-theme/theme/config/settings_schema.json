@@ -1,0 +1,11 @@
+{
+  "props": [
+    {
+      "type": "checkbox",
+      "id": "disable_cart",
+      "default": false,
+      "category": "Cart",
+      "label": "Disable Cart"
+    }
+  ]
+}

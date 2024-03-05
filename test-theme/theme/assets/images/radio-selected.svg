@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 53 (72520) - https://sketchapp.com -->
+    <title>radio-selected</title>
+    <desc>Created with Sketch.</desc>
+    <g id="radio-selected" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <rect id="Rectangle" transform="translate(12.000000, 12.000000) scale(-1, 1) translate(-12.000000, -12.000000) " x="0" y="0" width="24" height="24"></rect>
+        <path d="M11.96875,19.4375 C16.0936267,19.4375 19.4375,16.0936267 19.4375,11.96875 C19.4375,7.84387327 16.0936267,4.5 11.96875,4.5 C7.84387327,4.5 4.5,7.84387327 4.5,11.96875 C4.5,16.0936267 7.84387327,19.4375 11.96875,19.4375 Z" id="Oval-16" stroke="var(--primaryColor)" transform="translate(11.968750, 11.968750) scale(-1, 1) translate(-11.968750, -11.968750) "></path>
+        <path d="M12.0548805,16.2898416 C14.4020907,16.2898416 16.3048805,14.3870518 16.3048805,12.0398416 C16.3048805,9.69263146 14.4020907,7.78984164 12.0548805,7.78984164 C9.70767031,7.78984164 7.8048805,9.69263146 7.8048805,12.0398416 C7.8048805,14.3870518 9.70767031,16.2898416 12.0548805,16.2898416 Z" id="Oval-16" fill="var(--primaryColor)" transform="translate(12.054880, 12.039842) scale(-1, 1) translate(-12.054880, -12.039842) "></path>
+    </g>
+</svg>
