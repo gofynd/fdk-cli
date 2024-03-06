@@ -30,3 +30,5 @@ export const ALLOWD_ENV = {
     fyndx5: 'https://partners.fyndx5.de',
     fynd: 'https://partners.fynd.com',
 };
+
+export const CLI_EXT_VER_FOR_PTOKEN = '1.9.9'
