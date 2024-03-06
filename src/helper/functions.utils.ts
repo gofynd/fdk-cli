@@ -40,17 +40,24 @@ export const validateFunctionName = (name: string): void => {
     }
 }
 
-export const validateUniqueEventNames = (events: ConfigEvent[]): boolean => {
+export const validateConfigEvents = (events: ConfigEvent[]): boolean => {
     const eventNames = new Set();
 
     for (const event of events) {
-        if (eventNames.has(event.name)) {
+
+        if (!event.hasOwnProperty('name') || !event.hasOwnProperty('version')) {
             throw new CommandError(
-                ErrorCodes.INVALID_FUNCTION_EVENTS_ARRAY.message,
-                ErrorCodes.INVALID_FUNCTION_EVENTS_ARRAY.code
+                ErrorCodes.INVALID_FUNCTION_CONFIG.message('name and version are required fields for each event'),
+                ErrorCodes.INVALID_FUNCTION_CONFIG.code
             )
         }
 
+        if (eventNames.has(event.name)) {
+            throw new CommandError(
+                ErrorCodes.INVALID_FUNCTION_CONFIG.message('duplicate events found in events array'),
+                ErrorCodes.INVALID_FUNCTION_CONFIG.code
+            )
+        }
         eventNames.add(event.name);
     }
 
@@ -158,7 +165,7 @@ export const getFunctionConfig = (slug: string): FunctionConfig => {
         )
     }
 
-    validateUniqueEventNames(configData.events);
+    validateConfigEvents(configData.events);
 
     return configData;
 }

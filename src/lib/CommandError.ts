@@ -118,10 +118,6 @@ export const ErrorCodes = {
         message: `No Functions found in Extension please create an function to proceed with init`,
         code: 'FDK-0029',       
     },
-    INVALID_FUNCTION_EVENTS_ARRAY: {
-        message: 'Duplicate events are found in events array',
-        code: 'FDK-0030'
-    },
     INVALID_FUNCTION_CONFIG: {
         message: (message: string) => `Invalid config: ${message}`,
         code: 'FDK-0031'
