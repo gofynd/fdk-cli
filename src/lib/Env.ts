@@ -31,7 +31,7 @@ export default class Env {
         try {
             // todo: remove name warning in future version
             if (options.name) {
-                console.warn(chalk.yellow(`Warning: The -n/--name option is deprecated. Please use -u/--url option instead. Ref: ${getPlatformUrls().partners}/help/docs/partners/themes/vuejs/command-reference#environment-commands-1`));
+                console.warn(chalk.yellow(`Warning: The -n/--name option is deprecated. Please use -u/--url or -p/--partners option instead. Ref: ${getPlatformUrls().partners}/help/docs/partners/themes/vuejs/command-reference#environment-commands-1`));
                 throw new Error('Please use -u/--url option.');
             }
             
