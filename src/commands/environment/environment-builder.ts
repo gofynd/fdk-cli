@@ -20,7 +20,9 @@ export default function environmentCommandBuilder() {
     env.command('set')
         // todo: remove -n option in future version
         .option('-n, --name [env-name]', 'Environment name')
+        // todo: remove -u option in future version
         .option('-u, --url [api-domain]', 'API domain')
+        .option('-p, --partners [partners-domain]', 'Partners domain')
         .description('Set new environment')
         .asyncAction(Env.setNewEnvs);
 

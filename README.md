@@ -136,10 +136,14 @@ fdk env set [options]
 ```sh
 fdk env set -u api.fynd.com
 ```
+```sh
+fdk env set -p partners.fynd.com
+```
 #### **Command Options**
 | Option        | Description | Required |
 | ------------- |-------------|----------|
 | --url, -u   | Platform API domain | Yes |
+| --partners, -p   | Partners domain | Yes |
 | --help    | Show help | No |
 | --verbose, -v | enable debug mode | No |
 
@@ -362,6 +366,9 @@ Extensions are pluggable snippets of code that can be installed in your applicat
 Set the active environment before running extension commands
 ```sh
 fdk env set -u api.fynd.com
+```
+```sh
+fdk env set -p partners.fynd.com
 ```
 
 

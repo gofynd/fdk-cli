@@ -50,4 +50,18 @@ describe('Env Commands', () => {
         await new Promise((r) => setTimeout(r, 2000));
         expect(currentEnv).toMatch('api.fyndx1.de');
     });
+
+    it('should console current set env by partners domain', async () => {
+        await program.parseAsync([
+            'ts-node',
+            './src/fdk.ts',
+            'env',
+            'set',
+            '-p',
+            'partners.fyndx1.de',
+        ]);
+        const currentEnv = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+        await new Promise((r) => setTimeout(r, 2000));
+        expect(currentEnv).toMatch('api.fyndx1.de');
+    });
 });

@@ -34,34 +34,47 @@ export default class Env {
                 console.warn(chalk.yellow(`Warning: The -n/--name option is deprecated. Please use -u/--url option instead. Ref: ${getPlatformUrls().partners}/help/docs/partners/themes/vuejs/command-reference#environment-commands-1`));
                 throw new Error('Please use -u/--url option.');
             }
-            if (!options.url) {
-                throw new Error('Please provide -u/--url option.');
+            
+            if (!options.url && !options.partners) {
+                throw new Error('Please provide -u/--url or -p/--partners option.');
+            }
+            
+            let finalUrl = options.url || options.partners;
+
+            if(finalUrl.includes("https://")){
+                finalUrl = finalUrl.replace('https://', '');
             }
 
-            if (!isValidDomain(options.url)) {
-                throw new Error('Please provide valid URL.');
+            // todo: in future, when url support will be removed, update isValidDomain to get only partners domain, as of now -u and -p can accept both url(api & partners).
+            if (!isValidDomain(finalUrl)) {
+                throw new Error('Please provide valid domain.');
             }
+
+            if(finalUrl.includes("partners")){
+                finalUrl = finalUrl.replace('partners', 'api');
+            }
+
             try {
                 const url = urljoin(
                     'https://',
-                    options.url,
+                    finalUrl,
                     '/service/application/content/_healthz',
                 );
                 const response = await axios.get(url);
 
                 if (response?.status === 200) {
-                    Env.setEnv(options.url);
+                    Env.setEnv(finalUrl);
                     Logger.info(
-                        `CLI will start using: ${chalk.bold(options.url)}`,
+                        `CLI will start using: ${chalk.bold(finalUrl)}`,
                     );
                 } else {
                     throw new Error(
-                        'Provided url is not valid platform URL.',
+                        'Provided domain is not valid partners URL.',
                     );
                 }
             } catch (err) {
                 Debug(err)
-                throw new Error('Provided url is not valid platform URL.');
+                throw new Error('Provided domain is not valid partners URL.');
             }
         
         } catch (e) {
