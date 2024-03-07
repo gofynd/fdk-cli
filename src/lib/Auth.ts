@@ -11,7 +11,7 @@ import ThemeService from './api/services/theme.service';
 import { getLocalBaseUrl } from '../helper/serve.utils';
 import Debug from './Debug';
 
-const SERVER_TIMER = 60000 * 2;
+const SERVER_TIMER = 1000 * 60 * 2; // 2 min
 
 async function checkTokenExpired(auth_token) {
     const { expiry_time } = auth_token;
@@ -54,15 +54,16 @@ export const getApp = async () => {
 function startTimer(){
     Debug("Server timer starts")
     Auth.timer_id = setTimeout(() => {
-        Auth.stopSever(()=>{
-            throw new CommandError('Server timeout', null, 'Server timeout: Please run fdk login command again.');
+        Auth.stopSever(() => {
+            console.log(chalk.red('Server timeout: Please run fdk login command again.'));
+            process.exit(1);
         })
     }, SERVER_TIMER)
 }
 
 function resetTimer(){
     if (Auth.timer_id) { 
-        Debug("Server timer reset")
+        Debug("Server timer stoped")
         clearTimeout(Auth.timer_id)
         Auth.timer_id = null;
     }
@@ -72,16 +73,31 @@ export const startServer = async () => {
 
     const { app } = await getApp();
     const serverIn = require('http').createServer(app);
-    Auth.server = serverIn.listen(port, (err) => {
-        if (err) {
-            console.log(err);
-            Debug(err);
-        }else{
-            startTimer();
+
+    // handle errors thrown while start listening
+    serverIn.on('error', (error) => {
+        if (error.code === 'EADDRINUSE') {
+            console.error(chalk.red(`Port ${port} is already in use.`));
+        } else {
+            console.error(chalk.red('An unexpected error occurred:'), error);
         }
+        process.exit(1);
     });
 
-    return Auth.server;
+    Auth.server = serverIn.listen(port);
+
+    // resolve promise only if server starts listening
+    // we will open partner panel only if server is listening
+    return new Promise(resolve => {
+        serverIn.on('listening', () => {
+            Debug(`Server started listening on ${port}`);
+            resolve(Auth.server);
+        });
+    }).then(server => {
+        // once server start listening, start server timer
+        startTimer();
+        return server
+    })
 };
 
 async function checkVersionCompatibility() {
@@ -196,6 +212,7 @@ export default class Auth {
     static stopSever = async (cb = null) => {
         resetTimer();
         Auth.server?.close?.(() => {
+            Debug("Server closed");
             cb?.();
         });
     };
