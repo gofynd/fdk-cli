@@ -241,7 +241,7 @@ export async function init(programName: string) {
     // set default environment
     const current_env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
 
-    if (!current_env || !current_env.includes('api.'))
+    if (!current_env || (!current_env.includes('api.') && !current_env.includes('api-')))
         configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'api.fynd.com');
 
     // todo: remove this warning in future version of fdk cli, when everybody get used to set env by url.

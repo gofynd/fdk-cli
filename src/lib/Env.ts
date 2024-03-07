@@ -37,7 +37,7 @@ export default class Env {
                         }/help/docs/partners/themes/vuejs/command-reference#environment-commands-1`,
                     ),
                 );
-                throw new Error('Please use -u/--url option.');
+                throw new Error('Please use -u/--url or -p/--partners  option.');
             }
 
             if (!options.url && !options.partners) {
