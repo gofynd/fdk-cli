@@ -11,6 +11,7 @@ import {
 import path from 'path';
 import fs from 'fs-extra';
 import chalk from "chalk";
+import ExtensionService from '../lib/api/services/extension.service';
 
 export const validateFunctionName = (name: string): void => {
     const minLength: number = 3;
@@ -40,8 +41,12 @@ export const validateFunctionName = (name: string): void => {
     }
 }
 
-export const validateConfigEvents = (events: ConfigEvent[]): boolean => {
-    const eventNames = new Set();
+export const validateConfigEvents = async (events: ConfigEvent[]): Promise<boolean> => {
+    const eventNames = new Set<string>();
+    const availableEventsMap = new Map<string, string>();
+
+    const availableEvents = await ExtensionService.getFunctionsAllEvent();
+    availableEvents.forEach(event => availableEventsMap.set(event.name, event.version));
 
     for (const event of events) {
 
@@ -59,6 +64,20 @@ export const validateConfigEvents = (events: ConfigEvent[]): boolean => {
             )
         }
         eventNames.add(event.name);
+
+        if (!availableEventsMap.has(event.name) || availableEventsMap.get(event.name) !== event.version) {
+            const errStr = chalk.gray(
+                'Available event(s) are:\n',
+                Array.from(availableEventsMap.entries()).map(([name, version]) => `${name} - ${version}`).join('\n ')
+            )
+
+            throw new CommandError(
+                ErrorCodes.INVALID_FUNCTION_CONFIG.message(
+                    `'${event.name} - ${event.version}' is not a valid event.\n${errStr}`
+                ),
+                ErrorCodes.INVALID_FUNCTION_CONFIG.code,
+            )
+        }
     }
 
     return true;
@@ -145,7 +164,7 @@ export const writeFunctionConfig = (name: string, description: string, slug: str
     fs.outputFileSync(filePath, JSON.stringify(configData, null, 4));
 }
 
-export const getFunctionConfig = (slug: string): FunctionConfig => {
+export const getFunctionConfig = async (slug: string): Promise<FunctionConfig> => {
     const filePath = path.join(process.cwd(), FOLDER_NAME, slug, CONFIG_FILE);
     const configData = require(filePath);
 
@@ -158,6 +177,8 @@ export const getFunctionConfig = (slug: string): FunctionConfig => {
         )
     }
 
+    validateFunctionName(configData.name);
+
     if (configData.slug !== slug) {
         throw new CommandError(
             ErrorCodes.INVALID_FUNCTION_CONFIG.message('Slug mismatch in config file'),
@@ -165,7 +186,7 @@ export const getFunctionConfig = (slug: string): FunctionConfig => {
         )
     }
 
-    validateConfigEvents(configData.events);
+    await validateConfigEvents(configData.events);
 
     return configData;
 }
@@ -250,7 +271,7 @@ export const stringifyTests = (tests: FunctionTest[]): TestPayload[] => {
     })
 }
 
-export const getFunctionData = (slug: string): [FunctionConfig, string, FunctionTest[]] => {
+export const getFunctionData = async (slug: string): Promise<[FunctionConfig, string, FunctionTest[]]> => {
     const slugPath = path.join(process.cwd(), FOLDER_NAME, slug);
 
     if (!fs.existsSync(slugPath) || fs.readdirSync(slugPath).length === 0) {
@@ -271,7 +292,7 @@ export const getFunctionData = (slug: string): [FunctionConfig, string, Function
         }
     }
 
-    const configData = getFunctionConfig(slug);
+    const configData = await getFunctionConfig(slug);
     const codeSnippet = getFunctionCode(slug);
     const tests = getFunctionTests(slug, configData.events)
 

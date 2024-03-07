@@ -59,7 +59,7 @@ export default class FunctionCommands {
                 );
             }
 
-            const [configData, codeSnippet, tests] = getFunctionData(slug);
+            const [configData, codeSnippet, tests] = await getFunctionData(slug);
             const [isFunctionExists, data] = await ExtensionService.getFunctionBySlug(currentContext.extension_id, slug);
 
             if (!isFunctionExists) {
@@ -360,7 +360,7 @@ export default class FunctionCommands {
                 );
             }
 
-            const [configData, codeSnippet, tests] = getFunctionData(slug);
+            const [configData, codeSnippet, tests] = await getFunctionData(slug);
             const updatedTests = stringifyTests(tests)
 
             const [isFunctionExists, functionData] = await ExtensionService.getFunctionBySlug(currentContext.extension_id, slug);
