@@ -37,7 +37,9 @@ export default class Env {
                         }/help/docs/partners/themes/vuejs/command-reference#environment-commands-1`,
                     ),
                 );
-                throw new Error('Please use -u/--url or -p/--partners  option.');
+                throw new Error(
+                    'Please use -u/--url or -p/--partners  option.',
+                );
             }
 
             if (!options.url && !options.partners) {
@@ -54,7 +56,11 @@ export default class Env {
 
             // todo: in future, when url support will be removed, update isValidDomain to get only partners domain, as of now -u and -p can accept both url(api & partners).
             if (!isValidDomain(finalUrl)) {
-                throw new Error('Please provide valid domain.');
+                throw new Error(
+                    `Please provide valid domain, Example:${
+                        options.partners ? ' partners.fynd.com' : ''
+                    }${options.url ? ' api.fynd.com' : ''}`,
+                );
             }
 
             if (finalUrl.includes('partners')) {
