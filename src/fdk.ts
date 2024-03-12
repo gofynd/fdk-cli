@@ -48,6 +48,18 @@ async function checkTokenExpired(auth_token) {
     }
 }
 
+// catch unhandled error
+process.on('uncaughtException', (err: any) => {
+    Logger.error(err);
+    Debug(err.stack);
+    if(err.code == 403 || err.code == 401){
+        // if user is not authenticated, we won't send sentry
+    } else{
+        Sentry?.captureException?.(err);
+    }
+    process.exit(1);
+});
+
 // asyncAction is a wrapper for all commands/actions to be executed after commander is done
 // parsing the command input
 export type Action = (...args: any[]) => void;
