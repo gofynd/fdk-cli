@@ -55,7 +55,11 @@ process.on('uncaughtException', (err: any) => {
     if(err.code == 403 || err.code == 401){
         // if user is not authenticated, we won't send sentry
     } else{
-        Sentry?.captureException?.(err);
+        Sentry?.captureException?.(err, {
+            extra: {
+                command: `fdk ${process?.argv?.slice?.(2)?.join(" ")}`
+            }
+        });
     }
     process.exit(1);
 });
@@ -215,7 +219,12 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
                 Logger.error(message);
             } else {
                 // on report call sentry capture exception
-                Sentry.captureException(err);
+                Sentry.captureException(err, {
+                    // add extra details in sentry
+                    extra: {
+                        command: `fdk ${process?.argv?.slice?.(2)?.join(" ")}`
+                    }
+                });
                 Logger.error(err);
             }
             Debug(err);
