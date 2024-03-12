@@ -48,6 +48,24 @@ async function checkTokenExpired(auth_token) {
     }
 }
 
+const extraSentryDetails = () => {
+    const auth_token = configStore.get(CONFIG_KEYS.AUTH_TOKEN);
+    const organization = configStore.get(CONFIG_KEYS.ORGANIZATION);
+    const user = {};
+    if (auth_token?.current_user) {
+        const activeEmail = auth_token.current_user?.emails?.find?.((e) => e.active && e.primary)?.email ?? 'Not primary email set';
+        const name = `${auth_token.current_user?.first_name} ${auth_token.current_user?.last_name}`;
+        user['name'] = name;
+        user['email'] = activeEmail;
+    }
+    return {
+        command: `fdk ${process?.argv?.slice?.(2)?.join(" ")}`,
+        env: configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE),
+        user,
+        organization,
+    }
+}
+
 // catch unhandled error
 process.on('uncaughtException', (err: any) => {
     Logger.error(err);
@@ -56,9 +74,7 @@ process.on('uncaughtException', (err: any) => {
         // if user is not authenticated, we won't send sentry
     } else{
         Sentry?.captureException?.(err, {
-            extra: {
-                command: `fdk ${process?.argv?.slice?.(2)?.join(" ")}`
-            }
+            extra: extraSentryDetails()
         });
     }
     process.exit(1);
@@ -221,9 +237,7 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
                 // on report call sentry capture exception
                 Sentry.captureException(err, {
                     // add extra details in sentry
-                    extra: {
-                        command: `fdk ${process?.argv?.slice?.(2)?.join(" ")}`
-                    }
+                    extra: extraSentryDetails()
                 });
                 Logger.error(err);
             }
