@@ -1,12 +1,12 @@
 const combineURLs = require('axios/lib/helpers/combineURLs');
 const isAbsoluteURL = require('axios/lib/helpers/isAbsoluteURL');
-const { sign } = require("@gofynd/fp-signature");
+const { sign } = require('@gofynd/fp-signature');
 import Debug from '../../Debug';
 import CommandError, { ErrorCodes } from '../../CommandError';
 import ConfigStore, { CONFIG_KEYS } from '../../Config';
 import { MAX_RETRY } from '../../../helper/constants';
 import { COMMON_LOG_MESSAGES } from '../../../lib/Logger';
-import { transformRequestOptions }  from '../../../helper/utils';
+import { transformRequestOptions } from '../../../helper/utils';
 
 function getTransformer(config) {
     const { transformRequest } = config;
@@ -84,10 +84,8 @@ function interceptorFn(options) {
                 const signature = sign(signingOptions);
                 // console.log(signingOptions);
                 // config.headers = signingOptions.headers;
-                config.headers['x-fp-date'] =
-                signature['x-fp-date'];
-                config.headers['x-fp-signature'] =
-                signature['x-fp-signature'];
+                config.headers['x-fp-date'] = signature['x-fp-date'];
+                config.headers['x-fp-signature'] = signature['x-fp-signature'];
             }
             return config;
         } catch (error) {
@@ -136,7 +134,7 @@ export function responseErrorInterceptor() {
             throw new CommandError(
                 `${getErrorMessage(error)}`,
                 ErrorCodes.API_ERROR.code,
-                error?.response
+                error?.response,
             );
         } else if (error.request) {
             if (error.code == 'ERR_FR_MAX_BODY_LENGTH_EXCEEDED') {
