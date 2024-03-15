@@ -2259,9 +2259,9 @@ export default class Theme {
             // extract system page level settings schema
             let systemPages = fs
                 .readdirSync(path.join(process.cwd(), 'theme', 'pages'))
-                .filter((o) => o != 'index.jsx');
+                .filter((o) => o != 'index.jsx' && o != 'index.tsx');
             await asyncForEach(systemPages, async (fileName) => {
-                let pageName = fileName.replace('.jsx', '');
+                let pageName = fileName.replace('.jsx', '').replace('.tsx', '');
                 // SYSTEM Pages
                 let systemPage = systemPagesDB.find((p) => p.value == pageName);
                 if (!systemPage) {
