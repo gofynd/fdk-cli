@@ -9,6 +9,7 @@ import {
     getAvailableFunctionList, 
     getFunctionData, 
     getStatusString, 
+    getTestMessage, 
     stringifyTests, 
     validateFunctionName,
     writeFunctionCode,
@@ -54,7 +55,7 @@ export default class FunctionCommands {
             
             if(!slugList.includes(slug)){
                 throw new CommandError(
-                    ErrorCodes.INVALID_FUNCTION_SLUG.message(slugList.join(', ')),
+                    ErrorCodes.INVALID_FUNCTION_SLUG.message(`Please select a slug from the available list: ${slugList.join(', ')}`),
                     ErrorCodes.INVALID_FUNCTION_SLUG.code
                 );
             }
@@ -282,7 +283,7 @@ export default class FunctionCommands {
             const slugFolderPath = path.join(functionFolderPath, slug);
             if (fs.existsSync(slugFolderPath)) {
                 throw new CommandError(
-                    ErrorCodes.FOLDER_ALREADY_EXISTS.message(slug),
+                    ErrorCodes.FOLDER_ALREADY_EXISTS.message(slug, `Use another name for function`),
                     ErrorCodes.FOLDER_ALREADY_EXISTS.code
                 ); 
             }
@@ -301,7 +302,8 @@ export default class FunctionCommands {
             writeFunctionCode(slug, indexData);
             writeFunctionTest(slug, []);
             
-            console.log(chalk.green(`Function created successfully. You can verify the functions at ${path.join(process.cwd(), FOLDER_NAME, slug)}`));
+            console.log(chalk.green(`Function created successfully.`));
+            console.log(chalk.green(`You can verify the functions at ${path.join(process.cwd(), FOLDER_NAME, slug)}`))
             
         } catch(error) {
             throw new CommandError(error.message, error.code);
@@ -317,7 +319,7 @@ export default class FunctionCommands {
 
             if (!isSlugExists) {
                 throw new CommandError(
-                    ErrorCodes.INVALID_FUNCTION_SLUG.message(''),
+                    ErrorCodes.INVALID_FUNCTION_SLUG.message(`Function '${slug}' does not exists.`),
                     ErrorCodes.INVALID_FUNCTION_SLUG.code
                 );
             }
@@ -326,7 +328,7 @@ export default class FunctionCommands {
 
             if(fs.existsSync(path.join(slugFolderPath)) && !options.force){
                 throw new CommandError(
-                    ErrorCodes.FOLDER_ALREADY_EXISTS.message(data.slug),
+                    ErrorCodes.FOLDER_ALREADY_EXISTS.message(data.slug, `Delete folder and Try again or use '-f' to force init`),
                     ErrorCodes.FOLDER_ALREADY_EXISTS.code
                 );
             }
@@ -355,7 +357,7 @@ export default class FunctionCommands {
 
             if(!slugList.includes(slug)){
                 throw new CommandError(
-                    ErrorCodes.INVALID_FUNCTION_SLUG.message(slugList.join(', ')),
+                    ErrorCodes.INVALID_FUNCTION_SLUG.message(`Please select a slug from the available list: ${slugList.join(', ')}`),
                     ErrorCodes.INVALID_FUNCTION_SLUG.code
                 );
             }
@@ -397,9 +399,9 @@ export default class FunctionCommands {
                 for (const eventResult of testEvent.results) {
                     eventResult.type
                     if (eventResult.status === 'PASS') {
-                        console.log(chalk.green(`    \u2714 ${eventResult.type} - ${eventResult.message}`));
+                        console.log(chalk.green(`    \u2714 ${eventResult.type} - ${getTestMessage(eventResult.message)}`));
                     } else {
-                        console.log(chalk.red(`    \u2716 ${eventResult.type} - ${eventResult.message}`));
+                        console.log(chalk.red(`    \u2716 ${eventResult.type} - ${getTestMessage(eventResult.message)}`));
                     }
                 }
 

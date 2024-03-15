@@ -63,7 +63,7 @@ export default class ExtensionContext {
                 organization_id: configStore.get(CONFIG_KEYS.ORGANIZATION)
             };
             await createExtensionContext(context);
-            console.log(chalk.green(`Extension context Added for extension ${extensionData.name}`));
+            console.log(chalk.green(`Extension context added for '${extensionData.name}'.`));
 
         } catch(error) {
             throw error;

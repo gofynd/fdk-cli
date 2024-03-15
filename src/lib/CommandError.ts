@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import { FOLDER_NAME } from "../helper/functions.utils";
 
 const ERROR_PREFIX = 'Error: ';
@@ -99,11 +100,11 @@ export const ErrorCodes = {
         code: 'FDK-0024'
     },
     FOLDER_ALREADY_EXISTS:{
-        message: (folderName: string): string => `Folder with name ${folderName} already exists in your functions folder so please update your folder name or create function with new name` ,
+        message: (folderName: string, actionMessage: string): string => `Folder ${folderName} already exists at ./functions directory\n${chalk.yellow(actionMessage)}`,
         code: 'FDK-0025'  
     },
     INVALID_EXTENSION_DIRECTORY: {
-        message: 'Current directory is not an Extension directory. Make sure its an extension directory if its then try after adding the extension context',
+        message: `Not an extension directory or missing context.\n${chalk.yellow('Use `fdk extension add-context` to add context.')}`,
         code: 'FDK-0026',
     },
     MISMATCH_ORGANIZATION_ID: {
@@ -111,7 +112,7 @@ export const ErrorCodes = {
         code: 'FDK-0027',
     },
     INVALID_FUNCTION_SLUG: {
-        message:(availableSlugs: string) => `Invalid Slug. Please provide valid function slug${ availableSlugs ? `, available slugs are ${availableSlugs}` : ''}`,
+        message:(message: string = '') => `Invalid slug. ${message}`,
         code: 'FDK-0028',
     },
     NO_FUNCTION_FOUND_IN_EXTENSION: {

@@ -175,3 +175,8 @@ export interface UpdateTestResponse {
     message: string,
     function_data: Function
 }
+
+export interface TestResultMessage {
+    code: number,
+    message: string
+}

@@ -306,8 +306,16 @@ export default {
     },
 
     updateFunctionTests: async (data: FunctionTest[], extension_id: string, function_id: string): Promise<UpdateTestResponse> => {
+        const updatedData = data.map(test => ({
+            ...test,
+            events: test.events.map(event => ({
+                ...event,
+                input_data: JSON.stringify(event.input_data),
+                output_data: JSON.stringify(event.output_data),
+            }))
+        }));
         try {
-            const axiosOptions = Object.assign({}, {data: data}, getCommonHeaderOptions());
+            const axiosOptions = Object.assign({}, {data: updatedData}, getCommonHeaderOptions());
             const response = await ApiClient.post(
                 URLS.UPDATE_BULK_TESTS(extension_id, function_id),
                 axiosOptions

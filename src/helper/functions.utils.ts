@@ -7,6 +7,7 @@ import {
     FunctionConfig, 
     FunctionTestModel,
     TestPayload,
+    TestResultMessage,
 } from "./functions.types";
 import path from 'path';
 import fs from 'fs-extra';
@@ -240,6 +241,13 @@ export const getAvailableFunctionList = (): string[] => {
 
 export const getStatusString = (status: string): string => {
     return status === 'PASS' ? chalk.green(`${status} \u2714`) : chalk.red(`${status} \u2716`);
+}
+
+export const getTestMessage = (response: string | TestResultMessage): string => {
+    if (typeof response === 'string') {
+        return response;
+    }
+    return `${response.code}: ${response.message}`;
 }
 
 export const filterTestResponse = (response: FunctionTestModel[]): FunctionTest[] => {
