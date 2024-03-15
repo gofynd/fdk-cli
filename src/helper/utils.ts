@@ -298,7 +298,8 @@ export const isValidDomain = (domain) => {
 
 export function transformJSXToJS(jsxCode: any) {
     const options = {
-        presets: ['@babel/preset-react'],
+        filename: 'pages.tsx',
+        presets: ['@babel/preset-react', '@babel/preset-typescript'],
     };
 
     try {

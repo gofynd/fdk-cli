@@ -115,6 +115,20 @@ const baseConfig = (ctx) => {
                             },
                         },
                     ],
+                    exclude: /\.global\.css$/,
+                },
+                {
+                    test: /\.css$/i,
+                    use: [
+                        MiniCssExtractPlugin.loader,
+                        {
+                            loader: 'css-loader',
+                            options: {
+                                modules: false,
+                            },
+                        },
+                    ],
+                    include: /\.global\.css$/,
                 },
                 {
                     test: /\.less$/i,
