@@ -6,8 +6,31 @@ import webpack from 'webpack';
 import createBaseWebpackConfig from '../helper/theme.react.config';
 import fs from 'fs';
 import rimraf from 'rimraf';
+import Logger from '../lib/Logger';
 
-export const THEME_ENTRY_FILE = path.join('theme', 'index.js');
+export const VUE_THEME_ENTRY_FILE = path.join("..",'theme', 'index.js');
+export const DEV_VUE_THEME_ENTRY_FILE = path.join('theme', 'index.js');
+
+export const CDN_ENTRY_FILE = path.join('.fdk', 'cdn_index.js');
+
+export const dynamicCDNScript = ({assetNormalizedBasePath,vueJs }) => {
+    return `function getCDNurl() {
+        \n let cdnUrl; 
+        \n try{ 
+            \n if(fynd_platform_cdn) { 
+                \n cdnUrl = fynd_platform_cdn 
+                \n } else { 
+                    \n throw new Error("undefiend variable")}  
+        \n } catch(error){ 
+            \n cdnUrl = '${assetNormalizedBasePath}'} 
+        \n return cdnUrl; 
+            \n  }   
+    \n __webpack_public_path__ =  getCDNurl() ${vueJs ? `\n
+    import bundle from '${VUE_THEME_ENTRY_FILE}'
+    \n export default bundle;
+    `
+    : ''}`
+}
 
 export function build({
     buildFolder,
@@ -23,13 +46,24 @@ export function build({
         'bin',
         'vue-cli-service.js',
     );
-    const spinner = new Spinner('Building assets using vue-cli-service');
+
+        fs.stat(CDN_ENTRY_FILE, function (err, stat) {
+            if (err == null) {
+                //deleting file if exist
+                fs.unlink(CDN_ENTRY_FILE, function (err) {
+                    if (err) return console.log(err);
+                    Logger.debug(' \n Existing file deleted successfully');
+                });
+            }
+            fs.appendFileSync(CDN_ENTRY_FILE, dynamicCDNScript({ assetNormalizedBasePath:(imageCdnUrl|| assetCdnUrl),vueJs: true }));
+        });
+        const spinner = new Spinner('Building assets using vue-cli-service');
     return new Promise((resolve, reject) => {
         spinner.start();
         const isNodeVersionIsGreaterThan18 =
             +process.version.split('.')[0].slice(1) >= 18;
         let b = exec(
-            `node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle --filename ${assetHash}_themeBundle ${THEME_ENTRY_FILE}`,
+            `node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle --filename ${assetHash}_themeBundle ${CDN_ENTRY_FILE}`,
             {
                 cwd: process.cwd(),
                 env: {
@@ -53,6 +87,10 @@ export function build({
         b.stdout.pipe(process.stdout);
         b.stderr.pipe(process.stderr);
         b.on('exit', function (code) {
+            fs.unlink(CDN_ENTRY_FILE, function (err) {
+                if (err) return console.log(err);
+                Logger.debug(' \n Existing file deleted successfully');
+            });
             if (!code) {
                 spinner.succeed();
                 return resolve(true);
@@ -91,7 +129,7 @@ export function devBuild({ buildFolder, imageCdnUrl, isProd }: DevBuild) {
 
     return new Promise((resolve, reject) => {
         let b = exec(
-            `node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle ${THEME_ENTRY_FILE}`,
+            `node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle ${DEV_VUE_THEME_ENTRY_FILE}`,
             {
                 cwd: process.cwd(),
                 env: {
@@ -159,10 +197,37 @@ export async function devReactBuild({
             ctx,
             webpackConfigFromTheme,
         );
+        const assetNormalizedBasePath =
+            assetBasePath[assetBasePath.length - 1] === '/'
+                ? assetBasePath
+                : assetBasePath + '/';
         return new Promise((resolve, reject) => {
+
+            if(!runOnLocal) {
+                fs.stat(CDN_ENTRY_FILE, function (err, stat) {
+                    if (err == null) {
+                        //deleting file if exist
+                        fs.unlink(CDN_ENTRY_FILE, function (err) {
+                            if (err) return console.log(err);
+                            Logger.debug(' \n Existing file deleted successfully');
+                        });
+                    }
+                    fs.appendFileSync(CDN_ENTRY_FILE, dynamicCDNScript({assetNormalizedBasePath, vueJs: false }));
+    
+                });
+            }
+            
             webpack(baseWebpackConfig, (err, stats) => {
                 console.log(err);
                 console.log(stats.toString());
+
+                if(!runOnLocal) {
+                    fs.unlink(CDN_ENTRY_FILE, function (err) {
+                        if (err) return console.log(err);
+                        Logger.debug(' \n file deleted successfully');
+                    });
+                }
+                
                 if (err || stats.hasErrors()) {
                     reject();
                 }
