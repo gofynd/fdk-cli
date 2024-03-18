@@ -11,12 +11,12 @@ import Logger from '../lib/Logger';
 export const THEME_ENTRY_FILE = path.join('theme', 'index.js');
 export const CDN_ENTRY_FILE = path.join('theme', 'cdn_index.js');
 
-export const dynamicCDNScript = ({ namespaceNormalizedPath, assetNormalizedBasePath }) => {
+export const dynamicCDNScript = ({ assetNormalizedBasePath }) => {
     return `function getCDNurl() {
         \n let cdnUrl; 
         \n try{ 
             \n if(fynd_platform_cdn) { 
-                \n cdnUrl = fynd_platform_cdn + '${namespaceNormalizedPath}' 
+                \n cdnUrl = fynd_platform_cdn
                 \n } else { 
                     \n throw new Error("undefiend variable")}  
         \n } catch(error){ 
@@ -92,7 +92,6 @@ interface DevReactBuild {
     imageCdnUrl?: string;
     localThemePort?: string;
     isHMREnabled: boolean;
-    namespace?: string;
 }
 
 export function devBuild({ buildFolder, imageCdnUrl, isProd }: DevBuild) {
@@ -147,7 +146,6 @@ export async function devReactBuild({
     localThemePort,
     imageCdnUrl,
     isHMREnabled,
-    namespace
 }: DevReactBuild) {
     const buildPath = path.join(process.cwd(), buildFolder);
     try {
@@ -193,7 +191,7 @@ export async function devReactBuild({
                             Logger.debug(' \n Existing file deleted successfully');
                         });
                     }
-                    fs.appendFileSync(CDN_ENTRY_FILE, dynamicCDNScript({ namespaceNormalizedPath: namespace, assetNormalizedBasePath }));
+                    fs.appendFileSync(CDN_ENTRY_FILE, dynamicCDNScript({assetNormalizedBasePath }));
     
                 });
             }

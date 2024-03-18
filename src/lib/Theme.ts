@@ -839,7 +839,6 @@ export default class Theme {
 
             const imageCdnUrl = await Theme.getImageCdnBaseUrl();
             const assetBasePath = await Theme.getAssetCdnBaseUrl();
-            const namespace = await Theme.getAssetCdnNamespace()
             Logger.info('Building Theme for Production...');
             await devReactBuild({
                 buildFolder: Theme.BUILD_FOLDER,
@@ -847,7 +846,6 @@ export default class Theme {
                 assetBasePath,
                 imageCdnUrl,
                 isHMREnabled: false,
-                namespace
             });
 
             Logger.info('Uploading theme assets/images');
@@ -1584,25 +1582,7 @@ export default class Theme {
             settingLoader,
         );
     }
-    private static getAssetCdnNamespace = async () => {
-        try {
-            let startData = {
-                file_name: 'test.jpg',
-                content_type: 'image/jpeg',
-                size: '1',
-            };
-            let startAssetData = (
-                await UploadService.startUpload(startData, 'application-theme-images')
-            ).data;
-            const url_path = startAssetData.cdn.absolute_url;
-            const filename = startAssetData.file_name;
-            const absolute_url = url_path.replace(`${filename}`, "")
-            return new URL(absolute_url).pathname 
-        } catch (err) {
-            console.log(err);
-            throw new CommandError(`Failed in getting image CDN base url`, err.code);
-        }
-    };
+
 
     private static assetsImageUploader = async () => {
         try {
@@ -2624,7 +2604,6 @@ export default class Theme {
 
         const imageCdnUrl = await Theme.getImageCdnBaseUrl();
         const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
-        const namespace = await Theme.getAssetCdnNamespace();
 
         Logger.info('Building Assets for React Theme');
         await devReactBuild({
@@ -2633,7 +2612,6 @@ export default class Theme {
             assetBasePath: assetCdnUrl,
             imageCdnUrl,
             isHMREnabled: false,
-            namespace
         });
 
         await Theme.createReactSectionsIndexFile();
