@@ -5,8 +5,8 @@ import webpack, { Configuration } from 'webpack';
 import fs from 'fs';
 import { mergeWithRules, merge } from 'webpack-merge';
 import { getLocalBaseUrl } from './serve.utils';
+import { CDN_ENTRY_FILE } from './build';
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
-
 const context = process.cwd();
 // const themeConfigPath = path.join(context, 'webpack.config.js');
 // const isWebpackExtendedInTheme = fs.existsSync(themeConfigPath);
@@ -47,7 +47,9 @@ const baseConfig = (ctx) => {
                           require.resolve('webpack-hot-middleware/client'),
                           path.resolve(context, 'theme/index.jsx'),
                       ]
-                    : [path.resolve(context, 'theme/index.jsx')],
+                    : [
+                        path.resolve(context, CDN_ENTRY_FILE),
+                        path.resolve(context, 'theme/index.jsx')],
         },
         devtool: isLocal ? 'source-map' : false,
         optimization: {
@@ -198,8 +200,8 @@ const baseConfig = (ctx) => {
         output: {
             path: buildPath,
             filename: isLocal
-                ? 'themeBundle.umd.js'
-                : 'themeBundle.[contenthash].umd.js',
+                ? `themeBundle.umd.js`
+                : `themeBundle.[contenthash].umd.js`,
             publicPath: isLocal ? localBasePath : assetNormalizedBasePath,
             chunkFilename: isLocal
                 ? '[name].themeBundle.umd.js'

@@ -6,8 +6,25 @@ import webpack from 'webpack';
 import createBaseWebpackConfig from '../helper/theme.react.config';
 import fs from 'fs';
 import rimraf from 'rimraf';
+import Logger from '../lib/Logger';
 
 export const THEME_ENTRY_FILE = path.join('theme', 'index.js');
+export const CDN_ENTRY_FILE = path.join('theme', 'cdn_index.js');
+
+export const dynamicCDNScript = ({ namespaceNormalizedPath, assetNormalizedBasePath }) => {
+    return `function getCDNurl() {
+        \n let cdnUrl; 
+        \n try{ 
+            \n if(fynd_platform_cdn) { 
+                \n cdnUrl = fynd_platform_cdn + '${namespaceNormalizedPath}' 
+                \n } else { 
+                    \n throw new Error("undefiend variable")}  
+        \n } catch(error){ 
+            \n cdnUrl = '${assetNormalizedBasePath}'} 
+        \n return cdnUrl; 
+            \n  }   
+    \n __webpack_public_path__ =  getCDNurl()`
+}
 
 export function build({
     buildFolder,
@@ -75,6 +92,7 @@ interface DevReactBuild {
     imageCdnUrl?: string;
     localThemePort?: string;
     isHMREnabled: boolean;
+    namespace?: string;
 }
 
 export function devBuild({ buildFolder, imageCdnUrl, isProd }: DevBuild) {
@@ -129,6 +147,7 @@ export async function devReactBuild({
     localThemePort,
     imageCdnUrl,
     isHMREnabled,
+    namespace
 }: DevReactBuild) {
     const buildPath = path.join(process.cwd(), buildFolder);
     try {
@@ -159,10 +178,37 @@ export async function devReactBuild({
             ctx,
             webpackConfigFromTheme,
         );
+        const assetNormalizedBasePath =
+            assetBasePath[assetBasePath.length - 1] === '/'
+                ? assetBasePath
+                : assetBasePath + '/';
         return new Promise((resolve, reject) => {
+
+            if(!runOnLocal) {
+                fs.stat(CDN_ENTRY_FILE, function (err, stat) {
+                    if (err == null) {
+                        //deleting file if exist
+                        fs.unlink(CDN_ENTRY_FILE, function (err) {
+                            if (err) return console.log(err);
+                            Logger.debug(' \n Existing file deleted successfully');
+                        });
+                    }
+                    fs.appendFileSync(CDN_ENTRY_FILE, dynamicCDNScript({ namespaceNormalizedPath: namespace, assetNormalizedBasePath }));
+    
+                });
+            }
+            
             webpack(baseWebpackConfig, (err, stats) => {
                 console.log(err);
                 console.log(stats.toString());
+
+                if(!runOnLocal) {
+                    fs.unlink(CDN_ENTRY_FILE, function (err) {
+                        if (err) return console.log(err);
+                        Logger.debug(' \n file deleted successfully');
+                    });
+                }
+                
                 if (err || stats.hasErrors()) {
                     reject();
                 }
