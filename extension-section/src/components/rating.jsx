@@ -26,3 +26,18 @@ export function ReviewRating() {
         </div>
     );
 }
+
+export const settings = {
+    label: "Raw HTML",
+    name:'raw-html',
+    props: [
+      {
+        id: "code",
+        label: "Your Code Here",
+        type: "code",
+        default: "",
+        info: "Add Your custom HTML Code below. You can also use the full screen icon to open a code editor and add your code",
+      },
+    ],
+    blocks: [],
+};

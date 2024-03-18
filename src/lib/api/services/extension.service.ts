@@ -162,7 +162,8 @@ export default {
             const company_id = 1;
             const axiosOption = Object.assign(
                 {},
-                {},
+                {
+                },
                 {
                     headers: {
                         ...getCommonHeaderOptions().headers,
@@ -173,6 +174,32 @@ export default {
             );
             const res = await ApiClient.get(
                 URLS.GET_SECTIONS(company_id, extensionId),
+                axiosOption,
+            );
+            return res.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+    publishExtension: async (
+        extensionId: string,
+        data : any
+    ) => {
+        try {
+            const company_id = 755;
+            const axiosOption = Object.assign(
+                {},
+                {data:data},
+                {
+                    headers: {
+                        ...getCommonHeaderOptions().headers,
+                        'x-application-data': '{}',
+                        'x-user-data': '{}',
+                    }
+                },
+            );
+            const res = await ApiClient.post(
+                URLS.PUBLISH_SECTIONS(company_id, extensionId),
                 axiosOption,
             );
             return res.data;

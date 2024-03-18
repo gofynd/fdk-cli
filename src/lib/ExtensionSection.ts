@@ -16,30 +16,29 @@ const readDirectories = promisify(fs.readdir);
 
 type ExtensionSectionOptions = {
     name: string;
-}
+};
 
 export default class ExtensionSection {
-
     static SECTIONS_DIR = 'sections';
 
     public static async initExtensionSection(options: ExtensionSectionOptions) {
         try {
-            const sectionName = options["name"];
+            const sectionName = options['name'];
 
             if (!sectionName) {
-                throw new Error('Section Name not provided!')
+                throw new Error('Section Name not provided!');
             }
 
-            ExtensionSection.createSectionsDirectoryIfNotExists()
+            ExtensionSection.createSectionsDirectoryIfNotExists();
 
-            const sectionExists = await ExtensionSection.sectionExists(sectionName);
+            const sectionExists =
+                await ExtensionSection.sectionExists(sectionName);
 
             if (sectionExists) {
-                throw new Error("Section Already Exists!");
+                throw new Error('Section Already Exists!');
             }
 
             await ExtensionSection.createDefaultSectionWithName(sectionName);
-
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
@@ -48,18 +47,18 @@ export default class ExtensionSection {
     static createSectionsDirectoryIfNotExists(): void {
         const sectionPath = path.resolve(
             process.cwd(),
-            ExtensionSection.SECTIONS_DIR
+            ExtensionSection.SECTIONS_DIR,
         );
 
         if (!fs.existsSync(sectionPath)) {
-            fs.mkdirSync(sectionPath)
+            fs.mkdirSync(sectionPath);
         }
     }
 
     static async sectionExists(name: string): Promise<Boolean> {
         const sectionPath = path.resolve(
             process.cwd(),
-            ExtensionSection.SECTIONS_DIR
+            ExtensionSection.SECTIONS_DIR,
         );
 
         if (!fs.existsSync(sectionPath)) {
@@ -71,7 +70,7 @@ export default class ExtensionSection {
         const sectionExists = dirents.some((dirent) => {
             const direntFullPath = path.resolve(sectionPath, dirent);
             return fs.statSync(direntFullPath).isDirectory() && dirent === name;
-        })
+        });
 
         return sectionExists;
     }
@@ -80,56 +79,76 @@ export default class ExtensionSection {
         const sourceCodePath = path.resolve(
             __dirname,
             '../../extension-section',
-        )
+        );
         const sectionDirPath = path.resolve(
             process.cwd(),
             ExtensionSection.SECTIONS_DIR,
-            name
+            name,
         );
 
         await fsExtra.copy(sourceCodePath, sectionDirPath);
 
-        process.chdir(
-            path.join(
-                process.cwd(),
-                'sections',
-                name
-            )
-        );
+        process.chdir(path.join(process.cwd(), 'sections', name));
 
         await ExtensionSection.installNpmPackages();
-
     }
 
     public static async syncExtensionBinding(options: ExtensionSectionOptions) {
-        const sectionName = options.name;
-        Logger.info(`Syncing ${sectionName} section updated`);
+        const bundleName = options.name;
+        Logger.info(`c ${bundleName} section updated`);
 
-
-        const sectionExists = await ExtensionSection.sectionExists(sectionName);
+        const sectionExists = await ExtensionSection.sectionExists(bundleName);
 
         if (!sectionExists) {
-            throw new Error("Section Does Not Exist!");
+            throw new Error('Section Does Not Exist!');
         }
 
-        process.chdir(
-            path.join(
-                process.cwd(),
-                'sections',
-                options.name
-            )
-        );
+        process.chdir(path.join(process.cwd(), 'sections', options.name));
 
-        await ExtensionSection.buildExtensionCode(sectionName).catch(console.log);
-        // const uploadURLs = await ExtensionSection.uploadSectionFiles(sectionName);
+        await ExtensionSection.buildExtensionCode(bundleName).catch(
+            console.log,
+        );
+        const uploadURLs =
+            await ExtensionSection.uploadSectionFiles(bundleName);
 
         const availableSections = await ExtensionSection.getAvailableSections();
-        console.log(availableSections);
+        
+        console.log({ availableSections }, { uploadURLs });
+        //TO DO : remove extra data.
+        let data = [];
+        for (const key in availableSections) {
+            if (availableSections.hasOwnProperty(key)) {
+                data.push({
+                    extension_id: '6095e29a35e3992e9a0d0794',
+                    application_id:'654b50145d7a19c0b871dd8d',
+                    bundle_name: bundleName,
+                    company_id: '755',
+                    organization_id: '6095e29a35e3992e9a0d0782',
+                    sections: [availableSections[key]['settings']],
+                    assets: uploadURLs,
+                });
+            }
+        }
+
+        // let data = [
+        //     {
+        //       "extension_id": "6095e29a35e3992e9a0d0794",
+        //       "bundle_name": "html-code",
+        //       "company_id": "755",
+        //       "organization_id": "6095e29a35e3992e9a0d0782",
+        //       "sections":[availableSections['meet']['settings']],
+        //       "assets": uploadURLs
+        //     }
+        //   ]
+        await ExtensionSection.publishExtension(data);
 
         // const sections = await extensionService.uploadBindingSections(extensionId, sectionName);
     }
 
-    static async buildExtensionCode(sectionName: string, isLocal: Boolean = false) {
+    static async buildExtensionCode(
+        sectionName: string,
+        isLocal: Boolean = false,
+    ) {
         let spinner = new Spinner('Building Extension Code');
         try {
             spinner.start();
@@ -142,11 +161,11 @@ export default class ExtensionSection {
                 webpack(webpackConfig, (err, stats) => {
                     console.log(err);
                     if (err || stats.hasErrors()) {
-                        console.log(err)
+                        console.log(err);
                         reject();
                     }
                     spinner.succeed();
-                    console.log('resolvinggggg')
+                    console.log('resolvinggggg');
                     resolve(stats);
                 });
             });
@@ -154,10 +173,6 @@ export default class ExtensionSection {
             spinner.fail();
             throw new CommandError(error.message);
         }
-
-
-
-
     }
 
     static async installNpmPackages() {
@@ -173,7 +188,6 @@ export default class ExtensionSection {
     }
 
     static async uploadSectionFiles(sectionName: string) {
-
         const BUNDLE_DIR = path.join(process.cwd(), path.join('dist'));
         const User = Configstore.get(CONFIG_KEYS.AUTH_TOKEN);
 
@@ -183,14 +197,16 @@ export default class ExtensionSection {
         ];
         const uploadURLs = {};
         const promises = files.map(([fileExtension, fileName]) => {
-            return uploadService.uploadFile(
-                path.join(BUNDLE_DIR, fileName),
-                'fdk-cli-dev-files',
-                User.current_user._id,
-            ).then((response) => {
-                const url = response.complete.cdn.url;
-                uploadURLs[fileExtension] = url;
-            });
+            return uploadService
+                .uploadFile(
+                    path.join(BUNDLE_DIR, fileName),
+                    'fdk-cli-dev-files',
+                    User.current_user._id,
+                )
+                .then((response) => {
+                    const url = response.complete.cdn.url;
+                    uploadURLs[fileExtension] = url;
+                });
         });
 
         await Promise.all(promises);
@@ -200,7 +216,6 @@ export default class ExtensionSection {
     }
 
     static async getAvailableSections() {
-
         const BUNDLE_DIR = path.join(process.cwd(), path.join('dist'));
 
         const sectionFileName = 'sections.commonjs.js';
@@ -211,8 +226,11 @@ export default class ExtensionSection {
         try {
             sectionsMeta = require(sectionFilePath);
         } catch (error) {
-            console.log(error)
-            throw new Error("Cannot read section data from bundled file : ", error.message);
+            console.log(error);
+            throw new Error(
+                'Cannot read section data from bundled file : ',
+                error.message,
+            );
         }
 
         return sectionsMeta?.sections?.default ?? {};
@@ -224,8 +242,19 @@ export default class ExtensionSection {
             const sections = await extensionService.getAllSections(extensionId);
             console.log(sections);
         } catch (error) {
-            console.log(error)
+            console.log(error);
         }
-
+    }
+    public static async publishExtension(options: any) {
+        const extensionId = '6095e29a35e3992e9a0d0794';
+        try {
+            const sections = await extensionService.publishExtension(
+                extensionId,
+                options,
+            );
+            console.log(sections);
+        } catch (error) {
+            console.log(error);
+        }
     }
 }
