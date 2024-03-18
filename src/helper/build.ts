@@ -9,7 +9,7 @@ import rimraf from 'rimraf';
 import Logger from '../lib/Logger';
 
 export const THEME_ENTRY_FILE = path.join('theme', 'index.js');
-export const CDN_ENTRY_FILE = path.join('theme', 'cdn_index.js');
+export const CDN_ENTRY_FILE = path.join('.fdk', 'cdn_index.js');
 
 export const dynamicCDNScript = ({ assetNormalizedBasePath }) => {
     return `function getCDNurl() {
