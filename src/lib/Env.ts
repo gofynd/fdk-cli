@@ -6,7 +6,6 @@ import axios from 'axios';
 import urljoin from 'url-join';
 import { isValidDomain } from '../helper/utils';
 import Debug from './Debug';
-import { getPlatformUrls } from './api/services/url';
 
 export default class Env {
     constructor() {}
@@ -26,59 +25,41 @@ export default class Env {
         Logger.info(`Currently using Platform URL: ${chalk.bold(ctx)}`);
     }
 
-    public static async setNewEnvs(options) {
+    public static async setNewEnvs(domain) {
         try {
-            // todo: remove name warning in future version
-            if (options.name) {
-                console.warn(
-                    chalk.yellow(
-                        `Warning: The -n/--name option is deprecated. Please use -u/--url or -p/--partners option instead. Ref: ${
-                            getPlatformUrls().partners
-                        }/help/docs/partners/themes/vuejs/command-reference#environment-commands-1`,
-                    ),
-                );
+            Debug(`Setting env: ${domain}`);
+            let finalDomain = domain;
+
+            // remove https:// from domain if present
+            if (domain.includes('https://')) {
+                finalDomain = domain.replace('https://', '');
+            }
+
+            // validate domain
+            if (!isValidDomain(finalDomain)) {
                 throw new Error(
-                    'Please use -u/--url or -p/--partners  option.',
+                    `Please provide valid domain, Example: partners.fynd.com`,
                 );
             }
 
-            if (!options.url && !options.partners) {
-                throw new Error(
-                    'Please provide -u/--url or -p/--partners option.',
-                );
-            }
-
-            let finalUrl = options.url || options.partners;
-
-            if (finalUrl.includes('https://')) {
-                finalUrl = finalUrl.replace('https://', '');
-            }
-
-            // todo: in future, when url support will be removed, update isValidDomain to get only partners domain, as of now -u and -p can accept both url(api & partners).
-            if (!isValidDomain(finalUrl)) {
-                throw new Error(
-                    `Please provide valid domain, Example:${
-                        options.partners ? ' partners.fynd.com' : ''
-                    }${options.url ? ' api.fynd.com' : ''}`,
-                );
-            }
-
-            if (finalUrl.includes('partners')) {
-                finalUrl = finalUrl.replace('partners', 'api');
+            // replace parnters to api
+            if (finalDomain.includes('partners')) {
+                finalDomain = finalDomain.replace('partners', 'api');
             }
 
             try {
+                // check if healthz route exist or not
                 const url = urljoin(
                     'https://',
-                    finalUrl,
+                    finalDomain,
                     '/service/application/content/_healthz',
                 );
                 const response = await axios.get(url);
 
                 if (response?.status === 200) {
-                    Env.setEnv(finalUrl);
+                    Env.setEnv(finalDomain);
                     Logger.info(
-                        `CLI will start using: ${chalk.bold(finalUrl)}`,
+                        `CLI will start using: ${chalk.bold(finalDomain)}`,
                     );
                 } else {
                     throw new Error(

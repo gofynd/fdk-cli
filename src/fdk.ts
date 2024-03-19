@@ -193,6 +193,11 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
                     }
                 }
             }
+            // show current env for all commands excpet login command, we are showing updated env when login command runs
+            if (args[1].name() !== 'auth') {
+                const env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+                Logger.info(chalk.green('Current env: ', env));
+            }
             await asyncFn(...args);
         } catch (err) {
             // TODO: Error reporting from user logic can be added here

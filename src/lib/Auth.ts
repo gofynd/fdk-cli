@@ -10,6 +10,7 @@ import chalk from 'chalk';
 import ThemeService from './api/services/theme.service';
 import { getLocalBaseUrl } from '../helper/serve.utils';
 import Debug from './Debug';
+import Env from './Env';
 
 const SERVER_TIMER = 1000 * 60 * 2; // 2 min
 
@@ -109,14 +110,18 @@ export default class Auth {
     static timer_id;
     static wantToChangeOrganization = false;
     constructor() {}
-    public static async login() {
+    public static async login(options) {
+        // todo: check grafana dashboard and confirm if all env are above 1.8
         await checkVersionCompatibility();
-        Logger.info(
-            chalk.green(
-                'Current env: ',
-                ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE),
-            ),
-        );
+        let env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+
+        if(options.apiDomain){
+            await Env.setNewEnvs(options.apiDomain);
+        } else {
+            env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+            Logger.info(chalk.green('Current env: ', env));
+        }
+
         const isLoggedIn = await Auth.isAlreadyLoggedIn();
         if (isLoggedIn) {
             const questions = [
@@ -139,7 +144,6 @@ export default class Auth {
             });
         } else 
             await startServer();
-        const env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
         try {
             let domain = null;
             let partnerDomain = env.replace('api', 'partners');
