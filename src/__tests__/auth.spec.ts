@@ -39,11 +39,14 @@ jest.mock('configstore', () => {
     };
 });
 
-export async function login() {
+export async function login(domain?: string) {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
     const app = await startServer();
     const req = request(app);
-    await program.parseAsync(['ts-node', './src/fdk.ts', 'login']);
+    if(domain)
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '-ad', domain]);
+    else
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '-ad', '']);
     return await req.post('/token').send(tokenData);
 }
 
@@ -53,6 +56,7 @@ describe('Auth Commands', () => {
         program = await init('fdk');
         const mock = new MockAdapter(axios);
         mock.onGet(`${URLS.IS_VERSION_COMPATIBLE()}`).reply(200);
+        mock.onGet('https://api.fynd.com/service/application/content/_healthz').reply(200);
         await login();
     });
 
@@ -80,7 +84,14 @@ describe('Auth Commands', () => {
             'pr-4fb094006ed3a6d749b69875be0418b83238d078',
         );
     });
-
+    it('Should successfully login with and env should updated', async () => {
+        configStore.delete(CONFIG_KEYS.AUTH_TOKEN);
+        await login('api.fynd.com');
+        expect(configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)).toBe('api.fynd.com');
+        expect(configStore.get(CONFIG_KEYS.AUTH_TOKEN).access_token).toBe(
+            'pr-4fb094006ed3a6d749b69875be0418b83238d078',
+        );
+    });
     it('should console active user', async () => {
         let consoleWarnSpy: jest.SpyInstance;
         consoleWarnSpy = jest.spyOn(Logger, 'info').mockImplementation();

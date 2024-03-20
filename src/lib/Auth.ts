@@ -117,6 +117,7 @@ export default class Auth {
 
         if(options.apiDomain){
             await Env.setNewEnvs(options.apiDomain);
+            env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
         } else {
             env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
             Logger.info(chalk.green('Current env: ', env));

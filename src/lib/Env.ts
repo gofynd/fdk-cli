@@ -38,7 +38,7 @@ export default class Env {
             // validate domain
             if (!isValidDomain(finalDomain)) {
                 throw new Error(
-                    `Please provide valid domain, Example: partners.fynd.com`,
+                    `Please provide valid domain, Example: api.fynd.com`,
                 );
             }
 
@@ -63,13 +63,13 @@ export default class Env {
                     );
                 } else {
                     throw new Error(
-                        'Provided domain is not valid partners panel domain.',
+                        'Provided domain is not valid api domain.',
                     );
                 }
             } catch (err) {
                 Debug(err);
                 throw new Error(
-                    'Provided domain is not valid partners panel domain.',
+                    'Provided domain is not valid api domain.',
                 );
             }
         } catch (e) {
