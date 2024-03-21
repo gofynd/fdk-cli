@@ -253,7 +253,7 @@ export async function init(programName: string) {
     if (current_env && !current_env.includes('api.') && !current_env.includes('api-')) {
         console.warn(
             chalk.yellow(
-                `Warning: Reseting active environment to api.fynd.com. Please use \`fdk env set -p <partners-domain>\` to change active environment. Ref: ${
+                `Warning: Reseting active environment to api.fynd.com. Please use \`fdk login -ad <platform-api-domain>\` to login with different environment. Ref: ${
                     getPlatformUrls().partners
                 }/help/docs/partners/themes/vuejs/command-reference#environment-commands-1`,
             ),
