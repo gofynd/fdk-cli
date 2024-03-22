@@ -193,6 +193,11 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
                     }
                 }
             }
+            // show current env for all commands excpet login command, we are showing updated env when login command runs
+            if (args[1].name() !== 'auth') {
+                const env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+                Logger.info(chalk.green('Current env: ', env));
+            }
             await asyncFn(...args);
         } catch (err) {
             // TODO: Error reporting from user logic can be added here
@@ -241,14 +246,14 @@ export async function init(programName: string) {
     // set default environment
     const current_env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
 
-    if (!current_env || !current_env.includes('api.'))
+    if (!current_env || (!current_env.includes('api.') && !current_env.includes('api-')))
         configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'api.fynd.com');
 
     // todo: remove this warning in future version of fdk cli, when everybody get used to set env by url.
-    if (current_env && !current_env.includes('api.')) {
+    if (current_env && !current_env.includes('api.') && !current_env.includes('api-')) {
         console.warn(
             chalk.yellow(
-                `Warning: Reseting active environment to api.fynd.com. Please use \`fdk env set -u <env-api-url>\` to change active environment. Ref: ${
+                `Warning: Reseting active environment to api.fynd.com. Please use \`fdk login -ad <platform-api-domain>\` to login with different environment. Ref: ${
                     getPlatformUrls().partners
                 }/help/docs/partners/themes/vuejs/command-reference#environment-commands-1`,
             ),

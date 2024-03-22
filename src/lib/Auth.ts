@@ -2,7 +2,6 @@ import CommandError from './CommandError';
 import Logger from './Logger';
 import inquirer from 'inquirer';
 import ConfigStore, { CONFIG_KEYS } from './Config';
-import { ALLOWD_ENV } from '../helper/constants';
 import open from 'open';
 import express from 'express';
 var cors = require('cors');
@@ -10,6 +9,10 @@ const port = 7071;
 import chalk from 'chalk';
 import ThemeService from './api/services/theme.service';
 import { getLocalBaseUrl } from '../helper/serve.utils';
+import Debug from './Debug';
+import Env from './Env';
+
+const SERVER_TIMER = 1000 * 60 * 2; // 2 min
 
 async function checkTokenExpired(auth_token) {
     const { expiry_time } = auth_token;
@@ -29,7 +32,7 @@ export const getApp = async () => {
 
     app.post('/token', async (req, res) => {
         try {
-            if (Auth.isOrganizationChange)
+            if (Auth.wantToChangeOrganization)
                 ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
             const expiryTimestamp =
                 Math.floor(Date.now() / 1000) + req.body.auth_token.expires_in;
@@ -37,7 +40,7 @@ export const getApp = async () => {
             ConfigStore.set(CONFIG_KEYS.AUTH_TOKEN, req.body.auth_token);
             ConfigStore.set(CONFIG_KEYS.ORGANIZATION, req.body.organization);
             Auth.stopSever();
-            if (Auth.isOrganizationChange)
+            if (Auth.wantToChangeOrganization)
                 Logger.info('Organization changed successfully');
             else Logger.info('User logged in successfully');
             res.status(200).json({ message: 'success' });
@@ -49,16 +52,53 @@ export const getApp = async () => {
     return { app };
 };
 
+function startTimer(){
+    Debug("Server timer starts")
+    Auth.timer_id = setTimeout(() => {
+        Auth.stopSever(() => {
+            console.log(chalk.red('Server timeout: Please run fdk login command again.'));
+            process.exit(1);
+        })
+    }, SERVER_TIMER)
+}
+
+function resetTimer(){
+    if (Auth.timer_id) { 
+        Debug("Server timer stoped")
+        clearTimeout(Auth.timer_id)
+        Auth.timer_id = null;
+    }
+}
 export const startServer = async () => {
     if (Auth.server) return Auth.server;
 
     const { app } = await getApp();
     const serverIn = require('http').createServer(app);
-    Auth.server = serverIn.listen(port, (err) => {
-        if (err) console.log(err);
+
+    // handle errors thrown while start listening
+    serverIn.on('error', (error) => {
+        if (error.code === 'EADDRINUSE') {
+            console.error(chalk.red(`Port ${port} is already in use.`));
+        } else {
+            console.error(chalk.red('An unexpected error occurred:'), error);
+        }
+        process.exit(1);
     });
 
-    return Auth.server;
+    Auth.server = serverIn.listen(port);
+
+    // resolve promise only if server starts listening
+    // we will open partner panel only if server is listening
+    return new Promise(resolve => {
+        serverIn.on('listening', () => {
+            Debug(`Server started listening on ${port}`);
+            resolve(Auth.server);
+        });
+    }).then(server => {
+        // once server start listening, start server timer
+        startTimer();
+        return server
+    })
 };
 
 async function checkVersionCompatibility() {
@@ -67,18 +107,23 @@ async function checkVersionCompatibility() {
 
 export default class Auth {
     static server = null;
-    static isOrganizationChange = false;
+    static timer_id;
+    static wantToChangeOrganization = false;
     constructor() {}
-    public static async login() {
+    public static async login(options) {
+        // todo: check grafana dashboard and confirm if all env are above 1.8
         await checkVersionCompatibility();
-        Logger.info(
-            chalk.green(
-                'Current env: ',
-                ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE),
-            ),
-        );
+        let env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+
+        if(options.apiDomain){
+            await Env.setNewEnvs(options.apiDomain);
+            env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+        } else {
+            env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+            Logger.info(chalk.green('Current env: ', env));
+        }
+
         const isLoggedIn = await Auth.isAlreadyLoggedIn();
-        await startServer();
         if (isLoggedIn) {
             const questions = [
                 {
@@ -91,21 +136,21 @@ export default class Auth {
             ];
             await inquirer.prompt(questions).then(async (answers) => {
                 if (answers.confirmChangeOrg === 'No') {
-                    Auth.isOrganizationChange = false;
-                    await Auth.stopSever();
+                    Auth.wantToChangeOrganization = false;
                     return;
                 } else {
-                    Auth.isOrganizationChange = true;
+                    Auth.wantToChangeOrganization = true;
+                    await startServer();
                 }
             });
-        }
-        const env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+        } else 
+            await startServer();
         try {
             let domain = null;
             let partnerDomain = env.replace('api', 'partners');
             domain = `https://${partnerDomain}`;
             try {
-                if (Auth.isOrganizationChange || !isLoggedIn) {
+                if (Auth.wantToChangeOrganization || !isLoggedIn) {
                     await open(
                         `${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
                             `${getLocalBaseUrl()}:${port}`,
@@ -169,7 +214,11 @@ export default class Auth {
             else return false;
         } else return false;
     };
-    static stopSever = async () => {
-        Auth.server.close(() => {});
+    static stopSever = async (cb = null) => {
+        resetTimer();
+        Auth.server?.close?.(() => {
+            Debug("Server closed");
+            cb?.();
+        });
     };
 }
