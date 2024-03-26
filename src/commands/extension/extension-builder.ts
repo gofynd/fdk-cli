@@ -69,14 +69,20 @@ export default function extensionCommandBuilder() {
     section
         .command('pub')
         .description('Sync extension section')
-        .requiredOption('-n, --name [name]', 'Section Name')
-        .asyncAction(ExtensionSection.syncExtensionBinding);
+        // .requiredOption('-n, --name [name]', 'Section Name')
+        .asyncAction(ExtensionSection.syncExtensionBindings);
 
     section
         .command('ls')
         .description('List extension sections')
         // .requiredOption('-id, --id [id]', 'extensionID')
         .asyncAction(ExtensionSection.getAllSections);
+    section
+        .command('run')
+        .description('Serve extension sections')
+        .requiredOption('-n, --name [name]', 'Bundle Name')
+        .option('-p, --port [port]', 'Server Port')
+        .asyncAction(ExtensionSection.serveExtensionSections);
 
     extension.addCommand(section);
 

@@ -158,15 +158,21 @@ export const URLS = {
     },
 
     // Extension Section
-    PUBLISH_SECTIONS: (company_id: number, extension_id: string) => {
+    PUBLISH_SECTIONS: (extension_id: string, organization_id) => {
         return urlJoin(
-            'http://localhost:7071/service/partner/theme/v1.0/',
-            `organization/${organization_id}/company/${company_id}/extension-section/${extension_id}`,
+            THEME_URL(),
+            `organization/${organization_id}/extension-section/${extension_id}`,
+        );
+    },
+    PUBLISH_SECTIONSS: (extension_id: string, organization_id: string, bundle: string) => {
+        return urlJoin(
+            THEME_URL(),
+            `organization/${organization_id}/extension-section/${extension_id}/${bundle}`,
         );
     },
     GET_SECTIONS: (company_id: number, extension_id: string) => {
         return urlJoin(
-            'http://localhost:7071/service/partner/theme/v1.0/',
+            THEME_URL(),
             `organization/${organization_id}/company/${company_id}/extension-section/${extension_id}`,
         );
     },

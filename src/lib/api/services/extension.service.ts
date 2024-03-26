@@ -181,15 +181,15 @@ export default {
             throw error;
         }
     },
-    publishExtension: async (
+    publishExtensionBindings: async (
         extensionId: string,
+        organisationId: string,
         data : any
     ) => {
         try {
-            const company_id = 755;
             const axiosOption = Object.assign(
                 {},
-                {data:data},
+                { data },
                 {
                     headers: {
                         ...getCommonHeaderOptions().headers,
@@ -198,13 +198,17 @@ export default {
                     }
                 },
             );
+
+            console.log(URLS.PUBLISH_SECTIONS(extensionId, organisationId))
             const res = await ApiClient.post(
-                URLS.PUBLISH_SECTIONS(company_id, extensionId),
+                URLS.PUBLISH_SECTIONS(extensionId, organisationId),
                 axiosOption,
             );
+            console.log(res);
             return res.data;
         } catch (error) {
-            throw error;
+            console.log(error)
+            // throw error;
         }
     },
     // uploadBindingSections: async () => {}

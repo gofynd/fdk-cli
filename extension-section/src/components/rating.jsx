@@ -1,31 +1,26 @@
 import React, { useEffect } from 'react';
 
-import { useParams } from 'react-router-dom';
-
-import { useGlobalStore } from "fdk-core/utils";
+import { useGlobalStore, useFPI } from "fdk-core/utils";
 
 import styles from '../styles/style.css';
 
-console.log({React, useParams, useGlobalStore, styles });
+console.log({ useGlobalStore, styles });
 
-export function ReviewRating() {
+export function Component() {
 
-    const { slug } = useParams();
-  
-    const refresh = () => {
-        window.fpi.configuration.fetchApplication().then(data => {
-            console.log('Data from API : ', data)
-        });
-    }
+    const fpi = useFPI();
+    const products = useGlobalStore(fpi.getters.PRODUCTS);
+
+    console.log('Extension Code : ', products)
     
     return (
         <div>
-            <h1>Review and Rating Extension  for Sky🔥</h1>
-            <p>⭐⭐⭐⭐⭐</p>
-            <button onClick={() => refresh(slug)}>Click to fetch application data</button>
+            <h1>Product List using Extension for Sky🔥</h1>
         </div>
     );
 }
+
+Component.serverFetch = ({ fpi }) => fpi.product.fetchProductListing({});
 
 export const settings = {
     label: "Raw HTML",

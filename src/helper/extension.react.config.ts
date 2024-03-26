@@ -72,7 +72,7 @@ export function extensionWebpackConfig(env: ExtensionBuildContext): Configuratio
             },
             plugins: [
                 new MiniCssExtractPlugin({
-                    filename: `${env.sectionName}.css`,
+                    filename: `${env.sectionName}.umd.min.css`,
                 }),
                 new webpack.ProvidePlugin({
                     // you must `npm install buffer` to use this.

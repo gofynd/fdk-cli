@@ -13,6 +13,7 @@ import Theme from '../lib/Theme';
 import glob from 'glob';
 import detect from 'detect-port';
 import chalk from 'chalk';
+import cors from 'cors';
 import UploadService from '../lib/api/services/upload.service';
 import Configstore, { CONFIG_KEYS } from '../lib/Config';
 import { createProxyMiddleware, fixRequestBody } from 'http-proxy-middleware';
@@ -476,6 +477,40 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
             }
             Logger.info(`Starting server at port -- ${port}`);
             Logger.info(`************* Using Debugging build`);
+            resolve(true);
+        });
+    });
+}
+
+
+type ExtensionServerOptions = { 
+    bundleDist: string; 
+    port: number
+ }
+export async function startExtensionServer(options: ExtensionServerOptions) {
+    const {bundleDist, port} = options;
+    const app = express();
+    const server = require('http').createServer(app);
+    const io = require('socket.io')(server);
+
+    io.on('connection', function (socket) {
+        sockets.push(socket);
+        socket.on('disconnect', function () {
+            sockets = sockets.filter((s) => s !== socket);
+        });
+    });
+app.use(cors())
+    // parse application/x-www-form-urlencoded
+    app.use(express.json());
+
+    app.use(express.static(bundleDist));
+
+    return new Promise((resolve, reject) => {
+        server.listen(port, (err) => {
+            if (err) {
+                return reject(err);
+            }
+            Logger.info(`Starting server at port -- ${port}`);
             resolve(true);
         });
     });
