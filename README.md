@@ -105,21 +105,36 @@ ___
 | [package](#theme-package)    | Create a zip file of theme |
 
 ### Extension Commands
-| Command        | Description           | 
-| ------------- |-------------| 
+
+| Command        | Description           |
+| ------------- |------------- |
 | [init](#extension-init)     | Initialize extension |
-| [setup](#extension-setup)     | setup development environment
-| [preview-url](#extension-preview-url)   | Get extension preview url
-| [launch-url](#extension-launch-url)     | Get/set lanuch url |
+| [setup](#extension-setup)     | setup development environment |
+| [preview-url](#extension-preview-url)   | Get extension preview url |
+| [launch-url](#extension-launch-url)     | Get/set launch url |
+| [add-context](#extension-add-context)     | Add a new extension context |
+| [context-list](#extension-context-list)     | List available contexts |
+
+### Extension Function Commands
+
+| Command        | Description           |
+| -------------- |-------------|
+| [create](#extension-function-create) | Create extension function |
+| [init](#extension-function-init) | Init extension function |
+| [sync](#extension-function-sync) | Sync function |
+| [test](#extension-function-test) | Run function tests |
 
 ### Partner Commands
-| Command        | Description           | 
-| ------------- |-------------| 
+
+| Command        | Description           |
+| ------------- |-------------|
 | [connect](#partner-connect)     | Add partner access token |
 
-<div id="commands-reference"><div/>
+<div id="commands-reference"></div>
 
-## Commands Reference
+## Commands Reference Commands
+
+| Command
 ___
 ### Environment Commands
 Before you setup a theme using FDK CLI you will have to set an environment in which you will be initializing your theme
@@ -372,7 +387,9 @@ This command is used to preview the theme on browser.
 ```sh
 fdk theme open 
 ```
+
 ### Extension Commands
+
 Extensions are pluggable snippets of code that can be installed in your applications so improve the feature set of your application. To know more visit - [Fynd Partners](https://partners.fynd.com/)
 
 Set the active environment before running extension commands
@@ -382,7 +399,6 @@ fdk env set -n fynd
 ```sh
 fdk env set -u api.fynd.com
 ```
-
 
 <div id="extension-init"></div>
 
@@ -483,7 +499,158 @@ fdk extension launch-url set --url [url] --api-key [Extension API Key]
 ```sh
 fdk extension launch-url get --api-key [Extension API Key]
 ```
+
+<div id="extension-add-context"></div>
+
+### **add-context**
+
+This command is used to add a new extension context in your current project directory.
+
+#### **Syntax**
+
+```sh
+fdk extension add-context [options]
+```
+
+#### **Command Options**
+
+| Option        | Description           |
+|---------------|-------------------- |
+| --api-key | Extension API key |
+
+#### **Example**
+
+```sh
+fdk extension add-context -n [Extension API key]
+```
+
 ___
+
+<div id="extension-context-list"></div>
+
+### **context-list**
+
+This command is used to list all the contexts of the current project directory.
+
+#### **Syntax**
+
+```sh
+fdk extension context-list
+```
+
+___
+
+### Extension Function Commands
+
+<div id="extension-function-create"></div>
+
+### **create**
+
+This command is used to create extension functions within your project.
+
+#### **Syntax**
+
+```sh
+fdk extension function create [options]
+```
+
+#### **Command Options**
+
+| Option        | Description           |
+|---------------|-------------------- |
+| --name, -n | Function Name |
+
+#### **Example**
+
+```sh
+fdk extension function create -n [Function name]
+```
+
+___
+
+<div id="extension-function-init"></div>
+
+### **init**
+
+This command is used to init/pull the existing function from partner panel on your project.
+
+#### **Syntax**
+
+```sh
+fdk extension function init [options]
+```
+
+#### **Command Options**
+
+| Option        | Description           |
+|---------------|-------------------- |
+| --slug, -s | Function slug |
+| --force | Flag for force init |
+
+#### **Example**
+
+```sh
+fdk extension function init -s [Function slug]
+```
+
+```sh
+fdk extension function init -s [Function slug] -f
+```
+
+___
+
+<div id="extension-function-sync"></div>
+
+### **sync**
+
+This command is used for syncing your local functions changes to partner panel.
+
+#### **Syntax**
+
+```sh
+fdk extension function sync [options]
+```
+
+#### **Command Options**
+
+| Option        | Description           |
+|---------------|-------------------- |
+| --slug, -s | Function slug |
+
+#### **Example**
+
+```sh
+fdk extension function sync -s [Function slug]
+```
+
+___
+
+<div id="extension-function-test"></div>
+
+### **test**
+
+This command is used to run tests for function with local changes.
+
+#### **Syntax**
+
+```sh
+fdk extension function test [options]
+```
+
+#### **Command Options**
+
+| Option        | Description           |
+|---------------|-------------------- |
+| --slug, -s | Function slug |
+
+#### **Example**
+
+```sh
+fdk extension function test -s [Function slug]
+```
+
+___
+
 ### Partner Commands
 
 <div id="partner-connect"></div>
