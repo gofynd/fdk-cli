@@ -9,7 +9,7 @@ export default function environmentCommandBuilder() {
     );
 
     env.allowUnknownOption().action(() => {
-        console.warn(chalk.yellow(`Warning: The "env" command is deprecated. To set env and login, please use fdk 'fdk login --domain=api.fynd.com'for login. Ref: ${getPlatformUrls().partners}/help/docs/partners/themes/vuejs/command-reference#environment-commands-1`));
+        console.warn(chalk.yellow(`Warning: The "env" command is deprecated. To set env and login, please use 'fdk login --api-domain=api.fynd.com'for login. Ref: ${getPlatformUrls().partners}/help/docs/partners/themes/vuejs/command-reference#environment-commands-1`));
     })
 
     return env;
