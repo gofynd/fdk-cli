@@ -22,6 +22,7 @@ import webpackDevMiddleware from 'webpack-dev-middleware';
 import webpackHotMiddleware from 'webpack-hot-middleware';
 import webpack from 'webpack';
 import createBaseWebpackConfig from '../helper/theme.react.config';
+import Debug from '../lib/Debug';
 const packageJSON = require('../../package.json');
 
 const BUILD_FOLDER = './.fdk/dist';
@@ -131,6 +132,21 @@ async function setupServer({ domain }) {
             return res.send(publicCache[url].body);
         } catch (e) {
             console.log('Error loading file ', url);
+        }
+    });
+
+    app.get(/\/cloudflare-static/, async (req, res) => {
+        Debug("Requesting to cloudflare...")
+        const { originalUrl } = req
+        try{
+            const networkRes = await axios.get(
+                urlJoin(domain, originalUrl)
+            );
+            res.set(networkRes.headers);
+            return res.send(networkRes.data);
+        }catch(err){
+            Debug(err);
+            console.log('Error loading file ', originalUrl);
         }
     });
 
