@@ -11,7 +11,7 @@ import { webpack } from 'webpack';
 import uploadService from './api/services/upload.service';
 import Configstore, { CONFIG_KEYS } from './Config';
 import extensionService from './api/services/extension.service';
-import { getPort, startExtensionServer } from '../helper/serve.utils';
+import { getPort, startExtensionServer, reload } from '../helper/serve.utils';
 import chalk from 'chalk';
 import ngrok from 'ngrok';
 import boxen from 'boxen';
@@ -24,7 +24,7 @@ type ExtensionSectionOptions = {
 
 const extensionId = "64b3dc661a1b16dea7fadc22";
 const organisationId = "65f94f498f7d44c70fcb9026";
-const domain = "http://karanraina.sandbox.fynd.engineering";
+const domain = "https://test-company-1-hosted-karanraina.sandbox.fynd.engineering";
 
 export default class ExtensionSection {
     static SECTIONS_DIR = 'sections';
@@ -114,7 +114,7 @@ export default class ExtensionSection {
 
         process.chdir(path.join(process.cwd(), 'sections', options.name));
 
-        await ExtensionSection.buildExtensionCode(bundleName).catch(
+        await ExtensionSection.buildExtensionCode({bundleName}).catch(
             console.log,
         );
         const uploadURLs =
@@ -168,7 +168,7 @@ export default class ExtensionSection {
         const currentRoot = process.cwd();
         process.chdir(path.join(currentRoot, 'sections', bundleName));
 
-        await ExtensionSection.buildExtensionCode(bundleName).catch(console.error);
+        await ExtensionSection.buildExtensionCode({bundleName}).catch(console.error);
 
         const uploadURLs = await ExtensionSection.uploadSectionFiles(bundleName);
 
@@ -194,32 +194,80 @@ export default class ExtensionSection {
           return data;
     }
 
-    static async buildExtensionCode(
-        sectionName: string,
-        isLocal: Boolean = false,
-    ): Promise<{jsFile: string, cssFile: string}> {
+    static async buildExtensionCode({
+        bundleName,
+        isLocal = false,
+        port = 5502,
+    }): Promise<{jsFile: string, cssFile: string}> {
         let spinner = new Spinner('Building Extension Code');
         try {
             spinner.start();
+            const context = process.cwd();
             const webpackConfig = extensionWebpackConfig({
                 isLocal,
-                sectionName,
+                bundleName,
+                port,
+                context,
             });
 
             return new Promise((resolve, reject) => {
                 webpack(webpackConfig, (err, stats) => {
+                    console.log({stats, err})
                     console.log(err);
                     if (err || stats.hasErrors()) {
                         console.log(err);
                         reject();
                     }
                     spinner.succeed();
-                    console.log('resolvinggggg', stats.stats[0].compilation.outputOptions.filename);
+                    // console.log('resolvinggggg',stats,  stats.stats[0].compilation.outputOptions.filename);
                     const jsFile = stats.stats[0].compilation.outputOptions.filename.toString();
                     const cssFile = stats.stats[0].compilation.outputOptions.cssFilename.toString();
                     resolve({jsFile, cssFile});
                 });
             });
+        } catch (error) {
+            spinner.fail();
+            throw new CommandError(error.message);
+        }
+    }
+
+    static watchExtensionCodeBuild(
+        bundleName: string,
+        port: number = 5502,
+        callback: Function,
+    ) {
+        let spinner = new Spinner('Building Extension Code');
+        try {
+            spinner.start();
+
+            const context = process.cwd();
+            const webpackConfig = extensionWebpackConfig({
+                isLocal : true,
+                bundleName,
+                port,
+                context
+            });
+
+
+            const compiler = webpack(webpackConfig);
+            console.log('WATCHING CHANGES HERE === ')
+            compiler.watch(
+                {
+                    aggregateTimeout: 1500,
+                    ignored: /node_modules/,
+                    poll: undefined,
+                },
+                (err, stats) => {
+                    // console.log({err, stats})
+                    console.log(stats?.stats?.toString?.(), err)
+                    if (err) {
+                        console.log(err);
+                        throw err;
+                    }
+                    callback(stats);
+                },
+            );
+
         } catch (error) {
             spinner.fail();
             throw new CommandError(error.message);
@@ -244,7 +292,7 @@ export default class ExtensionSection {
 
         const files = [
             ['js', `${sectionName}.umd.min.js`],
-            ['css', `${sectionName}.css`],
+            ['css', `${sectionName}.umd.min.css`],
         ];
         const uploadURLs = {};
         const promises = files.map(([fileExtension, fileName]) => {
@@ -313,11 +361,7 @@ export default class ExtensionSection {
         try {
             console.log(options);
             const { name: bundleName } = options;
-            const rootPath = process.cwd();
-            process.chdir(path.join(process.cwd(), 'sections', bundleName));
-            Logger.info('Building Extension Code ...');
-            const { jsFile, cssFile } = await ExtensionSection.buildExtensionCode(bundleName, true);
-            process.chdir(rootPath);
+
             const serverPort =
             typeof options['port'] === 'string'
                 ? parseInt(options['port'])
@@ -332,6 +376,20 @@ export default class ExtensionSection {
                     ),
             );
 
+            const rootPath = process.cwd();
+            process.chdir(path.join(process.cwd(), 'sections', bundleName));
+            Logger.info('Building Extension Code ...');
+            const { jsFile, cssFile } = await ExtensionSection.buildExtensionCode({
+                bundleName,
+                port,
+                isLocal: true
+            });
+            
+            ExtensionSection.watchExtensionCodeBuild(bundleName, port, (stats) => {
+                console.log('Reloading');
+                reload();
+            });
+            process.chdir(rootPath);
             const bundleDist = path.resolve(rootPath, 'sections', bundleName, 'dist');
             console.log({port, bundleDist}, { jsFile, cssFile })
             Logger.info('Starting Local Extension Server ...');
@@ -341,10 +399,10 @@ export default class ExtensionSection {
             Logger.info('Starting Ngrok Tunnel ...');
             const url = await ngrok.connect(port);
             
-                        const assetUrls = {
-                            js: `${url}/${jsFile}`, 
-                            css: `${url}/${cssFile}`
-                        };
+            const assetUrls = {
+                js: `${url}/${jsFile}`, 
+                css: `${url}/${cssFile}`
+            };
             
             console.log(assetUrls);
 
@@ -358,6 +416,8 @@ export default class ExtensionSection {
             console.log({encoded});
 
             const previewURL = `${domain}?extensionHash=${encoded}`;
+
+            console.log(`PREVIEW URL :\n\n ${previewURL}\n\n`)
 
             console.log(
                 boxen(

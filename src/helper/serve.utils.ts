@@ -36,6 +36,7 @@ let headers = {
 };
 
 export function reload() {
+
     sockets.forEach((s) => {
         s.emit('reload');
     });
@@ -499,7 +500,7 @@ export async function startExtensionServer(options: ExtensionServerOptions) {
             sockets = sockets.filter((s) => s !== socket);
         });
     });
-app.use(cors())
+    app.use(cors())
     // parse application/x-www-form-urlencoded
     app.use(express.json());
 

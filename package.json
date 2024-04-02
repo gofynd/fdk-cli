@@ -30,6 +30,7 @@
     "publish-check": "node scripts"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.24.3",
     "@types/async": "^3.2.6",
     "@types/boxen": "^3.0.1",
     "@types/chalk": "^2.2.0",
