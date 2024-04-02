@@ -172,7 +172,8 @@ export async function startServer({ domain, host, isSSR, port }) {
     });
     app.get('/*', async (req, res) => {
         // If browser is not requesting for html page (it can be file, API call, etc...), then fetch and send requested data directly from source
-        if(!req.headers.accept.includes("text/html")) { // while text/html is a commonly included type, it's not a strict requirement for all browsers to include it in their Accept headers for HTML page requests.
+        const acceptHeader = req.get('Accept');
+        if(acceptHeader && !acceptHeader.includes('text/html')) { // while text/html is a commonly included type, it's not a strict requirement for all browsers to include it in their Accept headers for HTML page requests.
             return await requestToOriginalSource(req, res, domain);
         }
         
