@@ -135,26 +135,30 @@ async function setupServer({ domain }) {
         }
     });
 
-    app.get(/\/cloudflare-static/, async (req, res) => {
-        Debug("Requesting to cloudflare...")
-        const { originalUrl } = req
-        try{
-            const networkRes = await axios.get(
-                urlJoin(domain, originalUrl)
-            );
-            res.set(networkRes.headers);
-            return res.send(networkRes.data);
-        }catch(err){
-            Debug(err);
-            console.log('Error loading file ', originalUrl);
-        }
-    });
-
     app.get('/_healthz', (req, res) => {
         res.json({ ok: 'ok' });
     });
 
     return { currentContext, app, server, io };
+}
+
+async function requestToOriginalSource(req, res, domain){
+    Debug("Requesting to original source...")
+    const url = req.path
+    if (publicCache[url]) {
+        for (const [key, value] of Object.entries(
+            publicCache[url].headers,
+        )) {
+            res.header(key, `${value}`);
+        }
+        return res.send(publicCache[url].body);
+    }
+    const networkRes = await axios.get(urlJoin(domain, url));
+    publicCache[url] = publicCache[url] || {};
+    publicCache[url].body = networkRes.data;
+    publicCache[url].headers = networkRes.headers;
+    res.set(publicCache[url].headers);
+    return res.send(publicCache[url].body);
 }
 
 export async function startServer({ domain, host, isSSR, port }) {
@@ -167,6 +171,11 @@ export async function startServer({ domain, host, isSSR, port }) {
         return res.end();
     });
     app.get('/*', async (req, res) => {
+        // If browser is not requesting for html page (it can be file, API call, etc...), then fetch and send requested data directly from source
+        if(!req.headers.accept.includes("text/html")) { // while text/html is a commonly included type, it's not a strict requirement for all browsers to include it in their Accept headers for HTML page requests.
+            return await requestToOriginalSource(req, res, domain);
+        }
+        
         const BUNDLE_PATH = path.join(
             process.cwd(),
             path.join('.fdk', 'dist', 'themeBundle.common.js'),
