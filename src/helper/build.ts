@@ -6,6 +6,7 @@ import webpack from 'webpack';
 import createBaseWebpackConfig from '../helper/theme.react.config';
 import fs from 'fs';
 import rimraf from 'rimraf';
+import open from 'open';
 
 export const THEME_ENTRY_FILE = path.join('theme', 'index.js');
 
@@ -66,6 +67,7 @@ interface DevBuild {
     buildFolder: string;
     imageCdnUrl: string;
     isProd: boolean;
+    browserLink?: string
 }
 
 interface DevReactBuild {
@@ -77,7 +79,7 @@ interface DevReactBuild {
     isHMREnabled: boolean;
 }
 
-export function devBuild({ buildFolder, imageCdnUrl, isProd }: DevBuild) {
+export function devBuild({ buildFolder, imageCdnUrl, isProd, browserLink }: DevBuild) {
     const VUE_CLI_PATH = path.join(
         '.',
         'node_modules',
@@ -91,7 +93,7 @@ export function devBuild({ buildFolder, imageCdnUrl, isProd }: DevBuild) {
 
     return new Promise((resolve, reject) => {
         let b = exec(
-            `node ${VUE_CLI_PATH} build --target lib --dest ${buildFolder} --name themeBundle ${THEME_ENTRY_FILE}`,
+            `node ${VUE_CLI_PATH} build --watch --target lib --dest ${buildFolder} --name themeBundle ${THEME_ENTRY_FILE}`,
             {
                 cwd: process.cwd(),
                 env: {
@@ -110,8 +112,27 @@ export function devBuild({ buildFolder, imageCdnUrl, isProd }: DevBuild) {
             },
         );
 
-        b.stdout.pipe(process.stdout);
-        b.stderr.pipe(process.stderr);
+        let isFirstBuild = true;
+        const spinner = new Spinner('Building theme');
+
+        // b.stdout.pipe(process.stdout);
+        // b.stderr.pipe(process.stderr);
+        b.stdout.on('data', async (data) => {
+            if (!data.includes("Images and other types of assets omitted.")) { 
+                spinner.start()
+            }
+            if (data.includes("Images and other types of assets omitted.")) {
+                if (isFirstBuild) {
+                    try {
+                        await open(browserLink);
+                    } catch (err) {
+                        console.log(`Open in browser: ${browserLink}`);
+                    }
+                    isFirstBuild = false;
+                }
+                spinner.succeed()
+            }
+        })
 
         b.on('exit', function (code) {
             if (!code) {
