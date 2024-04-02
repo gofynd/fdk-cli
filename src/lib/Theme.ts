@@ -1155,15 +1155,15 @@ export default class Theme {
             //     console.log(`Open in browser: ${getFullLocalUrl(port)}`);
             // }
             // Logger.info(chalk.bold.green(`Watching files for changes`));
-            let watcher = chokidar.watch(path.resolve(process.cwd(), '.fdk/dist'), {
-                persistent: true,
-            });
-            watcher.on('change', debounce(()=>{
-                Logger.info(chalk.bold.green(`building done`));
-                console.log("refresssssssss");
+            // let watcher = chokidar.watch(path.resolve(process.cwd(), '.fdk/dist'), {
+            //     persistent: true,
+            // });
+            // watcher.on('change', debounce(()=>{
+            //     Logger.info(chalk.bold.green(`building done`));
+            //     console.log("refresssssssss");
                 
-                // reload();
-            }, 2000));
+            //     // reload();
+            // }, 2000));
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }

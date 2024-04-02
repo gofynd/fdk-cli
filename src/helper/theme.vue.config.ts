@@ -9,6 +9,13 @@ let vueConfig = {};
 let fileConfigPath = null;
 const context = process.cwd();
 
+class BuildCompletePlugin {
+  apply(compiler) {
+    compiler.hooks.done.tap('BuildCompletePlugin', () => {
+      console.log("Refreshing theme page");
+    });
+  }
+}
 
 class FDKPlugin {
   apply(compiler) {
@@ -100,6 +107,7 @@ const configureWebpack = (config) => {
   if(process.env.BUILD_TYPE === 'sync') {
     plugins.push(new FDKPlugin())
   }
+  plugins.push(new BuildCompletePlugin())
   if(isCommonJs) {
     plugins.push(
       new webpack.optimize.LimitChunkCountPlugin({

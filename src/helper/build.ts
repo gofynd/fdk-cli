@@ -7,6 +7,8 @@ import createBaseWebpackConfig from '../helper/theme.react.config';
 import fs from 'fs';
 import rimraf from 'rimraf';
 import open from 'open';
+import { reload } from './serve.utils';
+import { debounce } from 'lodash';
 
 export const THEME_ENTRY_FILE = path.join('theme', 'index.js');
 
@@ -115,20 +117,23 @@ export function devBuild({ buildFolder, imageCdnUrl, isProd, browserLink }: DevB
         let isFirstBuild = true;
         const spinner = new Spinner('Building theme');
 
-        // b.stdout.pipe(process.stdout);
-        // b.stderr.pipe(process.stderr);
+        b.stdout.pipe(process.stdout);
+        b.stderr.pipe(process.stderr);
+        const refreshPage = debounce(() => reload(), 1000);
         b.stdout.on('data', async (data) => {
-            if (!data.includes("Images and other types of assets omitted.")) { 
+            if (data.includes("Build process starting...")) { 
                 spinner.start()
             }
-            if (data.includes("Images and other types of assets omitted.")) {
+            if (data.includes("Refreshing theme page")) {
                 if (isFirstBuild) {
                     try {
                         await open(browserLink);
                     } catch (err) {
-                        console.log(`Open in browser: ${browserLink}`);
+                        console.log("Open:", browserLink);
                     }
                     isFirstBuild = false;
+                }else{
+                    refreshPage();
                 }
                 spinner.succeed()
             }
