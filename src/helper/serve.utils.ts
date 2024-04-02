@@ -110,31 +110,6 @@ async function setupServer({ domain }) {
     // parse application/x-www-form-urlencoded
     app.use(express.json());
 
-    app.use('/public', async (req, res, done) => {
-        const themeId = currentContext.theme_id;
-        const { url } = req;
-        try {
-            if (publicCache[url]) {
-                for (const [key, value] of Object.entries(
-                    publicCache[url].headers,
-                )) {
-                    res.header(key, `${value}`);
-                }
-                return res.send(publicCache[url].body);
-            }
-            const networkRes = await axios.get(
-                urlJoin(domain, 'public', url, `?themeId=${themeId}`),
-            );
-            publicCache[url] = publicCache[url] || {};
-            publicCache[url].body = networkRes.data;
-            publicCache[url].headers = networkRes.headers;
-            res.set(publicCache[url].headers);
-            return res.send(publicCache[url].body);
-        } catch (e) {
-            console.log('Error loading file ', url);
-        }
-    });
-
     app.get('/_healthz', (req, res) => {
         res.json({ ok: 'ok' });
     });
