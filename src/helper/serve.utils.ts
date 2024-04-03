@@ -489,7 +489,7 @@ type ExtensionServerOptions = {
     port: number
  }
 export async function startExtensionServer(options: ExtensionServerOptions) {
-    const {bundleDist, port} = options;
+    const { bundleDist, port } = options;
     const app = express();
     const server = require('http').createServer(app);
     const io = require('socket.io')(server);

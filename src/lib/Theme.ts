@@ -1351,9 +1351,7 @@ export default class Theme {
             Theme.BUILD_FOLDER,
             'sections/sections.commonjs.js',
         );
-            console.log({sectionPath});
-            const imported = require(sectionPath)?.sections?.default;
-            console.log({imported});
+        const imported = require(sectionPath)?.sections?.default;
 
         if (!imported) {
             Logger.error('Error occured');
@@ -1993,7 +1991,6 @@ export default class Theme {
             theme.is_private = true;
             return theme;
         } catch (err) {
-            console.log(err)
             throw new CommandError(`Failed to set theme data `);
         }
     };

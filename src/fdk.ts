@@ -173,7 +173,6 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
                 }
             }
             if (parent.args.includes('theme')) {
-                console.log('========================')
                 if (!isAThemeDirectory()) {
                     const answer = await promptForFDKFolder();
                     if (!answer) {

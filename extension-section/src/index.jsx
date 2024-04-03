@@ -1,6 +1,5 @@
-import * as BannerImageSection from './components/rating';
-
+import * as ProductList from './sections/product-list';
 
 export default {
-            'raw-html': { ...BannerImageSection, },
-        }
+    'product-list': { ...ProductList, },
+}

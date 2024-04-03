@@ -101,50 +101,6 @@ export default class ExtensionSection {
         await ExtensionSection.installNpmPackages();
     }
 
-    public static async syncExtensionBinding(options: ExtensionSectionOptions) {
-
-        const bundleName = options.name;
-        Logger.info(`c ${bundleName} section updated`);
-
-        const sectionExists = await ExtensionSection.sectionExists(bundleName);
-
-        if (!sectionExists) {
-            throw new Error('Section Does Not Exist!');
-        }
-
-        process.chdir(path.join(process.cwd(), 'sections', options.name));
-
-        await ExtensionSection.buildExtensionCode({bundleName}).catch(
-            console.log,
-        );
-        const uploadURLs =
-            await ExtensionSection.uploadSectionFiles(bundleName);
-
-        const availableSections = await ExtensionSection.getAvailableSections();
-        
-        //TO DO : remove extra data.
-        const sections = [];
-        for (const key in availableSections) {
-            if (availableSections.hasOwnProperty(key)) {
-                sections.push(availableSections[key]['settings']);
-            }
-        }
-
-        const data = {
-            extension_id: extensionId,
-            bundle_name: bundleName,
-            organization_id: organisationId,
-            sections,
-            assets: uploadURLs,
-          };
-
-          console.log(data)
-
-        await ExtensionSection.publishExtensionBindings(data);
-
-        // const sections = await extensionService.uploadBindingSections(extensionId, sectionName);
-    }
-
     public static async syncExtensionBindings() {
 
         const sectionDirectory = path.resolve(process.cwd(), 'sections');
@@ -156,11 +112,10 @@ export default class ExtensionSection {
             const sectionData = await ExtensionSection.extractSectionsData(bundleName);
             data.push(sectionData);
         }
-       
-        console.log(data);
 
         await ExtensionSection.publishExtensionBindings(data);
 
+        Logger.info('Code published ...');
         // const sections = await extensionService.uploadBindingSections(extensionId, sectionName);
     }
 
@@ -212,17 +167,15 @@ export default class ExtensionSection {
 
             return new Promise((resolve, reject) => {
                 webpack(webpackConfig, (err, stats) => {
-                    console.log({stats, err})
-                    console.log(err);
+                    console.log(stats.stats.toString())
                     if (err || stats.hasErrors()) {
-                        console.log(err);
+
                         reject();
                     }
                     spinner.succeed();
-                    // console.log('resolvinggggg',stats,  stats.stats[0].compilation.outputOptions.filename);
                     const jsFile = stats.stats[0].compilation.outputOptions.filename.toString();
                     const cssFile = stats.stats[0].compilation.outputOptions.cssFilename.toString();
-                    resolve({jsFile, cssFile});
+                    resolve({ jsFile, cssFile });
                 });
             });
         } catch (error) {
@@ -250,7 +203,7 @@ export default class ExtensionSection {
 
 
             const compiler = webpack(webpackConfig);
-            console.log('WATCHING CHANGES HERE === ')
+
             compiler.watch(
                 {
                     aggregateTimeout: 1500,
@@ -258,10 +211,7 @@ export default class ExtensionSection {
                     poll: undefined,
                 },
                 (err, stats) => {
-                    // console.log({err, stats})
-                    console.log(stats?.stats?.toString?.(), err)
                     if (err) {
-                        console.log(err);
                         throw err;
                     }
                     callback(stats);
@@ -310,7 +260,6 @@ export default class ExtensionSection {
 
         await Promise.all(promises);
 
-        console.log(uploadURLs);
         return uploadURLs;
     }
 
@@ -325,7 +274,6 @@ export default class ExtensionSection {
         try {
             sectionsMeta = require(sectionFilePath);
         } catch (error) {
-            console.log(error);
             throw new Error(
                 'Cannot read section data from bundled file : ',
                 error.message,
@@ -335,23 +283,13 @@ export default class ExtensionSection {
         return sectionsMeta?.sections?.default ?? {};
     }
 
-    public static async getAllSections(options: any) {
-        const extensionId = '6095e29a35e3992e9a0d0794';
-        try {
-            const sections = await extensionService.getAllSections(extensionId);
-            console.log(sections);
-        } catch (error) {
-            console.log(error);
-        }
-    }
-    public static async publishExtensionBindings(data: any) {
+    static async publishExtensionBindings(data: any) {
         try {
             const sections = await extensionService.publishExtensionBindings(
                 extensionId,
                 organisationId,
                 data,
             );
-            console.log(sections);
         } catch (error) {
             console.log(error);
         }
@@ -359,7 +297,6 @@ export default class ExtensionSection {
 
     public static async serveExtensionSections(options: any) {
         try {
-            console.log(options);
             const { name: bundleName } = options;
 
             const serverPort =
@@ -386,12 +323,10 @@ export default class ExtensionSection {
             });
             
             ExtensionSection.watchExtensionCodeBuild(bundleName, port, (stats) => {
-                console.log('Reloading');
                 reload();
             });
             process.chdir(rootPath);
             const bundleDist = path.resolve(rootPath, 'sections', bundleName, 'dist');
-            console.log({port, bundleDist}, { jsFile, cssFile })
             Logger.info('Starting Local Extension Server ...');
             await startExtensionServer({ bundleDist, port });
             
@@ -404,39 +339,16 @@ export default class ExtensionSection {
                 css: `${url}/${cssFile}`
             };
             
-            console.log(assetUrls);
-
-            console.log({ url });
             const data = {
                 bundle: bundleName,
                 assets: assetUrls,
             };
 
             const encoded = encodeURI(JSON.stringify(data));
-            console.log({encoded});
 
             const previewURL = `${domain}?extensionHash=${encoded}`;
 
             console.log(`PREVIEW URL :\n\n ${previewURL}\n\n`)
-
-            console.log(
-                boxen(
-                    chalk.bold.black(
-                        `PREVIEW URL: \n\n${previewURL}`,
-                    ),
-                    {
-                        borderStyle: {
-                            topLeft: ' ',
-                            topRight: ' ',
-                            bottomLeft: ' ',
-                            bottomRight: ' ',
-                            horizontal: ' ',
-                            vertical: ' ',
-                        },
-                        backgroundColor: 'greenBright',
-                    },
-                ),
-            );
 
         } catch (error) {
             console.log(error);

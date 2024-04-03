@@ -115,7 +115,6 @@ export function extensionWebpackConfig(env: ExtensionBuildContext): Configuratio
             'fdk-core/components': 'sharedComponentLibrary',
             'fdk-core/utils': 'sharedUtilsLibrary',
             'react-helmet-async': 'helmetModule',
-            'styled-components': 'styledComponents',
         },
         output: {
             filename: `${env.bundleName}.umd.min.js`,
@@ -187,7 +186,6 @@ export function extensionWebpackConfig(env: ExtensionBuildContext): Configuratio
             'react-router-dom': 'fs',
             'fdk-core/utils': 'fs',
             'react-helmet-async': 'fs',
-            'styled-components': 'fs',
         },
         output: {
             filename: 'sections.commonjs.js',

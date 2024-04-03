@@ -73,11 +73,6 @@ export default function extensionCommandBuilder() {
         .asyncAction(ExtensionSection.syncExtensionBindings);
 
     section
-        .command('ls')
-        .description('List extension sections')
-        // .requiredOption('-id, --id [id]', 'extensionID')
-        .asyncAction(ExtensionSection.getAllSections);
-    section
         .command('run')
         .description('Serve extension sections')
         .requiredOption('-n, --name [name]', 'Bundle Name')
