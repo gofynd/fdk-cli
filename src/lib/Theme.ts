@@ -60,6 +60,7 @@ import {
 } from '../helper/theme.vue.config';
 import { simpleGit } from 'simple-git';
 import { THEME_TYPE } from '../helper/constants';
+import { MultiStats } from 'webpack';
 
 const nanoid = customAlphabet(
     '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
@@ -113,7 +114,24 @@ export default class Theme {
         if (fs.existsSync(settings_path)) return settings_path;
         throw 'Settings path not exist';
     }
+    public static async getThemeBundle(stats: MultiStats) {
+        const outputFileName = stats.stats[0].toJson().assets[0].name;
+        const buildPath = path.join(process.cwd(), Theme.BUILD_FOLDER);
+        const outputFilePath = path.resolve(buildPath, outputFileName);
 
+        const bundle = Theme.evaluateBundle(outputFilePath);
+
+        const contexts = getActiveContext();
+
+        const parsed = await bundle({
+            applicationID: contexts.application_id,
+            applicationToken: contexts.application_token,
+            domain: contexts.domain,
+            storeInitialData: {},
+        });
+
+        return parsed;
+ }
     public static getSettingsSchemaPath() {
         let settings_schema_path = path.join(
             process.cwd(),
@@ -521,14 +539,15 @@ export default class Theme {
             }
 
             Logger.info('Building Theme...');
-            await devReactBuild({
+            const stats =  await devReactBuild({
                 buildFolder: Theme.BUILD_FOLDER,
                 runOnLocal: true,
                 isHMREnabled: false,
             });
 
+            const parsed = await Theme.getThemeBundle(stats)
             const available_sections =
-                await Theme.getAvailableReactSectionsForSync();
+                await Theme.getAvailableReactSectionsForSync(parsed.sections);
             let settings_schema = await fs.readJSON(
                 path.join(
                     process.cwd(),
@@ -815,6 +834,8 @@ export default class Theme {
             let { data: theme } =
                 await ThemeService.getThemeById(currentContext);
 
+            await Theme.matchWithLatestPlatformConfig(theme, false);
+
             // Clear previosu builds
             Theme.clearPreviousBuild();
 
@@ -841,7 +862,7 @@ export default class Theme {
             const assetBasePath = await Theme.getAssetCdnBaseUrl();
 
             Logger.info('Building Theme for Production...');
-            await devReactBuild({
+            const stats = await devReactBuild({
                 buildFolder: Theme.BUILD_FOLDER,
                 runOnLocal: false,
                 assetBasePath,
@@ -849,6 +870,7 @@ export default class Theme {
                 isHMREnabled: false,
             });
 
+            const parsed = await Theme.getThemeBundle(stats)
             Logger.info('Uploading theme assets/images');
             await Theme.assetsImageUploader();
 
@@ -856,7 +878,7 @@ export default class Theme {
             await Theme.assetsFontsUploader();
 
             let available_sections =
-                await Theme.getAvailableReactSectionsForSync();
+                await Theme.getAvailableReactSectionsForSync(parsed.sections);
 
             await Theme.validateAvailableSections(available_sections);
 
@@ -871,7 +893,7 @@ export default class Theme {
 
             Logger.info('Updating Available pages');
             const { allowedDefaultProps } =
-                await Theme.updateAvailablePagesForReact();
+                await Theme.updateAvailablePagesForReact(parsed.customTemplates);
 
             // Set new theme data
             const newTheme = await Theme.setThemeData(
@@ -1343,27 +1365,68 @@ export default class Theme {
         });
         return settings;
     }
-    private static async getAvailableReactSectionsForSync() {
-        const sectionPath = path.resolve(
-            process.cwd(),
-            Theme.BUILD_FOLDER,
-            'sections/sections.commonjs.js',
-        );
+    private static async getAvailableReactSectionsForSync(sections) {
+        const context = getActiveContext();
 
-        const imported = require(sectionPath)?.sections?.default;
-
-        if (!imported) {
+        if (!sections) {
             Logger.error('Error occured');
         }
 
         const allSections = Object.entries<{ settings: any; Component: any }>(
-            imported,
+            sections,
         ).map(([name, sectionModule]) => ({
             name,
             ...(sectionModule.settings || {}),
         }));
 
         return allSections;
+    }
+
+    static evaluateBundle(path, key = 'themeBundle') {
+        const code = fs.readFileSync(path, { encoding:'utf8' })
+        const scope = {
+            self: {
+                React: {},
+                ReactRouterDOM: {},
+                webpackChunkthemeBundle: [],
+                sharedComponentLibrary: {},
+                sharedUtilsLibrary: {},
+                helmetModule: {},
+                atob: globalThis.atob,
+                btoa: globalThis.btoa,
+            },
+            XMLHttpRequest: {},
+            /**
+             * console.log is an expensive synchronous logger.
+             * It is performant to patch theme implementation of console.log
+             * ! It only applies to server side evaluation
+             */
+            console: {
+                log: () => {
+                    // Overrides `console.log` methpd for theme
+                },
+                info: () => {
+                    // Overrides `console.info` methpd for theme
+                },
+                error: () => {
+                    // Overrides `console.error` methpd for theme
+                },
+                warn: () => {
+                    // Overrides `console.warn` methpd for theme
+                },
+            },
+            // Restrict `process` access to themes
+            // specifying version has a dependency on SDK
+            // It lets SDK know code is being executed in Node env
+            process: {
+                versions: {
+                    node: 'v20',
+                },
+            },
+        };
+        const fn = new Function(...Object.keys(scope), code);
+        fn(...Object.values(scope));
+        return scope.self[key]?.default ?? scope.self[key];
     }
     private static extractSettingsFromFile(path) {
         try {
@@ -1389,6 +1452,7 @@ export default class Theme {
             const data = findExportedVariable(path, 'settings');
             try {
                 const settings = JSON.parse(data);
+                console.log(`Settings in ${path} file : `, {settings})
                 return settings || {};
             } catch (error) {
                 Logger.error(error);
@@ -1407,6 +1471,7 @@ export default class Theme {
             const data = findExportedVariable(path, 'sections');
             try {
                 const settings = JSON.parse(data);
+                console.log(``)
                 return settings || {};
             } catch (error) {
                 Logger.error(error);
@@ -1970,15 +2035,14 @@ export default class Theme {
                         if (!allowedDefaultProps[pageData.page])
                             return pageData;
 
-                        Object.keys(pageData.settings.props).forEach((prop) => {
-                            if (
-                                !allowedDefaultProps[pageData.page].includes(
-                                    prop,
-                                )
-                            ) {
-                                delete pageData.settings.props[prop];
-                            }
-                        });
+                            Object.keys(pageData.settings?.props || {}).forEach((prop) => {
+                                if (
+                                    pageData.settings && pageData.settings.props &&
+                                    !allowedDefaultProps[pageData.page]?.includes(prop)
+                                ) {
+                                    delete pageData.settings.props[prop];
+                                }
+                            });
                     });
                     return listItem;
                 });
@@ -2246,7 +2310,7 @@ export default class Theme {
             throw new CommandError(err.message, err.code);
         }
     };
-    private static updateAvailablePagesForReact = async () => {
+    private static updateAvailablePagesForReact = async (customTemplates) => {
         const spinner = new Spinner('Adding/updating available pages');
         try {
             spinner.start();
@@ -2259,9 +2323,9 @@ export default class Theme {
             // extract system page level settings schema
             let systemPages = fs
                 .readdirSync(path.join(process.cwd(), 'theme', 'pages'))
-                .filter((o) => o != 'index.jsx' && o != 'index.tsx');
+                .filter((o) => !o.startsWith('index'));
             await asyncForEach(systemPages, async (fileName) => {
-                let pageName = fileName.replace('.jsx', '').replace('.tsx', '');
+                let pageName = fileName.replace(/\.[^.]+$/, '');
                 // SYSTEM Pages
                 let systemPage = systemPagesDB.find((p) => p.value == pageName);
                 if (!systemPage) {
@@ -2368,14 +2432,6 @@ export default class Theme {
                 );
             }
 
-            const sectionPath = path.resolve(
-                process.cwd(),
-                Theme.BUILD_FOLDER,
-                'custom-templates/custom-templates.commonjs.js',
-            );
-
-            const customTemplates =
-                require(sectionPath)?.customTemplates?.default;
             if (!customTemplates) {
                 Logger.error('Custom Templates Not Available');
             }
@@ -2434,7 +2490,7 @@ export default class Theme {
                     ).data;
                 }
                 customPage.props = customPageConfig.fileSetting || [];
-                customPage.sections_meta = [];
+                customPage.sections_meta = [{}];
                 customPage.type = 'custom';
                 pagesToSave.push(customPage);
             }
@@ -2607,7 +2663,7 @@ export default class Theme {
         const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
 
         Logger.info('Building Assets for React Theme');
-        await devReactBuild({
+       const stats = await devReactBuild({
             buildFolder: Theme.BUILD_FOLDER,
             runOnLocal: false,
             assetBasePath: assetCdnUrl,
@@ -2616,7 +2672,9 @@ export default class Theme {
         });
 
         await Theme.createReactSectionsIndexFile();
-        let available_sections = await Theme.getAvailableReactSectionsForSync();
+        const parsed = await Theme.getThemeBundle(stats)
+        
+        let available_sections = await Theme.getAvailableReactSectionsForSync(parsed.sections);
         await Theme.validateAvailableSections(available_sections);
 
         const buildPath = path.join(process.cwd(), Theme.BUILD_FOLDER);

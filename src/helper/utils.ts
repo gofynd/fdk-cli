@@ -296,17 +296,17 @@ export const isValidDomain = (domain) => {
     return domainRegex.test(domain);
 };
 
-export function transformJSXToJS(jsxCode: any) {
+export function transformCodeToJS(code: any) {
     const options = {
         filename: 'pages.tsx',
         presets: ['@babel/preset-react', '@babel/preset-typescript'],
     };
 
     try {
-        const result = babel.transformSync(jsxCode, options);
+        const result = babel.transformSync(code, options);
         return result?.code;
     } catch (error) {
-        console.error('Error transforming JSX to JS:', error);
+        console.error('Error transforming JSX/TSX to JS:', error);
         return null;
     }
 }
@@ -317,7 +317,7 @@ export function findExportedVariable(
 ): any {
     // Read the JavaScript file content
     const fileContent = fsNode.readFileSync(filePath, 'utf8');
-    const parsedContents = transformJSXToJS(fileContent) || '';
+    const parsedContents = transformCodeToJS(fileContent) || '';
 
     // Parse the JavaScript code into an Abstract Syntax Tree (AST)
     const ast = acorn.parse(parsedContents, {
