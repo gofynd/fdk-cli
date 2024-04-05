@@ -67,13 +67,13 @@ export default function extensionCommandBuilder() {
         .asyncAction(ExtensionSection.initExtensionSection);
 
     section
-        .command('pub')
+        .command('publish')
         .description('Sync extension section')
         // .requiredOption('-n, --name [name]', 'Section Name')
         .asyncAction(ExtensionSection.syncExtensionBindings);
 
     section
-        .command('run')
+        .command('preview')
         .description('Serve extension sections')
         .requiredOption('-n, --name [name]', 'Bundle Name')
         .option('-p, --port [port]', 'Server Port')

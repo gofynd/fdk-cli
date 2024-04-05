@@ -1,11 +1,11 @@
 import React, { useEffect } from "react";
 
 import { useGlobalStore, useFPI } from "fdk-core/utils";
-
+import { Helmet } from "react-helmet-async";
 import styles from "../styles/style.css";
 import { ProductCard } from "../components/ProductCard";
 
-export function Component() {
+export function Component({ props }) {
   const fpi = useFPI();
   const products = useGlobalStore(fpi.getters.PRODUCTS);
 
@@ -16,8 +16,13 @@ export function Component() {
     }
   }, []);
 
+  const title = props?.title?.value ?? 'Extension Title Default'
+
   return (
     <div>
+      <Helmet>
+        <title>{ title }</title>
+      </Helmet>
       <h1>Product List using Extension for Sky🔥</h1>
 
       {!productItems.length ? (
@@ -40,11 +45,11 @@ export const settings = {
   name: "product-list",
   props: [
     {
-      id: "number",
-      label: "Number Of Products",
+      id: "title",
+      label: "Page Title",
       type: "text",
-      default: 1,
-      info: "number of products to show",
+      default: "Extension Title",
+      info: "Page Title",
     },
   ],
   blocks: [],

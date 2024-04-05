@@ -14,7 +14,9 @@ import extensionService from './api/services/extension.service';
 import { getPort, startExtensionServer, reload } from '../helper/serve.utils';
 import chalk from 'chalk';
 import ngrok from 'ngrok';
-import boxen from 'boxen';
+import Theme from './Theme';
+import configurationService from './api/services/configuration.service';
+import inquirer from 'inquirer';
 
 const readDirectories = promisify(fs.readdir);
 
@@ -22,12 +24,20 @@ type ExtensionSectionOptions = {
     name: string;
 };
 
-const extensionId = "64b3dc661a1b16dea7fadc22";
-const organisationId = "65f94f498f7d44c70fcb9026";
-const domain = "https://test-company-1-hosted-karanraina.sandbox.fynd.engineering";
+type ExtensionContext = {
+    extensionId: string;
+    organisationId: string;
+    domain: string;
+}
+
+// const extensionId = "64b3dc661a1b16dea7fadc22";
+// const organisationId = "65f94f498f7d44c70fcb9026";
+// const domain = "https://test-company-1-hosted-karanraina.sandbox.fynd.engineering";
 
 export default class ExtensionSection {
     static SECTIONS_DIR = 'sections';
+    static CONTEXT_FILENAME = 'context.json';
+    static CONTEXT_DIR_PATH = '.fdk';
 
     public static async initExtensionSection(options: ExtensionSectionOptions) {
         try {
@@ -103,6 +113,8 @@ export default class ExtensionSection {
 
     public static async syncExtensionBindings() {
 
+        const context = await ExtensionSection.getContextData();
+        Logger.info(`Syncing Extension Sections to : ${context.domain}`)
         const sectionDirectory = path.resolve(process.cwd(), 'sections');
         const bundleNames = fs.readdirSync(sectionDirectory);
 
@@ -113,14 +125,14 @@ export default class ExtensionSection {
             data.push(sectionData);
         }
 
-        await ExtensionSection.publishExtensionBindings(data);
+        await ExtensionSection.publishExtensionBindings(data, context);
 
         Logger.info('Code published ...');
-        // const sections = await extensionService.uploadBindingSections(extensionId, sectionName);
     }
 
     static async extractSectionsData(bundleName): Promise<any> {
         const currentRoot = process.cwd();
+        const context = await ExtensionSection.getContextData();
         process.chdir(path.join(currentRoot, 'sections', bundleName));
 
         await ExtensionSection.buildExtensionCode({bundleName}).catch(console.error);
@@ -138,9 +150,9 @@ export default class ExtensionSection {
         }
 
         const data = {
-            extension_id: extensionId,
+            extension_id: context.extensionId,
             bundle_name: bundleName,
-            organization_id: organisationId,
+            organization_id: context.organisationId,
             sections,
             assets: uploadURLs,
           };
@@ -283,13 +295,73 @@ export default class ExtensionSection {
         return sectionsMeta?.sections?.default ?? {};
     }
 
-    static async publishExtensionBindings(data: any) {
+    static async publishExtensionBindings(data: any, context: ExtensionContext) {
         try {
-            const sections = await extensionService.publishExtensionBindings(
-                extensionId,
-                organisationId,
+            await extensionService.publishExtensionBindings(
+                context.extensionId,
+                context.organisationId,
                 data,
             );
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    static async promptExtensionDetails() {
+        const questions = [
+            {
+                type: 'text',
+                name: 'extensionId',
+                message: 'Enter Extension ID.',
+            },
+            {
+                type: 'text',
+                name: 'organisationId',
+                message: 'Enter Organisation ID.',
+            },
+        ];
+
+        const answers = await inquirer.prompt(questions);
+        return answers;
+    }
+
+    static async getContextData() {
+        try {
+            const dirPath = path.resolve(
+                process.cwd(), 
+                ExtensionSection.CONTEXT_DIR_PATH,
+                );
+            const filePath = path.resolve(
+                dirPath,
+                ExtensionSection.CONTEXT_FILENAME,
+                );
+            try {
+                const contextFileExists = fs.statSync(filePath);
+                if (contextFileExists) {
+                    const contextData = fsExtra.readJSONSync(filePath);
+                    return contextData
+                }
+            } catch (error) {
+                console.log(error.message);
+            }
+            const configObj = await Theme.selectCompanyAndStore();
+            const { data: appConfig } = await configurationService.getApplicationDetails(configObj);
+
+            const domain = appConfig?.domain?.name ?? '';
+
+            const answers = await ExtensionSection.promptExtensionDetails();
+
+            const context = {
+                ...answers,
+                domain: domain ? `https://${domain}` : '',
+            }
+
+            fs.mkdirSync(dirPath, { recursive: true })
+
+            fsExtra.writeJSONSync(filePath, context);
+
+            return context;
+
         } catch (error) {
             console.log(error);
         }
@@ -298,6 +370,8 @@ export default class ExtensionSection {
     public static async serveExtensionSections(options: any) {
         try {
             const { name: bundleName } = options;
+
+            const context = await ExtensionSection.getContextData();
 
             const serverPort =
             typeof options['port'] === 'string'
@@ -346,7 +420,7 @@ export default class ExtensionSection {
 
             const encoded = encodeURI(JSON.stringify(data));
 
-            const previewURL = `${domain}?extensionHash=${encoded}`;
+            const previewURL = `${context.domain}?extensionHash=${encoded}`;
 
             console.log(`PREVIEW URL :\n\n ${previewURL}\n\n`)
 
