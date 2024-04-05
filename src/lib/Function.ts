@@ -338,7 +338,7 @@ export default class FunctionCommands {
 
             writeFunctionConfig(data.name, data.description, data.slug, data.type, data.version_data.events);
             writeFunctionCode(data.slug, data.version_data.code_snippet);
-            writeFunctionTest(slug, tests);
+            writeFunctionTest(data.slug, tests);
             updateFunctionContext(currentContext, data.slug, data.hash);
 
             console.log(chalk.green(`Function initialized successfully.\nVerify the function at ${path.join(slugFolderPath)}`));

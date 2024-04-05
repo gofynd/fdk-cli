@@ -1,0 +1,14 @@
+{
+    "extension": {
+      "active_context": "65eadc42113e6460b694966f",
+      "contexts": {
+        "65eadc42113e6460b694966f": {
+          "name": "Extension",
+          "extension_id": "65eadc42113e6460b694966f",
+          "cluster_url": "https://api.fyndx1.de",
+          "organization_id": "65dee4664543cad3fa409311"
+        }
+      }
+    }
+  }
+  

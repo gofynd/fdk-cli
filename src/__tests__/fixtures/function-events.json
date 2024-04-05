@@ -1,0 +1,23 @@
+[
+    {
+      "name": "AddToCart",
+      "slug": "AddToCart",
+      "version": "1.0",
+      "summary": "When item(s) is added to cart",
+      "description": "Trigger the function when item(s) is added to cart"
+    },
+    {
+      "name": "UpdateCart",
+      "slug": "UpdateCart",
+      "version": "1.0",
+      "summary": "When item(s) is updated in the cart",
+      "description": "Trigger the function when item(s) is udpated in the cart"
+    },
+    {
+      "name": "GetCart",
+      "slug": "GetCart",
+      "version": "1.0",
+      "summary": "Execute get cart function",
+      "description": "Trigger the function when fetching all items added to the cart"
+    }
+]

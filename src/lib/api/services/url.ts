@@ -210,10 +210,10 @@ export const URLS = {
         )
     },
 
-    ALL_FUNCTION_TESTS: (extension_id: string, function_id: string, page_size: number, page_no: number) => {
+    ALL_FUNCTION_TESTS: (extension_id: string, function_id: string) => {
         return urlJoin(
             MIXMASTER_URL('partner'),
-            `/organization/${organization_id}/extension/${extension_id}/function/${function_id}/test-case?page_size=${page_size}&page_no=${page_no}`,
+            `/organization/${organization_id}/extension/${extension_id}/function/${function_id}/test-case`,
         )
     },
 

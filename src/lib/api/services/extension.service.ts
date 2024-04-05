@@ -294,9 +294,9 @@ export default {
 
     getAllFunctionTests: async (extension_id: string, function_id: string): Promise<FunctionTestModel[]> => {
         try {
-            const axiosOptions = Object.assign({}, getCommonHeaderOptions());
+            const axiosOptions = Object.assign({}, {params: {page_size:10000, page_no:1}},  getCommonHeaderOptions());
             const response = await ApiClient.get(
-                URLS.ALL_FUNCTION_TESTS(extension_id, function_id, 10000, 1),
+                URLS.ALL_FUNCTION_TESTS(extension_id, function_id),
                 axiosOptions
             )
         return response.data.items;

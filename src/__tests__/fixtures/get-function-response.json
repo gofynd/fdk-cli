@@ -1,0 +1,36 @@
+{
+    "author": {
+      "created_by": "a2905c4ce67a65f346fb087d",
+      "modified_by": "a2905c4ce67a65f346fb087d"
+    },
+    "_id": "660a4d18fab3dd750f0d248b",
+    "name": "New Function",
+    "slug": "new-function",
+    "hash": "1a3f00315fc1b976",
+    "description": "new function description",
+    "organization_id": "65dee4664543cad3fa409311",
+    "extension_id": "6605628b5a109279ec9903a6",
+    "type": "inhook",
+    "created_at": "2024-04-01T05:58:48.916Z",
+    "modified_at": "2024-04-01T06:07:55.595Z",
+    "__v": 0,
+    "version_data": {
+      "author": {
+        "created_by": "a2905c4ce67a65f346fb087d",
+        "modified_by": "a2905c4ce67a65f346fb087d"
+      },
+      "_id": "660a4d18fab3dd750f0d248d",
+      "function_id": "660a4d18fab3dd750f0d248b",
+      "current_status": "draft",
+      "version": "1.0",
+      "events": [
+        {
+          "event_slug": "AddToCart",
+          "event_version": "1.0"
+        }
+      ],
+      "code_snippet": "\n\nfunction AddToCart(eventName, context, payload){\n  return {\n    cart: payload.cart,\n    status: {\n      message: 'successful',\n      code: 200\n    }\n  }\n}",
+      "created_at": "2024-04-01T05:58:48.920Z",
+      "modified_at": "2024-04-01T06:06:50.174Z"
+    }
+  }

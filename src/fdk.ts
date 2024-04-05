@@ -83,7 +83,7 @@ You are currently using ${packageJSON.name} ${packageJSON.version}.
 Install fdk-cli globally using the package manager of your choice.
 ${
     major
-        ? `\nNote: You need to update \`${packageJSON.name}\` first inorder to use it.`
+        ? `\nNote: You need to update \`${packageJSON.name}\` first in order to use it.`
         : ''
 }
 Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;

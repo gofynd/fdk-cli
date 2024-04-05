@@ -1,0 +1,12 @@
+{
+    "name": "New Function",
+    "description": "new function description",
+    "slug": "new-function",
+    "type": "inhook",
+    "events": [
+        {
+            "name": "AddToCart",
+            "version": "1.0"
+        }
+    ]
+}
