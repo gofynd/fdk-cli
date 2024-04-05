@@ -1396,11 +1396,6 @@ export default class Theme {
                 btoa: globalThis.btoa,
             },
             XMLHttpRequest: {},
-            /**
-             * console.log is an expensive synchronous logger.
-             * It is performant to patch theme implementation of console.log
-             * ! It only applies to server side evaluation
-             */
             console: {
                 log: () => {
                     // Overrides `console.log` methpd for theme
@@ -1415,9 +1410,6 @@ export default class Theme {
                     // Overrides `console.warn` methpd for theme
                 },
             },
-            // Restrict `process` access to themes
-            // specifying version has a dependency on SDK
-            // It lets SDK know code is being executed in Node env
             process: {
                 versions: {
                     node: 'v20',
@@ -1452,7 +1444,6 @@ export default class Theme {
             const data = findExportedVariable(path, 'settings');
             try {
                 const settings = JSON.parse(data);
-                console.log(`Settings in ${path} file : `, {settings})
                 return settings || {};
             } catch (error) {
                 Logger.error(error);
@@ -1471,7 +1462,6 @@ export default class Theme {
             const data = findExportedVariable(path, 'sections');
             try {
                 const settings = JSON.parse(data);
-                console.log(``)
                 return settings || {};
             } catch (error) {
                 Logger.error(error);
