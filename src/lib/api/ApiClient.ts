@@ -18,7 +18,6 @@ import {
 } from './helper/interceptors';
 import Curl from '../../helper/curl';
 import Logger from '../Logger';
-import chalk from 'chalk';
 import { MAX_RETRY } from '../../helper/constants';
 axios.defaults.withCredentials = true;
 axios.defaults.timeout = 60000; // 1 minute
@@ -33,6 +32,7 @@ const axiosRetryConfig = {
     },
     shouldResetTimeout: true,
     onRetry(retryCount, error, requestConfig) {
+        Debug(error);
         Logger.warn(`\nRetrying........ (${retryCount}/${MAX_RETRY})`);
     },
     retryDelay(retryCount, error) {
