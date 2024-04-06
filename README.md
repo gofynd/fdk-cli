@@ -1,6 +1,7 @@
 <img src="https://res.cloudinary.com/dwzm9bysq/image/upload/v1576497695/addsale/applications/0.1914751846702707/media/company/pan/FDK_mdmpbd.png" height="200"></img>
 
 # Fynd Development Kit
+>**Note:** Experimental support for Windows is available, it may not be fully stable.
 <div>
 
 [![NPM Version][npm-image]][npm-url]
@@ -21,7 +22,6 @@ Fynd development Kit (FDK CLI) is a cli tool developed by Fynd to create and upd
 	- Maven (To use `fdk extension init` for java extension initialization)
 	- pip (To use `fdk extension init` for python extension initialization)
 
-**Note:** Experimental support for Windows is available, but please be aware that it may not be fully stable.
 
 
 # Installation
@@ -44,33 +44,7 @@ fdk extension
 ```
 See the [Command overview](#commands-overview) for a listing of all available commands, or the [Command reference](#commands-reference) for syntax details and usage examples of the commands. 
 
-<div id="debugMode"></div>
 
-
-## Debug Mode
-Add the `--verbose` flag to the command you want to run in debug mode.
-
-This will create `debug.log` file at the current working directory. In case you encounter any issues, this log file can be shared with maintainers for effective issue resolution.
-#### **Example**
-```sh
-fdk login --verbose
-```
-
-<div id="commands-overview"></div>
-
-
-# Commands Overview
-All FDK CLI commands start with fdk. The general syntax for the commands is as follows:
-```sh
-fdk [module] [method] [options]
-```
-This command can be broken down as follows:
-
-| **Syntax**        | **Example**           | 
-| ------------- |-------------| 
-| module     | theme |
-| method     | init |
-| options     | --verbose |
 
 ## Commands
 ___
@@ -92,30 +66,41 @@ ___
 | Command        | Description           | 
 | ------------- |-------------| 
 | [new](#theme-new)     | Create new theme |
-| [init](#theme-init)     | Initialize an existing theme |
+| [init](#theme-init)     | Clone or download the code of the live website onto your local machine to set up a local development environment for testing and modifications.  |
+| [serve](#theme-serve)     | Initiate theme development on your local machine. Your changes will automatically reflect in the browser whenever you save |
+| [sync](#theme-sync)     | This command will sync your local changes on live store website so you can preview it.|
+| [pull](#theme-pull)     | Pull latest theme code of your store website |
+| [pull-config](#theme-pull-config)     | Retrieve the most recent theme configuration values from the theme editor on your local machine. |
+| [open](#theme-open)    | Returns links that provide preview of the current theme. |
+| [package](#theme-package)    | Package your local theme files into a ZIP file. This will allow you to upload the theme to the partners panel and list it on the marketplace. |
 | [context](#theme-context)     | Add context of a theme |
 | [context-list](#theme-context-list)     | List all available contexts |
 | [active-context](theme-active-context)    | show currently active context |
-| [serve](#theme-serve)     | Start theme serving on 127.0.0.1 |
-| [sync](#theme-sync)     | Sync theme to application |
-| [pull](#theme-pull)     | Pull latest theme code |
-| [pull-config](#theme-pull-config)     | Pull latest theme config |
-| [open](#theme-open)    | preview theme |
-| [package](#theme-package)    | Create a zip file of theme |
-
-### Extension Commands
-| Command        | Description           | 
-| ------------- |-------------| 
-| [init](#extension-init)     | Initialize extension |
-| [setup](#extension-setup)     | setup development environment
-| [preview-url](#extension-preview-url)   | Get extension preview url
-| [launch-url](#extension-launch-url)     | Get/set lanuch url |
 
 ### Partner Commands
 | Command        | Description           | 
 | ------------- |-------------| 
-| [connect](#partner-connect)     | Add partner access token |
+| [connect](#partner-connect)     | Add partner access token so that you don't need to add it explicitly  |
 
+### Extension Commands
+| Command        | Description           | 
+| ------------- |-------------| 
+| [init](#extension-init)     | Utilize this command to set up a new extension locally, leveraging existing templates of your choice.  |
+| [setup](#extension-setup)     | Configure your extension locally using the existing API Key and API Secret provided for the extension inside the partners panel.
+| [preview-url](#extension-preview-url)   | Create a ngrok tunnel and provide a link to tryout extension on development company
+| [launch-url](#extension-launch-url)     | Get/set extension's lanuch url |
+
+<div id="debugMode"></div>
+
+
+## Debug Mode
+Add the `--verbose` flag to the command you want to run in debug mode.
+
+This will create `debug.log` file at the current working directory. In case you encounter any issues, this log file can be shared with maintainers for effective issue resolution.
+#### **Example**
+```sh
+fdk login --verbose
+```
 <div id="commands-reference"><div/>
 
 ## Commands Reference
