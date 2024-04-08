@@ -785,7 +785,7 @@ export default class Theme {
                     spaces: 2,
                 },
             );
-            if (!fs.existsSync(path.join(process.cwd(), THEME_ENTRY_FILE))) {
+            if (!fs.existsSync(path.join(process.cwd(), THEME_ENTRY_FILE)) && (themeData.theme_type === THEME_TYPE.vue2)) {
                 Logger.info('Restructuring folder structure');
                 let restructureSpinner = new Spinner(
                     'Restructuring folder structure',
