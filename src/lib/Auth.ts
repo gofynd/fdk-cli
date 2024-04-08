@@ -197,11 +197,13 @@ export default class Auth {
             const { current_user: user } = ConfigStore.get(
                 CONFIG_KEYS.AUTH_TOKEN,
             );
+            const organization_id = ConfigStore.get(CONFIG_KEYS.ORGANIZATION);
             const activeEmail =
                 user.emails.find((e) => e.active && e.primary)?.email ||
                 'Not primary email set';
             Logger.info(`Name: ${user.first_name} ${user.last_name}`);
             Logger.info(`Email: ${activeEmail}`);
+            Logger.info(`Current organization: ${organization_id}`);
         } catch (error) {
             throw new CommandError(error.message);
         }
