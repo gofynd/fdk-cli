@@ -6,8 +6,6 @@ import axios from 'axios';
 import urljoin from 'url-join';
 import { isValidDomain } from '../helper/utils';
 import Debug from './Debug';
-import { getPlatformUrls } from './api/services/url';
-
 
 export default class Env {
     constructor() {}
@@ -27,43 +25,53 @@ export default class Env {
         Logger.info(`Currently using Platform URL: ${chalk.bold(ctx)}`);
     }
 
-    public static async setNewEnvs(options) {
+    public static async setNewEnvs(domain) {
         try {
-            // todo: remove name warning in future version
-            if (options.name) {
-                console.warn(chalk.yellow(`Warning: The -n/--name option is deprecated. Please use -u/--url option instead. Ref: ${getPlatformUrls().partners}/help/docs/partners/themes/vuejs/command-reference#environment-commands-1`));
-                throw new Error('Please use -u/--url option.');
-            }
-            if (!options.url) {
-                throw new Error('Please provide -u/--url option.');
+            Debug(`Setting env: ${domain}`);
+            let finalDomain = domain;
+
+            // remove https:// from domain if present
+            if (domain.includes('https://')) {
+                finalDomain = domain.replace('https://', '');
             }
 
-            if (!isValidDomain(options.url)) {
-                throw new Error('Please provide valid URL.');
+            // validate domain
+            if (!isValidDomain(finalDomain)) {
+                throw new Error(
+                    `Please provide valid domain, Example: api.fynd.com`,
+                );
             }
+
+            // replace parnters to api
+            if (finalDomain.includes('partners')) {
+                finalDomain = finalDomain.replace('partners', 'api');
+            }
+
             try {
+                // check if healthz route exist or not
                 const url = urljoin(
                     'https://',
-                    options.url,
+                    finalDomain,
                     '/service/application/content/_healthz',
                 );
                 const response = await axios.get(url);
 
                 if (response?.status === 200) {
-                    Env.setEnv(options.url);
+                    Env.setEnv(finalDomain);
                     Logger.info(
-                        `CLI will start using: ${chalk.bold(options.url)}`,
+                        `CLI will start using: ${chalk.bold(finalDomain)}`,
                     );
                 } else {
                     throw new Error(
-                        'Provided url is not valid platform URL.',
+                        'Provided domain is not valid api domain.',
                     );
                 }
             } catch (err) {
-                Debug(err)
-                throw new Error('Provided url is not valid platform URL.');
+                Debug(err);
+                throw new Error(
+                    'Provided domain is not valid api domain.',
+                );
             }
-        
         } catch (e) {
             throw new CommandError(e.message);
         }
