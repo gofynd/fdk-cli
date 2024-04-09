@@ -1,7 +1,7 @@
 import configStore, { CONFIG_KEYS } from '../../Config';
 import urlJoin from 'url-join';
 
-const apiVersion = configStore.get(CONFIG_KEYS.API_VERSION) || '1.0';
+const apiVersion = configStore.get(CONFIG_KEYS.API_VERSION) || '1.0.0';
 const organization_id = configStore.get(CONFIG_KEYS.ORGANIZATION);
 
 export const getBaseURL = () => {
@@ -131,21 +131,41 @@ export const URLS = {
     },
 
     // Extension
+    // This is just been kept for backward compatibility as of now once v1.10.0 gets deployed on all cluster please remove this
     REGISTER_EXTENSION: (): string => {
         return urlJoin(MIXMASTER_URL('panel'), `/extensions/`);
     },
+    REGISTER_EXTENSION_PARTNER: (): string => {
+        return  urlJoin(
+            MIXMASTER_URL('partner'),
+            `organization/${organization_id}/extension`
+        )
+    },
+    // This is just been kept for backward compatibility as of now once v1.10.0 gets deployed on all cluster please remove this
     GET_EXTENSION_DETAILS: (extension_api_key: string): string => {
         return urlJoin(
             MIXMASTER_URL('panel'),
             `/extensions/details/${extension_api_key}`,
         );
     },
+    GET_EXTENSION_DETAILS_PARTNERS: (extension_api_key: string): string => {
+        return urlJoin(
+            MIXMASTER_URL('partner'),
+            `organization/${organization_id}/extension/${extension_api_key}`
+        )
+    },
+    // This is just been kept for backward compatibility as of now once v1.10.0 gets deployed on all cluster please remove this
     UPDATE_EXTENSION_DETAILS: (extension_api_key: string): string => {
         return urlJoin(
             MIXMASTER_URL('panel'),
             `/extensions/${extension_api_key}`,
         );
     },
+    UPDATE_EXTENSION_DETAILS_PARTNERS: (extension_api_key: string): string => {
+        return urlJoin(MIXMASTER_URL('partner'),
+        `organization/${organization_id}/extension/${extension_api_key}`)
+    },
+
     GET_ORGANIZATION_DATA: (partner_access_token: string): string => {
         return urlJoin(
             MIXMASTER_URL('panel'),
@@ -170,4 +190,8 @@ export const URLS = {
     IS_VERSION_COMPATIBLE: () => {
         return urlJoin(BLITZKRIEG_PANEL_URL(), '/_compatibility');
     },
+
+    FYND_PLATFORM_VERSION: () => {
+        return urlJoin(getBaseURL(), "/fpversion");
+    }
 };

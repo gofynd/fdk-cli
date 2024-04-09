@@ -10,7 +10,7 @@ import which from 'which';
 import Partner from './Partner';
 import Spinner from '../helper/spinner';
 import CommandError, { ErrorCodes } from './CommandError';
-import ExtensionService from './api/services/extension.service';
+import ExtensionService, { RegisterExtensionPayloadNew } from './api/services/extension.service';
 
 import {
     Object,
@@ -20,13 +20,15 @@ import {
 } from '../helper/extension_utils';
 
 import { createDirectory, writeFile, readFile } from '../helper/file.utils';
-import configStore, { CONFIG_KEYS } from './Config';
+import ConfigStore, { CONFIG_KEYS } from './Config';
 import { getBaseURL } from './api/services/url';
 import {
     installNpmPackages,
     installJavaPackages,
     installPythonDependencies,
 } from '../helper/utils';
+import semver from 'semver';
+import { CLI_EXT_VER_FOR_PTOKEN } from '../helper/constants';
 
 export const NODE_VUE = 'Node + Vue.js';
 export const NODE_REACT = 'Node + React.js';
@@ -157,8 +159,9 @@ export default class Extension {
                 spinner.fail();
                 throw new CommandError(error.message);
             }
-
-            if (isRegisterExtension) {
+            const notPartnerTokenRemovalVersion = answers.notPartnerTokenPltfmVersion || (await Extension.isPartnerTokenCliVersion()).notPartnerTokenPltfmVersion;
+            // This variable is just condition matching to these will be only used until v1.10.0 is deployed on all cluster after that will be needed to remove. currently using just for backward compatibility
+            if (isRegisterExtension && notPartnerTokenRemovalVersion) {
                 spinner = new Spinner('Registering Extension');
                 try {
                     spinner.start();
@@ -178,6 +181,35 @@ export default class Extension {
                 } catch (error) {
                     spinner.fail();
                     throw new CommandError(error.message);
+                }
+            }
+            else if (isRegisterExtension && !notPartnerTokenRemovalVersion){
+                spinner = new Spinner('Registering Extension');
+                const data: RegisterExtensionPayloadNew = {
+                    name: answers.name,
+                    base_url: 'http://localdev.fynd.com',
+                    // We are just passing this url as temporary when preview url is called it gets updated with the ngrok url
+                    extention_type: answers.type.toLowerCase(),
+                }
+                const { current_user: user } = ConfigStore.get(
+                    CONFIG_KEYS.AUTH_TOKEN,
+                );
+                const activeEmail = 
+                    user.emails.find((e) => e.active && e.primary)?.email;
+                data.developed_by_name = `${user.first_name} ${user.last_name}`;
+                if(activeEmail){
+                data.contact_email = activeEmail;
+                }
+                try{
+                    let extension_data: Object = await ExtensionService.registerExtensionPartners(data);
+                    answers.extension_api_key = extension_data.client_id;
+                    answers.extension_api_secret = extension_data.secret;
+                    answers.base_url = extension_data.launch_url;
+                    spinner.succeed();
+                }
+                catch(err){
+                    spinner.fail();
+                    throw new CommandError(err.message);
                 }
             }
 
@@ -274,6 +306,7 @@ export default class Extension {
     public static async initExtensionHandler(options: Object) {
         try {
             let partner_access_token = getPartnerAccessToken();
+            const {notPartnerTokenPltfmVersion, platformVersion} = await Extension.isPartnerTokenCliVersion();
 
             let answers: Object = {};
 
@@ -361,7 +394,7 @@ export default class Extension {
 
             Extension.checkDependencies(prompt_answers.project_type);
 
-            if (!partner_access_token) {
+            if (!partner_access_token && notPartnerTokenPltfmVersion) {
                 partner_access_token = (
                     await Partner.connectHandler({ readOnly: true, ...options })
                 ).partner_access_token;
@@ -374,6 +407,7 @@ export default class Extension {
                 ...answers,
                 ...prompt_answers,
             };
+            answers.platform_version = platformVersion;
 
             await Extension.createExtension(answers, true);
         } catch (error) {
@@ -385,6 +419,7 @@ export default class Extension {
     public static async setupExtensionHandler(options) {
         try {
             let partner_access_token = getPartnerAccessToken();
+            const {notPartnerTokenPltfmVersion,platformVersion} = await Extension.isPartnerTokenCliVersion();
             let answers: Object;
 
             let questions = [
@@ -429,12 +464,17 @@ export default class Extension {
                 },
             ];
 
+            if(!notPartnerTokenPltfmVersion){
+               questions.splice(1,1);
+               // Removing the api specret question as it will not be required for platform version greater than v1.10.0
+            }
+
             answers = { ...answers, ...(await inquirer.prompt(questions)) };
             answers.project_url = PROJECT_REPOS[answers.project_type];
 
             Extension.checkDependencies(answers.project_type);
 
-            if (!partner_access_token) {
+            if (!partner_access_token && notPartnerTokenPltfmVersion) {
                 partner_access_token = (
                     await Partner.connectHandler({ readOnly: true, ...options })
                 ).partner_access_token;
@@ -444,11 +484,17 @@ export default class Extension {
             let spinner = new Spinner('Verifying API Keys');
             try {
                 spinner.start();
-                extension_data = await ExtensionService.getExtensionData(
-                    answers.extension_api_key,
-                    answers.extension_api_secret,
-                    partner_access_token,
-                );
+                if(notPartnerTokenPltfmVersion){
+// This is just been kept for backward compatibility as of now once v1.10.0 gets deployed on all cluster please remove this
+                    extension_data = await ExtensionService.getExtensionData(
+                        answers.extension_api_key,
+                        answers.extension_api_secret,
+                        partner_access_token,
+                    );
+                }
+                else{
+                    extension_data = await ExtensionService.getExtensionDataPartners(answers.extension_api_key);
+                }
                 if (!extension_data) {
                     throw new Error();
                 }
@@ -482,10 +528,17 @@ export default class Extension {
                     );
                 }
             }
-
+            answers.platform_version = platformVersion;
+            answers.notPartnerTokenPltfmVersion = notPartnerTokenPltfmVersion;
             await Extension.createExtension(answers, false);
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
+    }
+
+    public static async isPartnerTokenCliVersion () {
+        const platformVersion = await ExtensionService.getFyndPlatformVersion();
+        const notPartnerTokenPltfmVersion = semver.lte(platformVersion?.version || '1.0.0', CLI_EXT_VER_FOR_PTOKEN);
+        return {notPartnerTokenPltfmVersion,platformVersion};
     }
 }
