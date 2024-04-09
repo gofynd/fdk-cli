@@ -1697,32 +1697,25 @@ export default class Theme {
     private static getAssetCdnBaseUrl = async () => {
         let assetCdnUrl = '';
         try {
-            if (
-                fs.existsSync(
-                    path.join(process.cwd(), 'theme', 'assets', 'fonts'),
+            const startData = {
+                file_name: 'test.ttf',
+                content_type: 'font/ttf',
+                size: '10',
+            };
+            const startAssetData = (
+                await UploadService.startUpload(
+                    startData,
+                    'application-theme-assets',
                 )
-            ) {
-                let startData = {
-                    file_name: 'test.ttf',
-                    content_type: 'font/ttf',
-                    size: '10',
-                };
-                let startAssetData = (
-                    await UploadService.startUpload(
-                        startData,
-                        'application-theme-assets',
-                    )
-                ).data;
-                return (assetCdnUrl = path.dirname(startAssetData.cdn.url));
-            }
-            return assetCdnUrl;
+            ).data;
+            return (assetCdnUrl = path.dirname(startAssetData.cdn.url));
         } catch (err) {
             throw new CommandError(
                 `Failed in getting assets CDN base url`,
                 err.code,
             );
         }
-    };
+    }
     private static assetsFontsUploader = async () => {
         try {
             if (
