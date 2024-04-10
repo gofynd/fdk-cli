@@ -7,20 +7,18 @@ import execa from 'execa';
 import rimraf from 'rimraf';
 import which from 'which';
 
-import Partner from './Partner';
 import Spinner from '../helper/spinner';
 import CommandError, { ErrorCodes } from './CommandError';
-import ExtensionService from './api/services/extension.service';
+import ExtensionService, { RegisterExtensionPayloadNew } from './api/services/extension.service';
 
 import {
     Object,
     validateEmpty,
     replaceContent,
-    getPartnerAccessToken,
 } from '../helper/extension_utils';
 
 import { createDirectory, writeFile, readFile } from '../helper/file.utils';
-import configStore, { CONFIG_KEYS } from './Config';
+import ConfigStore, { CONFIG_KEYS } from './Config';
 import { getBaseURL } from './api/services/url';
 import {
     installNpmPackages,
@@ -160,17 +158,32 @@ export default class Extension {
 
             if (isRegisterExtension) {
                 spinner = new Spinner('Registering Extension');
+                const data: RegisterExtensionPayloadNew = {
+                    name: answers.name,
+                    base_url: 'http://localdev.fynd.com',
+                    // We are just passing this url as temporary when preview url is called it gets updated with the ngrok url
+                    extention_type: answers.type.toLowerCase(),
+                    // Adding this for backward compatibility for v1.8.X
+                    callbacks: {
+                        'setup': `http://localdev.fynd.com/fp/setup`,
+                        'install': `http://localdev.fynd.com/fp/install`,
+                        'auth' :`http://localdev.fynd.com/fp/auth`,
+                        'uninstall': `http://localdev.fynd.com/fp/uninstall`,
+                        'auto_install': `http://localdev.fynd.com/fp/auto_install`,
+                    }
+                }
+                const { current_user: user } = ConfigStore.get(
+                    CONFIG_KEYS.AUTH_TOKEN,
+                );
+                const activeEmail = 
+                    user.emails.find((e) => e.active && e.primary)?.email;
+                data.developed_by_name = `${user.first_name} ${user.last_name}`;
+                if(activeEmail){
+                   data.contact_email = activeEmail;
+                }
                 try {
                     spinner.start();
-                    let extension_data: Object =
-                        await ExtensionService.registerExtension(
-                            answers.partner_access_token,
-                            {
-                                name: answers.name,
-                                base_url: 'http://localdev.fynd.com',
-                                extention_type: answers.type.toLowerCase(),
-                            },
-                        );
+                    let extension_data: Object = await ExtensionService.registerExtensionPartners(data);
                     answers.extension_api_key = extension_data.client_id;
                     answers.extension_api_secret = extension_data.secret;
                     answers.base_url = extension_data.launch_url;
@@ -273,8 +286,6 @@ export default class Extension {
     // command handler for "extension init"
     public static async initExtensionHandler(options: Object) {
         try {
-            let partner_access_token = getPartnerAccessToken();
-
             let answers: Object = {};
 
             await inquirer
@@ -361,14 +372,8 @@ export default class Extension {
 
             Extension.checkDependencies(prompt_answers.project_type);
 
-            if (!partner_access_token) {
-                partner_access_token = (
-                    await Partner.connectHandler({ readOnly: true, ...options })
-                ).partner_access_token;
-            }
 
             answers.launch_url = 'http://localdev.fyndx0.de';
-            answers.partner_access_token = partner_access_token;
             answers.project_url = PROJECT_REPOS[prompt_answers.project_type];
             answers = {
                 ...answers,
@@ -384,7 +389,6 @@ export default class Extension {
     // command handler for "extension setup"
     public static async setupExtensionHandler(options) {
         try {
-            let partner_access_token = getPartnerAccessToken();
             let answers: Object;
 
             let questions = [
@@ -434,21 +438,11 @@ export default class Extension {
 
             Extension.checkDependencies(answers.project_type);
 
-            if (!partner_access_token) {
-                partner_access_token = (
-                    await Partner.connectHandler({ readOnly: true, ...options })
-                ).partner_access_token;
-            }
-
             let extension_data: Object;
             let spinner = new Spinner('Verifying API Keys');
             try {
                 spinner.start();
-                extension_data = await ExtensionService.getExtensionData(
-                    answers.extension_api_key,
-                    answers.extension_api_secret,
-                    partner_access_token,
-                );
+                extension_data = await ExtensionService.getExtensionDataPartners(answers.extension_api_key);
                 if (!extension_data) {
                     throw new Error();
                 }
