@@ -362,6 +362,7 @@ export default class Theme {
                     appConfig,
                     configObj,
                     targetDirectory,
+                    themeType
                 );
             }
         } catch (error) {
@@ -379,7 +380,7 @@ export default class Theme {
         let shouldDelete = false;
         try {
             Logger.info('Cloning template files');
-            await Theme.cloneTemplate(options, targetDirectory, appConfig);
+            await Theme.cloneTemplate(options, targetDirectory, appConfig,"");
             shouldDelete = true;
             process.chdir(path.join('.', options.name));
             Logger.info('Installing dependencies');
@@ -487,12 +488,13 @@ export default class Theme {
         appConfig,
         configObj,
         targetDirectory,
+        themeType
     ) {
         let shouldDelete = false
         try {
 
             Logger.info('Cloning template files');
-            await Theme.cloneTemplate(options, targetDirectory, appConfig);
+            await Theme.cloneTemplate(options, targetDirectory, appConfig, themeType);
             shouldDelete = true;
             process.chdir(path.join('.', options.name));
             Logger.info('Installing dependencies');
@@ -2980,6 +2982,7 @@ export default class Theme {
         options,
         targetDirectory,
         appConfig,
+        themeType
     ) => {
         const defaultTheme = await ThemeService.getDefaultTheme({
             company_id: appConfig.company_id,
@@ -2990,7 +2993,14 @@ export default class Theme {
         }
         const spinner = new Spinner(`Cloning template files`);
 
-        const url = `https://github.com/gofynd/flow.git`;
+        const themeName = defaultTheme.name;
+        let url;
+        if (themeType === 'react') {
+            url = `https://github.com/gofynd/flow.git`;
+        }
+        else {
+            url=  `https://github.com/gofynd/${themeName}.git`;
+        }
         try {
             spinner.start();
             const git = simpleGit();
