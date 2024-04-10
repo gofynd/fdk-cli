@@ -3,7 +3,7 @@ import fs from 'fs-extra';
 import NativeModule from 'module';
 import vm from 'vm';
 import CommandError, { ErrorCodes } from '../lib/CommandError';
-import { COMMON_LOG_MESSAGES } from '../lib/Logger';
+import Logger, { COMMON_LOG_MESSAGES } from '../lib/Logger';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
 import execa from 'execa';
 import Debug from '../lib/Debug';
@@ -306,7 +306,7 @@ export function transformCodeToJS(code: any) {
         const result = babel.transformSync(code, options);
         return result?.code;
     } catch (error) {
-        console.error('Error transforming JSX/TSX to JS:', error);
+        Logger.error('Error transforming JSX/TSX to JS:', error)
         return null;
     }
 }
