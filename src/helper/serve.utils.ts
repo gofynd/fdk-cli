@@ -260,7 +260,9 @@ export async function startServer({ domain, host, isSSR, port }) {
             });
             res.send($.html({ decodeEntities: false }));
         } catch (e) {
-            if (e.response && e.response.status == 504) {
+            if (e.code === "SELF_SIGNED_CERT_IN_CHAIN") {
+                Logger.error("It seems there's an issue with the security certificate. Please contact your IT team for assistance.");
+            } else if (e.response && e.response.status == 504) {
                 res.redirect(req.originalUrl);
             } else if (e.response && e.response.status == 500) {
                 try {
