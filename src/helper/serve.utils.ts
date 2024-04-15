@@ -378,6 +378,9 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
         if (request.url.indexOf('.hot-update.js') !== -1) {
             return response.send('');
         }
+        if (/\.\w+$/.test(request.url) && !(/^\/public/.test(request.url))) {
+            return response.send('');
+        }
         next();
     });
 
@@ -385,9 +388,9 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 
     const uploadedFiles = {};
 
-    app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
 
     app.get('/*', async (req, res) => {
+        
         // If browser is not requesting for html page (it can be file, API call, etc...), then fetch and send requested data directly from source
         const acceptHeader = req.get('Accept');
         if ((acceptHeader && !acceptHeader.includes('text/html')) || req.path.includes("/public")) { // while text/html is a commonly included type, it's not a strict requirement for all browsers to include it in their Accept headers for HTML page requests.
