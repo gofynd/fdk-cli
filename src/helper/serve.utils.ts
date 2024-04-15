@@ -23,6 +23,7 @@ import webpackHotMiddleware from 'webpack-hot-middleware';
 import webpack from 'webpack';
 import createBaseWebpackConfig from '../helper/theme.react.config';
 import Debug from '../lib/Debug';
+import { ErrorCodes } from '../lib/CommandError';
 const packageJSON = require('../../package.json');
 
 const BUILD_FOLDER = './.fdk/dist';
@@ -261,7 +262,7 @@ export async function startServer({ domain, host, isSSR, port }) {
             res.send($.html({ decodeEntities: false }));
         } catch (e) {
             if (e.code === "SELF_SIGNED_CERT_IN_CHAIN") {
-                Logger.error("It seems there's an issue with the security certificate. Please contact your IT team for assistance.");
+                Logger.error(ErrorCodes.SELF_SIGNED_CERT_IN_CHAIN.message);
             } else if (e.response && e.response.status == 504) {
                 res.redirect(req.originalUrl);
             } else if (e.response && e.response.status == 500) {

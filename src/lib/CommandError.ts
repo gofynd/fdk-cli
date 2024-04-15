@@ -72,6 +72,11 @@ export const ErrorCodes = {
         message: 'Network issue',
         code: 'FDK-0009',
     },
+    // ssl
+    SELF_SIGNED_CERT_IN_CHAIN: {
+        message: "It seems there's an issue with the security certificate. Please contact your IT team for assistance.",
+        code: 'FDK-0013'
+    },
 
     //ngrok
     NGROK_CONNECTION_ISSUE: {
