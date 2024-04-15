@@ -205,6 +205,11 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
                 // on report call sentry capture exception
                 Sentry.captureException(err);
                 Logger.error(err);
+
+                // After printing main error, check if it is self sign certificate error and inform developer to connect with IT team. Refer: https://gofynd.quip.com/G99VA2oaJW9U/CLI-VPN-issue#temp:C:OGR2cb183344415466bb639d068c
+                if (err.code === "SELF_SIGNED_CERT_IN_CHAIN") {
+                    Logger.error("It seems there's an issue with the security certificate. Please contact your IT team for assistance.");
+                }
             }
             Debug(err);
             process.exit(1);

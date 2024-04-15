@@ -142,3 +142,6 @@ csv/
 
 # Sentry Auth Token
 .sentryclirc
+
+# ignore local vs code settings
+.vscode/settings.json
