@@ -23,6 +23,7 @@ import webpackHotMiddleware from 'webpack-hot-middleware';
 import webpack from 'webpack';
 import createBaseWebpackConfig from '../helper/theme.react.config';
 import CommandError from '../lib/CommandError';
+import Debug from '../lib/Debug';
 const packageJSON = require('../../package.json');
 
 const BUILD_FOLDER = './.fdk/dist';
@@ -110,36 +111,44 @@ async function setupServer({ domain }) {
     // parse application/x-www-form-urlencoded
     app.use(express.json());
 
-    app.use('/public', async (req, res, done) => {
-        const themeId = currentContext.theme_id;
-        const { url } = req;
-        try {
-            if (publicCache[url]) {
-                for (const [key, value] of Object.entries(
-                    publicCache[url].headers,
-                )) {
-                    res.header(key, `${value}`);
-                }
-                return res.send(publicCache[url].body);
-            }
-            const networkRes = await axios.get(
-                urlJoin(domain, 'public', url, `?themeId=${themeId}`),
-            );
-            publicCache[url] = publicCache[url] || {};
-            publicCache[url].body = networkRes.data;
-            publicCache[url].headers = networkRes.headers;
-            res.set(publicCache[url].headers);
-            return res.send(publicCache[url].body);
-        } catch (e) {
-            console.log('Error loading file ', url);
-        }
-    });
-
     app.get('/_healthz', (req, res) => {
         res.json({ ok: 'ok' });
     });
 
     return { currentContext, app, server, io };
+}
+
+async function requestToOriginalSource(req, res, domain, themeId) {
+    Debug("Requesting to original source...")
+    const url = req.path
+    if (publicCache[url]) {
+        for (const [key, value] of Object.entries(
+            publicCache[url].headers,
+        )) {
+            res.header(key, `${value}`);
+        }
+        return res.send(publicCache[url].body);
+    }
+    try {
+        const networkRes = await axios.get(urlJoin(domain, url, `?themeId=${themeId}`));
+        publicCache[url] = publicCache[url] || {};
+        publicCache[url].body = networkRes.data;
+        publicCache[url].headers = networkRes.headers;
+        res.set(publicCache[url].headers);
+        return res.send(publicCache[url].body);
+    } catch (error) {
+        // If there's an error, pass it to the client
+        if (error.response) {
+            // If there is a response from the server
+            res.status(error.response.status).send(error.response.data);
+        } else if (error.request) {
+            // If the request was made but no response was received
+            res.status(500).send('No response from server');
+        } else {
+            // If an error occurred while setting up the request
+            res.status(500).send('Error: ' + error.message);
+        }
+    }
 }
 
 export async function startServer({ domain, host, isSSR, port }) {
@@ -152,6 +161,12 @@ export async function startServer({ domain, host, isSSR, port }) {
         return res.end();
     });
     app.get('/*', async (req, res) => {
+        // If browser is not requesting for html page (it can be file, API call, etc...), then fetch and send requested data directly from source
+        const acceptHeader = req.get('Accept');
+        if ((acceptHeader && !acceptHeader.includes('text/html')) || req.path.includes("/public")) { // while text/html is a commonly included type, it's not a strict requirement for all browsers to include it in their Accept headers for HTML page requests.
+            return await requestToOriginalSource(req, res, domain, currentContext.theme_id);
+        }
+
         const BUNDLE_PATH = path.join(
             process.cwd(),
             path.join('.fdk', 'dist', 'themeBundle.common.js'),
@@ -275,7 +290,7 @@ export async function startServer({ domain, host, isSSR, port }) {
                             if (lineNumber == null || lineNumber < 1) {
                                 errorString += `<p>      at  <strong>${
                                     methodName || ''
-                                }</strong></p>`;
+                                    }</strong></p>`;
                             } else {
                                 const pos = smc.originalPositionFor({
                                     line: lineNumber,
@@ -284,9 +299,9 @@ export async function startServer({ domain, host, isSSR, port }) {
                                 if (pos && pos.line != null) {
                                     errorString += `<p>      at  <strong>${
                                         methodName || pos.name || ''
-                                    }</strong> (${pos.source}:${pos.line}:${
-                                        pos.column
-                                    })</p>`;
+                                        }</strong> (${pos.source}:${pos.line}:${
+                                            pos.column
+                                        })</p>`;
                                 }
                             }
                         } catch (err) {
@@ -311,8 +326,7 @@ export async function startServer({ domain, host, isSSR, port }) {
                 return reject(err);
             }
             Logger.info(
-                `Starting starter at port -- ${port} in ${
-                    isSSR ? 'SSR' : 'Non-SSR'
+                `Starting starter at port -- ${port} in ${isSSR ? 'SSR' : 'Non-SSR'
                 } mode`,
             );
             Logger.info(`************* Using Debugging build`);
@@ -382,6 +396,11 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
     app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
 
     app.get('/*', async (req, res) => {
+        // If browser is not requesting for html page (it can be file, API call, etc...), then fetch and send requested data directly from source
+        const acceptHeader = req.get('Accept');
+        if ((acceptHeader && !acceptHeader.includes('text/html')) || req.path.includes("/public")) { // while text/html is a commonly included type, it's not a strict requirement for all browsers to include it in their Accept headers for HTML page requests.
+            return await requestToOriginalSource(req, res, domain, currentContext.theme_id);
+        }
         const BUNDLE_DIR = path.join(process.cwd(), path.join('.fdk', 'dist'));
         if (req.originalUrl == '/favicon.ico' || req.originalUrl == '/.webp') {
             return res.status(404).send('Not found');
@@ -451,9 +470,8 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 				<script>
 				var socket = io();
 				socket.on('reload',function(){
-					${
-                        isHMREnabled
-                            ? `
+					${isHMREnabled
+                ? `
 						try {
 							window.APP_DATA.themeBundleUMDURL = '/themeBundle.umd.js';
 							window.APP_DATA.isServerRendered = false;
@@ -466,10 +484,10 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 							window.loadApp().catch(console.log);
 						} catch(e) { console.log( e );}
 					`
-                            : `
+                : `
 						window.location.reload();
 					`
-                    }
+            }
 
 				});
 				</script>
