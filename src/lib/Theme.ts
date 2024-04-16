@@ -380,7 +380,7 @@ export default class Theme {
         let shouldDelete = false;
         try {
             Logger.info('Cloning template files');
-            await Theme.cloneTemplate(options, targetDirectory, appConfig,"");
+            await Theme.cloneTemplate(options, targetDirectory, appConfig);
             shouldDelete = true;
             process.chdir(path.join('.', options.name));
             Logger.info('Installing dependencies');
@@ -2982,7 +2982,7 @@ export default class Theme {
         options,
         targetDirectory,
         appConfig,
-        themeType
+        themeType?: string,
     ) => {
         const defaultTheme = await ThemeService.getDefaultTheme({
             company_id: appConfig.company_id,
