@@ -22,6 +22,8 @@ const readDirectories = promisify(fs.readdir);
 
 type ExtensionSectionOptions = {
     name: string;
+    interface: 'theme' | 'platform';
+    engine: 'react' | 'vue';
 };
 
 type ExtensionContext = {
@@ -39,7 +41,61 @@ export default class ExtensionSection {
     static CONTEXT_FILENAME = 'context.json';
     static CONTEXT_DIR_PATH = '.fdk';
 
-    public static async initExtensionSection(options: ExtensionSectionOptions) {
+    public static async initExtensionBinding(options: ExtensionSectionOptions) {
+        try {
+
+        const requiredOptions = ['name', 'interface', 'engine'];
+
+        const passedOptions = Object.keys(options);
+
+        const missingOptions = requiredOptions.filter((param) => !passedOptions.includes(param));
+
+        const questions = [
+            {
+                type: 'text',
+                name: 'name',
+                message: 'Enter Binding Name.',
+            },
+            {
+                type: 'list',
+                name: 'engine',
+                message: 'Select Runtime Engine.',
+                choices: ['react', 'vue']
+            },
+            {
+                type: 'list',
+                name: 'interface',
+                message: 'Select Interface.',
+                choices: ['platform', 'theme']
+            },
+        ].filter(({ name }) => missingOptions.includes(name));
+
+        const answers = questions.length ? 
+            await inquirer.prompt(questions) :
+            {};
+
+        const finalOptions: ExtensionSectionOptions = {
+            ...options,
+            ...answers,
+        }
+
+        const { 
+            interface: bindingInterface, 
+            engine
+        } = finalOptions;
+
+        if (bindingInterface === 'theme' && engine === 'react') {
+            await ExtensionSection.initExtensionSectionBindingForReact(finalOptions);
+        } else {
+            throw new CommandError('Unsupported interface or engine!')
+        }
+
+        } catch (error) {
+            throw new CommandError(error.message, error.code);
+        }
+    }
+    
+    static async initExtensionSectionBindingForReact(options: ExtensionSectionOptions) {
         try {
             const sectionName = options['name'];
 

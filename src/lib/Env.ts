@@ -6,6 +6,7 @@ import axios from 'axios';
 import urljoin from 'url-join';
 import { isValidDomain } from '../helper/utils';
 import Debug from './Debug';
+import { responseInterceptor } from './api/helper/interceptors';
 
 export const AVAILABLE_ENVS = {
     // Fynd
@@ -145,19 +146,22 @@ export default class Env {
                         options.url,
                         '/service/application/content/_healthz',
                     );
+                    console.log({url})
                     const response = await axios.get(url);
-
+                        console.log(response.status, response.data)
                     if (response?.status === 200) {
                         Env.setEnv(options.url);
                         Logger.info(
                             `CLI will start using: ${chalk.bold(options.url)}`,
                         );
                     } else {
+
                         throw new Error(
                             'Provided url is not valid platform URL.',
                         );
                     }
                 } catch (err) {
+                    console.log(err.message)
                     Debug(err)
                     throw new Error('Provided url is not valid platform URL.');
                 }

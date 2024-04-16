@@ -57,29 +57,30 @@ export default function extensionCommandBuilder() {
     extension.addCommand(launch_url);
 
 
-    const section = new Command('section').description(
-        'Extension Section Commands',
+    const binding = new Command('binding').description(
+        'Extension Binding Commands',
     );
-    section
+    binding
         .command('init')
-        .description('Create a new section boilerplate')
-        .requiredOption('-n, --name [name]', 'Section Name')
-        .asyncAction(ExtensionSection.initExtensionSection);
+        .description('Create a new section binding boilerplate')
+        .option('-n, --name [name]', 'Bundle Name')
+        .option('-i, --interface [interface]', 'Interface')
+        .option('-e, --engine [engine]', 'Compatible Engine')
+        .asyncAction(ExtensionSection.initExtensionBinding);
 
-    section
+    binding
         .command('publish')
         .description('Sync extension section')
-        // .requiredOption('-n, --name [name]', 'Section Name')
         .asyncAction(ExtensionSection.syncExtensionBindings);
 
-    section
+    binding
         .command('preview')
         .description('Serve extension sections')
         .requiredOption('-n, --name [name]', 'Bundle Name')
         .option('-p, --port [port]', 'Server Port')
         .asyncAction(ExtensionSection.serveExtensionSections);
 
-    extension.addCommand(section);
+    extension.addCommand(binding);
 
     return extension;
 }
