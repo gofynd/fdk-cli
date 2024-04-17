@@ -60,7 +60,10 @@ import {
 } from '../helper/theme.vue.config';
 import { simpleGit } from 'simple-git';
 import { THEME_TYPE } from '../helper/constants';
-
+import axios from 'axios';
+import AdmZip from 'adm-zip';
+import express from 'express';
+import { existsSync } from 'fs'
 const nanoid = customAlphabet(
     '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
     9,
@@ -372,6 +375,68 @@ export default class Theme {
             }
         } catch (error) {
             if (shouldDelete) await Theme.cleanUp(targetDirectory);
+            throw new CommandError(error.message, error.code);
+        }
+    }
+    /**
+     * Create a download link of the fdk-store tag
+     * @param {string} tag Tag version to download and serve
+     * @returns Download URL of the archive
+     */
+    public static downloadURL(tag) {
+        let versiontag = tag ;
+        if (tag[0] !== 'v') {
+            versiontag = 'v' + tag;
+        }
+        return `https://github.com/gofynd/fdk-store/archive/refs/tags/${versiontag}.zip`
+    }
+
+    public static  trimTag(tag) {
+        if (tag[0] === 'v') {
+            return tag.slice(1);
+        }
+        return tag
+    }
+    public static async fetchContent(tag) {
+        const url = Theme.downloadURL(tag);
+        let versiontag = tag ;
+        if (tag[0] !== 'v') {
+            versiontag = 'v' + tag;
+        }
+        const extractPath = `./downloads/${versiontag}`;
+
+        const documentationPath = path.resolve(extractPath, `fdk-store-${Theme.trimTag(tag)}`, 'docs')
+
+        if (existsSync(extractPath)) {
+            return documentationPath;
+        }
+
+        if (!url) {
+            throw new Error('Invalid URL provided!');
+        }
+
+        const response = await axios({
+            url,
+            method: 'GET',
+            responseType: 'arraybuffer' // Important for binary data
+        });
+
+        const zip = new AdmZip(response.data);
+        zip.extractAllTo(extractPath, true);
+        return documentationPath
+
+    }
+
+    public static async createDoc(options) {
+        const tag = options.version;
+        try {
+            const extractPath = await Theme.fetchContent(tag);
+            const app = express();
+            app.use(express.static(path.resolve(__dirname, extractPath)))
+            app.listen(8081);
+        
+            await open('http://127.0.0.1:8081');
+        } catch (error) {
             throw new CommandError(error.message, error.code);
         }
     }

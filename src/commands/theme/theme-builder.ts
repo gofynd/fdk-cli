@@ -9,6 +9,11 @@ export default function themeCommandBuilder() {
         .description('Create Theme')
         .requiredOption('-n, --name [name]', 'Theme name')
         .asyncAction(Theme.createTheme);
+    theme
+        .command('run-doc')
+        .description('Create Doc')
+        .requiredOption('-t, --version [version]', 'Tag version')
+        .asyncAction(Theme.createDoc);
 
     theme
         .command('init')
