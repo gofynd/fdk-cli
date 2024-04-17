@@ -25,6 +25,10 @@ type ExtensionSectionOptions = {
     interface: 'theme' | 'platform';
     engine: 'react' | 'vue';
 };
+type SyncExtensionBindingsOptions = {
+    extensionId?: string;
+    organisationId?: string;
+};
 
 type ExtensionContext = {
     extensionId: string;
@@ -37,7 +41,7 @@ type ExtensionContext = {
 // const domain = "https://test-company-1-hosted-karanraina.sandbox.fynd.engineering";
 
 export default class ExtensionSection {
-    static SECTIONS_DIR = 'sections';
+    static BINDINGS_DIR = 'bindings/theme/react';
     static CONTEXT_FILENAME = 'context.json';
     static CONTEXT_DIR_PATH = '.fdk';
 
@@ -119,20 +123,22 @@ export default class ExtensionSection {
     }
 
     static createSectionsDirectoryIfNotExists(): void {
-        const sectionPath = path.resolve(
-            process.cwd(),
-            ExtensionSection.SECTIONS_DIR,
-        );
+        
+        const directories = ExtensionSection.BINDINGS_DIR.split(path.sep);
+        let currentPath = process.cwd();
 
-        if (!fs.existsSync(sectionPath)) {
-            fs.mkdirSync(sectionPath);
-        }
+        directories.forEach(directory => {
+            currentPath = path.join(currentPath, directory);
+            if (!fs.existsSync(currentPath)) {
+                fs.mkdirSync(currentPath);
+            }
+        });
     }
 
     static async sectionExists(name: string): Promise<Boolean> {
         const sectionPath = path.resolve(
             process.cwd(),
-            ExtensionSection.SECTIONS_DIR,
+            ExtensionSection.BINDINGS_DIR,
         );
 
         if (!fs.existsSync(sectionPath)) {
@@ -156,28 +162,43 @@ export default class ExtensionSection {
         );
         const sectionDirPath = path.resolve(
             process.cwd(),
-            ExtensionSection.SECTIONS_DIR,
+            ExtensionSection.BINDINGS_DIR,
             name,
         );
 
         await fsExtra.copy(sourceCodePath, sectionDirPath);
 
-        process.chdir(path.join(process.cwd(), 'sections', name));
+        process.chdir(path.join(process.cwd(), ExtensionSection.BINDINGS_DIR, name));
 
         await ExtensionSection.installNpmPackages();
     }
 
-    public static async syncExtensionBindings() {
+    static isValidSyncOptions(options: SyncExtensionBindingsOptions): Boolean {
+        return (
+            options.extensionId && 
+            options.organisationId &&
+            typeof(options.extensionId) === 'string' &&
+            typeof(options.organisationId) === 'string'
+            );
+    }
 
-        const context = await ExtensionSection.getContextData();
-        Logger.info(`Syncing Extension Sections to : ${context.domain}`)
-        const sectionDirectory = path.resolve(process.cwd(), 'sections');
+    public static async syncExtensionBindings(options: SyncExtensionBindingsOptions) {
+
+        console.log({options});
+
+        const context = ExtensionSection.isValidSyncOptions(options) ? 
+            options : 
+            (await ExtensionSection.getContextData({ serve: false }));
+
+        Logger.info(`Syncing Extension Sections`)
+        const sectionDirectory = path.resolve(process.cwd(), ExtensionSection.BINDINGS_DIR);
         const bundleNames = fs.readdirSync(sectionDirectory);
+
 
         const data = [];
 
         for (const bundleName of bundleNames) {
-            const sectionData = await ExtensionSection.extractSectionsData(bundleName);
+            const sectionData = await ExtensionSection.extractSectionsData(bundleName, context);
             data.push(sectionData);
         }
 
@@ -186,10 +207,10 @@ export default class ExtensionSection {
         Logger.info('Code published ...');
     }
 
-    static async extractSectionsData(bundleName): Promise<any> {
+    static async extractSectionsData(bundleName: string, context: SyncExtensionBindingsOptions): Promise<any> {
         const currentRoot = process.cwd();
-        const context = await ExtensionSection.getContextData();
-        process.chdir(path.join(currentRoot, 'sections', bundleName));
+
+        process.chdir(path.join(currentRoot, ExtensionSection.BINDINGS_DIR, bundleName));
 
         await ExtensionSection.buildExtensionCode({bundleName}).catch(console.error);
 
@@ -381,7 +402,7 @@ export default class ExtensionSection {
         return answers;
     }
 
-    static async getContextData() {
+    static async getContextData(options?: { serve: Boolean }) {
         try {
             const dirPath = path.resolve(
                 process.cwd(), 
@@ -400,16 +421,27 @@ export default class ExtensionSection {
             } catch (error) {
                 console.log(error.message);
             }
-            const configObj = await Theme.selectCompanyAndStore();
-            const { data: appConfig } = await configurationService.getApplicationDetails(configObj);
 
-            const domain = appConfig?.domain?.name ?? '';
+            const applicationConfig: {
+                domain: string;
+            } = {
+                domain: '',
+            };
+
+            if (options.serve) {
+                const configObj = await Theme.selectCompanyAndStore();
+                const { data: appConfig } = await configurationService.getApplicationDetails(configObj);
+    
+                const domain = appConfig?.domain?.name ?? '';
+                applicationConfig.domain = `https://${domain}`;
+
+            }
 
             const answers = await ExtensionSection.promptExtensionDetails();
 
             const context = {
                 ...answers,
-                domain: domain ? `https://${domain}` : '',
+                ...(options.serve ? applicationConfig : {})
             }
 
             fs.mkdirSync(dirPath, { recursive: true })
@@ -427,7 +459,9 @@ export default class ExtensionSection {
         try {
             const { name: bundleName } = options;
 
-            const context = await ExtensionSection.getContextData();
+            const context = await ExtensionSection.getContextData({
+                serve: true
+            });
 
             const serverPort =
             typeof options['port'] === 'string'
@@ -444,7 +478,7 @@ export default class ExtensionSection {
             );
 
             const rootPath = process.cwd();
-            process.chdir(path.join(process.cwd(), 'sections', bundleName));
+            process.chdir(path.join(process.cwd(), ExtensionSection.BINDINGS_DIR, bundleName));
             Logger.info('Building Extension Code ...');
             const { jsFile, cssFile } = await ExtensionSection.buildExtensionCode({
                 bundleName,
@@ -456,8 +490,8 @@ export default class ExtensionSection {
                 reload();
             });
             process.chdir(rootPath);
-            const bundleDist = path.resolve(rootPath, 'sections', bundleName, 'dist');
-            Logger.info('Starting Local Extension Server ...');
+            const bundleDist = path.resolve(rootPath, ExtensionSection.BINDINGS_DIR, bundleName, 'dist');
+            Logger.info('Starting Local Extension Server ...', bundleDist);
             await startExtensionServer({ bundleDist, port });
             
             

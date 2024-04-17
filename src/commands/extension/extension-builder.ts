@@ -71,6 +71,8 @@ export default function extensionCommandBuilder() {
     binding
         .command('publish')
         .description('Sync extension section')
+        .option('-id, --extensionId [extensionId]', 'Extension ID')
+        .option('-org, --organisationId [organisationId]', 'Organisation ID')
         .asyncAction(ExtensionSection.syncExtensionBindings);
 
     binding
