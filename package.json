@@ -1,14 +1,14 @@
 {
   "name": "@gofynd/fdk-cli",
-  "version": "5.0.3-alpha-section.1",
+  "version": "5.0.5-alpha-section.1",
   "main": "index.js",
   "license": "MIT",
   "bin": {
-    "fdk": "./bin/fdk.js"
+    "fdk": "bin/fdk.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/gofynd/fdk-cli.git"
+    "url": "git+https://github.com/gofynd/fdk-cli.git"
   },
   "files": [
     "bin",
@@ -21,13 +21,11 @@
   "scripts": {
     "clean": "rimraf ./dist",
     "build": "npm run clean && tsc && npm run copy-files",
-    "build:sourcemap": "npm run clean && tsc -p ./tsconfig.sourcemap.json && npm run copy-files",
     "copy-files": "copyfiles -u 1 src/**/*.html dist/",
     "watch": "tsc --watch",
-    "prepublishOnly": "npm run build",
     "test": "jest --runInBand",
-    "pretty": "./node_modules/.bin/prettier --config ./.prettierrc --write './src/**/*.*'",
-    "publish-check": "node scripts"
+    "pretty": "prettier --config ./.prettierrc --write './src/**/*.*'",
+    "localInstall": "sh scripts/localInstall.sh"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.24.3",
@@ -133,5 +131,8 @@
     "webpack-merge": "^5.8.0",
     "which": "^4.0.0",
     "winston": "^3.3.3"
+  },
+  "engines": {
+    "node": ">=16"
   }
 }
