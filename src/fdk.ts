@@ -29,11 +29,13 @@ import * as Sentry from '@sentry/node';
 const packageJSON = require('../package.json');
 
 const sentryFilePath = path.join(__dirname, './sentry.json');
-const sentryDSN = fs.existsSync(sentryFilePath) ? fs.readJsonSync(sentryFilePath)["dsn"] : undefined;
-if(sentryDSN){
+const sentryDSN = fs.existsSync(sentryFilePath)
+    ? fs.readJsonSync(sentryFilePath)['dsn']
+    : undefined;
+if (sentryDSN) {
     Sentry.init({
         dsn: sentryDSN,
-        release: packageJSON.version
+        release: packageJSON.version,
     });
 }
 
@@ -287,7 +289,19 @@ export function parseCommands() {
 }
 
 async function checkCliVersionAsync() {
-    return await latestVersion(packageJSON.name, { version: '*' });
+    try {
+        return await latestVersion(packageJSON.name, { version: '*' });
+    } catch (err) {
+        if (err.code == 'SELF_SIGNED_CERT_IN_CHAIN') {
+            throw new CommandError(
+                `${ErrorCodes.VPN_ISSUE.message}`,
+                ErrorCodes.VPN_ISSUE.code,
+            );
+        }
+        // incase of registry.npmjs.org is down CLI user should not get stuck at here
+        Debug(err);
+        return;
+    }
 }
 
 async function promptForFDKFolder() {

@@ -11,6 +11,15 @@
         "program": "${workspaceFolder}/bin/fdk.js",
         "preLaunchTask": "tsc: build - tsconfig.json",
         "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+      },
+      {
+        "type": "node",
+        "request": "launch",
+        "name": "Debug CLI commands",
+        "program": "${workspaceFolder}/bin/fdk.js",
+        "args": ["env","set","-u","api.sngz0.de"],
+        "console": "integratedTerminal",
+        "sourceMaps": true,
       }
     ]
   }
