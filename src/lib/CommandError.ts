@@ -78,6 +78,11 @@ export const ErrorCodes = {
         message: 'Unable to establish ngrok tunnel',
         code: 'FDK-0011',
     },
+    VPN_ISSUE: {
+        message:
+            'This can be caused due to VPN or Firewall, please contact your network administrator or disable and retry.',
+        code: 'FDK-0013',
+    },
 };
 
 export default class CommandError extends Error {
