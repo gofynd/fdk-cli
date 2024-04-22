@@ -203,6 +203,9 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
             if (err instanceof CommandError) {
                 const message = `${err.code} - ${err.message} `;
                 Logger.error(message);
+            } else if (err.code === 'SELF_SIGNED_CERT_IN_CHAIN') {
+                const message = `${ErrorCodes.VPN_ISSUE.code} - ${ErrorCodes.VPN_ISSUE.message} `;
+                Logger.error(message);
             } else {
                 // on report call sentry capture exception
                 Sentry.captureException(err);
@@ -289,19 +292,7 @@ export function parseCommands() {
 }
 
 async function checkCliVersionAsync() {
-    try {
-        return await latestVersion(packageJSON.name, { version: '*' });
-    } catch (err) {
-        if (err.code == 'SELF_SIGNED_CERT_IN_CHAIN') {
-            throw new CommandError(
-                `${ErrorCodes.VPN_ISSUE.message}`,
-                ErrorCodes.VPN_ISSUE.code,
-            );
-        }
-        // incase of registry.npmjs.org is down CLI user should not get stuck at here
-        Debug(err);
-        return;
-    }
+    return await latestVersion(packageJSON.name, { version: '*' });
 }
 
 async function promptForFDKFolder() {
