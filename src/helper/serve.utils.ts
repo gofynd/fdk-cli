@@ -23,6 +23,7 @@ import webpackHotMiddleware from 'webpack-hot-middleware';
 import webpack from 'webpack';
 import createBaseWebpackConfig from '../helper/theme.react.config';
 import Debug from '../lib/Debug';
+import https from 'https';
 const packageJSON = require('../../package.json');
 
 const BUILD_FOLDER = './.fdk/dist';
@@ -56,12 +57,27 @@ export function getPort(port) {
 function applyProxy(app: any) {
     const currentContext = getActiveContext();
     const currentDomain = `https://${currentContext.domain}`;
+    let httpsAgent;
+
+    if(process.env.CA){
+        // Load the VPN's CA certificate
+        const ca = fs.readFileSync(process.env.CA);
+        // Create an HTTPS agent with the CA certificate
+        httpsAgent = { ca }
+    }
+    if(process.env.IGNORE_SSL == 'true'){
+        httpsAgent = { rejectUnauthorized: false }
+    }
+    if(httpsAgent){
+        httpsAgent = new https.Agent(httpsAgent);
+    }
     const options = {
         target: currentDomain, // target host
         changeOrigin: true, // needed for virtual hosted sites
         cookieDomainRewrite: '127.0.0.1', // rewrite cookies to localhost
         onProxyReq: fixRequestBody,
         onError: (error) => Logger.error(error),
+        agent: httpsAgent
     };
 
     // proxy to solve CORS issue
@@ -137,10 +153,10 @@ async function requestToOriginalSource(req, res, domain, themeId) {
         return res.send(publicCache[url].body);
     } catch (error) {
         // If there's an error, pass it to the client
-        if (error.response) {
+        if (error?.response) {
             // If there is a response from the server
-            res.status(error.response.status).send(error.response.data);
-        } else if (error.request) {
+            res.status(error?.response?.status).send(error?.response?.data);
+        } else if (error?.request) {
             // If the request was made but no response was received
             res.status(500).send('No response from server');
         } else {
@@ -198,6 +214,13 @@ export async function startServer({ domain, host, isSSR, port }) {
             jetfireUrl.searchParams.set('__csr', 'true');
         }
         try {
+            let httpsAgent;
+            if(process.env.CA){
+                // Load the VPN's CA certificate
+                const ca = fs.readFileSync(process.env.CA);
+                // Create an HTTPS agent with the CA certificate
+                httpsAgent = new https.Agent({ ca });
+            }
             // Bundle directly passed on with POST request body.
             const { data: html } = await axios({
                 method: 'POST',
@@ -207,6 +230,7 @@ export async function startServer({ domain, host, isSSR, port }) {
                     theme_url: themeUrl,
                     domain: getFullLocalUrl(port),
                 },
+                httpsAgent
             });
 
             let $ = cheerio.load(html);
@@ -260,9 +284,9 @@ export async function startServer({ domain, host, isSSR, port }) {
             });
             res.send($.html({ decodeEntities: false }));
         } catch (e) {
-            if (e.response && e.response.status == 504) {
+            if (e?.response && e?.response?.status == 504) {
                 res.redirect(req.originalUrl);
-            } else if (e.response && e.response.status == 500) {
+            } else if (e?.response && e?.response?.status == 500) {
                 try {
                     Logger.error(e.response.data);
                     let errorString = e.response.data

@@ -77,6 +77,20 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
                 process.env.DEBUG = 'false';
             }
 
+            if (parent._optionValues.cafile) {
+                // check if file exist
+                if(fs.existsSync(parent._optionValues.cafile)){
+                    process.env.CA = parent._optionValues.cafile;
+                } else {
+                    throw new CommandError("Provided file path does not exist.")
+                }
+            }
+
+            if(parent._optionValues.strictSsl == 'false'){
+                process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+                process.env.IGNORE_SSL = 'true';
+            }
+
             initializeLogger();
             const latest = await checkCliVersionAsync();
             const isCurrentLessThanLatest = semver.lt(
@@ -237,6 +251,14 @@ export async function init(programName: string) {
         .option(
             '-d, --debug',
             'Display detailed output for debugging purposes',
+        )
+        .option(
+            '-cf, --cafile [path-to-pem-file]',
+            'To attach trusted certificate',
+        )
+        .option(
+            '-ssl, --strict-ssl [boolean]',
+            'To attach trusted certificate',
         );
 
     //register commands with commander instance
