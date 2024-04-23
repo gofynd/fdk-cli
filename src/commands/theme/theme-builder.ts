@@ -1,6 +1,7 @@
 import commander from 'commander';
 import Theme from '../../lib/Theme';
 import ThemeContext from '../../lib/ThemeContext';
+
 export default function themeCommandBuilder() {
     const theme = new commander.Command('theme').description('Theme Commands');
     theme
@@ -10,10 +11,14 @@ export default function themeCommandBuilder() {
         .requiredOption('-n, --name [name]', 'Theme name')
         .asyncAction(Theme.createTheme);
     theme
-        .command('run-doc')
-        .description('Create Doc')
+        .command('doc-serve')
+        .description('Serve Doc')
         .requiredOption('-t, --version [version]', 'Tag version')
         .asyncAction(Theme.createDoc);
+    theme
+        .command('doc-clean')
+        .description('Clean Docs')
+        .asyncAction(Theme.cleanDocs);
 
     theme
         .command('init')

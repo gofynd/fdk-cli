@@ -15,6 +15,7 @@ import {
 import CommandError, { ErrorCodes } from './CommandError';
 import Logger, { COMMON_LOG_MESSAGES } from './Logger';
 import ConfigurationService from './api/services/configuration.service';
+import  SemVer  from 'semver';
 import fs from 'fs-extra';
 import path from 'path';
 import execa from 'execa';
@@ -403,7 +404,8 @@ export default class Theme {
         if (tag[0] !== 'v') {
             versiontag = 'v' + tag;
         }
-        const extractPath = `./downloads/${versiontag}`;
+        const extractPath = path.resolve(__dirname, '../../', `downloads/${versiontag}`);
+
 
         const documentationPath = path.resolve(extractPath, `fdk-store-${Theme.trimTag(tag)}`, 'docs')
 
@@ -429,13 +431,35 @@ export default class Theme {
 
     public static async createDoc(options) {
         const tag = options.version;
+        const DEFAULT_PORT = 8081;
         try {
-            const extractPath = await Theme.fetchContent(tag);
-            const app = express();
-            app.use(express.static(path.resolve(__dirname, extractPath)))
-            app.listen(8081);
-        
-            await open('http://127.0.0.1:8081');
+            let cleanTag = SemVer.clean(tag);
+            if (SemVer.gt(cleanTag, '1.0.22')) {
+                const extractPath = await Theme.fetchContent(tag);
+                const app = express();
+
+                const port = await getPort(DEFAULT_PORT);
+                app.use(express.static(path.resolve(__dirname, extractPath)))
+                app.listen(port, () => {
+                    Logger.info(`Serever Running at ${port}`)
+                });
+            
+                await open(`http://127.0.0.1:${port}`);
+                
+            }
+            else {
+                throw new CommandError("Please use tag above v1.0.22")
+            }
+            
+        } catch (error) {
+            throw new CommandError(error.message, error.code);
+        }
+    }
+    public static async cleanDocs() {
+        try {
+            const extractPath = path.resolve(__dirname, '../../', `downloads`);
+            fs.removeSync(extractPath);
+            Logger.info('Doc Cache Cleaned')
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
