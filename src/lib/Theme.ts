@@ -26,6 +26,8 @@ import inquirer from 'inquirer';
 import cheerio from 'cheerio';
 import glob from 'glob';
 import _ from 'lodash';
+import React from 'react';
+import * as ReactRouterDOM from 'react-router-dom';
 import { createDirectory, writeFile, readFile } from '../helper/file.utils';
 import { customAlphabet } from 'nanoid';
 import ThemeService from './api/services/theme.service';
@@ -1386,8 +1388,8 @@ export default class Theme {
         const code = fs.readFileSync(path, { encoding:'utf8' })
         const scope = {
             self: {
-                React: {},
-                ReactRouterDOM: {},
+                React,
+                ReactRouterDOM,
                 webpackChunkthemeBundle: [],
                 sharedComponentLibrary: {},
                 sharedUtilsLibrary: {},
@@ -2419,32 +2421,35 @@ export default class Theme {
                 Logger.error('Custom Templates Not Available');
             }
 
+            const customPageData = ReactRouterDOM.createRoutesFromElements(customTemplates);
+            
             const customFiles = {};
             const customRoutes = (ctTemplates, parentKey = null) => {
-                for (let key in ctTemplates) {
+                (Array.isArray(ctTemplates) ? ctTemplates : [ctTemplates]).forEach((customPage) => {
+                    console.log({customPage})
+                    const {path, handle = {}, children} = customPage;
                     let settingProps;
                     const routerPath =
-                        (parentKey && `${parentKey}/${key}`) || `c/${key}`;
+                        (parentKey && `${parentKey}/${path}`) || `c/${path}`;
                     const value = routerPath.replace(/\//g, ':::');
-                    if (ctTemplates[key].settings) {
-                        settingProps = ctTemplates[key].settings.props;
+                    if (handle.settings) {
+                        settingProps = handle.settings.props;
                     }
                     customFiles[value] = {
                         fileSetting: settingProps,
                         value,
-                        text: pageNameModifier(key),
+                        text: pageNameModifier(path),
                         path: routerPath,
                     };
 
                     if (
-                        ctTemplates[key].children &&
-                        Object.keys(ctTemplates[key].children).length
+                        children
                     ) {
-                        customRoutes(ctTemplates[key].children, routerPath);
+                        customRoutes(children, routerPath);
                     }
-                }
+                });
             };
-            customRoutes(customTemplates);
+            customRoutes(customPageData)
             // Delete custom pages removed from code
             const pagesToDelete = customPagesDB.filter(
                 (x) => !customFiles[x.value],
