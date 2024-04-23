@@ -16,6 +16,7 @@ import {
 } from '../helper/extension_utils';
 import Spinner from '../helper/spinner';
 import CommandError, { ErrorCodes } from './CommandError';
+import Logger from './Logger';
 
 export default class ExtensionPreviewURL {
     organizationInfo: Object;
@@ -72,7 +73,7 @@ export default class ExtensionPreviewURL {
             // get preview URL
             const previewURL = extension.getPreviewURL();
 
-            console.log(
+            Logger.info(
                 boxen(
                     chalk.bold.black(
                         `NGROK URL: ${extension.publicNgrokURL}\nPREVIEW URL: ${previewURL}`,
@@ -116,13 +117,13 @@ export default class ExtensionPreviewURL {
         });
 
         if (choices.length === 0) {
-            console.log(
+            Logger.info(
                 chalk.yellowBright(
                     `You haven't created any development account in "${this.organizationInfo?.name}" organization.`,
                 ),
             );
 
-            console.log(
+            Logger.info(
                 chalk.yellowBright(
                     `Please create a development account from ${
                         getPlatformUrls().partners
@@ -175,11 +176,11 @@ export default class ExtensionPreviewURL {
             this.firstTunnelConnection = false;
             return;
         }
-        console.log(chalk.gray('Ngrok tunnel Reconnected'));
+        Logger.info(chalk.gray('Ngrok tunnel Reconnected'));
     }
 
     private async closedTunnelHandler() {
-        console.log(chalk.red('Ngrok tunnel Closed'));
+        Logger.info(chalk.red('Ngrok tunnel Closed'));
     }
 
     private async promptExtensionApiKey(): Promise<string> {
@@ -223,7 +224,7 @@ export default class ExtensionPreviewURL {
     private async promptNgrokAuthtoken(): Promise<string> {
         let authtoken: string;
         try {
-            console.log(
+            Logger.info(
                 chalk.grey(
                     `Visit https://dashboard.ngrok.com/get-started/your-authtoken to get Authtoken`,
                 ),

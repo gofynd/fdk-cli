@@ -144,7 +144,7 @@ export default class Auth {
                 }
             });
         } catch (error) {
-            throw new CommandError(error.message);
+            throw new CommandError(error.message, error.code);
         }
     }
     public static getUserInfo() {
@@ -160,7 +160,7 @@ export default class Auth {
             Logger.info(`Email: ${activeEmail}`);
             Logger.info(`Current organization: ${organization_id}`);
         } catch (error) {
-            throw new CommandError(error.message);
+            throw new CommandError(error.message, error.code);
         }
     }
     private static isAlreadyLoggedIn = async () => {

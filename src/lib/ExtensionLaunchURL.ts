@@ -1,6 +1,4 @@
-import fs from 'fs';
 import {
-    replaceContent,
     Object,
     getPartnerAccessToken,
 } from '../helper/extension_utils';
@@ -10,6 +8,7 @@ import ExtensionService from './api/services/extension.service';
 import CommandError from './CommandError';
 import Spinner from '../helper/spinner';
 import path from 'path';
+import Extension from './Extension';
 
 export default class ExtensionLaunchURL {
     public static async setLaunchURLHandler(options) {
@@ -66,25 +65,8 @@ export default class ExtensionLaunchURL {
                     }
                 }
 
-                if (fs.existsSync('./.env')) {
-                    let envData = readFile('./.env');
-                    envData = replaceContent(
-                        envData,
-                        `EXTENSION_BASE_URL=.*[\n]`,
-                        `EXTENSION_BASE_URL="${launch_url}"\n`,
-                    );
-                    writeFile('./.env', envData);
-                } else if (fs.existsSync(java_env_file_path)) {
-                    let envData = readFile(java_env_file_path);
-                    envData = replaceContent(
-                        envData,
-                        `base_url.*[\n]`,
-                        `base_url: '${launch_url}'\n`,
-                    );
-                    writeFile(java_env_file_path, envData);
-                } else {
-                    manualUpdateRequired = true;
-                }
+                manualUpdateRequired = Extension.updateExtensionEnvValue(launch_url);
+
                 spinner.succeed();
                 console.log(
                     chalk.greenBright(

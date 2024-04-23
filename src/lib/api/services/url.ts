@@ -129,23 +129,12 @@ export const URLS = {
             `organization/${organization_id}/company/${company_id}/setup`,
         );
     },
-
-    // Extension
-    REGISTER_EXTENSION: (): string => {
-        return urlJoin(MIXMASTER_URL('panel'), `/extensions/`);
-    },
     
     REGISTER_EXTENSION_PARTNER: (): string => {
         return  urlJoin(
             MIXMASTER_URL('partner'),
             `organization/${organization_id}/extension`
         )
-    },
-    GET_EXTENSION_DETAILS: (extension_api_key: string): string => {
-        return urlJoin(
-            MIXMASTER_URL('panel'),
-            `/extensions/details/${extension_api_key}`,
-        );
     },
     
     GET_EXTENSION_DETAILS_PARTNERS: (extension_api_key: string): string => {
@@ -166,11 +155,11 @@ export const URLS = {
         return urlJoin(MIXMASTER_URL('partner'),
         `organization/${organization_id}/extension/${extension_api_key}`)
     },
-    
-    GET_ORGANIZATION_DATA: (partner_access_token: string): string => {
+
+    VALIDATE_ACCESS_TOKEN: (): string => {
         return urlJoin(
-            MIXMASTER_URL('panel'),
-            `/accesstoken/${partner_access_token}/organization`,
+            MIXMASTER_URL('partner'),
+            `organization/${organization_id}/accesstoken/validate`,
         );
     },
 

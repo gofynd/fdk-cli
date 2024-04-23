@@ -25,6 +25,7 @@ import {
     installJavaPackages,
     installPythonDependencies,
 } from '../helper/utils';
+import Logger from './Logger';
 
 export const NODE_VUE = 'Node + Vue.js';
 export const NODE_REACT = 'Node + React.js';
@@ -239,7 +240,7 @@ export default class Extension {
                 chalk.yellowBright.bold('NOTE: ') +
                 chalk.green.bold(`cd ${targetDir} to continue...`);
 
-            console.log(
+            Logger.info(
                 boxen(text, { padding: 1, borderColor: 'greenBright' }),
             );
         } catch (error) {
@@ -300,33 +301,9 @@ export default class Extension {
                 .then((value) => {
                     answers.name = value.name;
                 });
+            answers.targetDir = options['targetDir'] || answers.name;
 
-            if (options['targetDir']) {
-                answers.targetDir = options['targetDir'];
-                if (
-                    answers.targetDir != '.' &&
-                    fs.existsSync(answers.targetDir)
-                ) {
-                    throw new CommandError(
-                        `Directory "${answers.targetDir}" already exists. Please choose another`,
-                    );
-                }
-            } else {
-                answers.targetDir = answers.name;
-                if (fs.existsSync(answers.targetDir)) {
-                    throw new CommandError(
-                        `Folder with the same name as "${answers.targetDir}" already exists. Please choose another name or directory.`,
-                    );
-                }
-            }
-
-            if (fs.existsSync(path.join(answers.targetDir, '/.git'))) {
-                throw new CommandError(
-                    `Cannot initialize extension at '${path.resolve(
-                        answers.targetDir,
-                    )}', as it already contains Git repository.`,
-                );
-            }
+            Extension.checkFolderAndGitExists(answers.targetDir);
 
             const extensionTypeQuestions = [
                 {
@@ -384,6 +361,52 @@ export default class Extension {
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
+    }
+
+    private static checkFolderAndGitExists(folderPath:string){
+        if (fs.existsSync(folderPath)) {
+            throw new CommandError(
+                `Folder at "${path}" already exists. Please choose another name or directory.`,
+            );
+        }
+        if (fs.existsSync(path.join(folderPath, '/.git'))) {
+            throw new CommandError(
+                `Cannot initialize extension at '${path.resolve(
+                    folderPath,
+                )}', as it already contains Git repository.`,
+            );
+        }
+        return false;
+    }
+
+    public static updateExtensionEnvValue(launch_url: string) {
+        let java_env_file_path = path.join(
+            'src',
+            'main',
+            'resources',
+            'application.yml',
+        );
+
+        if (fs.existsSync('./.env')) {
+            let envData = readFile('./.env');
+            envData = replaceContent(
+                envData,
+                `EXTENSION_BASE_URL=.*[\n]`,
+                `EXTENSION_BASE_URL="${launch_url}"\n`,
+            );
+            writeFile('./.env', envData);
+        } else if (fs.existsSync(java_env_file_path)) {
+            let envData = readFile(java_env_file_path);
+            envData = replaceContent(
+                envData,
+                `base_url.*[\n]`,
+                `base_url: '${launch_url}'\n`,
+            );
+            writeFile(java_env_file_path, envData);
+        } else {
+            return true;
+        }
+        return false;
     }
 
     // command handler for "extension setup"
@@ -457,25 +480,8 @@ export default class Extension {
 
             answers.base_url = extension_data.base_url;
             answers.name = extension_data.name;
-
-            if (options['targetDir']) {
-                answers.targetDir = options['targetDir'];
-                if (
-                    answers.targetDir != '.' &&
-                    fs.existsSync(answers.targetDir)
-                ) {
-                    throw new CommandError(
-                        `Directory "${answers.targetDir}" already exists. Please choose another`,
-                    );
-                }
-            } else {
-                answers.targetDir = answers.name;
-                if (fs.existsSync(answers.targetDir)) {
-                    throw new CommandError(
-                        `Folder with the same name as "${answers.targetDir}" already exists. Please choose another name or directory.`,
-                    );
-                }
-            }
+            answers.targetDir = options['targetDir'] || answers.name;
+            Extension.checkFolderAndGitExists(answers.targetDir);
 
             await Extension.createExtension(answers, false);
         } catch (error) {

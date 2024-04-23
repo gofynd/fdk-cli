@@ -9,6 +9,7 @@ import { init } from '../fdk';
 import { CommanderStatic } from 'commander';
 import { URLS } from '../lib/api/services/url';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
+import Logger from '../lib/Logger';
 
 // fixtures
 const TOKEN = 'mocktoken';
@@ -26,7 +27,7 @@ const EXPECTED_PREVIEW_URL =
 const EXPECTED_NGROK_URL = 'https://test_url.ngrok.io';
 
 let program: CommanderStatic;
-let logSpy: jest.SpyInstance<any>;
+let winstonLoggerSpy: jest.SpyInstance<any>;
 
 jest.mock('configstore', () => {
     const Store =
@@ -55,7 +56,7 @@ describe('Extension preview-url command', () => {
 
     afterAll(async () => {
         // restore console log mock so it does not affect other test cases
-        logSpy.mockRestore();
+        winstonLoggerSpy.mockRestore();
     });
 
     beforeEach(async () => {
@@ -63,14 +64,14 @@ describe('Extension preview-url command', () => {
         program = await init('fdk');
 
         // mock console.log
-        logSpy = jest.spyOn(global.console, 'log');
+        winstonLoggerSpy = jest.spyOn(Logger, 'info');
         jest.spyOn(ngrok, 'connect').mockResolvedValue(NGROK_TEST_URL);
 
         // mock axios
         mockAxios = new MockAdapter(axios);
         mockCustomAxios = new MockAdapter(withoutErrorResponseInterceptorAxios);
         mockAxios
-            .onGet(`${URLS.GET_ORGANIZATION_DATA(TOKEN)}`)
+            .onPost(`${URLS.VALIDATE_ACCESS_TOKEN()}`)
             .reply(200, { id: ORGANIZATION_ID });
 
         mockAxios
@@ -132,8 +133,9 @@ describe('Extension preview-url command', () => {
             PORT,
         ]);
 
-        expect(logSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
-        expect(logSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
+        
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
         expect(promptSpy).toBeCalledTimes(3);
     });
 
@@ -157,8 +159,8 @@ describe('Extension preview-url command', () => {
             COMPANY_ID,
         ]);
 
-        expect(logSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
-        expect(logSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
     });
 
     it('should prompt for ngrok url and return preview url', async () => {
@@ -182,8 +184,8 @@ describe('Extension preview-url command', () => {
             COMPANY_ID,
         ]);
 
-        expect(logSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
-        expect(logSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
         expect(configStore.get(CONFIG_KEYS.NGROK_AUTHTOKEN)).toBe('auth_token');
     });
 
@@ -210,8 +212,8 @@ describe('Extension preview-url command', () => {
             '--update-authtoken',
         ]);
 
-        expect(logSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
-        expect(logSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
         expect(configStore.get(CONFIG_KEYS.NGROK_AUTHTOKEN)).toBe('auth_token');
     });
 
@@ -239,8 +241,8 @@ describe('Extension preview-url command', () => {
             '--access-token',
             TOKEN
         ]);
-        expect(logSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
-        expect(logSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
         expect(configStore.get(CONFIG_KEYS.NGROK_AUTHTOKEN)).toBe('auth_token');
     });
 
