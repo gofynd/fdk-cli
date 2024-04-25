@@ -65,6 +65,7 @@ jobs:
                 environment: production
                 sourcemaps: './dist'
                 version: ${{ steps.fdk-cli-version.outputs.current-version }}
+                ignore_missing: true
             
             # # Alternative of above to try in local
             # - name: Upload source map to Sentry
