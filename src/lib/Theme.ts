@@ -2381,31 +2381,48 @@ export default class Theme {
             }
 
             const customFiles = {};
-            const customRoutes = (ctTemplates, parentKey = null) => {
-                for (let key in ctTemplates) {
+            
+            const customRoutes = (ctTemplates, parentKey = 'c') => {
+                (Array.isArray(ctTemplates) ? ctTemplates : [ctTemplates]).forEach((customPage) => {
+
+                    const { path: _path, handle = {}, children, index } = customPage.props;
+
+                    let path = _path;
+
+                    if (_path && children) {
+                        return customRoutes(children, `${parentKey}/${_path}`)
+                    }
+
+                    if (!_path && index) {
+                        path = ''
+                    }
+
                     let settingProps;
-                    const routerPath =
-                        (parentKey && `${parentKey}/${key}`) || `c/${key}`;
+                    const routerPath = `${parentKey}${path ? '/' + path : ''}`;
                     const value = routerPath.replace(/\//g, ':::');
-                    if (ctTemplates[key].settings) {
-                        settingProps = ctTemplates[key].settings.props;
+
+                    if (
+                        children
+                    ) {
+                       return customRoutes(children, routerPath);
+                    }
+
+
+                    
+                    if (handle.settings) {
+                        settingProps = handle.settings.props;
                     }
                     customFiles[value] = {
                         fileSetting: settingProps,
                         value,
-                        text: pageNameModifier(key),
+                        text: pageNameModifier(path),
                         path: routerPath,
                     };
 
-                    if (
-                        ctTemplates[key].children &&
-                        Object.keys(ctTemplates[key].children).length
-                    ) {
-                        customRoutes(ctTemplates[key].children, routerPath);
-                    }
-                }
+                });
             };
             customRoutes(customTemplates);
+            console.log(customTemplates, {customFiles})
             // Delete custom pages removed from code
             const pagesToDelete = customPagesDB.filter(
                 (x) => !customFiles[x.value],
