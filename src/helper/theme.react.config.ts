@@ -118,7 +118,7 @@ export default (ctx, extendedWebpackConfig): Configuration[] => {
                 use: 'append',
             },
         },
-    })(baseWebpackConfig, extendedWebpackResolved);
+    })(extendedWebpackResolved,baseWebpackConfig);
 
     if (mergedBaseConfig.entry.hasOwnProperty('themeBundle')) {
         mergedBaseConfig.entry['themeBundle'] = isLocal && isHMREnabled ? [
