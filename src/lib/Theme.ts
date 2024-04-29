@@ -82,12 +82,6 @@ export default class Theme {
         '..',
         'react-template',
     );
-    static TEMP_REACT_TEMPLATE_DIRECTORY = path.join(
-        __dirname,
-        '..',
-        '..',
-        'react-theme-template',
-    );
     static BUILD_FOLDER = './.fdk/dist';
     static SRC_FOLDER = path.join('.fdk', 'temp-theme');
     static VUE_CLI_CONFIG_PATH = path.join('.fdk', 'vue.config.js');
@@ -368,6 +362,7 @@ export default class Theme {
                     appConfig,
                     configObj,
                     targetDirectory,
+                    themeType
                 );
             }
         } catch (error) {
@@ -493,16 +488,16 @@ export default class Theme {
         appConfig,
         configObj,
         targetDirectory,
+        themeType
     ) {
+        let shouldDelete = false
         try {
-            Logger.info('Copying template files');
-            await Theme.copyTemplateFiles(
-                Theme.TEMP_REACT_TEMPLATE_DIRECTORY,
-                targetDirectory,
-                true,
-            );
-            Logger.info('Copied template files');
+
+            Logger.info('Cloning template files');
+            await Theme.cloneTemplate(options, targetDirectory, appConfig, themeType);
+            shouldDelete = true;
             process.chdir(path.join('.', options.name));
+            Logger.info('Installing dependencies');
 
             // Create index.js with section file imports
             Logger.info('creating section index file');
@@ -601,8 +596,8 @@ export default class Theme {
             Logger.info(b5.toString());
         } catch (error) {
             Logger.error(error);
-            // if (shouldDelete) await Theme.cleanUp(targetDirectory);
-            // throw new CommandError(error.message, error.code);
+            if (shouldDelete) await Theme.cleanUp(targetDirectory);
+            throw new CommandError(error.message, error.code);
         }
     }
 
@@ -2987,6 +2982,7 @@ export default class Theme {
         options,
         targetDirectory,
         appConfig,
+        themeType?: string,
     ) => {
         const defaultTheme = await ThemeService.getDefaultTheme({
             company_id: appConfig.company_id,
@@ -2995,10 +2991,16 @@ export default class Theme {
         if (!defaultTheme) {
             throw new CommandError(`Default Theme Not Available`);
         }
-        const themeName = defaultTheme.name;
         const spinner = new Spinner(`Cloning template files`);
-        // const url = options.url || Theme.TEMPLATE_THEME_URL;
-        const url = `https://github.com/gofynd/${themeName}.git`;
+
+        const themeName = defaultTheme.name;
+        let url;
+        if (themeType === 'react') {
+            url = `https://github.com/gofynd/flow.git`;
+        }
+        else {
+            url=  `https://github.com/gofynd/${themeName}.git`;
+        }
         try {
             spinner.start();
             const git = simpleGit();
