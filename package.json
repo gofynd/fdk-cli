@@ -132,11 +132,6 @@
     "which": "^4.0.0",
     "winston": "^3.3.3"
   },
-  "peerDependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.6.2"
-  },
   "engines": {
     "node": ">=16"
   }
