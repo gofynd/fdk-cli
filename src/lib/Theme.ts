@@ -26,6 +26,9 @@ import inquirer from 'inquirer';
 import cheerio from 'cheerio';
 import glob from 'glob';
 import _ from 'lodash';
+import React from 'react';
+import * as ReactRouterDOM from 'react-router-dom';
+
 import { createDirectory, writeFile, readFile } from '../helper/file.utils';
 import { customAlphabet } from 'nanoid';
 import ThemeService from './api/services/theme.service';
@@ -1381,8 +1384,8 @@ export default class Theme {
         const code = fs.readFileSync(path, { encoding:'utf8' })
         const scope = {
             self: {
-                React: {},
-                ReactRouterDOM: {},
+                React,
+                ReactRouterDOM,
                 webpackChunkthemeBundle: [],
                 sharedComponentLibrary: {},
                 sharedUtilsLibrary: {},
@@ -2456,7 +2459,6 @@ export default class Theme {
                 });
             };
             customRoutes(customTemplates);
-            console.log(customTemplates, {customFiles})
             // Delete custom pages removed from code
             const pagesToDelete = customPagesDB.filter(
                 (x) => !customFiles[x.value],
