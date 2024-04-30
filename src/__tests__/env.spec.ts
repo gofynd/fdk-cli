@@ -1,6 +1,8 @@
 import rimraf from 'rimraf';
 import { init } from '../fdk';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
+import MockAdapter from 'axios-mock-adapter';
+import axios from 'axios';
 
 let program;
 
@@ -31,6 +33,8 @@ jest.mock('configstore', () => {
 describe('Env Commands', () => {
     beforeAll(async () => {
         program = await init('fdk');
+        const mock = new MockAdapter(axios);
+        mock.onGet(`https://api.fyndx1.de/service/application/content/_healthz`).reply(200, {});
     });
 
     afterEach(() => {

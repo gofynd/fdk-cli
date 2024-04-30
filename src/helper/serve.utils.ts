@@ -307,7 +307,7 @@ export async function startServer({ domain, host, isSSR, port }) {
                     console.log(e);
                 }
             } else {
-                console.log(e?.request?.path ?? '', e.message);
+                Logger.error(e?.request?.path ?? '', e.message)
             }
         }
     });
