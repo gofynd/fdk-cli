@@ -117,7 +117,7 @@ export function sortString(str) {
 }
 
 export const pageNameModifier = (page) => {
-    let pageArr = page.split('-');
+    let pageArr = (page[0] === ':' ? page.substring(1) : page).split('-');
     let res = '';
     pageArr.forEach((p) => {
         res += p[0]?.toUpperCase() + p.substring(1) + ' ';
