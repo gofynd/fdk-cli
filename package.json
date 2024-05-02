@@ -1,6 +1,6 @@
 {
   "name": "@gofynd/fdk-cli",
-  "version": "5.0.7-beta.1",
+  "version": "5.0.7-beta.2",
   "main": "index.js",
   "license": "MIT",
   "bin": {
@@ -106,6 +106,8 @@
     "open": "^8.2.1",
     "ora": "^5.4.0",
     "query-string": "^7.1.0",
+    "react": "^18.3.1",
+    "react-router-dom": "^6.23.0",
     "react-refresh": "^0.14.0",
     "rimraf": "^3.0.2",
     "semver": "^6.3.0",
