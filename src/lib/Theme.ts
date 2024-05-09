@@ -517,7 +517,6 @@ export default class Theme {
             await Theme.cloneTemplate(options, targetDirectory, appConfig, themeType);
             shouldDelete = true;
             process.chdir(path.join('.', options.name));
-            console.log("path.join('.', options.name)",path.join('.', options.name));
             
             Logger.info('Installing dependencies');
 
