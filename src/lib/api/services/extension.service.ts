@@ -93,19 +93,10 @@ export default {
         try {
             let headers = getCommonHeaderOptions().headers;
 
-            let axiosOptions = Object.assign(
-                {},
-                {
-                    data: data,
-                },
-                {
-                    headers: headers,
-                },
-            );
-
             let response = await withoutErrorResponseInterceptorAxios.patch(
                 URLS.UPDATE_EXTENSION_DETAILS_PARTNERS(extension_api_key),
-                axiosOptions,
+                data,
+                { headers}
             );
             return response.data;
         } catch (error) {
