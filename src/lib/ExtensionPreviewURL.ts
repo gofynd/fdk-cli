@@ -5,7 +5,6 @@ import urljoin from 'url-join';
 import inquirer from 'inquirer';
 
 import Debug from './Debug';
-import Partner from './Partner';
 import { getPlatformUrls } from './api/services/url';
 import configStore, { CONFIG_KEYS } from './Config';
 import ExtensionLaunchURL from './ExtensionLaunchURL';
@@ -17,6 +16,7 @@ import {
 } from '../helper/extension_utils';
 import Spinner from '../helper/spinner';
 import CommandError, { ErrorCodes } from './CommandError';
+import Logger from './Logger';
 
 export default class ExtensionPreviewURL {
     organizationInfo: Object;
@@ -27,6 +27,8 @@ export default class ExtensionPreviewURL {
     // command handler for "extension preview-url"
     public static async previewUrlExtensionHandler(options) {
         try {
+            let partner_access_token = getPartnerAccessToken();
+
             Debug(`Ngrok version: ${await ngrok.getVersion()}`);
 
             // initialize class instance
@@ -34,7 +36,6 @@ export default class ExtensionPreviewURL {
             extension.options = options;
 
             // get the companyId
-            extension.organizationInfo = await extension.getOrganizationInfo();
             if (!extension.options.companyId) {
                 extension.options.companyId = await extension.getCompanyId();
             }
@@ -65,14 +66,14 @@ export default class ExtensionPreviewURL {
             // update launch url on partners panel
             await ExtensionLaunchURL.updateLaunchURL(
                 extension.options.apiKey,
-                extension.organizationInfo.partner_access_token,
+                partner_access_token || options.accessToken,
                 extension.publicNgrokURL,
             );
 
             // get preview URL
             const previewURL = extension.getPreviewURL();
 
-            console.log(
+            Logger.info(
                 boxen(
                     chalk.bold.black(
                         `NGROK URL: ${extension.publicNgrokURL}\nPREVIEW URL: ${previewURL}`,
@@ -106,20 +107,6 @@ export default class ExtensionPreviewURL {
         );
     }
 
-    private async getOrganizationInfo() {
-        let partner_access_token = getPartnerAccessToken();
-        if (partner_access_token) {
-            return await ExtensionService.getOrganizationData(
-                partner_access_token,
-            );
-        } else {
-            return await Partner.connectHandler({
-                readOnly: true,
-                ...this.options,
-            });
-        }
-    }
-
     private async getCompanyId() {
         let developmentCompanyData =
             await ExtensionService.getDevelopmentAccounts(1, 9999);
@@ -130,13 +117,13 @@ export default class ExtensionPreviewURL {
         });
 
         if (choices.length === 0) {
-            console.log(
+            Logger.info(
                 chalk.yellowBright(
-                    `You haven't created any development account in "${this.organizationInfo.name}" organization.`,
+                    `You haven't created any development account in "${this.organizationInfo?.name}" organization.`,
                 ),
             );
 
-            console.log(
+            Logger.info(
                 chalk.yellowBright(
                     `Please create a development account from ${
                         getPlatformUrls().partners
@@ -189,11 +176,11 @@ export default class ExtensionPreviewURL {
             this.firstTunnelConnection = false;
             return;
         }
-        console.log(chalk.gray('Ngrok tunnel Reconnected'));
+        Logger.info(chalk.gray('Ngrok tunnel Reconnected'));
     }
 
     private async closedTunnelHandler() {
-        console.log(chalk.red('Ngrok tunnel Closed'));
+        Logger.info(chalk.red('Ngrok tunnel Closed'));
     }
 
     private async promptExtensionApiKey(): Promise<string> {
@@ -237,7 +224,7 @@ export default class ExtensionPreviewURL {
     private async promptNgrokAuthtoken(): Promise<string> {
         let authtoken: string;
         try {
-            console.log(
+            Logger.info(
                 chalk.grey(
                     `Visit https://dashboard.ngrok.com/get-started/your-authtoken to get Authtoken`,
                 ),

@@ -29,11 +29,13 @@ import * as Sentry from '@sentry/node';
 const packageJSON = require('../package.json');
 
 const sentryFilePath = path.join(__dirname, './sentry.json');
-const sentryDSN = fs.existsSync(sentryFilePath) ? fs.readJsonSync(sentryFilePath)["dsn"] : undefined;
-if(sentryDSN){
+const sentryDSN = fs.existsSync(sentryFilePath)
+    ? fs.readJsonSync(sentryFilePath)['dsn']
+    : undefined;
+if (sentryDSN) {
     Sentry.init({
         dsn: sentryDSN,
-        release: packageJSON.version
+        release: packageJSON.version,
     });
 }
 
@@ -201,6 +203,9 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
             if (err instanceof CommandError) {
                 const message = `${err.code} - ${err.message} `;
                 Logger.error(message);
+            } else if (err.code === 'SELF_SIGNED_CERT_IN_CHAIN') {
+                const message = `${ErrorCodes.VPN_ISSUE.code} - ${ErrorCodes.VPN_ISSUE.message} `;
+                Logger.error(message);
             } else {
                 // on report call sentry capture exception
                 Sentry.captureException(err);
@@ -241,11 +246,11 @@ export async function init(programName: string) {
     // set default environment
     const current_env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
 
-    if (!current_env || !current_env.includes('api.'))
+    if (!current_env || (!current_env.includes('api.') && !current_env.includes('api-')))
         configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'api.fynd.com');
 
     // todo: remove this warning in future version of fdk cli, when everybody get used to set env by url.
-    if (current_env && !current_env.includes('api.')) {
+    if (current_env && !current_env.includes('api.') && !current_env.includes('api-')) {
         console.warn(
             chalk.yellow(
                 `Warning: Reseting active environment to api.fynd.com. Please use \`fdk env set -u <env-api-url>\` to change active environment. Ref: ${
