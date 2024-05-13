@@ -12,7 +12,12 @@ import { webpack } from 'webpack';
 import uploadService from './api/services/upload.service';
 import Configstore, { CONFIG_KEYS } from './Config';
 import extensionService from './api/services/extension.service';
-import { getPort, startExtensionServer, reload } from '../helper/serve.utils';
+import {
+    getPort,
+    startExtensionServer,
+    reload,
+    startExtensionServerVue,
+} from '../helper/serve.utils';
 import chalk from 'chalk';
 import ngrok from 'ngrok';
 import Theme from './Theme';
@@ -20,6 +25,7 @@ import configurationService from './api/services/configuration.service';
 import inquirer from 'inquirer';
 import { exec } from 'child_process';
 import cheerio from 'cheerio';
+import chokidar from 'chokidar';
 
 const readDirectories = promisify(fs.readdir);
 
@@ -679,6 +685,19 @@ export default class ExtensionSection {
         return answers;
     }
 
+    static async promptUrl() {
+        const questions = [
+            {
+                type: 'text',
+                name: 'url',
+                message: 'Enter serving url.',
+            },
+        ];
+
+        const answer = await inquirer.prompt(questions);
+        return answer;
+    }
+
     static async getContextData(options?: { serve: Boolean }) {
         try {
             const dirPath = path.resolve(
@@ -705,10 +724,13 @@ export default class ExtensionSection {
                 domain: '',
             };
 
+            let url = {};
             if (options.serve) {
                 const configObj = await Theme.selectCompanyAndStore();
                 const { data: appConfig } =
                     await configurationService.getApplicationDetails(configObj);
+
+                url = await ExtensionSection.promptUrl();
 
                 const domain = appConfig?.domain?.name ?? '';
                 applicationConfig.domain = `https://${domain}`;
@@ -718,6 +740,7 @@ export default class ExtensionSection {
 
             const context = {
                 ...answers,
+                ...url,
                 ...(options.serve ? applicationConfig : {}),
             };
 
@@ -731,6 +754,13 @@ export default class ExtensionSection {
         }
     }
 
+    public static async previewExtension(options: any) {
+        if (options.type === 'react') {
+            return ExtensionSection.serveExtensionSections(options);
+        } else {
+            return ExtensionSection.serveExtensionSectionsVue(options);
+        }
+    }
     public static async serveExtensionSections(options: any) {
         try {
             const { name: bundleName } = options;
@@ -792,6 +822,73 @@ export default class ExtensionSection {
             const assetUrls = {
                 js: `${url}/${jsFile}`,
                 css: `${url}/${cssFile}`,
+            };
+
+            const data = {
+                bundle: bundleName,
+                assets: assetUrls,
+            };
+
+            const encoded = encodeURI(JSON.stringify(data));
+
+            const previewURL = `${context.domain}?extensionHash=${encoded}`;
+
+            console.log(`PREVIEW URL :\n\n ${previewURL}\n\n`);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    public static async serveExtensionSectionsVue(options: any) {
+        try {
+            const { name: bundleName, url } = options;
+
+            const context = await ExtensionSection.getContextData({
+                serve: true,
+            });
+
+            const port = options.port;
+
+            const rootPath = process.cwd();
+            process.chdir(
+                path.join(
+                    process.cwd(),
+                    ExtensionSection.BINDINGS_DIR_VUE,
+                    bundleName,
+                ),
+            );
+            Logger.info('Building Extension Code ...');
+
+            const res = await ExtensionSection.buildExtensionCodeVue({
+                bundleName,
+            });
+
+            let watcher = chokidar.watch(path.resolve(process.cwd(), 'src'), {
+                persistent: true,
+            });
+            watcher.on('change', async () => {
+                Logger.info(chalk.bold.green(`building`));
+                await ExtensionSection.buildExtensionCodeVue({
+                    bundleName,
+                });
+            });
+
+            // process.chdir(rootPath);
+            const bundleDist = path.resolve(
+                rootPath,
+                ExtensionSection.BINDINGS_DIR_VUE,
+                bundleName,
+                'dist',
+            );
+            Logger.info('Starting Local Extension Server ...', bundleDist);
+            await startExtensionServerVue({ bundleDist, port });
+
+            Logger.info('Starting Ngrok Tunnel ...');
+            // const url = await ngrok.connect(port);
+
+            const assetUrls = {
+                js: `${url}/${bundleName}.umd.js`,
+                css: `${url}/${bundleName}.css`,
             };
 
             const data = {
