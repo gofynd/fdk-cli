@@ -56,7 +56,6 @@ export default function extensionCommandBuilder() {
 
     extension.addCommand(launch_url);
 
-
     const binding = new Command('binding').description(
         'Extension Binding Commands',
     );
@@ -69,17 +68,29 @@ export default function extensionCommandBuilder() {
         .asyncAction(ExtensionSection.initExtensionBinding);
 
     binding
-        .command('publish')
-        .description('Sync extension section')
+        .command('draft')
+        .description('Draft extension section')
         .option('-id, --extensionId [extensionId]', 'Extension ID')
         .option('-org, --organisationId [organisationId]', 'Organisation ID')
-        .asyncAction(ExtensionSection.syncExtensionBindings);
+        .option('-n, --name [name]', 'Bundle Name')
+        .option('-t, --type [type]', 'Type')
+        .asyncAction(ExtensionSection.draftExtensionBindings);
+
+    binding
+        .command('publish')
+        .description('Publish extension section')
+        .option('-id, --extensionId [extensionId]', 'Extension ID')
+        .option('-org, --organisationId [organisationId]', 'Organisation ID')
+        .option('-n, --name [name]', 'Bundle Name')
+        .option('-t, --type [type]', 'Type')
+        .asyncAction(ExtensionSection.publishExtensionBindings);
 
     binding
         .command('preview')
         .description('Serve extension sections')
         .requiredOption('-n, --name [name]', 'Bundle Name')
         .option('-p, --port [port]', 'Server Port')
+        .option('-u, --url [url]', 'Tunnel Url')
         .asyncAction(ExtensionSection.serveExtensionSections);
 
     extension.addCommand(binding);

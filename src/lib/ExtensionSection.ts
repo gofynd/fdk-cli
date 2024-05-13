@@ -6,6 +6,7 @@ import { promisify } from 'node:util';
 import Logger from './Logger';
 import Spinner from '../helper/spinner';
 import { installNpmPackages } from '../helper/utils';
+import { readFile } from '../helper/file.utils';
 import { extensionWebpackConfig } from '../helper/extension.react.config';
 import { webpack } from 'webpack';
 import uploadService from './api/services/upload.service';
@@ -17,6 +18,8 @@ import ngrok from 'ngrok';
 import Theme from './Theme';
 import configurationService from './api/services/configuration.service';
 import inquirer from 'inquirer';
+import { exec } from 'child_process';
+import cheerio from 'cheerio';
 
 const readDirectories = promisify(fs.readdir);
 
@@ -28,89 +31,128 @@ type ExtensionSectionOptions = {
 type SyncExtensionBindingsOptions = {
     extensionId?: string;
     organisationId?: string;
+    name: string;
+    type: string;
 };
 
 type ExtensionContext = {
     extensionId: string;
     organisationId: string;
     domain: string;
-}
+};
 
 // const extensionId = "64b3dc661a1b16dea7fadc22";
 // const organisationId = "65f94f498f7d44c70fcb9026";
 // const domain = "https://test-company-1-hosted-karanraina.sandbox.fynd.engineering";
 
 export default class ExtensionSection {
-    static BINDINGS_DIR = 'bindings/theme/react';
+    static BINDINGS_DIR_REACT = 'bindings/theme/react';
+    static BINDINGS_DIR_VUE = 'bindings/theme/vue';
     static CONTEXT_FILENAME = 'context.json';
     static CONTEXT_DIR_PATH = '.fdk';
 
     public static async initExtensionBinding(options: ExtensionSectionOptions) {
         try {
+            const requiredOptions = ['name', 'interface', 'engine'];
 
-        const requiredOptions = ['name', 'interface', 'engine'];
+            const passedOptions = Object.keys(options);
 
-        const passedOptions = Object.keys(options);
+            const missingOptions = requiredOptions.filter(
+                (param) => !passedOptions.includes(param),
+            );
 
-        const missingOptions = requiredOptions.filter((param) => !passedOptions.includes(param));
+            const questions = [
+                {
+                    type: 'text',
+                    name: 'name',
+                    message: 'Enter Binding Name.',
+                },
+                {
+                    type: 'list',
+                    name: 'engine',
+                    message: 'Select Runtime Engine.',
+                    choices: ['react', 'vue'],
+                },
+                {
+                    type: 'list',
+                    name: 'interface',
+                    message: 'Select Interface.',
+                    choices: ['platform', 'theme'],
+                },
+            ].filter(({ name }) => missingOptions.includes(name));
 
-        const questions = [
-            {
-                type: 'text',
-                name: 'name',
-                message: 'Enter Binding Name.',
-            },
-            {
-                type: 'list',
-                name: 'engine',
-                message: 'Select Runtime Engine.',
-                choices: ['react', 'vue']
-            },
-            {
-                type: 'list',
-                name: 'interface',
-                message: 'Select Interface.',
-                choices: ['platform', 'theme']
-            },
-        ].filter(({ name }) => missingOptions.includes(name));
+            const answers = questions.length
+                ? await inquirer.prompt(questions)
+                : {};
 
-        const answers = questions.length ? 
-            await inquirer.prompt(questions) :
-            {};
+            const finalOptions: ExtensionSectionOptions = {
+                ...options,
+                ...answers,
+            };
 
-        const finalOptions: ExtensionSectionOptions = {
-            ...options,
-            ...answers,
-        }
+            const { interface: bindingInterface, engine } = finalOptions;
 
-        const { 
-            interface: bindingInterface, 
-            engine
-        } = finalOptions;
-
-        if (bindingInterface === 'theme' && engine === 'react') {
-            await ExtensionSection.initExtensionSectionBindingForReact(finalOptions);
-        } else {
-            throw new CommandError('Unsupported interface or engine!')
-        }
-
+            if (bindingInterface === 'theme' && engine === 'react') {
+                await ExtensionSection.initExtensionSectionBindingForReact(
+                    finalOptions,
+                );
+            } else if (bindingInterface === 'theme' && engine === 'vue') {
+                await ExtensionSection.initExtensionSectionBindingForVue(
+                    finalOptions,
+                );
+            } else {
+                throw new CommandError('Unsupported interface or engine!');
+            }
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
     }
-    
-    static async initExtensionSectionBindingForReact(options: ExtensionSectionOptions) {
+
+    static async initExtensionSectionBindingForVue(
+        options: ExtensionSectionOptions,
+    ) {
         try {
             const sectionName = options['name'];
+            const engine = options['engine'];
 
             if (!sectionName) {
                 throw new Error('Section Name not provided!');
             }
 
-            ExtensionSection.createSectionsDirectoryIfNotExists();
+            ExtensionSection.createSectionsDirectoryIfNotExists(engine);
 
-            const sectionExists =
-                await ExtensionSection.sectionExists(sectionName);
+            const sectionExists = await ExtensionSection.sectionExists(
+                sectionName,
+                engine,
+            );
+
+            if (sectionExists) {
+                throw new Error('Section Already Exists!');
+            }
+
+            await ExtensionSection.createDefaultSectionWithNameVue(sectionName);
+        } catch (error) {
+            throw new CommandError(error.message, error.code);
+        }
+    }
+
+    static async initExtensionSectionBindingForReact(
+        options: ExtensionSectionOptions,
+    ) {
+        try {
+            const sectionName = options['name'];
+            const engine = options['engine'];
+
+            if (!sectionName) {
+                throw new Error('Section Name not provided!');
+            }
+
+            ExtensionSection.createSectionsDirectoryIfNotExists(engine);
+
+            const sectionExists = await ExtensionSection.sectionExists(
+                sectionName,
+                engine,
+            );
 
             if (sectionExists) {
                 throw new Error('Section Already Exists!');
@@ -122,12 +164,14 @@ export default class ExtensionSection {
         }
     }
 
-    static createSectionsDirectoryIfNotExists(): void {
-        
-        const directories = ExtensionSection.BINDINGS_DIR.split(path.sep);
+    static createSectionsDirectoryIfNotExists(engine: string): void {
+        const directories =
+            engine === 'react'
+                ? ExtensionSection.BINDINGS_DIR_REACT.split(path.sep)
+                : ExtensionSection.BINDINGS_DIR_VUE.split(path.sep);
         let currentPath = process.cwd();
 
-        directories.forEach(directory => {
+        directories.forEach((directory) => {
             currentPath = path.join(currentPath, directory);
             if (!fs.existsSync(currentPath)) {
                 fs.mkdirSync(currentPath);
@@ -135,10 +179,12 @@ export default class ExtensionSection {
         });
     }
 
-    static async sectionExists(name: string): Promise<Boolean> {
+    static async sectionExists(name: string, engine: string): Promise<Boolean> {
         const sectionPath = path.resolve(
             process.cwd(),
-            ExtensionSection.BINDINGS_DIR,
+            engine === 'react'
+                ? ExtensionSection.BINDINGS_DIR_REACT
+                : ExtensionSection.BINDINGS_DIR_VUE,
         );
 
         if (!fs.existsSync(sectionPath)) {
@@ -155,6 +201,33 @@ export default class ExtensionSection {
         return sectionExists;
     }
 
+    static async createDefaultSectionWithNameVue(name: string) {
+        const sourceCodePath = path.resolve(
+            __dirname,
+            '../../extension-section-vue',
+        );
+        const sectionDirPath = path.resolve(
+            process.cwd(),
+            ExtensionSection.BINDINGS_DIR_VUE,
+            name,
+        );
+
+        await fsExtra.copy(sourceCodePath, sectionDirPath);
+
+        const packageJsonPath = path.join(sectionDirPath, 'package.json');
+        const packageJson = await fsExtra.readJson(packageJsonPath);
+        packageJson.scripts.build = `vue-cli-service build --target lib src/main.js --name ${name}`;
+        await fsExtra.writeJson(packageJsonPath, packageJson, {
+            spaces: 4,
+        });
+
+        process.chdir(
+            path.join(process.cwd(), ExtensionSection.BINDINGS_DIR_VUE, name),
+        );
+
+        await ExtensionSection.installNpmPackages();
+    }
+
     static async createDefaultSectionWithName(name: string) {
         const sourceCodePath = path.resolve(
             __dirname,
@@ -162,62 +235,227 @@ export default class ExtensionSection {
         );
         const sectionDirPath = path.resolve(
             process.cwd(),
-            ExtensionSection.BINDINGS_DIR,
+            ExtensionSection.BINDINGS_DIR_REACT,
             name,
         );
 
         await fsExtra.copy(sourceCodePath, sectionDirPath);
 
-        process.chdir(path.join(process.cwd(), ExtensionSection.BINDINGS_DIR, name));
+        process.chdir(
+            path.join(process.cwd(), ExtensionSection.BINDINGS_DIR_REACT, name),
+        );
 
         await ExtensionSection.installNpmPackages();
     }
 
     static isValidSyncOptions(options: SyncExtensionBindingsOptions): Boolean {
         return (
-            options.extensionId && 
+            options.extensionId &&
             options.organisationId &&
-            typeof(options.extensionId) === 'string' &&
-            typeof(options.organisationId) === 'string'
-            );
+            options.name &&
+            options.type &&
+            typeof options.extensionId === 'string' &&
+            typeof options.organisationId === 'string' &&
+            typeof options.name === 'string' &&
+            typeof options.type === 'string'
+        );
     }
 
-    public static async syncExtensionBindings(options: SyncExtensionBindingsOptions) {
+    public static async publishExtensionBindings(
+        options: SyncExtensionBindingsOptions,
+    ) {
+        const context = ExtensionSection.isValidSyncOptions(options)
+            ? options
+            : await ExtensionSection.getContextData({ serve: false });
 
-        console.log({options});
+        Logger.info(`Publishing Extension Sections`);
 
-        const context = ExtensionSection.isValidSyncOptions(options) ? 
-            options : 
-            (await ExtensionSection.getContextData({ serve: false }));
-
-        Logger.info(`Syncing Extension Sections`)
-        const sectionDirectory = path.resolve(process.cwd(), ExtensionSection.BINDINGS_DIR);
-        const bundleNames = fs.readdirSync(sectionDirectory);
-
-
-        const data = [];
-
-        for (const bundleName of bundleNames) {
-            const sectionData = await ExtensionSection.extractSectionsData(bundleName, context);
-            data.push(sectionData);
+        if (context.type === 'react') {
+            ExtensionSection.publishExtensionBindingsReact(context, false);
+        } else {
+            ExtensionSection.publishExtensionBindingsVue(context, false);
         }
-
-        await ExtensionSection.publishExtensionBindings(data, context);
 
         Logger.info('Code published ...');
     }
 
-    static async extractSectionsData(bundleName: string, context: SyncExtensionBindingsOptions): Promise<any> {
+    static async publishExtensionBindingsReact(context, isDraft: boolean) {
+        const data = [];
+        let sectionData;
+        sectionData = await ExtensionSection.extractSectionsData(
+            context.name,
+            context,
+        );
+        if (isDraft) {
+            sectionData.status = 'draft';
+        } else {
+            sectionData.status = 'published';
+        }
+
+        data.push(sectionData);
+
+        await ExtensionSection.savingExtensionBindings(data, context);
+    }
+
+    static async publishExtensionBindingsVue(context, isDraft: boolean) {
+        const data = [];
+        let sectionData =
+            await ExtensionSection.extractSectionsDataVue(context);
+
+        if (isDraft) {
+            sectionData.status = 'draft';
+        } else {
+            sectionData.status = 'published';
+        }
+
+        data.push(sectionData);
+
+        await ExtensionSection.savingExtensionBindings(data, context);
+    }
+
+    static async extractSectionsDataVue(
+        context: SyncExtensionBindingsOptions,
+    ): Promise<any> {
         const currentRoot = process.cwd();
 
-        process.chdir(path.join(currentRoot, ExtensionSection.BINDINGS_DIR, bundleName));
+        process.chdir(
+            path.join(
+                currentRoot,
+                ExtensionSection.BINDINGS_DIR_VUE,
+                context.name,
+            ),
+        );
 
-        await ExtensionSection.buildExtensionCode({bundleName}).catch(console.error);
+        const res = await ExtensionSection.buildExtensionCodeVue({
+            bundleName: context.name,
+        }).catch(console.error);
 
-        const uploadURLs = await ExtensionSection.uploadSectionFiles(bundleName);
+        const uploadURLs = await ExtensionSection.uploadSectionFiles(
+            context.name,
+        );
+
+        let sectionsFiles = [];
+        try {
+            sectionsFiles = fs
+                .readdirSync(
+                    path.join(
+                        currentRoot,
+                        `/${ExtensionSection.BINDINGS_DIR_VUE}/${context.name}/src/sections`,
+                    ),
+                )
+                .filter((o) => o != 'index.js');
+        } catch (err) {
+            console.log(err);
+        }
+        let sections = sectionsFiles.map((f) => {
+            return ExtensionSection.extractSettingsFromFile(
+                path.join(
+                    currentRoot,
+                    `/${ExtensionSection.BINDINGS_DIR_VUE}/${context.name}/src/sections/${f}`,
+                ),
+            );
+        });
+
+        const data = {
+            extension_id: context.extensionId,
+            bundle_name: context.name,
+            organization_id: context.organisationId,
+            sections,
+            assets: uploadURLs,
+            type: 'vue',
+        };
+
+        process.chdir(currentRoot);
+        return data;
+    }
+
+    static async buildExtensionCodeVue({ bundleName }) {
+        const VUE_CLI_PATH = path.join(
+            '.',
+            'node_modules',
+            '@vue',
+            'cli-service',
+            'bin',
+            'vue-cli-service.js',
+        );
+        const spinner = new Spinner('Building sections using vue-cli-service');
+        return new Promise((resolve, reject) => {
+            spinner.start();
+            const isNodeVersionIsGreaterThan18 =
+                +process.version.split('.')[0].slice(1) >= 18;
+            let b = exec(
+                `node ${VUE_CLI_PATH} build --target lib src/index.js --name ${bundleName}`,
+                {
+                    cwd: process.cwd(),
+                    env: {
+                        ...process.env,
+                        NODE_ENV: 'production',
+                        VUE_CLI_SERVICE_CONFIG_PATH: path.join(
+                            process.cwd(),
+                            Theme.VUE_CLI_CONFIG_PATH,
+                        ),
+                        ...(isNodeVersionIsGreaterThan18 && {
+                            NODE_OPTIONS: '--openssl-legacy-provider',
+                        }),
+                    },
+                },
+            );
+
+            b.stdout.pipe(process.stdout);
+            b.stderr.pipe(process.stderr);
+            b.on('exit', function (code) {
+                if (!code) {
+                    spinner.succeed();
+                    return resolve(true);
+                }
+                spinner.fail();
+                reject({ message: 'Extension Build Failed' });
+            });
+        });
+    }
+
+    static extractSettingsFromFile(path) {
+        try {
+            let $ = cheerio.load(readFile(path));
+            let settingsText = $('settings').text();
+
+            try {
+                return settingsText ? JSON.parse(settingsText) : {};
+            } catch (err) {
+                throw new Error(
+                    `Invalid settings JSON object in ${path}. Validate JSON from https://jsonlint.com/`,
+                );
+            }
+        } catch (error) {
+            throw new Error(
+                `Invalid settings JSON object in ${path}. Validate JSON from https://jsonlint.com/`,
+            );
+        }
+    }
+
+    static async extractSectionsData(
+        bundleName: string,
+        context: SyncExtensionBindingsOptions,
+    ): Promise<any> {
+        const currentRoot = process.cwd();
+
+        process.chdir(
+            path.join(
+                currentRoot,
+                ExtensionSection.BINDINGS_DIR_REACT,
+                bundleName,
+            ),
+        );
+
+        await ExtensionSection.buildExtensionCode({ bundleName }).catch(
+            console.error,
+        );
+
+        const uploadURLs =
+            await ExtensionSection.uploadSectionFiles(bundleName);
 
         const availableSections = await ExtensionSection.getAvailableSections();
-        
+
         //TO DO : remove extra data.
         const sections = [];
         for (const key in availableSections) {
@@ -232,17 +470,18 @@ export default class ExtensionSection {
             organization_id: context.organisationId,
             sections,
             assets: uploadURLs,
-          };
+            type: 'react',
+        };
 
-          process.chdir(currentRoot);
-          return data;
+        process.chdir(currentRoot);
+        return data;
     }
 
     static async buildExtensionCode({
         bundleName,
         isLocal = false,
         port = 5502,
-    }): Promise<{jsFile: string, cssFile: string}> {
+    }): Promise<{ jsFile: string; cssFile: string }> {
         let spinner = new Spinner('Building Extension Code');
         try {
             spinner.start();
@@ -256,14 +495,14 @@ export default class ExtensionSection {
 
             return new Promise((resolve, reject) => {
                 webpack(webpackConfig, (err, stats) => {
-                    console.log(stats.stats.toString())
                     if (err || stats.hasErrors()) {
-
                         reject();
                     }
                     spinner.succeed();
-                    const jsFile = stats.stats[0].compilation.outputOptions.filename.toString();
-                    const cssFile = stats.stats[0].compilation.outputOptions.cssFilename.toString();
+                    const jsFile =
+                        stats.stats[0].compilation.outputOptions.filename.toString();
+                    const cssFile =
+                        stats.stats[0].compilation.outputOptions.cssFilename.toString();
                     resolve({ jsFile, cssFile });
                 });
             });
@@ -271,6 +510,24 @@ export default class ExtensionSection {
             spinner.fail();
             throw new CommandError(error.message);
         }
+    }
+
+    public static async draftExtensionBindings(
+        options: SyncExtensionBindingsOptions,
+    ) {
+        const context = ExtensionSection.isValidSyncOptions(options)
+            ? options
+            : await ExtensionSection.getContextData({ serve: false });
+
+        Logger.info(`Drafting Extension Sections`);
+
+        if (context.type === 'react') {
+            ExtensionSection.publishExtensionBindingsReact(context, true);
+        } else {
+            ExtensionSection.publishExtensionBindingsVue(context, true);
+        }
+
+        Logger.info('Code drafted ...');
     }
 
     static watchExtensionCodeBuild(
@@ -284,12 +541,11 @@ export default class ExtensionSection {
 
             const context = process.cwd();
             const webpackConfig = extensionWebpackConfig({
-                isLocal : true,
+                isLocal: true,
                 bundleName,
                 port,
-                context
+                context,
             });
-
 
             const compiler = webpack(webpackConfig);
 
@@ -306,7 +562,6 @@ export default class ExtensionSection {
                     callback(stats);
                 },
             );
-
         } catch (error) {
             spinner.fail();
             throw new CommandError(error.message);
@@ -329,10 +584,22 @@ export default class ExtensionSection {
         const BUNDLE_DIR = path.join(process.cwd(), path.join('dist'));
         const User = Configstore.get(CONFIG_KEYS.AUTH_TOKEN);
 
-        const files = [
-            ['js', `${sectionName}.umd.min.js`],
-            ['css', `${sectionName}.umd.min.css`],
-        ];
+        let isReact = process
+            .cwd()
+            .includes(ExtensionSection.BINDINGS_DIR_REACT);
+        let files;
+        if (!isReact) {
+            files = [
+                ['js', `${sectionName}.umd.min.js`],
+                ['css', `${sectionName}.css`],
+            ];
+        } else {
+            files = [
+                ['js', `${sectionName}.umd.min.js`],
+                ['css', `${sectionName}.umd.min.css`],
+            ];
+        }
+
         const uploadURLs = {};
         const promises = files.map(([fileExtension, fileName]) => {
             return uploadService
@@ -372,7 +639,7 @@ export default class ExtensionSection {
         return sectionsMeta?.sections?.default ?? {};
     }
 
-    static async publishExtensionBindings(data: any, context: ExtensionContext) {
+    static async savingExtensionBindings(data: any, context: ExtensionContext) {
         try {
             await extensionService.publishExtensionBindings(
                 context.extensionId,
@@ -396,6 +663,16 @@ export default class ExtensionSection {
                 name: 'organisationId',
                 message: 'Enter Organisation ID.',
             },
+            {
+                typer: 'text',
+                name: 'name',
+                message: 'Enter Binding Name.',
+            },
+            {
+                typer: 'text',
+                name: 'type',
+                message: 'Enter type of your extension (react/vue).',
+            },
         ];
 
         const answers = await inquirer.prompt(questions);
@@ -405,18 +682,18 @@ export default class ExtensionSection {
     static async getContextData(options?: { serve: Boolean }) {
         try {
             const dirPath = path.resolve(
-                process.cwd(), 
+                process.cwd(),
                 ExtensionSection.CONTEXT_DIR_PATH,
-                );
+            );
             const filePath = path.resolve(
                 dirPath,
                 ExtensionSection.CONTEXT_FILENAME,
-                );
+            );
             try {
                 const contextFileExists = fs.statSync(filePath);
                 if (contextFileExists) {
                     const contextData = fsExtra.readJSONSync(filePath);
-                    return contextData
+                    return contextData;
                 }
             } catch (error) {
                 console.log(error.message);
@@ -430,26 +707,25 @@ export default class ExtensionSection {
 
             if (options.serve) {
                 const configObj = await Theme.selectCompanyAndStore();
-                const { data: appConfig } = await configurationService.getApplicationDetails(configObj);
-    
+                const { data: appConfig } =
+                    await configurationService.getApplicationDetails(configObj);
+
                 const domain = appConfig?.domain?.name ?? '';
                 applicationConfig.domain = `https://${domain}`;
-
             }
 
             const answers = await ExtensionSection.promptExtensionDetails();
 
             const context = {
                 ...answers,
-                ...(options.serve ? applicationConfig : {})
-            }
+                ...(options.serve ? applicationConfig : {}),
+            };
 
-            fs.mkdirSync(dirPath, { recursive: true })
+            fs.mkdirSync(dirPath, { recursive: true });
 
             fsExtra.writeJSONSync(filePath, context);
 
             return context;
-
         } catch (error) {
             console.log(error);
         }
@@ -460,49 +736,64 @@ export default class ExtensionSection {
             const { name: bundleName } = options;
 
             const context = await ExtensionSection.getContextData({
-                serve: true
+                serve: true,
             });
 
             const serverPort =
-            typeof options['port'] === 'string'
-                ? parseInt(options['port'])
-                : typeof options['port'] === 'number'
-                ? options['port']
-                : 5502;
+                typeof options['port'] === 'string'
+                    ? parseInt(options['port'])
+                    : typeof options['port'] === 'number'
+                    ? options['port']
+                    : 5502;
             const port = await getPort(serverPort);
             if (port !== serverPort)
                 Logger.warn(
                     chalk.bold.yellowBright(
                         `PORT: ${serverPort} is busy, Switching to PORT: ${port}`,
                     ),
-            );
+                );
 
             const rootPath = process.cwd();
-            process.chdir(path.join(process.cwd(), ExtensionSection.BINDINGS_DIR, bundleName));
+            process.chdir(
+                path.join(
+                    process.cwd(),
+                    ExtensionSection.BINDINGS_DIR_REACT,
+                    bundleName,
+                ),
+            );
             Logger.info('Building Extension Code ...');
-            const { jsFile, cssFile } = await ExtensionSection.buildExtensionCode({
+            const { jsFile, cssFile } =
+                await ExtensionSection.buildExtensionCode({
+                    bundleName,
+                    port,
+                    isLocal: true,
+                });
+
+            ExtensionSection.watchExtensionCodeBuild(
                 bundleName,
                 port,
-                isLocal: true
-            });
-            
-            ExtensionSection.watchExtensionCodeBuild(bundleName, port, (stats) => {
-                reload();
-            });
+                (stats) => {
+                    reload();
+                },
+            );
             process.chdir(rootPath);
-            const bundleDist = path.resolve(rootPath, ExtensionSection.BINDINGS_DIR, bundleName, 'dist');
+            const bundleDist = path.resolve(
+                rootPath,
+                ExtensionSection.BINDINGS_DIR_REACT,
+                bundleName,
+                'dist',
+            );
             Logger.info('Starting Local Extension Server ...', bundleDist);
             await startExtensionServer({ bundleDist, port });
-            
-            
+
             Logger.info('Starting Ngrok Tunnel ...');
             const url = await ngrok.connect(port);
-            
+
             const assetUrls = {
-                js: `${url}/${jsFile}`, 
-                css: `${url}/${cssFile}`
+                js: `${url}/${jsFile}`,
+                css: `${url}/${cssFile}`,
             };
-            
+
             const data = {
                 bundle: bundleName,
                 assets: assetUrls,
@@ -512,8 +803,7 @@ export default class ExtensionSection {
 
             const previewURL = `${context.domain}?extensionHash=${encoded}`;
 
-            console.log(`PREVIEW URL :\n\n ${previewURL}\n\n`)
-
+            console.log(`PREVIEW URL :\n\n ${previewURL}\n\n`);
         } catch (error) {
             console.log(error);
         }
