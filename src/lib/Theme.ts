@@ -32,7 +32,7 @@ import ThemeService from './api/services/theme.service';
 import UploadService from './api/services/upload.service';
 import ExtensionService from './api/services/extension.service';
 import {
-    THEME_ENTRY_FILE,
+    DEV_VUE_THEME_ENTRY_FILE,
     build,
     devBuild,
     devReactBuild,
@@ -766,7 +766,7 @@ export default class Theme {
                     spaces: 2,
                 },
             );
-            if (!fs.existsSync(path.join(process.cwd(), THEME_ENTRY_FILE))) {
+            if (!fs.existsSync(path.join(process.cwd(), DEV_VUE_THEME_ENTRY_FILE))) {
                 Logger.info('Restructuring folder structure');
                 let restructureSpinner = new Spinner(
                     'Restructuring folder structure',
@@ -839,7 +839,6 @@ export default class Theme {
 
             const imageCdnUrl = await Theme.getImageCdnBaseUrl();
             const assetBasePath = await Theme.getAssetCdnBaseUrl();
-
             Logger.info('Building Theme for Production...');
             await devReactBuild({
                 buildFolder: Theme.BUILD_FOLDER,
@@ -851,7 +850,6 @@ export default class Theme {
 
             Logger.info('Uploading theme assets/images');
             await Theme.assetsImageUploader();
-
             Logger.info('Uploading theme assets/fonts');
             await Theme.assetsFontsUploader();
 
@@ -1584,6 +1582,7 @@ export default class Theme {
             settingLoader,
         );
     }
+
 
     private static assetsImageUploader = async () => {
         try {
