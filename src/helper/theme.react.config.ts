@@ -1,8 +1,11 @@
+import path from "path"
 import TerserPlugin from 'terser-webpack-plugin';
 import webpack, { Configuration } from 'webpack';
 import { mergeWithRules, merge } from 'webpack-merge';
 import { getLocalBaseUrl } from './serve.utils';
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
+import { CDN_ENTRY_FILE } from './build';
+const context = process.cwd();
 
 const baseConfig = (configOptions) => {
     const { 
@@ -15,7 +18,11 @@ const baseConfig = (configOptions) => {
 
     return {
         mode: isLocal ? 'development' : 'production',
-       
+        entry: {
+            themeBundle:[
+                        path.resolve(context, CDN_ENTRY_FILE),
+                        path.resolve(context, 'theme/index.jsx')],
+        },
         devtool: isLocal ? 'source-map' : false,
         optimization: {
             minimizer: [
@@ -126,6 +133,6 @@ export default (ctx, extendedWebpackConfig): Configuration[] => {
             ...mergedBaseConfig.entry['themeBundle'],
         ] : mergedBaseConfig.entry['themeBundle']
     }
-
+    console.log("======================= mergedBaseConfig =========================", JSON.stringify(mergedBaseConfig))
     return [mergedBaseConfig];
 };
