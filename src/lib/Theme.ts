@@ -112,7 +112,9 @@ export default class Theme {
         throw 'Settings path not exist';
     }
     public static async getThemeBundle(stats: MultiStats) {
-        const outputFileName = stats.stats[0].toJson().assets[0].name;
+        const fileList = stats.stats[0].toJson().assets.map(({ name }) => name);
+        const outputFileName= fileList.find(file => file.startsWith('themeBundle') && file.endsWith('.js'));
+        
         const buildPath = path.join(process.cwd(), Theme.BUILD_FOLDER);
         const outputFilePath = path.resolve(buildPath, outputFileName);
 
