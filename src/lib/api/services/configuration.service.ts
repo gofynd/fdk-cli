@@ -20,12 +20,12 @@ export default {
             throw error;
         }
     },
-    getApplications: async (company_id: number, is_active: boolean=true) => {
+    getApplications: async (company_id: number, is_active: boolean = true) => {
         try {
             const axiosOption = Object.assign({}, getCommonHeaderOptions());
             axiosOption['params'] = {
-                is_active: is_active 
-            }
+                is_active: is_active,
+            };
             const res = await ApiClient.get(
                 URLS.GET_APPLICATION_LIST(company_id),
                 axiosOption,

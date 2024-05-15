@@ -118,7 +118,6 @@ export default class Theme {
 
         const bundle = Theme.evaluateBundle(outputFilePath);
 
-
         const parsed = await bundle({
             applicationID: 'dummy_id',
             applicationToken: 'dummy_token',
@@ -127,7 +126,7 @@ export default class Theme {
         });
 
         return parsed;
- }
+    }
     public static getSettingsSchemaPath() {
         let settings_schema_path = path.join(
             process.cwd(),
@@ -382,7 +381,7 @@ export default class Theme {
                     appConfig,
                     configObj,
                     targetDirectory,
-                    themeType
+                    themeType,
                 );
             }
         } catch (error) {
@@ -400,7 +399,7 @@ export default class Theme {
         let shouldDelete = false;
         try {
             Logger.info('Cloning template files');
-            await Theme.cloneTemplate(options, targetDirectory, appConfig,"");
+            await Theme.cloneTemplate(options, targetDirectory, appConfig, '');
             shouldDelete = true;
             process.chdir(path.join('.', options.name));
             Logger.info('Installing dependencies');
@@ -508,16 +507,20 @@ export default class Theme {
         appConfig,
         configObj,
         targetDirectory,
-        themeType
+        themeType,
     ) {
-        let shouldDelete = false
+        let shouldDelete = false;
         try {
-
             Logger.info('Cloning template files');
-            await Theme.cloneTemplate(options, targetDirectory, appConfig, themeType);
+            await Theme.cloneTemplate(
+                options,
+                targetDirectory,
+                appConfig,
+                themeType,
+            );
             shouldDelete = true;
             process.chdir(path.join('.', options.name));
-            
+
             Logger.info('Installing dependencies');
 
             // Create index.js with section file imports
@@ -537,13 +540,13 @@ export default class Theme {
             }
 
             Logger.info('Building Theme...');
-            const stats =  await devReactBuild({
+            const stats = await devReactBuild({
                 buildFolder: Theme.BUILD_FOLDER,
                 runOnLocal: true,
                 isHMREnabled: false,
             });
 
-            const parsed = await Theme.getThemeBundle(stats)
+            const parsed = await Theme.getThemeBundle(stats);
             const available_sections =
                 await Theme.getAvailableReactSectionsForSync(parsed.sections);
             let settings_schema = await fs.readJSON(
@@ -562,7 +565,10 @@ export default class Theme {
                     'settings_data.json',
                 ),
             );
-            const pages = await Theme.generateAvailablePagesReact(parsed.customTemplates,true);
+            const pages = await Theme.generateAvailablePagesReact(
+                parsed.customTemplates,
+                true,
+            );
             const themeData = {
                 name: options.name,
                 available_sections,
@@ -783,7 +789,10 @@ export default class Theme {
                     spaces: 2,
                 },
             );
-            if (!fs.existsSync(path.join(process.cwd(), THEME_ENTRY_FILE)) && (themeData.theme_type === THEME_TYPE.vue2)) {
+            if (
+                !fs.existsSync(path.join(process.cwd(), THEME_ENTRY_FILE)) &&
+                themeData.theme_type === THEME_TYPE.vue2
+            ) {
                 Logger.info('Restructuring folder structure');
                 let restructureSpinner = new Spinner(
                     'Restructuring folder structure',
@@ -868,7 +877,7 @@ export default class Theme {
                 isHMREnabled: false,
             });
 
-            const parsed = await Theme.getThemeBundle(stats)
+            const parsed = await Theme.getThemeBundle(stats);
             Logger.info('Uploading theme assets/images');
             await Theme.assetsImageUploader();
 
@@ -891,7 +900,9 @@ export default class Theme {
 
             Logger.info('Updating Available pages');
             const { allowedDefaultProps } =
-                await Theme.updateAvailablePagesForReact(parsed.customTemplates);
+                await Theme.updateAvailablePagesForReact(
+                    parsed.customTemplates,
+                );
 
             // Set new theme data
             const newTheme = await Theme.setThemeData(
@@ -1364,7 +1375,6 @@ export default class Theme {
         return settings;
     }
     private static async getAvailableReactSectionsForSync(sections) {
-
         if (!sections) {
             Logger.error('Error occured');
         }
@@ -1380,7 +1390,7 @@ export default class Theme {
     }
 
     static evaluateBundle(path, key = 'themeBundle') {
-        const code = fs.readFileSync(path, { encoding:'utf8' })
+        const code = fs.readFileSync(path, { encoding: 'utf8' });
         const scope = {
             self: {
                 React,
@@ -1712,7 +1722,7 @@ export default class Theme {
                 err.code,
             );
         }
-    }
+    };
     private static assetsFontsUploader = async () => {
         try {
             if (
@@ -2015,14 +2025,19 @@ export default class Theme {
                         if (!allowedDefaultProps[pageData.page])
                             return pageData;
 
-                            Object.keys(pageData.settings?.props || {}).forEach((prop) => {
+                        Object.keys(pageData.settings?.props || {}).forEach(
+                            (prop) => {
                                 if (
-                                    pageData.settings && pageData.settings.props &&
-                                    !allowedDefaultProps[pageData.page]?.includes(prop)
+                                    pageData.settings &&
+                                    pageData.settings.props &&
+                                    !allowedDefaultProps[
+                                        pageData.page
+                                    ]?.includes(prop)
                                 ) {
                                     delete pageData.settings.props[prop];
                                 }
-                            });
+                            },
+                        );
                     });
                     return listItem;
                 });
@@ -2417,34 +2432,37 @@ export default class Theme {
             }
 
             const customFiles = {};
-            
-            const customRoutes = (ctTemplates, parentKey = 'c') => {
-                (Array.isArray(ctTemplates) ? ctTemplates : [ctTemplates]).forEach((customPage) => {
 
-                    const { path: _path, handle = {}, children, index } = customPage.props;
+            const customRoutes = (ctTemplates, parentKey = 'c') => {
+                (Array.isArray(ctTemplates)
+                    ? ctTemplates
+                    : [ctTemplates]
+                ).forEach((customPage) => {
+                    const {
+                        path: _path,
+                        handle = {},
+                        children,
+                        index,
+                    } = customPage.props;
 
                     let path = _path;
 
                     if (_path && children) {
-                        return customRoutes(children, `${parentKey}/${_path}`)
+                        return customRoutes(children, `${parentKey}/${_path}`);
                     }
 
                     if (!_path && index) {
-                        path = ''
+                        path = '';
                     }
 
                     let settingProps;
                     const routerPath = `${parentKey}${path ? '/' + path : ''}`;
                     const value = routerPath.replace(/\//g, ':::');
 
-                    if (
-                        children
-                    ) {
-                       return customRoutes(children, routerPath);
+                    if (children) {
+                        return customRoutes(children, routerPath);
                     }
 
-
-                    
                     if (handle.settings) {
                         settingProps = handle.settings.props;
                     }
@@ -2454,7 +2472,6 @@ export default class Theme {
                         text: pageNameModifier(path),
                         path: routerPath,
                     };
-
                 });
             };
             customRoutes(customTemplates);
@@ -2659,7 +2676,7 @@ export default class Theme {
         const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
 
         Logger.info('Building Assets for React Theme');
-       const stats = await devReactBuild({
+        const stats = await devReactBuild({
             buildFolder: Theme.BUILD_FOLDER,
             runOnLocal: false,
             assetBasePath: assetCdnUrl,
@@ -2668,9 +2685,11 @@ export default class Theme {
         });
 
         await Theme.createReactSectionsIndexFile();
-        const parsed = await Theme.getThemeBundle(stats)
-        
-        let available_sections = await Theme.getAvailableReactSectionsForSync(parsed.sections);
+        const parsed = await Theme.getThemeBundle(stats);
+
+        let available_sections = await Theme.getAvailableReactSectionsForSync(
+            parsed.sections,
+        );
         await Theme.validateAvailableSections(available_sections);
 
         const buildPath = path.join(process.cwd(), Theme.BUILD_FOLDER);
@@ -2816,7 +2835,10 @@ export default class Theme {
         }
     };
 
-    public static generateAvailablePagesReact = async (customTemplates,isNew = false) => {
+    public static generateAvailablePagesReact = async (
+        customTemplates,
+        isNew = false,
+    ) => {
         // extract system page level settings schema
         try {
             const pagesToSave = [];
@@ -2853,38 +2875,40 @@ export default class Theme {
                 pagesToSave.push(pageData);
             });
 
-
             if (!customTemplates) {
                 Logger.error(`Custom Templates Not Available`);
             }
             const customFiles = {};
             const customRoutes = (ctTemplates, parentKey = 'c') => {
-                (Array.isArray(ctTemplates) ? ctTemplates : [ctTemplates]).forEach((customPage) => {
-
-                    const { path: _path, handle = {}, children, index } = customPage.props;
+                (Array.isArray(ctTemplates)
+                    ? ctTemplates
+                    : [ctTemplates]
+                ).forEach((customPage) => {
+                    const {
+                        path: _path,
+                        handle = {},
+                        children,
+                        index,
+                    } = customPage.props;
 
                     let path = _path;
 
                     if (_path && children) {
-                        return customRoutes(children, `${parentKey}/${_path}`)
+                        return customRoutes(children, `${parentKey}/${_path}`);
                     }
 
                     if (!_path && index) {
-                        path = ''
+                        path = '';
                     }
 
                     let settingProps;
                     const routerPath = `${parentKey}${path ? '/' + path : ''}`;
                     const value = routerPath.replace(/\//g, ':::');
 
-                    if (
-                        children
-                    ) {
-                       return customRoutes(children, routerPath);
+                    if (children) {
+                        return customRoutes(children, routerPath);
                     }
 
-
-                    
                     if (handle.settings) {
                         settingProps = handle.settings.props;
                     }
@@ -2894,7 +2918,6 @@ export default class Theme {
                         text: pageNameModifier(path),
                         path: routerPath,
                     };
-
                 });
             };
             customRoutes(customTemplates);
@@ -3049,7 +3072,7 @@ export default class Theme {
         options,
         targetDirectory,
         appConfig,
-        themeType
+        themeType,
     ) => {
         const defaultTheme = await ThemeService.getDefaultTheme({
             company_id: appConfig.company_id,
@@ -3064,14 +3087,13 @@ export default class Theme {
         let url;
         if (themeType === 'react') {
             url = `https://github.com/gofynd/flow.git`;
-        }
-        else {
-            url=  `https://github.com/gofynd/${themeName}.git`;
+        } else {
+            url = `https://github.com/gofynd/${themeName}.git`;
         }
         try {
             spinner.start();
             const git = simpleGit();
-            await git.clone(url, targetDirectory,['--branch', 'master']);
+            await git.clone(url, targetDirectory, ['--branch', 'master']);
             spinner.succeed();
         } catch (err) {
             spinner.fail();

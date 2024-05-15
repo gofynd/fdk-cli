@@ -10,7 +10,7 @@ export type RegisterExtensionPayloadNew = {
     logo?: Object;
     developed_by_name?: string;
     contact_email?: string;
-    callbacks: Object
+    callbacks: Object;
 };
 
 type UpdateLaunchURLPayload = {
@@ -18,15 +18,14 @@ type UpdateLaunchURLPayload = {
 };
 
 export default {
-
-    registerExtensionPartners: async (data: RegisterExtensionPayloadNew)=> {
+    registerExtensionPartners: async (data: RegisterExtensionPayloadNew) => {
         try {
             let headers = getCommonHeaderOptions().headers;
             data.scope = ['company/profile'];
-            data.logo = { 
+            data.logo = {
                 small: 'https://res.cloudinary.com/dwzm9bysq/image/upload/v1566539375/production/media/store/logo/jwosxsgh9ufoucdxpm10.png',
-                large: 'https://res.cloudinary.com/dwzm9bysq/image/upload/v1566539375/production/media/store/logo/jwosxsgh9ufoucdxpm10.png'
-            }
+                large: 'https://res.cloudinary.com/dwzm9bysq/image/upload/v1566539375/production/media/store/logo/jwosxsgh9ufoucdxpm10.png',
+            };
 
             let axiosOptions = Object.assign(
                 {},
@@ -47,7 +46,7 @@ export default {
         }
     },
 
-    getExtensionDataPartners: async (extension_api_key: string)=> {
+    getExtensionDataPartners: async (extension_api_key: string) => {
         try {
             let headers = getCommonHeaderOptions().headers;
             let response = await ApiClient.get(
@@ -89,7 +88,10 @@ export default {
         }
     },
 
-    updateLaunchURLPartners: async (extension_api_key: string, data: UpdateLaunchURLPayload,) => {
+    updateLaunchURLPartners: async (
+        extension_api_key: string,
+        data: UpdateLaunchURLPayload,
+    ) => {
         try {
             let headers = getCommonHeaderOptions().headers;
 
@@ -113,26 +115,28 @@ export default {
         }
     },
 
-    validateAccessToken: async (partner_access_token: string)=> {
-     try{
-        let headers = getCommonHeaderOptions().headers;
+    validateAccessToken: async (partner_access_token: string) => {
+        try {
+            let headers = getCommonHeaderOptions().headers;
 
-        let axiosOptions = Object.assign(
-            {},
-            {
-                data: { token: partner_access_token },
-            },
-            {
-                headers: headers,
-            },
-        );
-        let response = await ApiClient.post(URLS.VALIDATE_ACCESS_TOKEN(), axiosOptions);
-        response.data.partner_access_token = partner_access_token;
-        return response.data;
-     }
-     catch(err){
-        throw err;
-     }
+            let axiosOptions = Object.assign(
+                {},
+                {
+                    data: { token: partner_access_token },
+                },
+                {
+                    headers: headers,
+                },
+            );
+            let response = await ApiClient.post(
+                URLS.VALIDATE_ACCESS_TOKEN(),
+                axiosOptions,
+            );
+            response.data.partner_access_token = partner_access_token;
+            return response.data;
+        } catch (err) {
+            throw err;
+        }
     },
 
     // Preview URL

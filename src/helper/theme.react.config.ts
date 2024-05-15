@@ -5,17 +5,17 @@ import { getLocalBaseUrl } from './serve.utils';
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 
 const baseConfig = (configOptions) => {
-    const { 
+    const {
         isLocal,
         isHMREnabled,
         assetNormalizedBasePath,
         localBasePath,
-        buildPath
+        buildPath,
     } = configOptions;
 
     return {
         mode: isLocal ? 'development' : 'production',
-       
+
         devtool: isLocal ? 'source-map' : false,
         optimization: {
             minimizer: [
@@ -77,7 +77,6 @@ const baseConfig = (configOptions) => {
     };
 };
 export default (ctx, extendedWebpackConfig): Configuration[] => {
-
     const {
         NODE_ENV,
         assetBasePath = '',
@@ -106,8 +105,8 @@ export default (ctx, extendedWebpackConfig): Configuration[] => {
         localImageBasePath,
         localFontsBasePath,
         imageCDNNormalizedBasePath,
-        assetNormalizedBasePath
-    }
+        assetNormalizedBasePath,
+    };
     const baseWebpackConfig = baseConfig(configOptions);
     const extendedWebpackResolved = extendedWebpackConfig(configOptions);
 
@@ -118,13 +117,16 @@ export default (ctx, extendedWebpackConfig): Configuration[] => {
                 use: 'append',
             },
         },
-    })(extendedWebpackResolved,baseWebpackConfig);
+    })(extendedWebpackResolved, baseWebpackConfig);
 
     if (mergedBaseConfig.entry.hasOwnProperty('themeBundle')) {
-        mergedBaseConfig.entry['themeBundle'] = isLocal && isHMREnabled ? [
-            require.resolve('webpack-hot-middleware/client'),
-            ...mergedBaseConfig.entry['themeBundle'],
-        ] : mergedBaseConfig.entry['themeBundle']
+        mergedBaseConfig.entry['themeBundle'] =
+            isLocal && isHMREnabled
+                ? [
+                      require.resolve('webpack-hot-middleware/client'),
+                      ...mergedBaseConfig.entry['themeBundle'],
+                  ]
+                : mergedBaseConfig.entry['themeBundle'];
     }
 
     return [mergedBaseConfig];
