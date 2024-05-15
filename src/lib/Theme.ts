@@ -3095,7 +3095,12 @@ export default class Theme {
         try {
             spinner.start();
             const git = simpleGit();
-            await git.clone(url, targetDirectory, ['--branch', 'master']);
+            if (themeType === 'react') {
+                await git.clone(url, targetDirectory, ['--branch', 'master']);
+            }
+            else {
+                await git.clone(url, targetDirectory);
+            }
             spinner.succeed();
         } catch (err) {
             spinner.fail();
