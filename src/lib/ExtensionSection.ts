@@ -286,7 +286,6 @@ export default class ExtensionSection {
     }
 
     static async publishExtensionBindingsReact(context, isDraft: boolean) {
-        const data = [];
         let sectionData;
         sectionData = await ExtensionSection.extractSectionsData(
             context.name,
@@ -298,13 +297,28 @@ export default class ExtensionSection {
             sectionData.status = 'published';
         }
 
-        data.push(sectionData);
 
-        await ExtensionSection.savingExtensionBindings(data, context);
+        await ExtensionSection.savingExtensionBindings(sectionData, context, sectionData.status);
+    }
+
+    static async draftExtensionBindingsReact(context, isDraft: boolean) {
+
+        const sectionData = await ExtensionSection.extractSectionsData(
+            context.name,
+            context,
+        );
+
+        if (isDraft) {
+            sectionData.status = 'draft';
+        } else {
+            sectionData.status = 'published';
+        }
+
+
+        await ExtensionSection.savingExtensionBindings(sectionData, context);
     }
 
     static async publishExtensionBindingsVue(context, isDraft: boolean) {
-        const data = [];
         let sectionData =
             await ExtensionSection.extractSectionsDataVue(context);
 
@@ -314,9 +328,7 @@ export default class ExtensionSection {
             sectionData.status = 'published';
         }
 
-        data.push(sectionData);
-
-        await ExtensionSection.savingExtensionBindings(data, context);
+        await ExtensionSection.savingExtensionBindings(sectionData, context);
     }
 
     static async extractSectionsDataVue(
@@ -423,11 +435,13 @@ export default class ExtensionSection {
     static extractSettingsFromFile(path) {
         try {
             let $ = cheerio.load(readFile(path));
-            let settingsText = $('settings').text();
+            let settingsText = $('settings').text()
 
             try {
+                console.log({settingsText})
                 return settingsText ? JSON.parse(settingsText) : {};
             } catch (err) {
+                console.log(err)
                 throw new Error(
                     `Invalid settings JSON object in ${path}. Validate JSON from https://jsonlint.com/`,
                 );
@@ -445,6 +459,12 @@ export default class ExtensionSection {
     ): Promise<any> {
         const currentRoot = process.cwd();
 
+        console.log(path.join(
+            currentRoot,
+            ExtensionSection.BINDINGS_DIR_REACT,
+            bundleName,
+        ))
+
         process.chdir(
             path.join(
                 currentRoot,
@@ -452,6 +472,8 @@ export default class ExtensionSection {
                 bundleName,
             ),
         );
+
+        
 
         await ExtensionSection.buildExtensionCode({ bundleName }).catch(
             console.error,
@@ -521,16 +543,17 @@ export default class ExtensionSection {
     public static async draftExtensionBindings(
         options: SyncExtensionBindingsOptions,
     ) {
+        console.log(options)
         const context = ExtensionSection.isValidSyncOptions(options)
             ? options
             : await ExtensionSection.getContextData({ serve: false });
 
-        Logger.info(`Drafting Extension Sections`);
+        Logger.info(`Drafting Extension Sections`, context.type);
 
         if (context.type === 'react') {
-            ExtensionSection.publishExtensionBindingsReact(context, true);
+            await ExtensionSection.draftExtensionBindingsReact(context, true);
         } else {
-            ExtensionSection.publishExtensionBindingsVue(context, true);
+            await ExtensionSection.publishExtensionBindingsVue(context, true);
         }
 
         Logger.info('Code drafted ...');
@@ -645,9 +668,13 @@ export default class ExtensionSection {
         return sectionsMeta?.sections?.default ?? {};
     }
 
-    static async savingExtensionBindings(data: any, context: ExtensionContext) {
+    static async savingExtensionBindings(data: any, context: ExtensionContext, type: 'draft' | 'published' = 'draft') {
         try {
-            await extensionService.publishExtensionBindings(
+            const functionMap = {
+                draft: 'draftExtensionBindings',
+                published: 'publishExtensionBindings',
+            };
+            await extensionService[functionMap[type]](
                 context.extensionId,
                 context.organisationId,
                 data,

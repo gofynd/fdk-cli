@@ -182,4 +182,33 @@ export default {
             throw error;
         }
     },
+
+    draftExtensionBindings: async (
+        extensionId: string,
+        organisationId: string,
+        data : any
+    ) => {
+        try {
+            const axiosOption = Object.assign(
+                {},
+                { data },
+                {
+                    headers: {
+                        ...getCommonHeaderOptions().headers,
+                        'x-application-data': '{}',
+                        'x-user-data': '{}',
+                    }
+                },
+            );
+
+            const res = await ApiClient.post(
+                URLS.DRAFT_SECTIONS(extensionId, organisationId),
+                axiosOption,
+            );
+
+            return res.data;
+        } catch (error) {
+            throw error;
+        }
+    },
 };

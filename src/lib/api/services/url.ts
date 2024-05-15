@@ -167,19 +167,13 @@ export const URLS = {
     PUBLISH_SECTIONS: (extension_id: string, organization_id) => {
         return urlJoin(
             THEME_URL(),
-            `organization/${organization_id}/extension-section/${extension_id}`,
+            `organization/${organization_id}/extension-section/${extension_id}/publish`,
         );
     },
-    PUBLISH_SECTIONSS: (extension_id: string, organization_id: string, bundle: string) => {
+    DRAFT_SECTIONS: (extension_id: string, organization_id) => {
         return urlJoin(
             THEME_URL(),
-            `organization/${organization_id}/extension-section/${extension_id}/${bundle}`,
-        );
-    },
-    GET_SECTIONS: (company_id: number, extension_id: string) => {
-        return urlJoin(
-            THEME_URL(),
-            `organization/${organization_id}/company/${company_id}/extension-section/${extension_id}`,
+            `organization/${organization_id}/extension-section/${extension_id}/draft`,
         );
     },
 
