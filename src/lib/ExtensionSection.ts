@@ -868,11 +868,13 @@ export default class ExtensionSection {
 
     public static async serveExtensionSectionsVue(options: any) {
         try {
-            const { name: bundleName, url } = options;
+            const { name: bundleName } = options;
 
             const context = await ExtensionSection.getContextData({
                 serve: true,
             });
+
+            console.log('pratik: serve options', context);
 
             const port = options.port;
 
@@ -910,12 +912,9 @@ export default class ExtensionSection {
             Logger.info('Starting Local Extension Server ...', bundleDist);
             await startExtensionServerVue({ bundleDist, port });
 
-            Logger.info('Starting Ngrok Tunnel ...');
-            // const url = await ngrok.connect(port);
-
             const assetUrls = {
-                js: `${url}/${bundleName}.umd.js`,
-                css: `${url}/${bundleName}.css`,
+                js: `${context.url}/${bundleName}.umd.js`,
+                css: `${context.url}/${bundleName}.css`,
             };
 
             const data = {
