@@ -1,5 +1,6 @@
 import ngrok from 'ngrok';
 import axios from 'axios';
+import { withoutErrorResponseInterceptorAxios } from '../lib/api/ApiClient';
 import rimraf from 'rimraf';
 import inquirer from 'inquirer';
 import MockAdapter from 'axios-mock-adapter';
@@ -8,6 +9,7 @@ import { init } from '../fdk';
 import { CommanderStatic } from 'commander';
 import { URLS } from '../lib/api/services/url';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
+import Logger from '../lib/Logger';
 
 // fixtures
 const TOKEN = 'mocktoken';
@@ -25,7 +27,7 @@ const EXPECTED_PREVIEW_URL =
 const EXPECTED_NGROK_URL = 'https://test_url.ngrok.io';
 
 let program: CommanderStatic;
-let logSpy: jest.SpyInstance<any>;
+let winstonLoggerSpy: jest.SpyInstance<any>;
 
 jest.mock('configstore', () => {
     const Store =
@@ -47,12 +49,14 @@ jest.mock('configstore', () => {
     };
 });
 
+let mockAxios;
+let mockCustomAxios;
 describe('Extension preview-url command', () => {
     beforeAll(async () => {});
 
     afterAll(async () => {
         // restore console log mock so it does not affect other test cases
-        logSpy.mockRestore();
+        winstonLoggerSpy.mockRestore();
     });
 
     beforeEach(async () => {
@@ -60,13 +64,14 @@ describe('Extension preview-url command', () => {
         program = await init('fdk');
 
         // mock console.log
-        logSpy = jest.spyOn(global.console, 'log');
+        winstonLoggerSpy = jest.spyOn(Logger, 'info');
         jest.spyOn(ngrok, 'connect').mockResolvedValue(NGROK_TEST_URL);
 
         // mock axios
-        const mockAxios = new MockAdapter(axios);
+        mockAxios = new MockAdapter(axios);
+        mockCustomAxios = new MockAdapter(withoutErrorResponseInterceptorAxios);
         mockAxios
-            .onGet(`${URLS.GET_ORGANIZATION_DATA(TOKEN)}`)
+            .onPost(`${URLS.VALIDATE_ACCESS_TOKEN()}`)
             .reply(200, { id: ORGANIZATION_ID });
 
         mockAxios
@@ -75,6 +80,9 @@ describe('Extension preview-url command', () => {
                 items: [{ company: { uid: COMPANY_ID, name: 'cli-test' } }],
             });
 
+        mockCustomAxios
+            .onPatch(`${URLS.UPDATE_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY)}`)
+            .reply(200, {});
         mockAxios
             .onPatch(`${URLS.UPDATE_EXTENSION_DETAILS(EXTENSION_KEY)}`)
             .reply(200, {});
@@ -112,7 +120,6 @@ describe('Extension preview-url command', () => {
 
         const promptSpy = jest
             .spyOn(inquirer, 'prompt')
-            .mockResolvedValueOnce({ partner_access_token: TOKEN })
             .mockResolvedValueOnce({ company_id: COMPANY_ID })
             .mockResolvedValueOnce({ extension_api_key: EXTENSION_KEY })
             .mockResolvedValueOnce({ ngrok_authtoken: AUTH_TOKEN });
@@ -126,9 +133,10 @@ describe('Extension preview-url command', () => {
             PORT,
         ]);
 
-        expect(logSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
-        expect(logSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
-        expect(promptSpy).toBeCalledTimes(4);
+        
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
+        expect(promptSpy).toBeCalledTimes(3);
     });
 
     it('should successfully return preview url without any prompt', async () => {
@@ -151,8 +159,8 @@ describe('Extension preview-url command', () => {
             COMPANY_ID,
         ]);
 
-        expect(logSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
-        expect(logSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
     });
 
     it('should prompt for ngrok url and return preview url', async () => {
@@ -176,8 +184,8 @@ describe('Extension preview-url command', () => {
             COMPANY_ID,
         ]);
 
-        expect(logSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
-        expect(logSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
         expect(configStore.get(CONFIG_KEYS.NGROK_AUTHTOKEN)).toBe('auth_token');
     });
 
@@ -204,8 +212,70 @@ describe('Extension preview-url command', () => {
             '--update-authtoken',
         ]);
 
-        expect(logSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
-        expect(logSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
         expect(configStore.get(CONFIG_KEYS.NGROK_AUTHTOKEN)).toBe('auth_token');
+    });
+
+    it('Should succesfully return the preview-url lower versions than v1.9.2 to update base url of extension as we are providing the partner access tokens in parameters', async ()=> {
+        configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);
+        configStore.set(CONFIG_KEYS.NGROK_AUTHTOKEN, AUTH_TOKEN);
+        mockCustomAxios
+        .onPatch(`${URLS.UPDATE_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY)}`)
+        .reply(404, {});
+        jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({
+            ngrok_authtoken: 'auth_token',
+        });
+        await program.parseAsync([
+            'ts-node',
+            './src/fdk.ts',
+            'extension',
+            'preview-url',
+            '-p',
+            PORT,
+            '--api-key',
+            EXTENSION_KEY,
+            '--company-id',
+            COMPANY_ID,
+            '--update-authtoken',
+            '--access-token',
+            TOKEN
+        ]);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
+        expect(configStore.get(CONFIG_KEYS.NGROK_AUTHTOKEN)).toBe('auth_token');
+    });
+
+    it('Should throw an error for partner access token for lower versions than v1.9.2 to update base url of extension', async ()=> {
+    mockAxios
+    .onPatch(`${URLS.UPDATE_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY)}`)
+    .reply(404, {});
+    configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);
+    configStore.set(CONFIG_KEYS.NGROK_AUTHTOKEN, AUTH_TOKEN);
+    
+    jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({
+        ngrok_authtoken: 'auth_token',
+    });
+    try{
+        jest.spyOn(process, 'exit').mockImplementation(() => {
+            throw new Error('Please provide partner access token eg --access-token partnerAccessToken');
+        });
+        await program.parseAsync([
+            'ts-node',
+            './src/fdk.ts',
+            'extension',
+            'preview-url',
+            '-p',
+            PORT,
+            '--api-key',
+            EXTENSION_KEY,
+            '--company-id',
+            COMPANY_ID,
+            '--update-authtoken',
+        ]);
+    }
+    catch(err){
+        expect(err.message).toBe('Please provide partner access token eg --access-token partnerAccessToken');
+    }
     });
 });

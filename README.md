@@ -411,6 +411,7 @@ fdk extension preview-url [options]
 | --api-key | Extension API key |
 | --help    | Show help |
 | --verbose | enable debug mode |
+| --access-token | Partner Access Token |
 
 #### **Example**
 ```sh

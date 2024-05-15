@@ -8,7 +8,6 @@ import { isValidDomain } from '../helper/utils';
 import Debug from './Debug';
 import { getPlatformUrls } from './api/services/url';
 
-
 export default class Env {
     constructor() {}
 
@@ -31,7 +30,13 @@ export default class Env {
         try {
             // todo: remove name warning in future version
             if (options.name) {
-                console.warn(chalk.yellow(`Warning: The -n/--name option is deprecated. Please use -u/--url option instead. Ref: ${getPlatformUrls().partners}/help/docs/partners/themes/vuejs/command-reference#environment-commands-1`));
+                console.warn(
+                    chalk.yellow(
+                        `Warning: The -n/--name option is deprecated. Please use -u/--url option instead. Ref: ${
+                            getPlatformUrls().partners
+                        }/help/docs/partners/themes/vuejs/command-reference#environment-commands-1`,
+                    ),
+                );
                 throw new Error('Please use -u/--url option.');
             }
             if (!options.url) {
@@ -41,29 +46,14 @@ export default class Env {
             if (!isValidDomain(options.url)) {
                 throw new Error('Please provide valid URL.');
             }
-            try {
-                const url = urljoin(
-                    'https://',
-                    options.url,
-                    '/service/application/content/_healthz',
-                );
-                const response = await axios.get(url);
-
-                if (response?.status === 200) {
-                    Env.setEnv(options.url);
-                    Logger.info(
-                        `CLI will start using: ${chalk.bold(options.url)}`,
-                    );
-                } else {
-                    throw new Error(
-                        'Provided url is not valid platform URL.',
-                    );
-                }
-            } catch (err) {
-                Debug(err)
-                throw new Error('Provided url is not valid platform URL.');
-            }
-        
+            const url = urljoin(
+                'https://',
+                options.url,
+                '/service/application/content/_healthz',
+            );
+            await axios.get(url);
+            Env.setEnv(options.url);
+            Logger.info(`CLI will start using: ${chalk.bold(options.url)}`);
         } catch (e) {
             throw new CommandError(e.message);
         }

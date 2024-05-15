@@ -36,6 +36,7 @@ export default function extensionCommandBuilder() {
         .option('--api-key <api-key>', 'Extension API Key')
         .option('--company-id <id>', 'Company ID')
         .option('--update-authtoken', 'Update Ngrok Authtoken')
+        .option('--access-token <access-token>', 'Partner Access Token')
         .asyncAction(ExtensionPreviewURL.previewUrlExtensionHandler);
 
     const launch_url = new Command('launch-url').description(
@@ -52,6 +53,7 @@ export default function extensionCommandBuilder() {
         .description('Set a launch url for extension')
         .requiredOption('--api-key <api-key>', 'Extension API key')
         .requiredOption('--url <launch-url>', 'Launch url')
+        .option('--access-token <access-token>', 'Partner Access Token')
         .asyncAction(ExtensionLaunchURL.setLaunchURLHandler);
 
     extension.addCommand(launch_url);

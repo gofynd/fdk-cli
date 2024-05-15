@@ -137,11 +137,22 @@ export function responseErrorInterceptor() {
                 error?.response,
             );
         } else if (error.request) {
-            if (error.code == 'ERR_FR_MAX_BODY_LENGTH_EXCEEDED') {
-                throw new CommandError(
-                    `${ErrorCodes.LARGE_PAYLOAD.message}`,
-                    ErrorCodes.LARGE_PAYLOAD.code,
-                );
+            switch (error.code) {
+                case 'ERR_FR_MAX_BODY_LENGTH_EXCEEDED': {
+                    throw new CommandError(
+                        `${ErrorCodes.LARGE_PAYLOAD.message}`,
+                        ErrorCodes.LARGE_PAYLOAD.code,
+                    );
+                }
+                case 'SELF_SIGNED_CERT_IN_CHAIN': {
+                    throw new CommandError(
+                        `${ErrorCodes.VPN_ISSUE.message}`,
+                        ErrorCodes.VPN_ISSUE.code,
+                    );
+                }
+                case 'ENOTFOUND': {
+                    throw new CommandError(error.message, error.code);
+                }
             }
             // Check if axios already tried 3 times and then getting into error interceptor
             // then directly send error network error

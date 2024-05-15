@@ -176,4 +176,8 @@ class ApiEngine {
 
 // use uninterceptedApiClient to skip curl print in verbose mode
 export const uninterceptedApiClient = new ApiEngine(uninterceptedAxiosInstance);
+// for backward compatibility of update extensions we need to hit and api and if throws error then need to call backward compatibility api and in that if the first api fails the response Error interceptor was getting triggered so thats why creating a new axios instance for such cases.
+export const withoutErrorResponseInterceptorAxios = axios.create();
+withoutErrorResponseInterceptorAxios.interceptors.request.use(addSignatureFn({}));
+withoutErrorResponseInterceptorAxios.interceptors.response.use(responseInterceptor());
 export default new ApiEngine(axios);
