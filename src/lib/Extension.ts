@@ -9,7 +9,9 @@ import which from 'which';
 
 import Spinner from '../helper/spinner';
 import CommandError, { ErrorCodes } from './CommandError';
-import ExtensionService, { RegisterExtensionPayloadNew } from './api/services/extension.service';
+import ExtensionService, {
+    RegisterExtensionPayloadNew,
+} from './api/services/extension.service';
 
 import {
     Object,
@@ -166,25 +168,27 @@ export default class Extension {
                     extention_type: answers.type.toLowerCase(),
                     // Adding this for backward compatibility for v1.8.X
                     callbacks: {
-                        'setup': `http://localdev.fynd.com/fp/setup`,
-                        'install': `http://localdev.fynd.com/fp/install`,
-                        'auth' :`http://localdev.fynd.com/fp/auth`,
-                        'uninstall': `http://localdev.fynd.com/fp/uninstall`,
-                        'auto_install': `http://localdev.fynd.com/fp/auto_install`,
-                    }
-                }
+                        setup: `http://localdev.fynd.com/fp/setup`,
+                        install: `http://localdev.fynd.com/fp/install`,
+                        auth: `http://localdev.fynd.com/fp/auth`,
+                        uninstall: `http://localdev.fynd.com/fp/uninstall`,
+                        auto_install: `http://localdev.fynd.com/fp/auto_install`,
+                    },
+                };
                 const { current_user: user } = ConfigStore.get(
                     CONFIG_KEYS.AUTH_TOKEN,
                 );
-                const activeEmail = 
-                    user.emails.find((e) => e.active && e.primary)?.email;
+                const activeEmail = user.emails.find(
+                    (e) => e.active && e.primary,
+                )?.email;
                 data.developed_by_name = `${user.first_name} ${user.last_name}`;
-                if(activeEmail){
-                   data.contact_email = activeEmail;
+                if (activeEmail) {
+                    data.contact_email = activeEmail;
                 }
                 try {
                     spinner.start();
-                    let extension_data: Object = await ExtensionService.registerExtensionPartners(data);
+                    let extension_data: Object =
+                        await ExtensionService.registerExtensionPartners(data);
                     answers.extension_api_key = extension_data.client_id;
                     answers.extension_api_secret = extension_data.secret;
                     answers.base_url = extension_data.launch_url;
@@ -349,7 +353,6 @@ export default class Extension {
 
             Extension.checkDependencies(prompt_answers.project_type);
 
-
             answers.launch_url = 'http://localdev.fyndx0.de';
             answers.project_url = PROJECT_REPOS[prompt_answers.project_type];
             answers = {
@@ -363,7 +366,7 @@ export default class Extension {
         }
     }
 
-    private static checkFolderAndGitExists(folderPath:string){
+    private static checkFolderAndGitExists(folderPath: string) {
         if (fs.existsSync(folderPath)) {
             throw new CommandError(
                 `Folder at "${path}" already exists. Please choose another name or directory.`,
@@ -465,7 +468,10 @@ export default class Extension {
             let spinner = new Spinner('Verifying API Keys');
             try {
                 spinner.start();
-                extension_data = await ExtensionService.getExtensionDataPartners(answers.extension_api_key);
+                extension_data =
+                    await ExtensionService.getExtensionDataPartners(
+                        answers.extension_api_key,
+                    );
                 if (!extension_data) {
                     throw new Error();
                 }

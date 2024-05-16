@@ -8,7 +8,7 @@ import { CDN_ENTRY_FILE } from './build';
 const context = process.cwd();
 
 const baseConfig = (configOptions) => {
-    const { 
+    const {
         isLocal,
         isHMREnabled,
         assetNormalizedBasePath,
@@ -79,7 +79,6 @@ const baseConfig = (configOptions) => {
     };
 };
 export default (ctx, extendedWebpackConfig): Configuration[] => {
-
     const {
         NODE_ENV,
         assetBasePath = '',
@@ -109,8 +108,8 @@ export default (ctx, extendedWebpackConfig): Configuration[] => {
         localImageBasePath,
         localFontsBasePath,
         imageCDNNormalizedBasePath,
-        assetNormalizedBasePath
-    }
+        assetNormalizedBasePath,
+    };
     const baseWebpackConfig = baseConfig(configOptions);
     const extendedWebpackResolved = extendedWebpackConfig(configOptions);
     const mergedBaseConfig: Configuration = mergeWithRules({
@@ -120,7 +119,7 @@ export default (ctx, extendedWebpackConfig): Configuration[] => {
                 use: 'append',
             },
         },
-    })(extendedWebpackResolved,baseWebpackConfig);
+    })(extendedWebpackResolved, baseWebpackConfig);
 
     if (mergedBaseConfig.entry.hasOwnProperty('themeBundle')) {
         let entryPoints = [...mergedBaseConfig.entry['themeBundle']];

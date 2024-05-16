@@ -133,9 +133,10 @@ describe('Extension preview-url command', () => {
             PORT,
         ]);
 
-        
         expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
-        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(
+            EXPECTED_PREVIEW_URL,
+        );
         expect(promptSpy).toBeCalledTimes(3);
     });
 
@@ -160,7 +161,9 @@ describe('Extension preview-url command', () => {
         ]);
 
         expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
-        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(
+            EXPECTED_PREVIEW_URL,
+        );
     });
 
     it('should prompt for ngrok url and return preview url', async () => {
@@ -185,7 +188,9 @@ describe('Extension preview-url command', () => {
         ]);
 
         expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
-        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(
+            EXPECTED_PREVIEW_URL,
+        );
         expect(configStore.get(CONFIG_KEYS.NGROK_AUTHTOKEN)).toBe('auth_token');
     });
 
@@ -213,16 +218,18 @@ describe('Extension preview-url command', () => {
         ]);
 
         expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
-        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(
+            EXPECTED_PREVIEW_URL,
+        );
         expect(configStore.get(CONFIG_KEYS.NGROK_AUTHTOKEN)).toBe('auth_token');
     });
 
-    it('Should succesfully return the preview-url lower versions than v1.9.2 to update base url of extension as we are providing the partner access tokens in parameters', async ()=> {
+    it('Should succesfully return the preview-url lower versions than v1.9.2 to update base url of extension as we are providing the partner access tokens in parameters', async () => {
         configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);
         configStore.set(CONFIG_KEYS.NGROK_AUTHTOKEN, AUTH_TOKEN);
         mockCustomAxios
-        .onPatch(`${URLS.UPDATE_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY)}`)
-        .reply(404, {});
+            .onPatch(`${URLS.UPDATE_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY)}`)
+            .reply(404, {});
         jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({
             ngrok_authtoken: 'auth_token',
         });
@@ -239,43 +246,48 @@ describe('Extension preview-url command', () => {
             COMPANY_ID,
             '--update-authtoken',
             '--access-token',
-            TOKEN
+            TOKEN,
         ]);
         expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
-        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_PREVIEW_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(
+            EXPECTED_PREVIEW_URL,
+        );
         expect(configStore.get(CONFIG_KEYS.NGROK_AUTHTOKEN)).toBe('auth_token');
     });
 
-    it('Should throw an error for partner access token for lower versions than v1.9.2 to update base url of extension', async ()=> {
-    mockAxios
-    .onPatch(`${URLS.UPDATE_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY)}`)
-    .reply(404, {});
-    configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);
-    configStore.set(CONFIG_KEYS.NGROK_AUTHTOKEN, AUTH_TOKEN);
-    
-    jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({
-        ngrok_authtoken: 'auth_token',
-    });
-    try{
-        jest.spyOn(process, 'exit').mockImplementation(() => {
-            throw new Error('Please provide partner access token eg --access-token partnerAccessToken');
+    it('Should throw an error for partner access token for lower versions than v1.9.2 to update base url of extension', async () => {
+        mockAxios
+            .onPatch(`${URLS.UPDATE_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY)}`)
+            .reply(404, {});
+        configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);
+        configStore.set(CONFIG_KEYS.NGROK_AUTHTOKEN, AUTH_TOKEN);
+
+        jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({
+            ngrok_authtoken: 'auth_token',
         });
-        await program.parseAsync([
-            'ts-node',
-            './src/fdk.ts',
-            'extension',
-            'preview-url',
-            '-p',
-            PORT,
-            '--api-key',
-            EXTENSION_KEY,
-            '--company-id',
-            COMPANY_ID,
-            '--update-authtoken',
-        ]);
-    }
-    catch(err){
-        expect(err.message).toBe('Please provide partner access token eg --access-token partnerAccessToken');
-    }
+        try {
+            jest.spyOn(process, 'exit').mockImplementation(() => {
+                throw new Error(
+                    'Please provide partner access token eg --access-token partnerAccessToken',
+                );
+            });
+            await program.parseAsync([
+                'ts-node',
+                './src/fdk.ts',
+                'extension',
+                'preview-url',
+                '-p',
+                PORT,
+                '--api-key',
+                EXTENSION_KEY,
+                '--company-id',
+                COMPANY_ID,
+                '--update-authtoken',
+            ]);
+        } catch (err) {
+            expect(err.message).toBe(
+                'Please provide partner access token eg --access-token partnerAccessToken',
+            );
+        }
     });
 });

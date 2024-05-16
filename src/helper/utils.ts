@@ -306,7 +306,7 @@ export function transformCodeToJS(code: any) {
         const result = babel.transformSync(code, options);
         return result?.code;
     } catch (error) {
-        Logger.error('Error transforming JSX/TSX to JS:', error)
+        Logger.error('Error transforming JSX/TSX to JS:', error);
         return null;
     }
 }

@@ -16,9 +16,9 @@ export const EXTENSION_COMMANDS = ['init', 'setup', 'get', 'set'];
 export const MAX_RETRY = 5;
 export const PARTNER_COMMANDS = ['connect'];
 export const THEME_TYPE = {
-    vue2: "vue2",
-    react: "react"
-}
+    vue2: 'vue2',
+    react: 'react',
+};
 
 // todo: We will change this later, as of now we don't want to show the deprecation warning
 // export const DEPRECATED_THEME_COMMANDS = ['publish', 'unpublish', 'context', 'init', 'new', ];
