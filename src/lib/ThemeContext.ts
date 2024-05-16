@@ -15,19 +15,24 @@ import inquirer from 'inquirer';
 import { createDirectory } from '../helper/file.utils';
 const FDK_PATH = () => path.join(process.cwd(), '.fdk');
 const CONTEXT_PATH = () => path.join(FDK_PATH(), 'context.json');
-export const DEFAULT_CONTEXT = { theme: {active_context: '', contexts: {}}, partners: {} };
+export const DEFAULT_CONTEXT = {
+    theme: { active_context: '', contexts: {} },
+    partners: {},
+};
 export default class ThemeContext {
     constructor() {}
 
     public static async addThemeContext(options) {
-        try {   
+        try {
             if (!isAThemeDirectory()) createDirectory(FDK_PATH());
             if (!hasContext()) {
-              await fs.writeJSON(CONTEXT_PATH(), DEFAULT_CONTEXT);
+                await fs.writeJSON(CONTEXT_PATH(), DEFAULT_CONTEXT);
             }
             let contextsData = await fs.readJSON(CONTEXT_PATH());
             if (contextsData.theme.contexts[options.name])
-                throw new CommandError('Context with the same name already exists');    
+                throw new CommandError(
+                    'Context with the same name already exists',
+                );
             let configObj = await Theme.selectCompanyAndStore();
             configObj = await Theme.selectTheme(configObj);
             const { data: appConfig } =

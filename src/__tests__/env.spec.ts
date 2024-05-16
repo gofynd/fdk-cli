@@ -34,7 +34,9 @@ describe('Env Commands', () => {
     beforeAll(async () => {
         program = await init('fdk');
         const mock = new MockAdapter(axios);
-        mock.onGet(`https://api.fyndx1.de/service/application/content/_healthz`).reply(200, {});
+        mock.onGet(
+            `https://api.fyndx1.de/service/application/content/_healthz`,
+        ).reply(200, {});
     });
 
     afterEach(() => {

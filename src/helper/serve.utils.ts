@@ -118,18 +118,18 @@ async function setupServer({ domain }) {
 }
 
 async function requestToOriginalSource(req, res, domain, themeId) {
-    Debug("Requesting to original source...")
-    const url = req.path
+    Debug('Requesting to original source...');
+    const url = req.path;
     if (publicCache[url]) {
-        for (const [key, value] of Object.entries(
-            publicCache[url].headers,
-        )) {
+        for (const [key, value] of Object.entries(publicCache[url].headers)) {
             res.header(key, `${value}`);
         }
         return res.send(publicCache[url].body);
     }
     try {
-        const networkRes = await axios.get(urlJoin(domain, url, `?themeId=${themeId}`));
+        const networkRes = await axios.get(
+            urlJoin(domain, url, `?themeId=${themeId}`),
+        );
         publicCache[url] = publicCache[url] || {};
         publicCache[url].body = networkRes.data;
         publicCache[url].headers = networkRes.headers;
@@ -162,8 +162,17 @@ export async function startServer({ domain, host, isSSR, port }) {
     app.get('/*', async (req, res) => {
         // If browser is not requesting for html page (it can be file, API call, etc...), then fetch and send requested data directly from source
         const acceptHeader = req.get('Accept');
-        if ((acceptHeader && !acceptHeader.includes('text/html')) || req.path.includes("/public")) { // while text/html is a commonly included type, it's not a strict requirement for all browsers to include it in their Accept headers for HTML page requests.
-            return await requestToOriginalSource(req, res, domain, currentContext.theme_id);
+        if (
+            (acceptHeader && !acceptHeader.includes('text/html')) ||
+            req.path.includes('/public')
+        ) {
+            // while text/html is a commonly included type, it's not a strict requirement for all browsers to include it in their Accept headers for HTML page requests.
+            return await requestToOriginalSource(
+                req,
+                res,
+                domain,
+                currentContext.theme_id,
+            );
         }
 
         const BUNDLE_PATH = path.join(
@@ -282,7 +291,7 @@ export async function startServer({ domain, host, isSSR, port }) {
                             if (lineNumber == null || lineNumber < 1) {
                                 errorString += `<p>      at  <strong>${
                                     methodName || ''
-                                    }</strong></p>`;
+                                }</strong></p>`;
                             } else {
                                 const pos = smc.originalPositionFor({
                                     line: lineNumber,
@@ -291,9 +300,9 @@ export async function startServer({ domain, host, isSSR, port }) {
                                 if (pos && pos.line != null) {
                                     errorString += `<p>      at  <strong>${
                                         methodName || pos.name || ''
-                                        }</strong> (${pos.source}:${pos.line}:${
-                                            pos.column
-                                        })</p>`;
+                                    }</strong> (${pos.source}:${pos.line}:${
+                                        pos.column
+                                    })</p>`;
                                 }
                             }
                         } catch (err) {
@@ -307,7 +316,7 @@ export async function startServer({ domain, host, isSSR, port }) {
                     console.log(e);
                 }
             } else {
-                Logger.error(e?.request?.path ?? '', e.message)
+                Logger.error(e?.request?.path ?? '', e.message);
             }
         }
     });
@@ -318,7 +327,8 @@ export async function startServer({ domain, host, isSSR, port }) {
                 return reject(err);
             }
             Logger.info(
-                `Starting starter at port -- ${port} in ${isSSR ? 'SSR' : 'Non-SSR'
+                `Starting starter at port -- ${port} in ${
+                    isSSR ? 'SSR' : 'Non-SSR'
                 } mode`,
             );
             Logger.info(`************* Using Debugging build`);
@@ -378,6 +388,9 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
         if (request.url.indexOf('.hot-update.js') !== -1) {
             return response.send('');
         }
+        if (/\.\w+$/.test(request.url) && !/^\/public/.test(request.url)) {
+            return response.send('');
+        }
         next();
     });
 
@@ -385,13 +398,20 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 
     const uploadedFiles = {};
 
-    app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
-
     app.get('/*', async (req, res) => {
         // If browser is not requesting for html page (it can be file, API call, etc...), then fetch and send requested data directly from source
         const acceptHeader = req.get('Accept');
-        if ((acceptHeader && !acceptHeader.includes('text/html')) || req.path.includes("/public")) { // while text/html is a commonly included type, it's not a strict requirement for all browsers to include it in their Accept headers for HTML page requests.
-            return await requestToOriginalSource(req, res, domain, currentContext.theme_id);
+        if (
+            (acceptHeader && !acceptHeader.includes('text/html')) ||
+            req.path.includes('/public')
+        ) {
+            // while text/html is a commonly included type, it's not a strict requirement for all browsers to include it in their Accept headers for HTML page requests.
+            return await requestToOriginalSource(
+                req,
+                res,
+                domain,
+                currentContext.theme_id,
+            );
         }
         const BUNDLE_DIR = path.join(process.cwd(), path.join('.fdk', 'dist'));
         if (req.originalUrl == '/favicon.ico' || req.originalUrl == '/.webp') {
@@ -462,8 +482,9 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 				<script>
 				var socket = io();
 				socket.on('reload',function(){
-					${isHMREnabled
-                ? `
+					${
+                        isHMREnabled
+                            ? `
 						try {
 							window.APP_DATA.themeBundleUMDURL = '/themeBundle.umd.js';
 							window.APP_DATA.isServerRendered = false;
@@ -476,10 +497,10 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 							window.loadApp().catch(console.log);
 						} catch(e) { console.log( e );}
 					`
-                : `
+                            : `
 						window.location.reload();
 					`
-            }
+                    }
 
 				});
 				</script>
