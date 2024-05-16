@@ -12,7 +12,7 @@ export const THEME_ENTRY_FILE = path.join('theme', 'index.js');
 export const VUE_THEME_ENTRY_FILE = path.join("..",'theme', 'index.js');
 export const DEV_VUE_THEME_ENTRY_FILE = path.join('theme', 'index.js');
 
-export const CDN_ENTRY_FILE = path.join('.fdk', 'cdn_index.js');
+export const CDN_ENTRY_FILE =  path.join('.fdk', 'cdn_index.js');
 
 export const dynamicCDNScript = ({assetNormalizedBasePath,vueJs }) => {
     return `function getCDNurl() {
@@ -112,6 +112,7 @@ interface DevReactBuild {
     imageCdnUrl?: string;
     localThemePort?: string;
     isHMREnabled: boolean;
+    targetDirectory?:string
 }
 
 export function devBuild({ buildFolder, imageCdnUrl, isProd }: DevBuild) {
@@ -162,10 +163,11 @@ export function devBuild({ buildFolder, imageCdnUrl, isProd }: DevBuild) {
 export async function devReactBuild({
     buildFolder,
     runOnLocal,
-    assetBasePath,
+    assetBasePath = '',
     localThemePort,
     imageCdnUrl,
     isHMREnabled,
+    targetDirectory
 }: DevReactBuild): Promise<MultiStats> {
     const buildPath = path.join(process.cwd(), buildFolder);
     try {
@@ -182,7 +184,6 @@ export async function devReactBuild({
                 themeWebpackConfigPath
             ));
         }
-
         const ctx = {
             buildPath: buildPath,
             NODE_ENV: (!runOnLocal && 'production') || 'development',
@@ -191,6 +192,7 @@ export async function devReactBuild({
             localThemePort: localThemePort,
             context: process.cwd(),
             isHMREnabled,
+            targetDirectory
         };
         const baseWebpackConfig = createBaseWebpackConfig(
             ctx,
@@ -202,15 +204,15 @@ export async function devReactBuild({
                 : assetBasePath + '/';
         return new Promise((resolve, reject) => {
             if(!runOnLocal) {
-                fs.stat(CDN_ENTRY_FILE, function (err, stat) {
+                fs.stat(path.resolve((targetDirectory || process.cwd()), CDN_ENTRY_FILE), function (err, stat) {
                     if (err == null) {
                         //deleting file if exist
-                        fs.unlink(CDN_ENTRY_FILE, function (err) {
+                        fs.unlink(path.resolve((targetDirectory || process.cwd()), CDN_ENTRY_FILE), function (err) {
                             if (err) return console.log(err);
                             Logger.debug(' \n Existing file deleted successfully');
                         });
                     }
-                    fs.appendFileSync(CDN_ENTRY_FILE, dynamicCDNScript({assetNormalizedBasePath, vueJs: false }));
+                    fs.appendFileSync(path.resolve((targetDirectory || process.cwd()), CDN_ENTRY_FILE), dynamicCDNScript({assetNormalizedBasePath, vueJs: false }));
 
                 });
             }
@@ -218,7 +220,7 @@ export async function devReactBuild({
                 console.log(err);
                 console.log(stats.toString());
                 if(!runOnLocal) {
-                    fs.unlink(CDN_ENTRY_FILE, function (err) {
+                    fs.unlink(path.resolve((targetDirectory || process.cwd()), CDN_ENTRY_FILE), function (err) {
                         if (err) return console.log(err);
                         Logger.debug(' \n file deleted successfully');
                     });

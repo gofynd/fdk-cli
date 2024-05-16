@@ -115,7 +115,6 @@ export default class Theme {
         const outputFileName = stats.stats[0].toJson().assets[0].name;
         const buildPath = path.join(process.cwd(), Theme.BUILD_FOLDER);
         const outputFilePath = path.resolve(buildPath, outputFileName);
-
         const bundle = Theme.evaluateBundle(outputFilePath);
 
 
@@ -602,7 +601,7 @@ export default class Theme {
                 spaces: 2,
             });
             const currentContext = getActiveContext();
-            await Theme.syncReactTheme(currentContext);
+            await Theme.syncReactTheme(currentContext, targetDirectory);
             var b5 = Box(
                 chalk.green.bold('DONE ') +
                     chalk.green.bold('Project ready\n') +
@@ -811,7 +810,7 @@ export default class Theme {
         const currentContext = getActiveContext();
         switch (currentContext.theme_type) {
             case THEME_TYPE.react:
-                await Theme.syncReactTheme(currentContext);
+                await Theme.syncReactTheme(currentContext, undefined);
                 break;
             case THEME_TYPE.vue2:
                 await Theme.syncVueTheme(currentContext);
@@ -823,6 +822,7 @@ export default class Theme {
     };
     private static syncReactTheme = async (
         currentContext: ThemeContextInterface,
+        targetDirectory
     ) => {
         try {
             await Theme.ensureThemeTypeInPackageJson();
@@ -866,6 +866,7 @@ export default class Theme {
                 assetBasePath,
                 imageCdnUrl,
                 isHMREnabled: false,
+                targetDirectory
             });
 
             const parsed = await Theme.getThemeBundle(stats)

@@ -13,16 +13,11 @@ const baseConfig = (configOptions) => {
         isHMREnabled,
         assetNormalizedBasePath,
         localBasePath,
-        buildPath
+        buildPath,
     } = configOptions;
 
     return {
         mode: isLocal ? 'development' : 'production',
-        entry: {
-            themeBundle:[
-                        path.resolve(context, CDN_ENTRY_FILE),
-                        path.resolve(context, 'theme/index.jsx')],
-        },
         devtool: isLocal ? 'source-map' : false,
         optimization: {
             minimizer: [
@@ -91,6 +86,7 @@ export default (ctx, extendedWebpackConfig): Configuration[] => {
         imageCdnUrl = '',
         localThemePort = 5500,
         isHMREnabled = true,
+        targetDirectory
     } = ctx;
 
     const assetNormalizedBasePath =
@@ -117,7 +113,6 @@ export default (ctx, extendedWebpackConfig): Configuration[] => {
     }
     const baseWebpackConfig = baseConfig(configOptions);
     const extendedWebpackResolved = extendedWebpackConfig(configOptions);
-
     const mergedBaseConfig: Configuration = mergeWithRules({
         module: {
             rules: {
@@ -128,11 +123,14 @@ export default (ctx, extendedWebpackConfig): Configuration[] => {
     })(extendedWebpackResolved,baseWebpackConfig);
 
     if (mergedBaseConfig.entry.hasOwnProperty('themeBundle')) {
-        mergedBaseConfig.entry['themeBundle'] = isLocal && isHMREnabled ? [
-            require.resolve('webpack-hot-middleware/client'),
-            ...mergedBaseConfig.entry['themeBundle'],
-        ] : mergedBaseConfig.entry['themeBundle']
+        let entryPoints = [...mergedBaseConfig.entry['themeBundle']];
+        if (isLocal && isHMREnabled) {
+            entryPoints.unshift(require.resolve('webpack-hot-middleware/client'));
+        } else if (!isLocal) {
+            entryPoints.unshift(path.resolve(targetDirectory || context, CDN_ENTRY_FILE));
+        }
+        mergedBaseConfig.entry['themeBundle'] = entryPoints;
     }
-    console.log("======================= mergedBaseConfig =========================", JSON.stringify(mergedBaseConfig))
+    
     return [mergedBaseConfig];
 };
