@@ -72,27 +72,29 @@ export default function extensionCommandBuilder() {
     binding
         .command('draft')
         .description('Draft extension section')
-        .option('-id, --extensionId [extensionId]', 'Extension ID')
-        .option('-org, --organisationId [organisationId]', 'Organisation ID')
-        .option('-n, --name [name]', 'Bundle Name')
+        .requiredOption('-id, --extensionId [extensionId]', 'Extension ID')
+        .requiredOption('-org, --organisationId [organisationId]', 'Organisation ID')
+        .requiredOption('-n, --name [name]', 'Bundle Name')
         .requiredOption('-t, --type [type]', 'Type')
         .asyncAction(ExtensionSection.draftExtensionBindings);
 
     binding
         .command('publish')
         .description('Publish extension section')
-        .option('-id, --extensionId [extensionId]', 'Extension ID')
-        .option('-org, --organisationId [organisationId]', 'Organisation ID')
-        .option('-n, --name [name]', 'Bundle Name')
+        .requiredOption('-id, --extensionId [extensionId]', 'Extension ID')
+        .requiredOption('-org, --organisationId [organisationId]', 'Organisation ID')
+        .requiredOption('-n, --name [name]', 'Bundle Name')
         .requiredOption('-t, --type [type]', 'Type')
         .asyncAction(ExtensionSection.publishExtensionBindings);
 
     binding
         .command('preview')
         .description('Serve extension sections')
+        .requiredOption('-id, --extensionId [extensionId]', 'Extension ID')
+        .requiredOption('-org, --organisationId [organisationId]', 'Organisation ID')
         .requiredOption('-n, --name [name]', 'Bundle Name')
-        .option('-p, --port [port]', 'Server Port')
-        .option('-u, --url [url]', 'Tunnel Url')
+        .requiredOption('-p, --port [port]', 'Server Port')
+        .requiredOption('-u, --url [url]', 'Tunnel Url')
         .requiredOption('-t --type [type]', 'Type')
         .asyncAction(ExtensionSection.previewExtension);
 

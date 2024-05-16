@@ -32,7 +32,7 @@ const readDirectories = promisify(fs.readdir);
 type ExtensionSectionOptions = {
     name: string;
     interface: 'theme' | 'platform';
-    engine: 'react' | 'vue';
+    engine: 'react' | 'vue2';
 };
 type SyncExtensionBindingsOptions = {
     extensionId?: string;
@@ -59,6 +59,7 @@ export default class ExtensionSection {
 
     public static async initExtensionBinding(options: ExtensionSectionOptions) {
         try {
+            console.log(options);
             const requiredOptions = ['name', 'interface', 'engine'];
 
             const passedOptions = Object.keys(options);
@@ -102,7 +103,7 @@ export default class ExtensionSection {
                 await ExtensionSection.initExtensionSectionBindingForReact(
                     finalOptions,
                 );
-            } else if (bindingInterface === 'theme' && engine === 'vue') {
+            } else if (bindingInterface === 'theme' && engine === 'vue2') {
                 await ExtensionSection.initExtensionSectionBindingForVue(
                     finalOptions,
                 );
@@ -277,56 +278,50 @@ export default class ExtensionSection {
         Logger.info(`Publishing Extension Sections`);
 
         if (context.type === 'react') {
-            ExtensionSection.publishExtensionBindingsReact(context, false);
+            ExtensionSection.publishExtensionBindingsReact(context);
         } else {
-            ExtensionSection.publishExtensionBindingsVue(context, false);
+            ExtensionSection.publishExtensionBindingsVue(context);
         }
 
         Logger.info('Code published ...');
     }
 
-    static async publishExtensionBindingsReact(context, isDraft: boolean) {
+    static async publishExtensionBindingsReact(context) {
         let sectionData;
         sectionData = await ExtensionSection.extractSectionsData(
             context.name,
             context,
         );
-        if (isDraft) {
-            sectionData.status = 'draft';
-        } else {
-            sectionData.status = 'published';
-        }
-
+        sectionData.status = 'published';
 
         await ExtensionSection.savingExtensionBindings(sectionData, context, sectionData.status);
     }
 
-    static async draftExtensionBindingsReact(context, isDraft: boolean) {
+    static async draftExtensionBindingsReact(context) {
 
         const sectionData = await ExtensionSection.extractSectionsData(
             context.name,
             context,
         );
 
-        if (isDraft) {
-            sectionData.status = 'draft';
-        } else {
-            sectionData.status = 'published';
-        }
+        sectionData.status = 'draft';
 
-
-        await ExtensionSection.savingExtensionBindings(sectionData, context);
+        await ExtensionSection.savingExtensionBindings(sectionData, context, sectionData.status);
     }
 
-    static async publishExtensionBindingsVue(context, isDraft: boolean) {
-        let sectionData =
-            await ExtensionSection.extractSectionsDataVue(context);
+    static async publishExtensionBindingsVue(context) {
+        console.log({context})
 
-        if (isDraft) {
-            sectionData.status = 'draft';
-        } else {
-            sectionData.status = 'published';
-        }
+        let sectionData = await ExtensionSection.extractSectionsDataVue(context);
+        
+        sectionData.status = 'published';
+
+        await ExtensionSection.savingExtensionBindings(sectionData, context, sectionData.status);
+    }
+    static async draftExtensionBindingsVue(context) {
+        let sectionData = await ExtensionSection.extractSectionsDataVue(context);
+
+        sectionData.status = 'draft';
 
         await ExtensionSection.savingExtensionBindings(sectionData, context);
     }
@@ -380,7 +375,7 @@ export default class ExtensionSection {
             organization_id: context.organisationId,
             sections,
             assets: uploadURLs,
-            type: 'vue',
+            type: 'vue2',
         };
 
         process.chdir(currentRoot);
@@ -551,9 +546,9 @@ export default class ExtensionSection {
         Logger.info(`Drafting Extension Sections`, context.type);
 
         if (context.type === 'react') {
-            await ExtensionSection.draftExtensionBindingsReact(context, true);
+            await ExtensionSection.draftExtensionBindingsReact(context);
         } else {
-            await ExtensionSection.publishExtensionBindingsVue(context, true);
+            await ExtensionSection.draftExtensionBindingsVue(context);
         }
 
         Logger.info('Code drafted ...');
@@ -756,11 +751,8 @@ export default class ExtensionSection {
                 const configObj = await Theme.selectCompanyAndStore();
                 const { data: appConfig } =
                     await configurationService.getApplicationDetails(configObj);
+                    console.log(appConfig)
 
-                url = await ExtensionSection.promptUrl();
-
-                const domain = appConfig?.domain?.name ?? '';
-                applicationConfig.domain = `https://${domain}`;
             }
 
             const answers = await ExtensionSection.promptExtensionDetails();
@@ -791,24 +783,17 @@ export default class ExtensionSection {
     public static async serveExtensionSections(options: any) {
         try {
             const { name: bundleName } = options;
+            // const context = await ExtensionSection.getContextData({
+                //     serve: true,
+                // });
+                
+            const configObj = await Theme.selectCompanyAndStore();
+            const { data: appConfig } = await configurationService.getApplicationDetails(configObj);
+            console.log({options});
+            options.domain = 'http://karanraina.sandbox4.fynd.engineering:8087/company/1/application/6628a03255b099d9357b75de/themes/6641d8a0695cd39f717f278e/edit'
 
-            const context = await ExtensionSection.getContextData({
-                serve: true,
-            });
-
-            const serverPort =
-                typeof options['port'] === 'string'
-                    ? parseInt(options['port'])
-                    : typeof options['port'] === 'number'
-                    ? options['port']
-                    : 5502;
-            const port = await getPort(serverPort);
-            if (port !== serverPort)
-                Logger.warn(
-                    chalk.bold.yellowBright(
-                        `PORT: ${serverPort} is busy, Switching to PORT: ${port}`,
-                    ),
-                );
+            const port = options['port'];
+            const tunnelUrl = options['url'];
 
             const rootPath = process.cwd();
             process.chdir(
@@ -843,22 +828,24 @@ export default class ExtensionSection {
             Logger.info('Starting Local Extension Server ...', bundleDist);
             await startExtensionServer({ bundleDist, port });
 
-            Logger.info('Starting Ngrok Tunnel ...');
-            const url = await ngrok.connect(port);
+            // Logger.info('Starting Ngrok Tunnel ...');
+            // const url = await ngrok.connect(port);
 
             const assetUrls = {
-                js: `${url}/${jsFile}`,
-                css: `${url}/${cssFile}`,
+                js: `${tunnelUrl}/${jsFile}`,
+                css: `${tunnelUrl}/${cssFile}`,
             };
 
             const data = {
+                extensionId: options.extensionId,
                 bundle: bundleName,
                 assets: assetUrls,
             };
+            console.log(data)
 
             const encoded = encodeURI(JSON.stringify(data));
 
-            const previewURL = `${context.domain}?extensionHash=${encoded}`;
+            const previewURL = `${options.domain}?extensionHash=${encoded}`;
 
             console.log(`PREVIEW URL :\n\n ${previewURL}\n\n`);
         } catch (error) {
@@ -868,13 +855,13 @@ export default class ExtensionSection {
 
     public static async serveExtensionSectionsVue(options: any) {
         try {
-            const { name: bundleName } = options;
+            const { name: bundleName, url: tunnelUrl, extensionId } = options;
 
-            const context = await ExtensionSection.getContextData({
-                serve: true,
-            });
+            // const context = await ExtensionSection.getContextData({
+            //     serve: true,
+            // });
 
-            console.log('pratik: serve options', context);
+            console.log('pratik: serve options', options);
 
             const port = options.port;
 
@@ -912,19 +899,21 @@ export default class ExtensionSection {
             Logger.info('Starting Local Extension Server ...', bundleDist);
             await startExtensionServerVue({ bundleDist, port });
 
+            // todo: use URL to genereate url
             const assetUrls = {
-                js: `${context.url}/${bundleName}.umd.js`,
-                css: `${context.url}/${bundleName}.css`,
+                js: `${tunnelUrl}/${bundleName}.umd.js`,
+                css: `${tunnelUrl}/${bundleName}.css`,
             };
 
             const data = {
+                extensionId: extensionId,
                 bundle: bundleName,
                 assets: assetUrls,
             };
 
             const encoded = encodeURI(JSON.stringify(data));
 
-            const previewURL = `${context.domain}?extensionHash=${encoded}`;
+            const previewURL = `${options.domain}?extensionHash=${encoded}`;
 
             console.log(`PREVIEW URL :\n\n ${previewURL}\n\n`);
         } catch (error) {

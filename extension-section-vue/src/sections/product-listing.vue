@@ -5,7 +5,7 @@
 
         <div class="container">
             <ProductCard
-                v-for="(product, index) in products"
+                v-for="(product) in products"
                 :product="product"
                 :key="product.slug"
             />
@@ -55,7 +55,7 @@ export default {
           "default": "Products",
           "label": "Heading",
           "info":"Heading text of the section"
-        },
+        }
       ],
       "blocks": [],
       "preset": {}
