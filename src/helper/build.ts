@@ -27,7 +27,7 @@ export const dynamicCDNScript = ({assetNormalizedBasePath,vueJs }) => {
         \n return cdnUrl; 
             \n  }   
     \n __webpack_public_path__ =  getCDNurl() ${vueJs ? `\n
-    import bundle from "../.fdk/cdn_index.js";
+    import bundle from "../theme/index.js";
     \n export default bundle;
     `
     : ''}`
