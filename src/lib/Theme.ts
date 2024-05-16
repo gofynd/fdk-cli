@@ -11,6 +11,7 @@ import {
     parseBundleFilename,
     transformSectionFileName,
     findExportedVariable,
+    debounce,
 } from '../helper/utils';
 import CommandError, { ErrorCodes } from './CommandError';
 import Logger, { COMMON_LOG_MESSAGES } from './Logger';
@@ -1170,37 +1171,32 @@ export default class Theme {
             // initial build
             Logger.info(`Locally building`);
             Theme.createVueConfig();
-            await devBuild({
+            devBuild({
                 buildFolder: Theme.BUILD_FOLDER,
                 imageCdnUrl: urlJoin(getFullLocalUrl(port), 'assets/images'),
                 isProd: isSSR,
+                browserLink: getFullLocalUrl(port)
             });
             // start dev server
             Logger.info(chalk.bold.blueBright(`Starting server`));
             await startServer({ domain, host, isSSR, port });
 
             // open browser
-            try {
-                await open(getFullLocalUrl(port));
-            } catch (err) {
-                console.log(`Open in browser: ${getFullLocalUrl(port)}`);
-            }
-            Logger.info(chalk.bold.green(`Watching files for changes`));
-            let watcher = chokidar.watch(path.resolve(process.cwd(), 'theme'), {
-                persistent: true,
-            });
-            watcher.on('change', async () => {
-                Logger.info(chalk.bold.green(`building`));
-                await devBuild({
-                    buildFolder: Theme.BUILD_FOLDER,
-                    imageCdnUrl: urlJoin(
-                        getFullLocalUrl(port),
-                        'assets/images',
-                    ),
-                    isProd: isSSR,
-                });
-                reload();
-            });
+            // try {
+            //     await open(getFullLocalUrl(port));
+            // } catch (err) {
+            //     console.log(`Open in browser: ${getFullLocalUrl(port)}`);
+            // }
+            // Logger.info(chalk.bold.green(`Watching files for changes`));
+            // let watcher = chokidar.watch(path.resolve(process.cwd(), '.fdk/dist'), {
+            //     persistent: true,
+            // });
+            // watcher.on('change', debounce(()=>{
+            //     Logger.info(chalk.bold.green(`building done`));
+            //     console.log("refresssssssss");
+                
+            //     // reload();
+            // }, 2000));
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
