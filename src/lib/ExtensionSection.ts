@@ -47,9 +47,6 @@ type ExtensionContext = {
     domain: string;
 };
 
-// const extensionId = "64b3dc661a1b16dea7fadc22";
-// const organisationId = "65f94f498f7d44c70fcb9026";
-// const domain = "https://test-company-1-hosted-karanraina.sandbox.fynd.engineering";
 
 export default class ExtensionSection {
     static BINDINGS_DIR_REACT = 'bindings/theme/react';
@@ -59,7 +56,6 @@ export default class ExtensionSection {
 
     public static async initExtensionBinding(options: ExtensionSectionOptions) {
         try {
-            console.log(options);
             const requiredOptions = ['name', 'interface', 'engine'];
 
             const passedOptions = Object.keys(options);
@@ -310,8 +306,6 @@ export default class ExtensionSection {
     }
 
     static async publishExtensionBindingsVue(context) {
-        console.log({context})
-
         let sectionData = await ExtensionSection.extractSectionsDataVue(context);
         
         sectionData.status = 'published';
@@ -433,10 +427,8 @@ export default class ExtensionSection {
             let settingsText = $('settings').text()
 
             try {
-                console.log({settingsText})
                 return settingsText ? JSON.parse(settingsText) : {};
             } catch (err) {
-                console.log(err)
                 throw new Error(
                     `Invalid settings JSON object in ${path}. Validate JSON from https://jsonlint.com/`,
                 );
@@ -453,12 +445,6 @@ export default class ExtensionSection {
         context: SyncExtensionBindingsOptions,
     ): Promise<any> {
         const currentRoot = process.cwd();
-
-        console.log(path.join(
-            currentRoot,
-            ExtensionSection.BINDINGS_DIR_REACT,
-            bundleName,
-        ))
 
         process.chdir(
             path.join(
@@ -538,7 +524,6 @@ export default class ExtensionSection {
     public static async draftExtensionBindings(
         options: SyncExtensionBindingsOptions,
     ) {
-        console.log(options)
         const context = ExtensionSection.isValidSyncOptions(options)
             ? options
             : await ExtensionSection.getContextData({ serve: false });
@@ -751,7 +736,6 @@ export default class ExtensionSection {
                 const configObj = await Theme.selectCompanyAndStore();
                 const { data: appConfig } =
                     await configurationService.getApplicationDetails(configObj);
-                    console.log(appConfig)
 
             }
 
@@ -789,7 +773,6 @@ export default class ExtensionSection {
                 
             const configObj = await Theme.selectCompanyAndStore();
             const { data: appConfig } = await configurationService.getApplicationDetails(configObj);
-            console.log({options});
             options.domain = 'http://karanraina.sandbox4.fynd.engineering:8087/company/1/application/6628a03255b099d9357b75de/themes/6641d8a0695cd39f717f278e/edit'
 
             const port = options['port'];
@@ -841,7 +824,6 @@ export default class ExtensionSection {
                 bundle: bundleName,
                 assets: assetUrls,
             };
-            console.log(data)
 
             const encoded = encodeURI(JSON.stringify(data));
 
@@ -856,13 +838,6 @@ export default class ExtensionSection {
     public static async serveExtensionSectionsVue(options: any) {
         try {
             const { name: bundleName, url: tunnelUrl, extensionId } = options;
-
-            // const context = await ExtensionSection.getContextData({
-            //     serve: true,
-            // });
-
-            console.log('pratik: serve options', options);
-
             const port = options.port;
 
             const rootPath = process.cwd();

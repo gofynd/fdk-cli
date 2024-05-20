@@ -54,7 +54,6 @@ _script.src = "https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.
 _script.onload = function () {
     var socket = io('http://127.0.0.1:${port}');
     socket.on('reload', function(){
-        console.log('RELOAD COMING ');
         window.location.reload();
     });
 };

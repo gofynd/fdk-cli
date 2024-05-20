@@ -1233,7 +1233,6 @@ export default class Theme {
 
             await startReactServer({
                 domain,
-                // domain: 'http://127.0.0.1:80',
                 host,
                 port,
                 isHMREnabled,
