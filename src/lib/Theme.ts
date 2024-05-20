@@ -26,6 +26,9 @@ import inquirer from 'inquirer';
 import cheerio from 'cheerio';
 import glob from 'glob';
 import _ from 'lodash';
+import React from 'react';
+import * as ReactRouterDOM from 'react-router-dom';
+
 import { createDirectory, writeFile, readFile } from '../helper/file.utils';
 import { customAlphabet } from 'nanoid';
 import ThemeService from './api/services/theme.service';
@@ -60,6 +63,7 @@ import {
 } from '../helper/theme.vue.config';
 import { simpleGit } from 'simple-git';
 import { THEME_TYPE } from '../helper/constants';
+import { MultiStats } from 'webpack';
 
 const nanoid = customAlphabet(
     '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
@@ -81,12 +85,6 @@ export default class Theme {
         '..',
         '..',
         'react-template',
-    );
-    static TEMP_REACT_TEMPLATE_DIRECTORY = path.join(
-        __dirname,
-        '..',
-        '..',
-        'react-theme-template',
     );
     static BUILD_FOLDER = './.fdk/dist';
     static SRC_FOLDER = path.join('.fdk', 'temp-theme');
@@ -113,7 +111,24 @@ export default class Theme {
         if (fs.existsSync(settings_path)) return settings_path;
         throw 'Settings path not exist';
     }
+    public static async getThemeBundle(stats: MultiStats) {
+        const fileList = stats.stats[0].toJson().assets.map(({ name }) => name);
+        const outputFileName= fileList.find(file => file.startsWith('themeBundle') && file.endsWith('.js'));
+        
+        const buildPath = path.join(process.cwd(), Theme.BUILD_FOLDER);
+        const outputFilePath = path.resolve(buildPath, outputFileName);
 
+        const bundle = Theme.evaluateBundle(outputFilePath);
+
+        const parsed = await bundle({
+            applicationID: 'dummy_id',
+            applicationToken: 'dummy_token',
+            domain: 'api.dummy.com',
+            storeInitialData: {},
+        });
+
+        return parsed;
+    }
     public static getSettingsSchemaPath() {
         let settings_schema_path = path.join(
             process.cwd(),
@@ -368,6 +383,7 @@ export default class Theme {
                     appConfig,
                     configObj,
                     targetDirectory,
+                    themeType,
                 );
             }
         } catch (error) {
@@ -385,7 +401,7 @@ export default class Theme {
         let shouldDelete = false;
         try {
             Logger.info('Cloning template files');
-            await Theme.cloneTemplate(options, targetDirectory, appConfig);
+            await Theme.cloneTemplate(options, targetDirectory, appConfig, '');
             shouldDelete = true;
             process.chdir(path.join('.', options.name));
             Logger.info('Installing dependencies');
@@ -493,16 +509,21 @@ export default class Theme {
         appConfig,
         configObj,
         targetDirectory,
+        themeType,
     ) {
+        let shouldDelete = false;
         try {
-            Logger.info('Copying template files');
-            await Theme.copyTemplateFiles(
-                Theme.TEMP_REACT_TEMPLATE_DIRECTORY,
+            Logger.info('Cloning template files');
+            await Theme.cloneTemplate(
+                options,
                 targetDirectory,
-                true,
+                appConfig,
+                themeType,
             );
-            Logger.info('Copied template files');
+            shouldDelete = true;
             process.chdir(path.join('.', options.name));
+
+            Logger.info('Installing dependencies');
 
             // Create index.js with section file imports
             Logger.info('creating section index file');
@@ -521,14 +542,15 @@ export default class Theme {
             }
 
             Logger.info('Building Theme...');
-            await devReactBuild({
+            const stats = await devReactBuild({
                 buildFolder: Theme.BUILD_FOLDER,
                 runOnLocal: true,
                 isHMREnabled: false,
             });
 
+            const parsed = await Theme.getThemeBundle(stats);
             const available_sections =
-                await Theme.getAvailableReactSectionsForSync();
+                await Theme.getAvailableReactSectionsForSync(parsed.sections);
             let settings_schema = await fs.readJSON(
                 path.join(
                     process.cwd(),
@@ -545,7 +567,10 @@ export default class Theme {
                     'settings_data.json',
                 ),
             );
-            const pages = await Theme.generateAvailablePagesReact(true);
+            const pages = await Theme.generateAvailablePagesReact(
+                parsed.customTemplates,
+                true,
+            );
             const themeData = {
                 name: options.name,
                 available_sections,
@@ -601,8 +626,8 @@ export default class Theme {
             Logger.info(b5.toString());
         } catch (error) {
             Logger.error(error);
-            // if (shouldDelete) await Theme.cleanUp(targetDirectory);
-            // throw new CommandError(error.message, error.code);
+            if (shouldDelete) await Theme.cleanUp(targetDirectory);
+            throw new CommandError(error.message, error.code);
         }
     }
 
@@ -766,7 +791,10 @@ export default class Theme {
                     spaces: 2,
                 },
             );
-            if (!fs.existsSync(path.join(process.cwd(), THEME_ENTRY_FILE))) {
+            if (
+                !fs.existsSync(path.join(process.cwd(), THEME_ENTRY_FILE)) &&
+                themeData.theme_type === THEME_TYPE.vue2
+            ) {
                 Logger.info('Restructuring folder structure');
                 let restructureSpinner = new Spinner(
                     'Restructuring folder structure',
@@ -815,6 +843,8 @@ export default class Theme {
             let { data: theme } =
                 await ThemeService.getThemeById(currentContext);
 
+            await Theme.matchWithLatestPlatformConfig(theme, false);
+
             // Clear previosu builds
             Theme.clearPreviousBuild();
 
@@ -841,7 +871,7 @@ export default class Theme {
             const assetBasePath = await Theme.getAssetCdnBaseUrl();
 
             Logger.info('Building Theme for Production...');
-            await devReactBuild({
+            const stats = await devReactBuild({
                 buildFolder: Theme.BUILD_FOLDER,
                 runOnLocal: false,
                 assetBasePath,
@@ -849,6 +879,7 @@ export default class Theme {
                 isHMREnabled: false,
             });
 
+            const parsed = await Theme.getThemeBundle(stats);
             Logger.info('Uploading theme assets/images');
             await Theme.assetsImageUploader();
 
@@ -856,7 +887,7 @@ export default class Theme {
             await Theme.assetsFontsUploader();
 
             let available_sections =
-                await Theme.getAvailableReactSectionsForSync();
+                await Theme.getAvailableReactSectionsForSync(parsed.sections);
 
             await Theme.validateAvailableSections(available_sections);
 
@@ -871,7 +902,9 @@ export default class Theme {
 
             Logger.info('Updating Available pages');
             const { allowedDefaultProps } =
-                await Theme.updateAvailablePagesForReact();
+                await Theme.updateAvailablePagesForReact(
+                    parsed.customTemplates,
+                );
 
             // Set new theme data
             const newTheme = await Theme.setThemeData(
@@ -1344,26 +1377,58 @@ export default class Theme {
         });
         return settings;
     }
-    private static async getAvailableReactSectionsForSync() {
-        const sectionPath = path.resolve(
-            process.cwd(),
-            Theme.BUILD_FOLDER,
-            'sections/sections.commonjs.js',
-        );
-        const imported = require(sectionPath)?.sections?.default;
-
-        if (!imported) {
+    private static async getAvailableReactSectionsForSync(sections) {
+        if (!sections) {
             Logger.error('Error occured');
         }
 
         const allSections = Object.entries<{ settings: any; Component: any }>(
-            imported,
+            sections,
         ).map(([name, sectionModule]) => ({
             name,
             ...(sectionModule.settings || {}),
         }));
 
         return allSections;
+    }
+
+    static evaluateBundle(path, key = 'themeBundle') {
+        const code = fs.readFileSync(path, { encoding: 'utf8' });
+        const scope = {
+            self: {
+                React,
+                ReactRouterDOM,
+                webpackChunkthemeBundle: [],
+                sharedComponentLibrary: {},
+                sharedUtilsLibrary: {},
+                helmetModule: {},
+                atob: globalThis.atob,
+                btoa: globalThis.btoa,
+            },
+            XMLHttpRequest: {},
+            console: {
+                log: () => {
+                    // Overrides `console.log` methpd for theme
+                },
+                info: () => {
+                    // Overrides `console.info` methpd for theme
+                },
+                error: () => {
+                    // Overrides `console.error` methpd for theme
+                },
+                warn: () => {
+                    // Overrides `console.warn` methpd for theme
+                },
+            },
+            process: {
+                versions: {
+                    node: 'v20',
+                },
+            },
+        };
+        const fn = new Function(...Object.keys(scope), code);
+        fn(...Object.values(scope));
+        return scope.self[key]?.default ?? scope.self[key];
     }
     private static extractSettingsFromFile(path) {
         try {
@@ -1642,25 +1707,18 @@ export default class Theme {
     private static getAssetCdnBaseUrl = async () => {
         let assetCdnUrl = '';
         try {
-            if (
-                fs.existsSync(
-                    path.join(process.cwd(), 'theme', 'assets', 'fonts'),
+            const startData = {
+                file_name: 'test.ttf',
+                content_type: 'font/ttf',
+                size: '10',
+            };
+            const startAssetData = (
+                await UploadService.startUpload(
+                    startData,
+                    'application-theme-assets',
                 )
-            ) {
-                let startData = {
-                    file_name: 'test.ttf',
-                    content_type: 'font/ttf',
-                    size: '10',
-                };
-                let startAssetData = (
-                    await UploadService.startUpload(
-                        startData,
-                        'application-theme-assets',
-                    )
-                ).data;
-                return (assetCdnUrl = path.dirname(startAssetData.cdn.url));
-            }
-            return assetCdnUrl;
+            ).data;
+            return (assetCdnUrl = path.dirname(startAssetData.cdn.url));
         } catch (err) {
             throw new CommandError(
                 `Failed in getting assets CDN base url`,
@@ -1970,15 +2028,19 @@ export default class Theme {
                         if (!allowedDefaultProps[pageData.page])
                             return pageData;
 
-                        Object.keys(pageData.settings.props).forEach((prop) => {
-                            if (
-                                !allowedDefaultProps[pageData.page].includes(
-                                    prop,
-                                )
-                            ) {
-                                delete pageData.settings.props[prop];
-                            }
-                        });
+                        Object.keys(pageData.settings?.props || {}).forEach(
+                            (prop) => {
+                                if (
+                                    pageData.settings &&
+                                    pageData.settings.props &&
+                                    !allowedDefaultProps[
+                                        pageData.page
+                                    ]?.includes(prop)
+                                ) {
+                                    delete pageData.settings.props[prop];
+                                }
+                            },
+                        );
                     });
                     return listItem;
                 });
@@ -2246,7 +2308,7 @@ export default class Theme {
             throw new CommandError(err.message, err.code);
         }
     };
-    private static updateAvailablePagesForReact = async () => {
+    private static updateAvailablePagesForReact = async (customTemplates) => {
         const spinner = new Spinner('Adding/updating available pages');
         try {
             spinner.start();
@@ -2259,9 +2321,9 @@ export default class Theme {
             // extract system page level settings schema
             let systemPages = fs
                 .readdirSync(path.join(process.cwd(), 'theme', 'pages'))
-                .filter((o) => o != 'index.jsx');
+                .filter((o) => !o.startsWith('index'));
             await asyncForEach(systemPages, async (fileName) => {
-                let pageName = fileName.replace('.jsx', '');
+                let pageName = fileName.replace(/\.[^.]+$/, '');
                 // SYSTEM Pages
                 let systemPage = systemPagesDB.find((p) => p.value == pageName);
                 if (!systemPage) {
@@ -2368,42 +2430,52 @@ export default class Theme {
                 );
             }
 
-            const sectionPath = path.resolve(
-                process.cwd(),
-                Theme.BUILD_FOLDER,
-                'custom-templates/custom-templates.commonjs.js',
-            );
-
-            const customTemplates =
-                require(sectionPath)?.customTemplates?.default;
             if (!customTemplates) {
                 Logger.error('Custom Templates Not Available');
             }
 
             const customFiles = {};
-            const customRoutes = (ctTemplates, parentKey = null) => {
-                for (let key in ctTemplates) {
+
+            const customRoutes = (ctTemplates, parentKey = 'c') => {
+                (Array.isArray(ctTemplates)
+                    ? ctTemplates
+                    : [ctTemplates]
+                ).forEach((customPage) => {
+                    const {
+                        path: _path,
+                        handle = {},
+                        children,
+                        index,
+                    } = customPage.props;
+
+                    let path = _path;
+
+                    if (_path && children) {
+                        return customRoutes(children, `${parentKey}/${_path}`);
+                    }
+
+                    if (!_path && index) {
+                        path = '';
+                    }
+
                     let settingProps;
-                    const routerPath =
-                        (parentKey && `${parentKey}/${key}`) || `c/${key}`;
+                    const routerPath = `${parentKey}${path ? '/' + path : ''}`;
                     const value = routerPath.replace(/\//g, ':::');
-                    if (ctTemplates[key].settings) {
-                        settingProps = ctTemplates[key].settings.props;
+
+                    if (children) {
+                        return customRoutes(children, routerPath);
+                    }
+
+                    if (handle.settings) {
+                        settingProps = handle.settings.props;
                     }
                     customFiles[value] = {
                         fileSetting: settingProps,
                         value,
-                        text: pageNameModifier(key),
+                        text: pageNameModifier(path),
                         path: routerPath,
                     };
-
-                    if (
-                        ctTemplates[key].children &&
-                        Object.keys(ctTemplates[key].children).length
-                    ) {
-                        customRoutes(ctTemplates[key].children, routerPath);
-                    }
-                }
+                });
             };
             customRoutes(customTemplates);
             // Delete custom pages removed from code
@@ -2434,7 +2506,7 @@ export default class Theme {
                     ).data;
                 }
                 customPage.props = customPageConfig.fileSetting || [];
-                customPage.sections_meta = [];
+                customPage.sections_meta = [{}];
                 customPage.type = 'custom';
                 pagesToSave.push(customPage);
             }
@@ -2607,7 +2679,7 @@ export default class Theme {
         const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
 
         Logger.info('Building Assets for React Theme');
-        await devReactBuild({
+        const stats = await devReactBuild({
             buildFolder: Theme.BUILD_FOLDER,
             runOnLocal: false,
             assetBasePath: assetCdnUrl,
@@ -2616,7 +2688,11 @@ export default class Theme {
         });
 
         await Theme.createReactSectionsIndexFile();
-        let available_sections = await Theme.getAvailableReactSectionsForSync();
+        const parsed = await Theme.getThemeBundle(stats);
+
+        let available_sections = await Theme.getAvailableReactSectionsForSync(
+            parsed.sections,
+        );
         await Theme.validateAvailableSections(available_sections);
 
         const buildPath = path.join(process.cwd(), Theme.BUILD_FOLDER);
@@ -2641,7 +2717,7 @@ export default class Theme {
             available_sections: available_sections,
         };
         await fs.writeJson(assetsPath, assetsData, { spaces: 2 });
-        await Theme.generateAvailablePagesReact();
+        await Theme.generateAvailablePagesReact(parsed.customTemplates);
     };
 
     public static generateAvailablePages = async (
@@ -2762,7 +2838,10 @@ export default class Theme {
         }
     };
 
-    public static generateAvailablePagesReact = async (isNew = false) => {
+    public static generateAvailablePagesReact = async (
+        customTemplates,
+        isNew = false,
+    ) => {
         // extract system page level settings schema
         try {
             const pagesToSave = [];
@@ -2799,41 +2878,50 @@ export default class Theme {
                 pagesToSave.push(pageData);
             });
 
-            const sectionPath = path.resolve(
-                process.cwd(),
-                Theme.BUILD_FOLDER,
-                'custom-templates/custom-templates.commonjs.js',
-            );
-
-            const customTemplates =
-                require(sectionPath)?.customTemplates?.default;
             if (!customTemplates) {
                 Logger.error(`Custom Templates Not Available`);
             }
             const customFiles = {};
-            const customRoutes = (ctTemplates, parentKey = null) => {
-                for (let key in ctTemplates) {
+            const customRoutes = (ctTemplates, parentKey = 'c') => {
+                (Array.isArray(ctTemplates)
+                    ? ctTemplates
+                    : [ctTemplates]
+                ).forEach((customPage) => {
+                    const {
+                        path: _path,
+                        handle = {},
+                        children,
+                        index,
+                    } = customPage.props;
+
+                    let path = _path;
+
+                    if (_path && children) {
+                        return customRoutes(children, `${parentKey}/${_path}`);
+                    }
+
+                    if (!_path && index) {
+                        path = '';
+                    }
+
                     let settingProps;
-                    const routerPath =
-                        (parentKey && `${parentKey}/${key}`) || `c/${key}`;
+                    const routerPath = `${parentKey}${path ? '/' + path : ''}`;
                     const value = routerPath.replace(/\//g, ':::');
-                    if (ctTemplates[key].settings) {
-                        settingProps = ctTemplates[key].settings.props;
+
+                    if (children) {
+                        return customRoutes(children, routerPath);
+                    }
+
+                    if (handle.settings) {
+                        settingProps = handle.settings.props;
                     }
                     customFiles[value] = {
                         fileSetting: settingProps,
                         value,
-                        text: pageNameModifier(key),
+                        text: pageNameModifier(path),
                         path: routerPath,
                     };
-
-                    if (
-                        ctTemplates[key].children &&
-                        Object.keys(ctTemplates[key].children).length
-                    ) {
-                        customRoutes(ctTemplates[key].children, routerPath);
-                    }
-                }
+                });
             };
             customRoutes(customTemplates);
 
@@ -2987,6 +3075,7 @@ export default class Theme {
         options,
         targetDirectory,
         appConfig,
+        themeType,
     ) => {
         const defaultTheme = await ThemeService.getDefaultTheme({
             company_id: appConfig.company_id,
@@ -2995,14 +3084,24 @@ export default class Theme {
         if (!defaultTheme) {
             throw new CommandError(`Default Theme Not Available`);
         }
-        const themeName = defaultTheme.name;
         const spinner = new Spinner(`Cloning template files`);
-        // const url = options.url || Theme.TEMPLATE_THEME_URL;
-        const url = `https://github.com/gofynd/${themeName}.git`;
+
+        const themeName = defaultTheme.name;
+        let url;
+        if (themeType === 'react') {
+            url = `https://github.com/gofynd/flow.git`;
+        } else {
+            url = `https://github.com/gofynd/${themeName}.git`;
+        }
         try {
             spinner.start();
             const git = simpleGit();
-            await git.clone(url, targetDirectory);
+            if (themeType === 'react') {
+                await git.clone(url, targetDirectory, ['--branch', 'master']);
+            }
+            else {
+                await git.clone(url, targetDirectory);
+            }
             spinner.succeed();
         } catch (err) {
             spinner.fail();

@@ -317,7 +317,7 @@ export async function startServer({ domain, host, isSSR, port }) {
                     console.log(e);
                 }
             } else {
-                Logger.error(e?.request?.path ?? '', e.message)
+                Logger.error(e?.request?.path ?? '', e.message);
             }
         }
     });
@@ -389,14 +389,15 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
         if (request.url.indexOf('.hot-update.js') !== -1) {
             return response.send('');
         }
+        if (/\.\w+$/.test(request.url) && !/^\/public/.test(request.url)) {
+            return response.send('');
+        }
         next();
     });
 
     applyProxy(app);
 
     const uploadedFiles = {};
-
-    app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
 
     app.get('/*', async (req, res) => {
         // If browser is not requesting for html page (it can be file, API call, etc...), then fetch and send requested data directly from source
