@@ -99,6 +99,13 @@ export const URLS = {
         );
     },
 
+    GET_APPLIED_THEME: (company_id: number, application_id: string) => {
+        return urlJoin(
+            THEME_URL(),
+            `organization/${organization_id}/company/${company_id}/application/${application_id}/applied-theme`,
+        );
+    },
+
     // AVAILABLE_PAGE
     AVAILABLE_PAGE: (
         application_id: string,

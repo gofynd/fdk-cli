@@ -26,6 +26,8 @@ import inquirer from 'inquirer';
 import { exec } from 'child_process';
 import cheerio from 'cheerio';
 import chokidar from 'chokidar';
+import themeService from './api/services/theme.service';
+import { getPlatformUrls } from './api/services/url';
 
 const readDirectories = promisify(fs.readdir);
 
@@ -789,8 +791,16 @@ export default class ExtensionSection {
                 
             const configObj = await Theme.selectCompanyAndStore();
             const { data: appConfig } = await configurationService.getApplicationDetails(configObj);
-            console.log({options});
-            options.domain = 'http://karanraina.sandbox4.fynd.engineering:8087/company/1/application/6628a03255b099d9357b75de/themes/6641d8a0695cd39f717f278e/edit'
+            // console.log({appConfig});
+            const themeData = await themeService.getAppliedTheme({
+                company_id: appConfig.company_id,
+                application_id: appConfig.id,
+            });
+            options.themeId = themeData._id;
+            console.log({themeData});
+            const {platform} = getPlatformUrls();
+            console.log({platform});
+            options.domain = `${platform}/company/${appConfig.company_id}/application/${appConfig.id}/themes/${options.themeId}/edit`;
 
             const port = options['port'];
             const tunnelUrl = options['url'];
