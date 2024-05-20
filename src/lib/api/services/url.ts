@@ -136,19 +136,19 @@ export const URLS = {
             `organization/${organization_id}/company/${company_id}/setup`,
         );
     },
-    
+
     REGISTER_EXTENSION_PARTNER: (): string => {
-        return  urlJoin(
+        return urlJoin(
             MIXMASTER_URL('partner'),
-            `organization/${organization_id}/extension`
-        )
+            `organization/${organization_id}/extension`,
+        );
     },
-    
+
     GET_EXTENSION_DETAILS_PARTNERS: (extension_api_key: string): string => {
         return urlJoin(
             MIXMASTER_URL('partner'),
-            `organization/${organization_id}/extension/${extension_api_key}`
-        )
+            `organization/${organization_id}/extension/${extension_api_key}`,
+        );
     },
 
     UPDATE_EXTENSION_DETAILS: (extension_api_key: string): string => {
@@ -159,8 +159,10 @@ export const URLS = {
     },
 
     UPDATE_EXTENSION_DETAILS_PARTNERS: (extension_api_key: string): string => {
-        return urlJoin(MIXMASTER_URL('partner'),
-        `organization/${organization_id}/extension/${extension_api_key}`)
+        return urlJoin(
+            MIXMASTER_URL('partner'),
+            `organization/${organization_id}/extension/${extension_api_key}`,
+        );
     },
 
     VALIDATE_ACCESS_TOKEN: (): string => {
