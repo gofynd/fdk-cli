@@ -34,13 +34,13 @@ const readDirectories = promisify(fs.readdir);
 type ExtensionSectionOptions = {
     name: string;
     interface: 'theme' | 'platform';
-    engine: 'react' | 'vue2';
+    framework: 'react' | 'vue2';
 };
 type SyncExtensionBindingsOptions = {
     extensionId?: string;
     organisationId?: string;
     name: string;
-    type: string;
+    framework: string;
 };
 
 type ExtensionContext = {
@@ -58,7 +58,7 @@ export default class ExtensionSection {
 
     public static async initExtensionBinding(options: ExtensionSectionOptions) {
         try {
-            const requiredOptions = ['name', 'interface', 'engine'];
+            const requiredOptions = ['name', 'interface', 'framework'];
 
             const passedOptions = Object.keys(options);
 
@@ -74,8 +74,8 @@ export default class ExtensionSection {
                 },
                 {
                     type: 'list',
-                    name: 'engine',
-                    message: 'Select Runtime Engine.',
+                    name: 'framework',
+                    message: 'Select Runtime Framework.',
                     choices: ['react', 'vue'],
                 },
                 {
@@ -95,18 +95,18 @@ export default class ExtensionSection {
                 ...answers,
             };
 
-            const { interface: bindingInterface, engine } = finalOptions;
+            const { interface: bindingInterface, framework } = finalOptions;
 
-            if (bindingInterface === 'theme' && engine === 'react') {
+            if (bindingInterface === 'theme' && framework === 'react') {
                 await ExtensionSection.initExtensionSectionBindingForReact(
                     finalOptions,
                 );
-            } else if (bindingInterface === 'theme' && engine === 'vue2') {
+            } else if (bindingInterface === 'theme' && framework === 'vue2') {
                 await ExtensionSection.initExtensionSectionBindingForVue(
                     finalOptions,
                 );
             } else {
-                throw new CommandError('Unsupported interface or engine!');
+                throw new CommandError('Unsupported interface or framework!');
             }
         } catch (error) {
             throw new CommandError(error.message, error.code);
@@ -118,17 +118,17 @@ export default class ExtensionSection {
     ) {
         try {
             const sectionName = options['name'];
-            const engine = options['engine'];
+            const framework = options['framework'];
 
             if (!sectionName) {
                 throw new Error('Section Name not provided!');
             }
 
-            ExtensionSection.createSectionsDirectoryIfNotExists(engine);
+            ExtensionSection.createSectionsDirectoryIfNotExists(framework);
 
             const sectionExists = await ExtensionSection.sectionExists(
                 sectionName,
-                engine,
+                framework,
             );
 
             if (sectionExists) {
@@ -146,17 +146,17 @@ export default class ExtensionSection {
     ) {
         try {
             const sectionName = options['name'];
-            const engine = options['engine'];
+            const framework = options['framework'];
 
             if (!sectionName) {
                 throw new Error('Section Name not provided!');
             }
 
-            ExtensionSection.createSectionsDirectoryIfNotExists(engine);
+            ExtensionSection.createSectionsDirectoryIfNotExists(framework);
 
             const sectionExists = await ExtensionSection.sectionExists(
                 sectionName,
-                engine,
+                framework,
             );
 
             if (sectionExists) {
@@ -169,9 +169,9 @@ export default class ExtensionSection {
         }
     }
 
-    static createSectionsDirectoryIfNotExists(engine: string): void {
+    static createSectionsDirectoryIfNotExists(framework: string): void {
         const directories =
-            engine === 'react'
+            framework === 'react'
                 ? ExtensionSection.BINDINGS_DIR_REACT.split(path.sep)
                 : ExtensionSection.BINDINGS_DIR_VUE.split(path.sep);
         let currentPath = process.cwd();
@@ -184,10 +184,10 @@ export default class ExtensionSection {
         });
     }
 
-    static async sectionExists(name: string, engine: string): Promise<Boolean> {
+    static async sectionExists(name: string, framework: string): Promise<Boolean> {
         const sectionPath = path.resolve(
             process.cwd(),
-            engine === 'react'
+            framework === 'react'
                 ? ExtensionSection.BINDINGS_DIR_REACT
                 : ExtensionSection.BINDINGS_DIR_VUE,
         );
@@ -258,11 +258,11 @@ export default class ExtensionSection {
             options.extensionId &&
             options.organisationId &&
             options.name &&
-            options.type &&
+            options.framework &&
             typeof options.extensionId === 'string' &&
             typeof options.organisationId === 'string' &&
             typeof options.name === 'string' &&
-            typeof options.type === 'string'
+            typeof options.framework === 'string'
         );
     }
 
@@ -275,7 +275,7 @@ export default class ExtensionSection {
 
         Logger.info(`Publishing Extension Sections`);
 
-        if (context.type === 'react') {
+        if (context.framework === 'react') {
             ExtensionSection.publishExtensionBindingsReact(context);
         } else {
             ExtensionSection.publishExtensionBindingsVue(context);
@@ -530,9 +530,9 @@ export default class ExtensionSection {
             ? options
             : await ExtensionSection.getContextData({ serve: false });
 
-        Logger.info(`Drafting Extension Sections`, context.type);
+        Logger.info(`Drafting Extension Sections: `, context.framework);
 
-        if (context.type === 'react') {
+        if (context.framework === 'react') {
             await ExtensionSection.draftExtensionBindingsReact(context);
         } else {
             await ExtensionSection.draftExtensionBindingsVue(context);
@@ -760,7 +760,7 @@ export default class ExtensionSection {
     }
 
     public static async previewExtension(options: any) {
-        if (options.type === 'react') {
+        if (options.framework === 'react') {
             return ExtensionSection.serveExtensionSections(options);
         } else {
             return ExtensionSection.serveExtensionSectionsVue(options);
@@ -850,6 +850,20 @@ export default class ExtensionSection {
         try {
             const { name: bundleName, url: tunnelUrl, extensionId } = options;
             const port = options.port;
+
+            const configObj = await Theme.selectCompanyAndStore();
+            const { data: appConfig } = await configurationService.getApplicationDetails(configObj);
+
+            const themeData = await themeService.getAppliedTheme({
+                company_id: appConfig.company_id,
+                application_id: appConfig.id,
+            });
+            options.themeId = themeData._id;
+
+            const {platform} = getPlatformUrls();
+
+            options.domain = `${platform}/company/${appConfig.company_id}/application/${appConfig.id}/themes/${options.themeId}/edit`;
+
 
             const rootPath = process.cwd();
             process.chdir(

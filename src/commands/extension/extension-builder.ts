@@ -66,7 +66,7 @@ export default function extensionCommandBuilder() {
         .description('Create a new section binding boilerplate')
         .option('-n, --name [name]', 'Bundle Name')
         .option('-i, --interface [interface]', 'Interface')
-        .requiredOption('-e, --engine [engine]', 'Compatible Engine')
+        .requiredOption('-f, --framework [framework]', 'Compatible Framework')
         .asyncAction(ExtensionSection.initExtensionBinding);
 
     binding
@@ -75,7 +75,7 @@ export default function extensionCommandBuilder() {
         .requiredOption('-id, --extensionId [extensionId]', 'Extension ID')
         .requiredOption('-org, --organisationId [organisationId]', 'Organisation ID')
         .requiredOption('-n, --name [name]', 'Bundle Name')
-        .requiredOption('-t, --type [type]', 'Type')
+        .requiredOption('-f, --framework [framework]', 'Compatible Framework')
         .asyncAction(ExtensionSection.draftExtensionBindings);
 
     binding
@@ -84,7 +84,7 @@ export default function extensionCommandBuilder() {
         .requiredOption('-id, --extensionId [extensionId]', 'Extension ID')
         .requiredOption('-org, --organisationId [organisationId]', 'Organisation ID')
         .requiredOption('-n, --name [name]', 'Bundle Name')
-        .requiredOption('-t, --type [type]', 'Type')
+        .requiredOption('-f, --framework [framework]', 'Compatible Framework')
         .asyncAction(ExtensionSection.publishExtensionBindings);
 
     binding
@@ -95,7 +95,7 @@ export default function extensionCommandBuilder() {
         .requiredOption('-n, --name [name]', 'Bundle Name')
         .requiredOption('-p, --port [port]', 'Server Port')
         .requiredOption('-u, --url [url]', 'Tunnel Url')
-        .requiredOption('-t --type [type]', 'Type')
+        .requiredOption('-f, --framework [framework]', 'Compatible Framework')
         .asyncAction(ExtensionSection.previewExtension);
 
     extension.addCommand(binding);
