@@ -49,7 +49,6 @@ type ExtensionContext = {
     domain: string;
 };
 
-
 export default class ExtensionSection {
     static BINDINGS_DIR_REACT = 'bindings/theme/react';
     static BINDINGS_DIR_VUE = 'bindings/theme/vue';
@@ -184,7 +183,10 @@ export default class ExtensionSection {
         });
     }
 
-    static async sectionExists(name: string, framework: string): Promise<Boolean> {
+    static async sectionExists(
+        name: string,
+        framework: string,
+    ): Promise<Boolean> {
         const sectionPath = path.resolve(
             process.cwd(),
             framework === 'react'
@@ -218,13 +220,6 @@ export default class ExtensionSection {
         );
 
         await fsExtra.copy(sourceCodePath, sectionDirPath);
-
-        const packageJsonPath = path.join(sectionDirPath, 'package.json');
-        const packageJson = await fsExtra.readJson(packageJsonPath);
-        packageJson.scripts.build = `vue-cli-service build --target lib src/main.js --name ${name}`;
-        await fsExtra.writeJson(packageJsonPath, packageJson, {
-            spaces: 4,
-        });
 
         process.chdir(
             path.join(process.cwd(), ExtensionSection.BINDINGS_DIR_VUE, name),
@@ -292,11 +287,14 @@ export default class ExtensionSection {
         );
         sectionData.status = 'published';
 
-        await ExtensionSection.savingExtensionBindings(sectionData, context, sectionData.status);
+        await ExtensionSection.savingExtensionBindings(
+            sectionData,
+            context,
+            sectionData.status,
+        );
     }
 
     static async draftExtensionBindingsReact(context) {
-
         const sectionData = await ExtensionSection.extractSectionsData(
             context.name,
             context,
@@ -304,18 +302,28 @@ export default class ExtensionSection {
 
         sectionData.status = 'draft';
 
-        await ExtensionSection.savingExtensionBindings(sectionData, context, sectionData.status);
+        await ExtensionSection.savingExtensionBindings(
+            sectionData,
+            context,
+            sectionData.status,
+        );
     }
 
     static async publishExtensionBindingsVue(context) {
-        let sectionData = await ExtensionSection.extractSectionsDataVue(context);
-        
+        let sectionData =
+            await ExtensionSection.extractSectionsDataVue(context);
+
         sectionData.status = 'published';
 
-        await ExtensionSection.savingExtensionBindings(sectionData, context, sectionData.status);
+        await ExtensionSection.savingExtensionBindings(
+            sectionData,
+            context,
+            sectionData.status,
+        );
     }
     static async draftExtensionBindingsVue(context) {
-        let sectionData = await ExtensionSection.extractSectionsDataVue(context);
+        let sectionData =
+            await ExtensionSection.extractSectionsDataVue(context);
 
         sectionData.status = 'draft';
 
@@ -426,7 +434,7 @@ export default class ExtensionSection {
     static extractSettingsFromFile(path) {
         try {
             let $ = cheerio.load(readFile(path));
-            let settingsText = $('settings').text()
+            let settingsText = $('settings').text();
 
             try {
                 return settingsText ? JSON.parse(settingsText) : {};
@@ -455,8 +463,6 @@ export default class ExtensionSection {
                 bundleName,
             ),
         );
-
-        
 
         await ExtensionSection.buildExtensionCode({ bundleName }).catch(
             console.error,
@@ -650,7 +656,11 @@ export default class ExtensionSection {
         return sectionsMeta?.sections?.default ?? {};
     }
 
-    static async savingExtensionBindings(data: any, context: ExtensionContext, type: 'draft' | 'published' = 'draft') {
+    static async savingExtensionBindings(
+        data: any,
+        context: ExtensionContext,
+        type: 'draft' | 'published' = 'draft',
+    ) {
         try {
             const functionMap = {
                 draft: 'draftExtensionBindings',
@@ -738,7 +748,6 @@ export default class ExtensionSection {
                 const configObj = await Theme.selectCompanyAndStore();
                 const { data: appConfig } =
                     await configurationService.getApplicationDetails(configObj);
-
             }
 
             const answers = await ExtensionSection.promptExtensionDetails();
@@ -770,11 +779,12 @@ export default class ExtensionSection {
         try {
             const { name: bundleName } = options;
             // const context = await ExtensionSection.getContextData({
-                //     serve: true,
-                // });
-                
+            //     serve: true,
+            // });
+
             const configObj = await Theme.selectCompanyAndStore();
-            const { data: appConfig } = await configurationService.getApplicationDetails(configObj);
+            const { data: appConfig } =
+                await configurationService.getApplicationDetails(configObj);
 
             const themeData = await themeService.getAppliedTheme({
                 company_id: appConfig.company_id,
@@ -782,7 +792,7 @@ export default class ExtensionSection {
             });
             options.themeId = themeData._id;
 
-            const {platform} = getPlatformUrls();
+            const { platform } = getPlatformUrls();
 
             options.domain = `${platform}/company/${appConfig.company_id}/application/${appConfig.id}/themes/${options.themeId}/edit`;
 
@@ -852,7 +862,8 @@ export default class ExtensionSection {
             const port = options.port;
 
             const configObj = await Theme.selectCompanyAndStore();
-            const { data: appConfig } = await configurationService.getApplicationDetails(configObj);
+            const { data: appConfig } =
+                await configurationService.getApplicationDetails(configObj);
 
             const themeData = await themeService.getAppliedTheme({
                 company_id: appConfig.company_id,
@@ -860,10 +871,9 @@ export default class ExtensionSection {
             });
             options.themeId = themeData._id;
 
-            const {platform} = getPlatformUrls();
+            const { platform } = getPlatformUrls();
 
             options.domain = `${platform}/company/${appConfig.company_id}/application/${appConfig.id}/themes/${options.themeId}/edit`;
-
 
             const rootPath = process.cwd();
             process.chdir(

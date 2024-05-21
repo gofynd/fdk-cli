@@ -1,11 +1,12 @@
 <template>
     <div class="main-div">
-        <h1>Product List using Extension for Jetfire</h1>
-        <h2>Header - {{ getHeader }}</h2>
+        <h1>Header - {{ getHeader }}</h1>
+        <h2>Product List using Extension for Jetfire</h2>
 
-        <div class="container">
+        <div v-if="products.length == 0">No Products Found</div>
+        <div class="container" v-else>
             <ProductCard
-                v-for="(product) in products"
+                v-for="product in products"
                 :product="product"
                 :key="product.slug"
             />
@@ -18,22 +19,23 @@ import ProductCard from './../components/product-card.vue';
 export default {
     name: 'test',
     props: ['settings', 'apiSDK', 'serverProps', 'global_config'],
-    initializeServerProps({ settings, apiSDK }) {
-        return Promise.all(
-            apiSDK.catalog.getProducts({
+    async initializeServerProps({ settings, apiSDK }) {
+        console.log('initializeServerProps entered');
+        try {
+            const data = await apiSDK.catalog.getProducts({
                 pageId: '*',
                 pageSize: 12,
-            }),
-        )
-            .then((results) => {
-                console.log('section result', results);
-                return results;
-            })
-            .catch((e) => console.log(e));
+            });
+            console.log('product listing mserverfetch data', data);
+            return data;
+        } catch (error) {
+            console.log(error);
+        }
     },
     data() {
+        console.log('section data load', this.serverProps);
         return {
-            products: this.serverProps || [],
+            products: this.serverProps?.items || [],
         };
     },
     computed: {
@@ -41,13 +43,26 @@ export default {
             return this.settings?.props?.heading?.value;
         },
     },
+    async mounted() {
+        console.log('product listing mounted serverProps', this.serverProps);
+        try {
+            const data = await this.$apiSDK.catalog.getProducts({
+                pageId: '*',
+                pageSize: 12,
+            });
+            console.log('product listing mounted data', data);
+            this.products = data?.items;
+        } catch (error) {
+            console.log(error);
+        }
+    },
 };
 </script>
 
 <settings>
     {
-      "label": "Products List",
-      "name": "product-list",
+      "name": "product-listing",
+      "label": "product-listing",
       "props": [
         {
           "type": "text",
