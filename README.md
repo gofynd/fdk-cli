@@ -504,8 +504,15 @@ fdk config set strict-ssl false
 
 > - Ensure that the file path provided for the CA file is valid and accessible.
 > - The strict SSL setting should be either `true` or `false`.
-> - Developers can also pass environment variables to use these settings for individual commands:<br>`FDK_EXTRA_CA_CERTS`: Set this variable to specify the CA file path (`cafile`).
-<br>`FDK_SSL_NO_VERIFY`: Set this variable to `true` to disable strict SSL validation (`strict-ssl=false`).
+> - Developers can configure settings using environment variables.<br/><hr/>`FDK_EXTRA_CA_CERTS`: Set this variable to specify the CA file path (`cafile`).
+<br/><hr/>`FDK_SSL_NO_VERIFY`: Set this variable to `true` to disable strict SSL validation (`strict-ssl=false`).
+
+<br/>
+
+```sh
+# Set CA file path using environment variable
+FDK_EXTRA_CA_CERTS=/path/to/your/cafile fdk config set cafile
+```
 
 <div id="config-get-commands"></div>
 
