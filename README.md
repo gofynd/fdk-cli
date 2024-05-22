@@ -94,7 +94,7 @@ ___
 
 | Command Type | Description                          |
 |--------------|--------------------------------------|
-| [set](#config-commands)        | Set configuration values.            |
+| [set](#config-set-commands)        | Set configuration values.            |
 | [get](#config-get-commands)        | Retrieve current configuration values.|
 | [delete](#config-delete-commands)  (alias: `rm`)    | Delete configuration values.         |
 
