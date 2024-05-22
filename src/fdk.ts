@@ -76,6 +76,7 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
             } else {
                 process.env.DEBUG = 'false';
             }
+            initializeLogger();
             
             // check in config if user have set certificate
             const CA_FILE = configStore.get(CONFIG_KEYS.CA_FILE)
@@ -92,21 +93,27 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
             }
 
             if(process.env.FDK_EXTRA_CA_CERTS){
-                Logger.log(chalk.blue(`Using CA file from ${process.env.FDK_EXTRA_CA_CERTS}`))
+                Logger.info(`Using CA file from ${process.env.FDK_EXTRA_CA_CERTS}`)
             }
 
-            const sharedInlineNoSSL = process.env.FDK_SSL_NO_VERIFY;
-            const STRICT_SSL = configStore.get(CONFIG_KEYS.STRICT_SSL) || true;
-            if(STRICT_SSL == false || sharedInlineNoSSL == 'true'){
+            const disableSSL = () => {
                 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
                 process.env.FDK_SSL_NO_VERIFY = 'true';
             }
 
-            if(process.env.FDK_SSL_NO_VERIFY){
-                Logger.log(chalk.blue(`Bypassing SSL verification`))
+            const sharedInlineNoSSL = process.env.FDK_SSL_NO_VERIFY;
+            const STRICT_SSL = configStore.get(CONFIG_KEYS.STRICT_SSL);
+            if(sharedInlineNoSSL == 'true'){
+                disableSSL();
+            }
+            if(!sharedInlineNoSSL && STRICT_SSL == 'false'){
+                disableSSL();
             }
 
-            initializeLogger();
+            if(process.env.FDK_SSL_NO_VERIFY == 'true'){
+                Logger.warn(`Bypassing SSL verification`)
+            }
+
             const latest = await checkCliVersionAsync();
             const isCurrentLessThanLatest = semver.lt(
                 packageJSON.version,

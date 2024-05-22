@@ -25,8 +25,13 @@ export default function extensionCommandBuilder() {
     setCommander
         .command('strict-ssl <boolean>')
         .description('To set CA file')
-        .action((value: boolean) => {
-            Configstore.set(CONFIG_KEYS.SSL, Boolean(value));
+        .action((value: string) => {
+            const ACCEPTED_VALUES = ['false', 'true']
+            if (ACCEPTED_VALUES.includes(value)) {
+                Configstore.set(CONFIG_KEYS.STRICT_SSL, value);
+            } else {
+                console.log(chalk.red("Entered value is not valid."));
+            }
         })
 
     configCommander.addCommand(setCommander);
@@ -46,7 +51,7 @@ export default function extensionCommandBuilder() {
         .command('strict-ssl')
         .description('To set strict-ssl')
         .action(() => {
-            console.log(Configstore.get(CONFIG_KEYS.SSL) || "");
+            console.log(Configstore.get(CONFIG_KEYS.STRICT_SSL) || "");
         })
 
     configCommander.addCommand(getCommander);
@@ -66,7 +71,7 @@ export default function extensionCommandBuilder() {
         .command('strict-ssl')
         .description('To reset strict-ssl')
         .action(() => {
-            Configstore.delete(CONFIG_KEYS.SSL)
+            Configstore.delete(CONFIG_KEYS.STRICT_SSL)
         })
 
     configCommander.addCommand(deleteCommander);
