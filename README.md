@@ -94,9 +94,9 @@ ___
 
 | Command Type | Description                          |
 |--------------|--------------------------------------|
-| [config set](#config-set-commands)        | Set configuration values.            |
-| [config get](#config-get-commands)        | Retrieve current configuration values.|
-| [config delete](#config-delete-commands)  (alias: `rm`)    | Delete configuration values.         |
+| [set](#config-commands)        | Set configuration values.            |
+| [get](#config-get-commands)        | Retrieve current configuration values.|
+| [delete](#config-delete-commands)  (alias: `rm`)    | Delete configuration values.         |
 
 <div id="debugMode"></div>
 
@@ -481,6 +481,7 @@ fdk partner connect
 ___
 ### Config Commands
 <div id="config-commands"></div>
+
 <div id="config-set-commands"></div>
 
 #### Set Commands
