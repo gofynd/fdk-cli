@@ -76,19 +76,34 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
             } else {
                 process.env.DEBUG = 'false';
             }
-
-            if (parent._optionValues.cafile) {
-                // check if file exist
-                if(fs.existsSync(parent._optionValues.cafile)){
-                    process.env.CA = parent._optionValues.cafile;
-                } else {
-                    throw new CommandError("Provided file path does not exist.")
-                }
+            
+            // check in config if user have set certificate
+            const CA_FILE = configStore.get(CONFIG_KEYS.CA_FILE)
+            // if user shared certificate while executing the command
+            const sharedInlineCert = process.env.FDK_EXTRA_CA_CERTS;
+            
+            // if shared inline then it should be exist
+            if(sharedInlineCert && !fs.existsSync(sharedInlineCert)){
+                throw new CommandError("Provided file path does not exist.");
+            }
+            // inline CA will get priority
+            if (!sharedInlineCert && CA_FILE) {
+                process.env.FDK_EXTRA_CA_CERTS = CA_FILE;
             }
 
-            if(parent._optionValues.strictSsl == 'false'){
+            if(process.env.FDK_EXTRA_CA_CERTS){
+                Logger.log(chalk.blue(`Using CA file from ${process.env.FDK_EXTRA_CA_CERTS}`))
+            }
+
+            const sharedInlineNoSSL = process.env.FDK_SSL_NO_VERIFY;
+            const STRICT_SSL = configStore.get(CONFIG_KEYS.STRICT_SSL) || true;
+            if(STRICT_SSL == false || sharedInlineNoSSL == 'true'){
                 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-                process.env.IGNORE_SSL = 'true';
+                process.env.FDK_SSL_NO_VERIFY = 'true';
+            }
+
+            if(process.env.FDK_SSL_NO_VERIFY){
+                Logger.log(chalk.blue(`Bypassing SSL verification`))
             }
 
             initializeLogger();
@@ -251,14 +266,6 @@ export async function init(programName: string) {
         .option(
             '-d, --debug',
             'Display detailed output for debugging purposes',
-        )
-        .option(
-            '-cf, --cafile [path-to-pem-file]',
-            'To attach trusted certificate',
-        )
-        .option(
-            '-ssl, --strict-ssl [boolean]',
-            'To attach trusted certificate',
         );
 
     //register commands with commander instance

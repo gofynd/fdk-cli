@@ -59,13 +59,13 @@ function applyProxy(app: any) {
     const currentDomain = `https://${currentContext.domain}`;
     let httpsAgent;
 
-    if(process.env.CA){
+    if(process.env.FDK_EXTRA_CA_CERTS){
         // Load the VPN's CA certificate
-        const ca = fs.readFileSync(process.env.CA);
+        const ca = fs.readFileSync(process.env.FDK_EXTRA_CA_CERTS);
         // Create an HTTPS agent with the CA certificate
         httpsAgent = { ca }
     }
-    if(process.env.IGNORE_SSL == 'true'){
+    if(process.env.FDK_SSL_NO_VERIFY == 'true'){
         httpsAgent = { rejectUnauthorized: false }
     }
     if(httpsAgent){
@@ -215,9 +215,9 @@ export async function startServer({ domain, host, isSSR, port }) {
         }
         try {
             let httpsAgent;
-            if(process.env.CA){
+            if(process.env.FDK_EXTRA_CA_CERTS){
                 // Load the VPN's CA certificate
-                const ca = fs.readFileSync(process.env.CA);
+                const ca = fs.readFileSync(process.env.FDK_EXTRA_CA_CERTS);
                 // Create an HTTPS agent with the CA certificate
                 httpsAgent = new https.Agent({ ca });
             }
