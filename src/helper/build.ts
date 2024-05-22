@@ -2,7 +2,7 @@ import { exec } from 'child_process';
 import path from 'path';
 import Theme from '../lib/Theme';
 import Spinner from './spinner';
-import webpack from 'webpack';
+import webpack, { MultiStats } from 'webpack';
 import createBaseWebpackConfig from '../helper/theme.react.config';
 import fs from 'fs';
 import rimraf from 'rimraf';
@@ -129,7 +129,7 @@ export async function devReactBuild({
     localThemePort,
     imageCdnUrl,
     isHMREnabled,
-}: DevReactBuild) {
+}: DevReactBuild): Promise<MultiStats> {
     const buildPath = path.join(process.cwd(), buildFolder);
     try {
         // Clean the build directory

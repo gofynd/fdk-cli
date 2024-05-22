@@ -3,7 +3,7 @@ import fs from 'fs-extra';
 import NativeModule from 'module';
 import vm from 'vm';
 import CommandError, { ErrorCodes } from '../lib/CommandError';
-import { COMMON_LOG_MESSAGES } from '../lib/Logger';
+import Logger, { COMMON_LOG_MESSAGES } from '../lib/Logger';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
 import execa from 'execa';
 import Debug from '../lib/Debug';
@@ -117,7 +117,7 @@ export function sortString(str) {
 }
 
 export const pageNameModifier = (page) => {
-    let pageArr = page.split('-');
+    let pageArr = (page[0] === ':' ? page.substring(1) : page).split('-');
     let res = '';
     pageArr.forEach((p) => {
         res += p[0]?.toUpperCase() + p.substring(1) + ' ';
@@ -296,16 +296,17 @@ export const isValidDomain = (domain) => {
     return domainRegex.test(domain);
 };
 
-export function transformJSXToJS(jsxCode: any) {
+export function transformCodeToJS(code: any) {
     const options = {
-        presets: ['@babel/preset-react'],
+        filename: 'pages.tsx',
+        presets: ['@babel/preset-react', '@babel/preset-typescript'],
     };
 
     try {
-        const result = babel.transformSync(jsxCode, options);
+        const result = babel.transformSync(code, options);
         return result?.code;
     } catch (error) {
-        console.error('Error transforming JSX to JS:', error);
+        Logger.error('Error transforming JSX/TSX to JS:', error);
         return null;
     }
 }
@@ -316,7 +317,7 @@ export function findExportedVariable(
 ): any {
     // Read the JavaScript file content
     const fileContent = fsNode.readFileSync(filePath, 'utf8');
-    const parsedContents = transformJSXToJS(fileContent) || '';
+    const parsedContents = transformCodeToJS(fileContent) || '';
 
     // Parse the JavaScript code into an Abstract Syntax Tree (AST)
     const ast = acorn.parse(parsedContents, {
