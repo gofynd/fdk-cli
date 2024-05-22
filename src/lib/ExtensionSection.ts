@@ -576,6 +576,7 @@ export default class ExtensionSection {
                     if (err) {
                         throw err;
                     }
+                    console.log(stats.toString())
                     callback(stats);
                 },
             );
@@ -790,6 +791,7 @@ export default class ExtensionSection {
                 company_id: appConfig.company_id,
                 application_id: appConfig.id,
             });
+            const {_id: extensionSectionId} = await extensionService.getExtensionBindings(options.extensionId, options.organisationId, options.name );
             options.themeId = themeData._id;
 
             const { platform } = getPlatformUrls();
@@ -832,17 +834,13 @@ export default class ExtensionSection {
             Logger.info('Starting Local Extension Server ...', bundleDist);
             await startExtensionServer({ bundleDist, port });
 
-            // Logger.info('Starting Ngrok Tunnel ...');
-            // const url = await ngrok.connect(port);
-
             const assetUrls = {
                 js: `${tunnelUrl}/${jsFile}`,
                 css: `${tunnelUrl}/${cssFile}`,
             };
 
             const data = {
-                extensionId: options.extensionId,
-                bundle: bundleName,
+                id: extensionSectionId,
                 assets: assetUrls,
             };
 

@@ -185,6 +185,12 @@ export const URLS = {
             `organization/${organization_id}/extension-section/${extension_id}/draft`,
         );
     },
+    GET_EXTENSION_SECTIONS: (extension_id: string, organization_id: string, binding_name: string) => {
+        return urlJoin(
+            THEME_URL(),
+            `organization/${organization_id}/extension-section/${extension_id}/${binding_name}`,
+        );
+    },
 
     // Preview URL
     GET_DEVELOPMENT_ACCOUNTS: (page_no: number, page_size: number): string => {
