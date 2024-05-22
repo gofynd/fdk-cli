@@ -546,7 +546,7 @@ The `delete` commands allow you to remove the current configuration for `cafile`
 |------------------------------- |----------------------------------------------|
 | `delete cafile`     | Deletes the current CA file configuration.   |
 | `delete strict-ssl` | Deletes the current strict SSL configuration.|
-| `fdk config rm cafile`         | Alias for `delete`: Deletes the current CA file configuration.   |
+| `rm cafile`         | Alias for `delete`: Deletes the current CA file configuration.   |
 
 
 #### **Example**
