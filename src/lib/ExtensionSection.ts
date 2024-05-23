@@ -512,7 +512,7 @@ export default class ExtensionSection {
 
             return new Promise((resolve, reject) => {
                 webpack(webpackConfig, (err, stats) => {
-                    console.log(stats.toString())
+                    console.log(stats.toString());
                     if (err || stats.hasErrors()) {
                         reject();
                     }
@@ -575,7 +575,7 @@ export default class ExtensionSection {
                 },
                 (err, stats) => {
                     if (err || stats.hasErrors()) {
-                        console.log(stats.toString())
+                        console.log(stats.toString());
                         throw err;
                     }
                     callback(stats);
@@ -792,7 +792,12 @@ export default class ExtensionSection {
                 company_id: appConfig.company_id,
                 application_id: appConfig.id,
             });
-            const {_id: extensionSectionId} = await extensionService.getExtensionBindings(options.extensionId, options.organisationId, options.name );
+            const { _id: extensionSectionId } =
+                await extensionService.getExtensionBindings(
+                    options.extensionId,
+                    options.organisationId,
+                    options.name,
+                );
             options.themeId = themeData._id;
 
             const { platform } = getPlatformUrls();
@@ -867,6 +872,12 @@ export default class ExtensionSection {
                 company_id: appConfig.company_id,
                 application_id: appConfig.id,
             });
+            const { _id: extensionSectionId } =
+                await extensionService.getExtensionBindings(
+                    extensionId,
+                    options.organisationId,
+                    options.name,
+                );
             options.themeId = themeData._id;
 
             const { platform } = getPlatformUrls();
@@ -897,7 +908,6 @@ export default class ExtensionSection {
                 });
             });
 
-            // process.chdir(rootPath);
             const bundleDist = path.resolve(
                 rootPath,
                 ExtensionSection.BINDINGS_DIR_VUE,
@@ -914,8 +924,7 @@ export default class ExtensionSection {
             };
 
             const data = {
-                extensionId: extensionId,
-                bundle: bundleName,
+                id: extensionSectionId,
                 assets: assetUrls,
             };
 
