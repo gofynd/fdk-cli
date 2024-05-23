@@ -4,21 +4,21 @@ import webpack, { Configuration } from 'webpack';
 
 class CustomSnippetPlugin {
     constructor(private options) { }
-  
+
     apply(compiler) {
       compiler.hooks.emit.tapAsync('CustomSnippetPlugin', (compilation, callback) => {
         // Get the snippet code from options or use a default one
         const snippetCode = this.options.snippetCode;
-  
+
         // Iterate through each asset in the compilation
         for (const filename in compilation.assets) {
           if (filename.endsWith('.js')) { // Only apply to JavaScript files
             // Get the asset source
             let source = compilation.assets[filename].source();
-  
+
             // Append the custom snippet code
             source += `\n\n// Custom Snippet Start\n${snippetCode}\n// Custom Snippet End\n`;
-  
+
             // Update the asset with the modified source
             compilation.assets[filename] = {
               source: () => source,
@@ -26,12 +26,12 @@ class CustomSnippetPlugin {
             };
           }
         }
-  
+
         callback();
       });
     }
   }
-  
+
 type ExtensionBuildContext = {
     isLocal: Boolean;
     bundleName: string;

@@ -512,6 +512,7 @@ export default class ExtensionSection {
 
             return new Promise((resolve, reject) => {
                 webpack(webpackConfig, (err, stats) => {
+                    console.log(stats.toString())
                     if (err || stats.hasErrors()) {
                         reject();
                     }
@@ -573,10 +574,10 @@ export default class ExtensionSection {
                     poll: undefined,
                 },
                 (err, stats) => {
-                    if (err) {
+                    if (err || stats.hasErrors()) {
+                        console.log(stats.toString())
                         throw err;
                     }
-                    console.log(stats.toString())
                     callback(stats);
                 },
             );
@@ -816,7 +817,6 @@ export default class ExtensionSection {
                     port,
                     isLocal: true,
                 });
-
             ExtensionSection.watchExtensionCodeBuild(
                 bundleName,
                 port,
