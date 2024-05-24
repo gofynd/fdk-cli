@@ -829,7 +829,6 @@ export default class ExtensionSection {
                     reload();
                 },
             );
-            process.chdir(rootPath);
             const bundleDist = path.resolve(
                 rootPath,
                 ExtensionSection.BINDINGS_DIR_REACT,
