@@ -3,7 +3,9 @@
         <h1>Header - {{ getHeader }}</h1>
         <h2>Product List using Extension for Jetfire</h2>
 
-        <div v-if="products.length == 0">No Products Found</div>
+        <div v-if="products.length == 0" class="no-product">
+            No Products Found
+        </div>
         <div class="container" v-else>
             <div
                 v-for="product in products"
@@ -77,11 +79,25 @@ export default {
 
 <style lang="less" scoped>
 .main-div {
+    h1 {
+        color: blue;
+    }
+    h2 {
+        color: orange;
+    }
+    .no-product {
+        color: red;
+    }
     .container {
         display: flex;
         .product {
-            color: red;
-            border: 1px solid red;
+            border: 1px solid green;
+            h1 {
+                color: green;
+            }
+            h2 {
+                color: green;
+            }
         }
     }
 }
