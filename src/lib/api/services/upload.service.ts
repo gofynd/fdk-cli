@@ -6,6 +6,8 @@ import fs from 'fs-extra';
 import path from 'path';
 import mime from 'mime';
 import Spinner from '../../../helper/spinner';
+import https from 'https'
+
 export default {
     startUpload: async (data, namespace) => {
         try {
@@ -58,11 +60,16 @@ export default {
 
             let s3Url = startResponse.upload.url;
 
+            const agent = new https.Agent({  
+                rejectUnauthorized: false
+            });
+
             // upload file to s3
             // using uninterceptedApiClient to skip curl
             const res2 = await uninterceptedApiClient.put(s3Url, {
                 data: fs.readFileSync(filepath),
                 headers: { 'Content-Type': contentType },
+                httpsAgent: agent
             });
             let uploadResponse = res2 ? res2.data : res2;
 

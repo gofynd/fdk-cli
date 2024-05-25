@@ -19,6 +19,7 @@ import {
 import Curl from '../../helper/curl';
 import Logger from '../Logger';
 import { MAX_RETRY } from '../../helper/constants';
+import https from 'https'
 axios.defaults.withCredentials = true;
 axios.defaults.timeout = 60000; // 1 minute
 
@@ -89,6 +90,7 @@ interface Options {
     params?: object;
     data?: object;
     responseType?: ResponseType;
+    httpsAgent?: https.Agent
 }
 
 class ApiEngine {
@@ -138,6 +140,7 @@ class ApiEngine {
             headers: opt.headers,
             params: opt.params,
             responseType: opt.responseType,
+            httpsAgent: opt.httpsAgent
         });
     }
 

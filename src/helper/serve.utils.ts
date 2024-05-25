@@ -223,13 +223,6 @@ export async function startServer({ domain, host, isSSR, port }) {
             jetfireUrl.searchParams.set('__csr', 'true');
         }
         try {
-            let httpsAgent;
-            if(process.env.FDK_EXTRA_CA_CERTS){
-                // Load the VPN's CA certificate
-                const ca = fs.readFileSync(process.env.FDK_EXTRA_CA_CERTS);
-                // Create an HTTPS agent with the CA certificate
-                httpsAgent = new https.Agent({ ca });
-            }
             // Bundle directly passed on with POST request body.
             const { data: html } = await axios({
                 method: 'POST',
@@ -238,8 +231,7 @@ export async function startServer({ domain, host, isSSR, port }) {
                 data: {
                     theme_url: themeUrl,
                     domain: getFullLocalUrl(port),
-                },
-                httpsAgent
+                }
             });
 
             let $ = cheerio.load(html);

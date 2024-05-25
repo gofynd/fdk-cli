@@ -88,14 +88,13 @@ function interceptorFn(options) {
                 // config.headers = signingOptions.headers;
                 config.headers['x-fp-date'] = signature['x-fp-date'];
                 config.headers['x-fp-signature'] = signature['x-fp-signature'];
-
-                if(process.env.FDK_EXTRA_CA_CERTS){
-                    // Load the VPN's CA certificate
-                    const ca = fs.readFileSync(process.env.FDK_EXTRA_CA_CERTS);
-                    // Create an HTTPS agent with the CA certificate
-                    const httpsAgent = new https.Agent({ ca });
-                    config.httpsAgent = httpsAgent;
-                }
+            }
+            if(process.env.FDK_EXTRA_CA_CERTS && !config.httpsAgent){
+                // Load the VPN's CA certificate
+                const ca = fs.readFileSync(process.env.FDK_EXTRA_CA_CERTS);
+                // Create an HTTPS agent with the CA certificate
+                const httpsAgent = new https.Agent({ ca });
+                config.httpsAgent = httpsAgent;
             }
             return config;
         } catch (error) {
