@@ -260,7 +260,7 @@ export default class Theme {
                 choices: ['development', 'live'],
             },
         ];
-        let config: any = {};
+        let config = {};
         let company_type;
         let companyList;
         let selectedCompany;
