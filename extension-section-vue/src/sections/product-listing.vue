@@ -3,37 +3,39 @@
         <h1>Header - {{ getHeader }}</h1>
         <h2>Product List using Extension for Jetfire</h2>
 
-        <div v-if="products.length == 0">No Products Found</div>
+        <div v-if="products.length == 0" class="no-product">
+            No Products Found
+        </div>
         <div class="container" v-else>
-            <ProductCard
+            <div
                 v-for="product in products"
                 :product="product"
                 :key="product.slug"
-            />
+                class="product"
+            >
+                <h1>{{ product.name }}</h1>
+                <h2>{{ product.slug }}</h2>
+            </div>
         </div>
     </div>
 </template>
 
 <script>
-import ProductCard from './../components/product-card.vue';
 export default {
     name: 'test',
     props: ['settings', 'apiSDK', 'serverProps', 'global_config'],
     async initializeServerProps({ settings, apiSDK }) {
-        console.log('initializeServerProps entered');
         try {
             const data = await apiSDK.catalog.getProducts({
                 pageId: '*',
                 pageSize: 12,
             });
-            console.log('product listing mserverfetch data', data);
             return data;
         } catch (error) {
             console.log(error);
         }
     },
     data() {
-        console.log('section data load', this.serverProps);
         return {
             products: this.serverProps?.items || [],
         };
@@ -44,13 +46,11 @@ export default {
         },
     },
     async mounted() {
-        console.log('product listing mounted serverProps', this.serverProps);
         try {
             const data = await this.$apiSDK.catalog.getProducts({
                 pageId: '*',
                 pageSize: 12,
             });
-            console.log('product listing mounted data', data);
             this.products = data?.items;
         } catch (error) {
             console.log(error);
@@ -79,8 +79,26 @@ export default {
 
 <style lang="less" scoped>
 .main-div {
+    h1 {
+        color: blue;
+    }
+    h2 {
+        color: orange;
+    }
+    .no-product {
+        color: red;
+    }
     .container {
         display: flex;
+        .product {
+            border: 1px solid green;
+            h1 {
+                color: green;
+            }
+            h2 {
+                color: green;
+            }
+        }
     }
 }
 </style>
