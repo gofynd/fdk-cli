@@ -41,7 +41,7 @@ export function Component({ props }) {
 Component.serverFetch = ({ fpi }) => fpi.products.fetchProductListing({});
 
 export const settings = {
-  label: "Products List",
+  label: "Product List",
   name: "product-list",
   props: [
     {

@@ -60,16 +60,8 @@ Component.serverFetch = async ({ fpi }) => {
 }
 
 export const settings = {
-  label: "Demo List",
-  name: "demo-list",
-  props: [
-    {
-      id: "title",
-      label: "Page Title",
-      type: "text",
-      default: "Extension Title",
-      info: "Page Title",
-    },
-  ],
+  label: "Marvel List",
+  name: "marvel-list",
+  props: [],
   blocks: [],
 };
