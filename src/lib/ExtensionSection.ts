@@ -797,6 +797,7 @@ export default class ExtensionSection {
                     options.extensionId,
                     options.organisationId,
                     options.name,
+                    configObj['accountType'],
                 );
             options.themeId = themeData._id;
 
@@ -876,6 +877,7 @@ export default class ExtensionSection {
                     extensionId,
                     options.organisationId,
                     options.name,
+                    configObj['accountType'],
                 );
             options.themeId = themeData._id;
 

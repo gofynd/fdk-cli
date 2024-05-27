@@ -114,7 +114,7 @@ export default class Theme {
     public static async getThemeBundle(stats: MultiStats) {
         const fileList = stats.stats[0].toJson().assets.map(({ name }) => name);
         const outputFileName= fileList.find(file => file.startsWith('themeBundle') && file.endsWith('.js'));
-        
+
         const buildPath = path.join(process.cwd(), Theme.BUILD_FOLDER);
         const outputFilePath = path.resolve(buildPath, outputFileName);
 
@@ -260,7 +260,7 @@ export default class Theme {
                 choices: ['development', 'live'],
             },
         ];
-        let config = {};
+        let config: any = {};
         let company_type;
         let companyList;
         let selectedCompany;
@@ -269,6 +269,7 @@ export default class Theme {
         await inquirer.prompt(accountTypeQuestions).then(async (answers) => {
             try {
                 company_type = answers.accountType;
+                config['accountType'] = answers.accountType;
                 if (answers.accountType === 'development') {
                     companyList = await ExtensionService.getDevelopmentAccounts(
                         1,

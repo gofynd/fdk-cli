@@ -220,6 +220,7 @@ export default {
         extension_id: string,
         organization_id: string,
         binding_name : string,
+        accountType : string,
     ) => {
         try {
             const axiosOption = Object.assign(
@@ -235,7 +236,7 @@ export default {
             );
 
             const res = await ApiClient.get(
-                URLS.GET_EXTENSION_SECTIONS(extension_id, organization_id, binding_name),
+                URLS.GET_EXTENSION_SECTIONS(extension_id, organization_id, binding_name, accountType),
                 axiosOption,
             );
 

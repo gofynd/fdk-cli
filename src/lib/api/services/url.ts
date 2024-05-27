@@ -185,10 +185,10 @@ export const URLS = {
             `organization/${organization_id}/extension-section/${extension_id}/draft`,
         );
     },
-    GET_EXTENSION_SECTIONS: (extension_id: string, organization_id: string, binding_name: string) => {
+    GET_EXTENSION_SECTIONS: (extension_id: string, organization_id: string, binding_name: string, accountType: string) => {
         return urlJoin(
             THEME_URL(),
-            `organization/${organization_id}/extension-section/${extension_id}/${binding_name}`,
+            `organization/${organization_id}/extension-section/${extension_id}/${binding_name}?accountType=${accountType}`,
         );
     },
 
