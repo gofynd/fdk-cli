@@ -90,7 +90,6 @@ interface Options {
     params?: object;
     data?: object;
     responseType?: ResponseType;
-    httpsAgent?: https.Agent
 }
 
 class ApiEngine {
@@ -140,7 +139,6 @@ class ApiEngine {
             headers: opt.headers,
             params: opt.params,
             responseType: opt.responseType,
-            httpsAgent: opt.httpsAgent
         });
     }
 

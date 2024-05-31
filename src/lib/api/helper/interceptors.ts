@@ -89,7 +89,7 @@ function interceptorFn(options) {
                 config.headers['x-fp-date'] = signature['x-fp-date'];
                 config.headers['x-fp-signature'] = signature['x-fp-signature'];
             }
-            if(process.env.FDK_EXTRA_CA_CERTS && !config.httpsAgent){
+            if(process.env.FDK_EXTRA_CA_CERTS){
                 // Load the VPN's CA certificate
                 const ca = fs.readFileSync(process.env.FDK_EXTRA_CA_CERTS);
                 // Create an HTTPS agent with the CA certificate
