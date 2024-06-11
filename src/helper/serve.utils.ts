@@ -229,14 +229,6 @@ export async function startServer({ domain, host, isSSR, port }) {
 					});
 					</script>
 				`);
-            $('head').append(`
-					<script>
-						if(window.env) {
-							window.env.SENTRY_DSN='';
-							window.env.SENTRY_ENVIRONMENT='development';
-						}
-					</script>
-				`);
 
             const umdJsInitial = $('link[data-umdjs-cli-source="initial"]');
             umdJsInitial.after(
