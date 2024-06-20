@@ -99,6 +99,13 @@ export const URLS = {
         );
     },
 
+    GET_APPLIED_THEME: (company_id: number, application_id: string) => {
+        return urlJoin(
+            THEME_URL(),
+            `organization/${organization_id}/company/${company_id}/application/${application_id}/applied-theme`,
+        );
+    },
+
     // AVAILABLE_PAGE
     AVAILABLE_PAGE: (
         application_id: string,
@@ -137,6 +144,13 @@ export const URLS = {
         );
     },
 
+    GET_EXTENSION_LIST: () => {
+        return urlJoin(
+            MIXMASTER_URL('partner'),
+            `/organization/${organization_id}/extension?page_size=100`,
+        );
+    },
+
     GET_EXTENSION_DETAILS_PARTNERS: (extension_api_key: string): string => {
         return urlJoin(
             MIXMASTER_URL('partner'),
@@ -162,6 +176,26 @@ export const URLS = {
         return urlJoin(
             MIXMASTER_URL('partner'),
             `organization/${organization_id}/accesstoken/validate`,
+        );
+    },
+
+    // Extension Section
+    PUBLISH_SECTIONS: (extension_id: string, organization_id) => {
+        return urlJoin(
+            THEME_URL(),
+            `organization/${organization_id}/extension-section/${extension_id}/publish`,
+        );
+    },
+    DRAFT_SECTIONS: (extension_id: string, organization_id) => {
+        return urlJoin(
+            THEME_URL(),
+            `organization/${organization_id}/extension-section/${extension_id}/draft`,
+        );
+    },
+    GET_EXTENSION_SECTIONS: (extension_id: string, organization_id: string, binding_name: string, accountType: string) => {
+        return urlJoin(
+            THEME_URL(),
+            `organization/${organization_id}/extension-section/${extension_id}/${binding_name}?accountType=${accountType}`,
         );
     },
 
