@@ -31,10 +31,30 @@ import { getPlatformUrls } from './api/services/url';
 
 const readDirectories = promisify(fs.readdir);
 
+type BindingInterface = 'Web Theme' | 'Platform';
+type SupportedFrameworks = 'react' | 'vue2';
+type AppliedThemeData = {
+    applicationId: string,
+    companyId: string,
+    themeId: string,
+    companyType: 'live' | 'development',
+};
+
+type ContextData = {
+    organisationId: string;
+    extensionId: string;
+    name: string;
+    framework: SupportedFrameworks;
+    interface: BindingInterface;
+    appliedTheme: AppliedThemeData;
+    url?: string;
+    port?: number;
+}
+
 type ExtensionSectionOptions = {
     name: string;
-    interface: 'theme' | 'platform';
-    framework: 'react' | 'vue2';
+    interface: string;
+    framework: string;
 };
 type SyncExtensionBindingsOptions = {
     extensionId?: string;
@@ -47,7 +67,10 @@ type ExtensionContext = {
     extensionId: string;
     organisationId: string;
     domain: string;
+    interface: string;
 };
+
+type CommandType = 'init' | 'draft' | 'publish' | 'preview';
 
 export default class ExtensionSection {
     static BINDINGS_DIR_REACT = 'bindings/theme/react';
@@ -57,52 +80,18 @@ export default class ExtensionSection {
 
     public static async initExtensionBinding(options: ExtensionSectionOptions) {
         try {
-            const requiredOptions = ['name', 'interface', 'framework'];
 
-            const passedOptions = Object.keys(options);
+            const context = await ExtensionSection.getContextData(options, 'init');
 
-            const missingOptions = requiredOptions.filter(
-                (param) => !passedOptions.includes(param),
-            );
+            const { interface: bindingInterface, framework } = context;
 
-            const questions = [
-                {
-                    type: 'text',
-                    name: 'name',
-                    message: 'Enter Binding Name.',
-                },
-                {
-                    type: 'list',
-                    name: 'framework',
-                    message: 'Select Runtime Framework.',
-                    choices: ['react', 'vue'],
-                },
-                {
-                    type: 'list',
-                    name: 'interface',
-                    message: 'Select Interface.',
-                    choices: ['platform', 'theme'],
-                },
-            ].filter(({ name }) => missingOptions.includes(name));
-
-            const answers = questions.length
-                ? await inquirer.prompt(questions)
-                : {};
-
-            const finalOptions: ExtensionSectionOptions = {
-                ...options,
-                ...answers,
-            };
-
-            const { interface: bindingInterface, framework } = finalOptions;
-
-            if (bindingInterface === 'theme' && framework === 'react') {
+            if (bindingInterface === 'Web Theme' && framework === 'react') {
                 await ExtensionSection.initExtensionSectionBindingForReact(
-                    finalOptions,
+                    context,
                 );
-            } else if (bindingInterface === 'theme' && framework === 'vue2') {
+            } else if (bindingInterface === 'Web Theme' && framework === 'vue2') {
                 await ExtensionSection.initExtensionSectionBindingForVue(
-                    finalOptions,
+                    context,
                 );
             } else {
                 throw new CommandError('Unsupported interface or framework!');
@@ -110,6 +99,201 @@ export default class ExtensionSection {
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
+    }
+
+    static async getContextData(optionsPassed: any, commandType: CommandType): Promise<ContextData> {
+
+
+        const commonRequiredOptions = ['extensionId', 'organisationId', 'name', 'framework', 'interface'] as const;
+        const allOptions = [...commonRequiredOptions, 'port', 'url', 'appliedTheme'] as const;
+
+        type AllOptions = (typeof allOptions)[number];
+
+        type PromptUserOption = {
+            type: string;
+            name: string;
+            message: string;
+            choices?: string[];
+        }
+
+        async function promptUser(options: PromptUserOption) {
+            const questions = [options];
+
+            const answers = await inquirer.prompt(questions);
+
+            return answers[options.name];
+        }
+
+        async function getOption(key: typeof allOptions[number]) {
+            try {
+                switch (key) {
+                    case 'framework':
+                        return promptUser({
+                            type: 'list',
+                            name: 'framework',
+                            message: 'Please select your framework: ',
+                            choices: ['react', 'vue2']
+                        })
+
+                    case 'extensionId':
+                        let extensionId;
+                        try {
+                            const extensionsList = await extensionService.getExtensionList();
+
+                            const extensions = extensionsList?.items.map(({ name }) => name);
+                            console.log(extensions);
+                            if (!extensions?.length) {
+                                throw new Error('No installed extensions found!')
+                            }
+                            const selectedExtensionName = await promptUser({
+                                type: 'list',
+                                name: 'extensionId',
+                                message: 'Please select your extension: ',
+                                choices: extensions
+                            });
+                            extensionId = extensionsList?.items.find(({ name }) => name === selectedExtensionName)?._id;
+                        } catch (error) {
+                            Logger.error('Could not fetch the list of extensions');
+                            extensionId = await promptUser({
+                                type: 'text',
+                                name: 'extensionId',
+                                message: 'Please Enter your extensionId: ',
+                            });
+                        } finally {
+                            Configstore.set('extensionSections.extensionId', extensionId);
+                            return extensionId;
+                        }
+
+                    case 'name':
+                        return promptUser({
+                            type: 'text',
+                            name: 'name',
+                            message: 'Please enter your binding name: ',
+                        });
+
+                    case 'port':
+                        return promptUser({
+                            type: 'text',
+                            name: 'port',
+                            message: 'Please enter server port: ',
+                        });
+
+                    case 'url':
+                        return promptUser({
+                            type: 'text',
+                            name: 'url',
+                            message: 'Please enter tunnel url: ',
+                        });
+
+                    case 'interface':
+                        return promptUser({
+                            type: 'list',
+                            name: 'interface',
+                            message: 'Please select your extension interface: ',
+                            choices: ['Web Theme', 'Platform', 'Store OS']
+                        });
+
+                    case 'appliedTheme':
+                        let themeDetails = {
+                            applicationId: undefined,
+                            companyId: undefined,
+                            themeId: undefined,
+                            companyType: 'live',
+                        };
+                        try {
+                            const configObj = await Theme.selectCompanyAndStore();
+                            const { data: appConfig } =
+                                await configurationService.getApplicationDetails(configObj);
+
+                            const themeData = await themeService.getAppliedTheme({
+                                company_id: appConfig.company_id,
+                                application_id: appConfig.id,
+                            });
+
+                            themeDetails = {
+                                applicationId: appConfig['id'],
+                                companyId: appConfig['company_id'],
+                                themeId: themeData['_id'],
+                                companyType: configObj['accountType'],
+                            }
+                        } catch (error) {
+                            Logger.error('Could not fetch the applied!');
+                            for (let lkey in themeDetails) {
+                                themeDetails[lkey] = await promptUser({
+                                    type: 'text',
+                                    name: lkey,
+                                    message: `Please enter ${lkey}: `,
+                                });
+                            }
+                        } finally {
+                            Configstore.set('extensionSections.appliedTheme', themeDetails);
+                            return themeDetails;
+                        }
+
+                    default:
+                        return null;
+                }
+            } catch (error) {
+
+            }
+        }
+
+        if (!Configstore.all.extensionSections) {
+            Configstore.set('extensionSections', {});
+        }
+
+        Configstore.set('extensionSections.organisationId', Configstore.all.current_env.organization)
+
+        const requiredKeys: {
+            [key in CommandType]: ReadonlyArray<AllOptions>
+        } = {
+            init: [
+                ...commonRequiredOptions,
+            ],
+            draft: [
+                ...commonRequiredOptions,
+            ],
+            publish: [
+                ...commonRequiredOptions,
+            ],
+            preview: [
+                ...commonRequiredOptions,
+                'port',
+                'url',
+                'appliedTheme'
+            ]
+
+        }
+        try {
+            const requiredOptions = requiredKeys[commandType];
+            const existingContext = Configstore.all.extensionSections;
+
+            const mergedConfig = Object.assign({}, existingContext, optionsPassed);
+
+            const missingKeys = requiredOptions.filter((key) => !Object.prototype.hasOwnProperty.call(mergedConfig, key));
+
+            const userInput = {};
+            for (let val in missingKeys) {
+
+                const result = await getOption(missingKeys[val]);
+                userInput[missingKeys[val]] = result;
+            }
+
+            const finalContext = Object.assign(mergedConfig, userInput)
+
+            return finalContext;
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    public static clearContext() {
+        Configstore.set('extensionSections', {});
+    }
+
+    public static logContext() {
+        console.table(Configstore.get('extensionSections'));
     }
 
     static async initExtensionSectionBindingForVue(
@@ -264,16 +448,16 @@ export default class ExtensionSection {
     public static async publishExtensionBindings(
         options: SyncExtensionBindingsOptions,
     ) {
-        const context = ExtensionSection.isValidSyncOptions(options)
-            ? options
-            : await ExtensionSection.getContextData({ serve: false });
+        const context = await ExtensionSection.getContextData(options, 'publish');
 
         Logger.info(`Publishing Extension Sections`);
 
         if (context.framework === 'react') {
             ExtensionSection.publishExtensionBindingsReact(context);
-        } else {
+        } else if (context.framework === 'vue2') {
             ExtensionSection.publishExtensionBindingsVue(context);
+        } else {
+            throw new CommandError('Unsupported Framework! Only react and vue2 are supported')
         }
 
         Logger.info('Code published ...');
@@ -533,16 +717,15 @@ export default class ExtensionSection {
     public static async draftExtensionBindings(
         options: SyncExtensionBindingsOptions,
     ) {
-        const context = ExtensionSection.isValidSyncOptions(options)
-            ? options
-            : await ExtensionSection.getContextData({ serve: false });
-
+        const context = await ExtensionSection.getContextData(options, 'draft');
         Logger.info(`Drafting Extension Sections: `, context.framework);
 
         if (context.framework === 'react') {
             await ExtensionSection.draftExtensionBindingsReact(context);
-        } else {
+        } else if (context.framework === 'vue2') {
             await ExtensionSection.draftExtensionBindingsVue(context);
+        } else {
+            throw new CommandError('Unsupported Framework! Only react and vue2 are supported')
         }
 
         Logger.info('Code drafted ...');
@@ -719,91 +902,30 @@ export default class ExtensionSection {
         return answer;
     }
 
-    static async getContextData(options?: { serve: Boolean }) {
-        try {
-            const dirPath = path.resolve(
-                process.cwd(),
-                ExtensionSection.CONTEXT_DIR_PATH,
-            );
-            const filePath = path.resolve(
-                dirPath,
-                ExtensionSection.CONTEXT_FILENAME,
-            );
-            try {
-                const contextFileExists = fs.statSync(filePath);
-                if (contextFileExists) {
-                    const contextData = fsExtra.readJSONSync(filePath);
-                    return contextData;
-                }
-            } catch (error) {
-                console.log(error.message);
-            }
-
-            const applicationConfig: {
-                domain: string;
-            } = {
-                domain: '',
-            };
-
-            let url = {};
-            if (options.serve) {
-                const configObj = await Theme.selectCompanyAndStore();
-                const { data: appConfig } =
-                    await configurationService.getApplicationDetails(configObj);
-            }
-
-            const answers = await ExtensionSection.promptExtensionDetails();
-
-            const context = {
-                ...answers,
-                ...url,
-                ...(options.serve ? applicationConfig : {}),
-            };
-
-            fs.mkdirSync(dirPath, { recursive: true });
-
-            fsExtra.writeJSONSync(filePath, context);
-
-            return context;
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
     public static async previewExtension(options: any) {
-        if (options.framework === 'react') {
-            return ExtensionSection.serveExtensionSections(options);
+        const context = await ExtensionSection.getContextData(options, 'preview');
+        if (context.framework === 'react') {
+            return ExtensionSection.serveExtensionSections(context);
         } else {
-            return ExtensionSection.serveExtensionSectionsVue(options);
+            return ExtensionSection.serveExtensionSectionsVue(context);
         }
     }
-    public static async serveExtensionSections(options: any) {
+    static async serveExtensionSections(options: ContextData) {
+        console.log({ options })
         try {
-            const { name: bundleName } = options;
-            // const context = await ExtensionSection.getContextData({
-            //     serve: true,
-            // });
+            const { name: bundleName, appliedTheme } = options;
 
-            const configObj = await Theme.selectCompanyAndStore();
-            const { data: appConfig } =
-                await configurationService.getApplicationDetails(configObj);
-
-            const themeData = await themeService.getAppliedTheme({
-                company_id: appConfig.company_id,
-                application_id: appConfig.id,
-            });
             const { _id: extensionSectionId } =
                 await extensionService.getExtensionBindings(
                     options.extensionId,
                     options.organisationId,
                     options.name,
-                    configObj['accountType'],
+                    appliedTheme.companyType,
                 );
-            options.themeId = themeData._id;
 
             const { platform } = getPlatformUrls();
 
-            options.domain = `${platform}/company/${appConfig.company_id}/application/${appConfig.id}/themes/${options.themeId}/edit`;
+            const domain = `${platform}/company/${appliedTheme.companyId}/application/${appliedTheme.applicationId}/themes/${appliedTheme.themeId}/edit`;
 
             const port = options['port'];
             const tunnelUrl = options['url'];
@@ -851,7 +973,7 @@ export default class ExtensionSection {
 
             const encoded = encodeURI(JSON.stringify(data));
 
-            const previewURL = `${options.domain}?extensionHash=${encoded}`;
+            const previewURL = `${domain}?extensionHash=${encoded}`;
 
             console.log(`PREVIEW URL :\n\n ${previewURL}\n\n`);
         } catch (error) {
@@ -859,31 +981,22 @@ export default class ExtensionSection {
         }
     }
 
-    public static async serveExtensionSectionsVue(options: any) {
+    static async serveExtensionSectionsVue(options: ContextData) {
         try {
-            const { name: bundleName, url: tunnelUrl, extensionId } = options;
+            const { name: bundleName, url: tunnelUrl, extensionId, appliedTheme } = options;
             const port = options.port;
 
-            const configObj = await Theme.selectCompanyAndStore();
-            const { data: appConfig } =
-                await configurationService.getApplicationDetails(configObj);
-
-            const themeData = await themeService.getAppliedTheme({
-                company_id: appConfig.company_id,
-                application_id: appConfig.id,
-            });
             const { _id: extensionSectionId } =
                 await extensionService.getExtensionBindings(
                     extensionId,
                     options.organisationId,
                     options.name,
-                    configObj['accountType'],
+                    appliedTheme.companyType,
                 );
-            options.themeId = themeData._id;
 
             const { platform } = getPlatformUrls();
 
-            options.domain = `${platform}/company/${appConfig.company_id}/application/${appConfig.id}/themes/${options.themeId}/edit`;
+            const domain = `${platform}/company/${appliedTheme.companyId}/application/${appliedTheme.applicationId}/themes/${appliedTheme.themeId}/edit`;
 
             const rootPath = process.cwd();
             process.chdir(
@@ -931,7 +1044,7 @@ export default class ExtensionSection {
 
             const encoded = encodeURI(JSON.stringify(data));
 
-            const previewURL = `${options.domain}?extensionHash=${encoded}`;
+            const previewURL = `${domain}?extensionHash=${encoded}`;
 
             console.log(`PREVIEW URL :\n\n ${previewURL}\n\n`);
         } catch (error) {

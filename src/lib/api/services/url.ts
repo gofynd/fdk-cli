@@ -144,6 +144,13 @@ export const URLS = {
         );
     },
 
+    GET_EXTENSION_LIST: () => {
+        return urlJoin(
+            MIXMASTER_URL('partner'),
+            `/organization/${organization_id}/extension?page_size=100`,
+        );
+    },
+
     GET_EXTENSION_DETAILS_PARTNERS: (extension_api_key: string): string => {
         return urlJoin(
             MIXMASTER_URL('partner'),

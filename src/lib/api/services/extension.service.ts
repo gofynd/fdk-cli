@@ -216,6 +216,31 @@ export default {
         }
     },
 
+    getExtensionList: async () => {
+        try {
+            const axiosOption = Object.assign(
+                {},
+                { },
+                {
+                    headers: {
+                        ...getCommonHeaderOptions().headers,
+                        'x-application-data': '{}',
+                        'x-user-data': '{}',
+                    }
+                },
+            );
+
+            const res = await ApiClient.get(
+                URLS.GET_EXTENSION_LIST(),
+                axiosOption,
+            );
+
+            return res.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
     getExtensionBindings: async (
         extension_id: string,
         organization_id: string,
