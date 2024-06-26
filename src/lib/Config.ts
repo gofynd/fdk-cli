@@ -12,6 +12,9 @@ export const CONFIG_KEYS = {
     COMPANY_ID: 'current_env.company_id',
     AUTH_TOKEN: 'current_env.auth_token',
     ORGANIZATION: 'current_env.organization',
+    EXTRAS: 'extras',
+    STRICT_SSL: 'extras.strict_ssl',
+    CA_FILE: 'extras.ca_file',
 };
 
 // global config store - The config is stored in a JSON file located in $XDG_CONFIG_HOME or ~/.config
