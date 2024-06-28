@@ -34,10 +34,10 @@ const readDirectories = promisify(fs.readdir);
 type BindingInterface = 'Web Theme' | 'Platform';
 type SupportedFrameworks = 'react' | 'vue2';
 type AppliedThemeData = {
-    applicationId: string,
-    companyId: string,
-    themeId: string,
-    companyType: 'live' | 'development',
+    applicationId: string;
+    companyId: string;
+    themeId: string;
+    companyType: 'live' | 'development';
 };
 
 type ContextData = {
@@ -49,7 +49,7 @@ type ContextData = {
     appliedTheme: AppliedThemeData;
     url?: string;
     port?: number;
-}
+};
 
 type ExtensionSectionOptions = {
     name: string;
@@ -80,8 +80,10 @@ export default class ExtensionSection {
 
     public static async initExtensionBinding(options: ExtensionSectionOptions) {
         try {
-
-            const context = await ExtensionSection.getContextData(options, 'init');
+            const context = await ExtensionSection.getContextData(
+                options,
+                'init',
+            );
 
             const { interface: bindingInterface, framework } = context;
 
@@ -89,7 +91,10 @@ export default class ExtensionSection {
                 await ExtensionSection.initExtensionSectionBindingForReact(
                     context,
                 );
-            } else if (bindingInterface === 'Web Theme' && framework === 'vue2') {
+            } else if (
+                bindingInterface === 'Web Theme' &&
+                framework === 'vue2'
+            ) {
                 await ExtensionSection.initExtensionSectionBindingForVue(
                     context,
                 );
@@ -101,11 +106,23 @@ export default class ExtensionSection {
         }
     }
 
-    static async getContextData(optionsPassed: any, commandType: CommandType): Promise<ContextData> {
-
-
-        const commonRequiredOptions = ['extensionId', 'organisationId', 'name', 'framework', 'interface'] as const;
-        const allOptions = [...commonRequiredOptions, 'port', 'url', 'appliedTheme'] as const;
+    static async getContextData(
+        optionsPassed: any,
+        commandType: CommandType,
+    ): Promise<ContextData> {
+        const commonRequiredOptions = [
+            'extensionId',
+            'organisationId',
+            'name',
+            'framework',
+            'interface',
+        ] as const;
+        const allOptions = [
+            ...commonRequiredOptions,
+            'port',
+            'url',
+            'appliedTheme',
+        ] as const;
 
         type AllOptions = (typeof allOptions)[number];
 
@@ -114,7 +131,7 @@ export default class ExtensionSection {
             name: string;
             message: string;
             choices?: string[];
-        }
+        };
 
         async function promptUser(options: PromptUserOption) {
             const questions = [options];
@@ -124,7 +141,7 @@ export default class ExtensionSection {
             return answers[options.name];
         }
 
-        async function getOption(key: typeof allOptions[number]) {
+        async function getOption(key: (typeof allOptions)[number]) {
             try {
                 switch (key) {
                     case 'framework':
@@ -132,35 +149,47 @@ export default class ExtensionSection {
                             type: 'list',
                             name: 'framework',
                             message: 'Please select your framework: ',
-                            choices: ['react', 'vue2']
-                        })
+                            choices: ['react', 'vue2'],
+                        });
 
                     case 'extensionId':
                         let extensionId;
                         try {
-                            const extensionsList = await extensionService.getExtensionList();
+                            const extensionsList =
+                                await extensionService.getExtensionList();
 
-                            const extensions = extensionsList?.items.map(({ name }) => name);
-                            console.log(extensions);
+                            const extensions = extensionsList?.items.map(
+                                ({ name }) => name,
+                            );
+
                             if (!extensions?.length) {
-                                throw new Error('No installed extensions found!')
+                                throw new Error(
+                                    'No installed extensions found!',
+                                );
                             }
                             const selectedExtensionName = await promptUser({
                                 type: 'list',
                                 name: 'extensionId',
                                 message: 'Please select your extension: ',
-                                choices: extensions
+                                choices: extensions,
                             });
-                            extensionId = extensionsList?.items.find(({ name }) => name === selectedExtensionName)?._id;
+                            extensionId = extensionsList?.items.find(
+                                ({ name }) => name === selectedExtensionName,
+                            )?._id;
                         } catch (error) {
-                            Logger.error('Could not fetch the list of extensions');
+                            Logger.error(
+                                'Could not fetch the list of extensions',
+                            );
                             extensionId = await promptUser({
                                 type: 'text',
                                 name: 'extensionId',
                                 message: 'Please Enter your extensionId: ',
                             });
                         } finally {
-                            Configstore.set('extensionSections.extensionId', extensionId);
+                            Configstore.set(
+                                'extensionSections.extensionId',
+                                extensionId,
+                            );
                             return extensionId;
                         }
 
@@ -190,7 +219,7 @@ export default class ExtensionSection {
                             type: 'list',
                             name: 'interface',
                             message: 'Please select your extension interface: ',
-                            choices: ['Web Theme', 'Platform', 'Store OS']
+                            choices: ['Web Theme', 'Platform', 'Store OS'],
                         });
 
                     case 'appliedTheme':
@@ -201,21 +230,25 @@ export default class ExtensionSection {
                             companyType: 'live',
                         };
                         try {
-                            const configObj = await Theme.selectCompanyAndStore();
+                            const configObj =
+                                await Theme.selectCompanyAndStore();
                             const { data: appConfig } =
-                                await configurationService.getApplicationDetails(configObj);
+                                await configurationService.getApplicationDetails(
+                                    configObj,
+                                );
 
-                            const themeData = await themeService.getAppliedTheme({
-                                company_id: appConfig.company_id,
-                                application_id: appConfig.id,
-                            });
+                            const themeData =
+                                await themeService.getAppliedTheme({
+                                    company_id: appConfig.company_id,
+                                    application_id: appConfig.id,
+                                });
 
                             themeDetails = {
                                 applicationId: appConfig['id'],
                                 companyId: appConfig['company_id'],
                                 themeId: themeData['_id'],
                                 companyType: configObj['accountType'],
-                            }
+                            };
                         } catch (error) {
                             Logger.error('Could not fetch the applied!');
                             for (let lkey in themeDetails) {
@@ -226,63 +259,60 @@ export default class ExtensionSection {
                                 });
                             }
                         } finally {
-                            Configstore.set('extensionSections.appliedTheme', themeDetails);
+                            Configstore.set(
+                                'extensionSections.appliedTheme',
+                                themeDetails,
+                            );
                             return themeDetails;
                         }
 
                     default:
                         return null;
                 }
-            } catch (error) {
-
-            }
+            } catch (error) {}
         }
 
         if (!Configstore.all.extensionSections) {
             Configstore.set('extensionSections', {});
         }
 
-        Configstore.set('extensionSections.organisationId', Configstore.all.current_env.organization)
+        Configstore.set(
+            'extensionSections.organisationId',
+            Configstore.all.current_env.organization,
+        );
 
         const requiredKeys: {
-            [key in CommandType]: ReadonlyArray<AllOptions>
+            [key in CommandType]: ReadonlyArray<AllOptions>;
         } = {
-            init: [
-                ...commonRequiredOptions,
-            ],
-            draft: [
-                ...commonRequiredOptions,
-            ],
-            publish: [
-                ...commonRequiredOptions,
-            ],
-            preview: [
-                ...commonRequiredOptions,
-                'port',
-                'url',
-                'appliedTheme'
-            ]
-
-        }
+            init: [...commonRequiredOptions],
+            draft: [...commonRequiredOptions],
+            publish: [...commonRequiredOptions],
+            preview: [...commonRequiredOptions, 'port', 'url', 'appliedTheme'],
+        };
         try {
             const requiredOptions = requiredKeys[commandType];
             const existingContext = Configstore.all.extensionSections;
 
-            const mergedConfig = Object.assign({}, existingContext, optionsPassed);
+            const mergedConfig = Object.assign(
+                {},
+                existingContext,
+                optionsPassed,
+            );
 
-            const missingKeys = requiredOptions.filter((key) => !Object.prototype.hasOwnProperty.call(mergedConfig, key));
+            const missingKeys = requiredOptions.filter(
+                (key) =>
+                    !Object.prototype.hasOwnProperty.call(mergedConfig, key),
+            );
 
             const userInput = {};
             for (let val in missingKeys) {
-
                 const result = await getOption(missingKeys[val]);
                 userInput[missingKeys[val]] = result;
             }
 
-            const finalContext = Object.assign(mergedConfig, userInput)
+            const finalContext = Object.assign(mergedConfig, userInput);
 
             return finalContext;
-
         } catch (error) {
             console.log(error);
         }
@@ -448,7 +478,10 @@ export default class ExtensionSection {
     public static async publishExtensionBindings(
         options: SyncExtensionBindingsOptions,
     ) {
-        const context = await ExtensionSection.getContextData(options, 'publish');
+        const context = await ExtensionSection.getContextData(
+            options,
+            'publish',
+        );
 
         Logger.info(`Publishing Extension Sections`);
 
@@ -457,7 +490,9 @@ export default class ExtensionSection {
         } else if (context.framework === 'vue2') {
             ExtensionSection.publishExtensionBindingsVue(context);
         } else {
-            throw new CommandError('Unsupported Framework! Only react and vue2 are supported')
+            throw new CommandError(
+                'Unsupported Framework! Only react and vue2 are supported',
+            );
         }
 
         Logger.info('Code published ...');
@@ -725,7 +760,9 @@ export default class ExtensionSection {
         } else if (context.framework === 'vue2') {
             await ExtensionSection.draftExtensionBindingsVue(context);
         } else {
-            throw new CommandError('Unsupported Framework! Only react and vue2 are supported')
+            throw new CommandError(
+                'Unsupported Framework! Only react and vue2 are supported',
+            );
         }
 
         Logger.info('Code drafted ...');
@@ -903,7 +940,10 @@ export default class ExtensionSection {
     }
 
     public static async previewExtension(options: any) {
-        const context = await ExtensionSection.getContextData(options, 'preview');
+        const context = await ExtensionSection.getContextData(
+            options,
+            'preview',
+        );
         if (context.framework === 'react') {
             return ExtensionSection.serveExtensionSections(context);
         } else {
@@ -911,7 +951,7 @@ export default class ExtensionSection {
         }
     }
     static async serveExtensionSections(options: ContextData) {
-        console.log({ options })
+        console.log({ options });
         try {
             const { name: bundleName, appliedTheme } = options;
 
@@ -983,7 +1023,12 @@ export default class ExtensionSection {
 
     static async serveExtensionSectionsVue(options: ContextData) {
         try {
-            const { name: bundleName, url: tunnelUrl, extensionId, appliedTheme } = options;
+            const {
+                name: bundleName,
+                url: tunnelUrl,
+                extensionId,
+                appliedTheme,
+            } = options;
             const port = options.port;
 
             const { _id: extensionSectionId } =
