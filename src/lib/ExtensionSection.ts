@@ -1,6 +1,7 @@
 import CommandError from './CommandError';
 import path from 'path';
 import fs from 'node:fs';
+import detect from 'detect-port';
 import fsExtra from 'fs-extra';
 import { promisify } from 'node:util';
 import Logger from './Logger';
@@ -13,10 +14,8 @@ import uploadService from './api/services/upload.service';
 import Configstore, { CONFIG_KEYS } from './Config';
 import extensionService from './api/services/extension.service';
 import {
-    getPort,
     startExtensionServer,
     reload,
-    startExtensionServerVue,
 } from '../helper/serve.utils';
 import chalk from 'chalk';
 import ngrok from 'ngrok';
@@ -32,7 +31,9 @@ import { getPlatformUrls } from './api/services/url';
 const readDirectories = promisify(fs.readdir);
 
 type BindingInterface = 'Web Theme' | 'Platform';
-type SupportedFrameworks = 'react' | 'vue2';
+
+export type SupportedFrameworks = 'react' | 'vue2';
+
 type AppliedThemeData = {
     applicationId: string;
     companyId: string;
@@ -53,15 +54,11 @@ type ContextData = {
 
 type ExtensionSectionOptions = {
     name: string;
-    interface: string;
-    framework: string;
+    interface: BindingInterface;
+    framework: SupportedFrameworks;
 };
-type SyncExtensionBindingsOptions = {
-    extensionId?: string;
-    organisationId?: string;
-    name: string;
-    framework: string;
-};
+
+interface SyncExtensionBindingsOptions extends ContextData { };
 
 type ExtensionContext = {
     extensionId: string;
@@ -77,34 +74,6 @@ export default class ExtensionSection {
     static BINDINGS_DIR_VUE = 'bindings/theme/vue';
     static CONTEXT_FILENAME = 'context.json';
     static CONTEXT_DIR_PATH = '.fdk';
-
-    public static async initExtensionBinding(options: ExtensionSectionOptions) {
-        try {
-            const context = await ExtensionSection.getContextData(
-                options,
-                'init',
-            );
-
-            const { interface: bindingInterface, framework } = context;
-
-            if (bindingInterface === 'Web Theme' && framework === 'react') {
-                await ExtensionSection.initExtensionSectionBindingForReact(
-                    context,
-                );
-            } else if (
-                bindingInterface === 'Web Theme' &&
-                framework === 'vue2'
-            ) {
-                await ExtensionSection.initExtensionSectionBindingForVue(
-                    context,
-                );
-            } else {
-                throw new CommandError('Unsupported interface or framework!');
-            }
-        } catch (error) {
-            throw new CommandError(error.message, error.code);
-        }
-    }
 
     static async getContextData(
         optionsPassed: any,
@@ -201,11 +170,7 @@ export default class ExtensionSection {
                         });
 
                     case 'port':
-                        return promptUser({
-                            type: 'text',
-                            name: 'port',
-                            message: 'Please enter server port: ',
-                        });
+                        return detect(5500);
 
                     case 'url':
                         return promptUser({
@@ -269,7 +234,7 @@ export default class ExtensionSection {
                     default:
                         return null;
                 }
-            } catch (error) {}
+            } catch (error) { }
         }
 
         if (!Configstore.all.extensionSections) {
@@ -326,57 +291,60 @@ export default class ExtensionSection {
         console.table(Configstore.get('extensionSections'));
     }
 
-    static async initExtensionSectionBindingForVue(
-        options: ExtensionSectionOptions,
-    ) {
+    public static async initExtensionBinding(options: ExtensionSectionOptions) {
         try {
-            const sectionName = options['name'];
-            const framework = options['framework'];
-
-            if (!sectionName) {
-                throw new Error('Section Name not provided!');
-            }
-
-            ExtensionSection.createSectionsDirectoryIfNotExists(framework);
-
-            const sectionExists = await ExtensionSection.sectionExists(
-                sectionName,
-                framework,
+            const context = await ExtensionSection.getContextData(
+                options,
+                'init',
             );
 
-            if (sectionExists) {
-                throw new Error('Section Already Exists!');
+            const { interface: bindingInterface, framework, name: bindingName } = context;
+
+            if (bindingInterface === 'Web Theme') {
+
+                if (!bindingName) {
+                    throw new Error('Section Name not provided!');
+                }
+
+                ExtensionSection.createSectionsDirectoryIfNotExists(framework);
+
+                const sectionExists = await ExtensionSection.sectionExists(
+                    bindingName,
+                    framework,
+                );
+
+                if (sectionExists) {
+                    throw new Error('Section Already Exists!');
+                }
+
+                if (framework === 'react' || framework === 'vue2') {
+
+                    const isReact = framework === 'react';
+                    const sourcePath = path.resolve(
+                        __dirname,
+                        isReact ? '../../extension-section' : '../../extension-section-vue',
+                    );
+
+                    const destinationPath = path.resolve(
+                        process.cwd(),
+                        isReact ? ExtensionSection.BINDINGS_DIR_REACT : ExtensionSection.BINDINGS_DIR_VUE,
+                        bindingName,
+                    )
+
+                    await fsExtra.copy(sourcePath, destinationPath);
+
+                    process.chdir(
+                        path.join(destinationPath),
+                    );
+
+                    await ExtensionSection.installNpmPackages();
+                    Logger.info('Binding created with default sections!')
+                } else {
+                    throw new CommandError('Unsupported framework!');
+                }
             }
 
-            await ExtensionSection.createDefaultSectionWithNameVue(sectionName);
-        } catch (error) {
-            throw new CommandError(error.message, error.code);
-        }
-    }
 
-    static async initExtensionSectionBindingForReact(
-        options: ExtensionSectionOptions,
-    ) {
-        try {
-            const sectionName = options['name'];
-            const framework = options['framework'];
-
-            if (!sectionName) {
-                throw new Error('Section Name not provided!');
-            }
-
-            ExtensionSection.createSectionsDirectoryIfNotExists(framework);
-
-            const sectionExists = await ExtensionSection.sectionExists(
-                sectionName,
-                framework,
-            );
-
-            if (sectionExists) {
-                throw new Error('Section Already Exists!');
-            }
-
-            await ExtensionSection.createDefaultSectionWithName(sectionName);
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
@@ -422,46 +390,6 @@ export default class ExtensionSection {
         return sectionExists;
     }
 
-    static async createDefaultSectionWithNameVue(name: string) {
-        const sourceCodePath = path.resolve(
-            __dirname,
-            '../../extension-section-vue',
-        );
-        const sectionDirPath = path.resolve(
-            process.cwd(),
-            ExtensionSection.BINDINGS_DIR_VUE,
-            name,
-        );
-
-        await fsExtra.copy(sourceCodePath, sectionDirPath);
-
-        process.chdir(
-            path.join(process.cwd(), ExtensionSection.BINDINGS_DIR_VUE, name),
-        );
-
-        await ExtensionSection.installNpmPackages();
-    }
-
-    static async createDefaultSectionWithName(name: string) {
-        const sourceCodePath = path.resolve(
-            __dirname,
-            '../../extension-section',
-        );
-        const sectionDirPath = path.resolve(
-            process.cwd(),
-            ExtensionSection.BINDINGS_DIR_REACT,
-            name,
-        );
-
-        await fsExtra.copy(sourceCodePath, sectionDirPath);
-
-        process.chdir(
-            path.join(process.cwd(), ExtensionSection.BINDINGS_DIR_REACT, name),
-        );
-
-        await ExtensionSection.installNpmPackages();
-    }
-
     static isValidSyncOptions(options: SyncExtensionBindingsOptions): Boolean {
         return (
             options.extensionId &&
@@ -482,127 +410,34 @@ export default class ExtensionSection {
             options,
             'publish',
         );
+        const { interface: bindingInterface, framework, name } = context;
 
-        Logger.info(`Publishing Extension Sections`);
+        if (bindingInterface === 'Web Theme') {
+            if (framework === 'react' || framework === 'vue2') {
+                Logger.info(`Publishing Extension Bindings`);
 
-        if (context.framework === 'react') {
-            ExtensionSection.publishExtensionBindingsReact(context);
-        } else if (context.framework === 'vue2') {
-            ExtensionSection.publishExtensionBindingsVue(context);
+                const sectionData = await ExtensionSection.buildAndExtractSections(
+                    context,
+                );
+                sectionData.status = 'published';
+
+                await ExtensionSection.savingExtensionBindings(
+                    sectionData,
+                    context,
+                    sectionData.status,
+                );
+            } else {
+                throw new CommandError(
+                    'Unsupported Framework! Only react and vue2 are supported',
+                );
+            }
         } else {
             throw new CommandError(
-                'Unsupported Framework! Only react and vue2 are supported',
+                'Unsupported Interface! Only Web Themes are supported',
             );
         }
 
         Logger.info('Code published ...');
-    }
-
-    static async publishExtensionBindingsReact(context) {
-        let sectionData;
-        sectionData = await ExtensionSection.extractSectionsData(
-            context.name,
-            context,
-        );
-        sectionData.status = 'published';
-
-        await ExtensionSection.savingExtensionBindings(
-            sectionData,
-            context,
-            sectionData.status,
-        );
-    }
-
-    static async draftExtensionBindingsReact(context) {
-        const sectionData = await ExtensionSection.extractSectionsData(
-            context.name,
-            context,
-        );
-
-        sectionData.status = 'draft';
-
-        await ExtensionSection.savingExtensionBindings(
-            sectionData,
-            context,
-            sectionData.status,
-        );
-    }
-
-    static async publishExtensionBindingsVue(context) {
-        let sectionData =
-            await ExtensionSection.extractSectionsDataVue(context);
-
-        sectionData.status = 'published';
-
-        await ExtensionSection.savingExtensionBindings(
-            sectionData,
-            context,
-            sectionData.status,
-        );
-    }
-    static async draftExtensionBindingsVue(context) {
-        let sectionData =
-            await ExtensionSection.extractSectionsDataVue(context);
-
-        sectionData.status = 'draft';
-
-        await ExtensionSection.savingExtensionBindings(sectionData, context);
-    }
-
-    static async extractSectionsDataVue(
-        context: SyncExtensionBindingsOptions,
-    ): Promise<any> {
-        const currentRoot = process.cwd();
-
-        process.chdir(
-            path.join(
-                currentRoot,
-                ExtensionSection.BINDINGS_DIR_VUE,
-                context.name,
-            ),
-        );
-
-        const res = await ExtensionSection.buildExtensionCodeVue({
-            bundleName: context.name,
-        }).catch(console.error);
-
-        const uploadURLs = await ExtensionSection.uploadSectionFiles(
-            context.name,
-        );
-
-        let sectionsFiles = [];
-        try {
-            sectionsFiles = fs
-                .readdirSync(
-                    path.join(
-                        currentRoot,
-                        `/${ExtensionSection.BINDINGS_DIR_VUE}/${context.name}/src/sections`,
-                    ),
-                )
-                .filter((o) => o != 'index.js');
-        } catch (err) {
-            console.log(err);
-        }
-        let sections = sectionsFiles.map((f) => {
-            return ExtensionSection.extractSettingsFromFile(
-                path.join(
-                    currentRoot,
-                    `/${ExtensionSection.BINDINGS_DIR_VUE}/${context.name}/src/sections/${f}`,
-                ),
-            );
-        });
-
-        const data = {
-            extension_id: context.extensionId,
-            bundle_name: context.name,
-            organization_id: context.organisationId,
-            sections,
-            assets: uploadURLs,
-            type: 'vue2',
-        };
-
-        process.chdir(currentRoot);
-        return data;
     }
 
     static async buildExtensionCodeVue({ bundleName }) {
@@ -669,35 +504,65 @@ export default class ExtensionSection {
         }
     }
 
-    static async extractSectionsData(
-        bundleName: string,
+    static async buildAndExtractSections(
         context: SyncExtensionBindingsOptions,
     ): Promise<any> {
+        const { name: bundleName, framework } = context;
+        const isReact = framework === 'react';
         const currentRoot = process.cwd();
 
-        process.chdir(
-            path.join(
-                currentRoot,
-                ExtensionSection.BINDINGS_DIR_REACT,
-                bundleName,
-            ),
-        );
+        const destinationPath = path.join(
+            currentRoot,
+            isReact ? ExtensionSection.BINDINGS_DIR_REACT : ExtensionSection.BINDINGS_DIR_VUE,
+            bundleName,
+        )
 
-        await ExtensionSection.buildExtensionCode({ bundleName }).catch(
-            console.error,
-        );
+        process.chdir(destinationPath);
 
-        const uploadURLs =
-            await ExtensionSection.uploadSectionFiles(bundleName);
+        if (isReact) {
+            await ExtensionSection.buildExtensionCode({ bundleName }).catch(
+                console.error,
+            );
+        } else {
+            await ExtensionSection.buildExtensionCodeVue({
+                bundleName: context.name,
+            }).catch(console.error);
+        }
 
-        const availableSections = await ExtensionSection.getAvailableSections();
+        const uploadURLs = await ExtensionSection.uploadSectionFiles(bundleName);
 
-        //TO DO : remove extra data.
-        const sections = [];
-        for (const key in availableSections) {
-            if (availableSections.hasOwnProperty(key)) {
-                sections.push(availableSections[key]['settings']);
+        let sections = [];
+
+        if (isReact) {
+            const availableSections = await ExtensionSection.getAvailableSections();
+
+            for (const key in availableSections) {
+                if (availableSections.hasOwnProperty(key)) {
+                    sections.push(availableSections[key]['settings']);
+                }
             }
+        } else {
+            try {
+                const sectionsFiles = fs
+                    .readdirSync(
+                        path.join(
+                            currentRoot,
+                            `/${ExtensionSection.BINDINGS_DIR_VUE}/${context.name}/src/sections`,
+                        ),
+                    )
+                    .filter((o) => o != 'index.js');
+                sections = sectionsFiles.map((f) => {
+                    return ExtensionSection.extractSettingsFromFile(
+                        path.join(
+                            currentRoot,
+                            `/${ExtensionSection.BINDINGS_DIR_VUE}/${context.name}/src/sections/${f}`,
+                        ),
+                    );
+                });
+            } catch (err) {
+                console.log(err);
+            }
+
         }
 
         const data = {
@@ -706,7 +571,7 @@ export default class ExtensionSection {
             organization_id: context.organisationId,
             sections,
             assets: uploadURLs,
-            type: 'react',
+            type: framework,
         };
 
         process.chdir(currentRoot);
@@ -753,19 +618,35 @@ export default class ExtensionSection {
         options: SyncExtensionBindingsOptions,
     ) {
         const context = await ExtensionSection.getContextData(options, 'draft');
-        Logger.info(`Drafting Extension Sections: `, context.framework);
 
-        if (context.framework === 'react') {
-            await ExtensionSection.draftExtensionBindingsReact(context);
-        } else if (context.framework === 'vue2') {
-            await ExtensionSection.draftExtensionBindingsVue(context);
+        const { interface: bindingInterface, framework, name } = context;
+
+        if (bindingInterface === 'Web Theme') {
+            if (framework === 'react' || framework === 'vue2') {
+                Logger.info(`Creating drafts for Extension Bindings`);
+
+                const sectionData = await ExtensionSection.buildAndExtractSections(
+                    context,
+                );
+                sectionData.status = 'draft';
+
+                await ExtensionSection.savingExtensionBindings(
+                    sectionData,
+                    context,
+                    sectionData.status,
+                );
+            } else {
+                throw new CommandError(
+                    'Unsupported Framework! Only react and vue2 are supported',
+                );
+            }
         } else {
             throw new CommandError(
-                'Unsupported Framework! Only react and vue2 are supported',
+                'Unsupported Interface! Only Web Themes are supported',
             );
         }
 
-        Logger.info('Code drafted ...');
+        Logger.info('Draft successful!');
     }
 
     static watchExtensionCodeBuild(
@@ -880,7 +761,7 @@ export default class ExtensionSection {
 
     static async savingExtensionBindings(
         data: any,
-        context: ExtensionContext,
+        context: SyncExtensionBindingsOptions,
         type: 'draft' | 'published' = 'draft',
     ) {
         try {
@@ -897,203 +778,152 @@ export default class ExtensionSection {
             console.log(error);
         }
     }
-
-    static async promptExtensionDetails() {
-        const questions = [
-            {
-                type: 'text',
-                name: 'extensionId',
-                message: 'Enter Extension ID.',
-            },
-            {
-                type: 'text',
-                name: 'organisationId',
-                message: 'Enter Organisation ID.',
-            },
-            {
-                typer: 'text',
-                name: 'name',
-                message: 'Enter Binding Name.',
-            },
-            {
-                typer: 'text',
-                name: 'type',
-                message: 'Enter type of your extension (react/vue).',
-            },
-        ];
-
-        const answers = await inquirer.prompt(questions);
-        return answers;
-    }
-
-    static async promptUrl() {
-        const questions = [
-            {
-                type: 'text',
-                name: 'url',
-                message: 'Enter serving url.',
-            },
-        ];
-
-        const answer = await inquirer.prompt(questions);
-        return answer;
-    }
-
     public static async previewExtension(options: any) {
         const context = await ExtensionSection.getContextData(
             options,
             'preview',
         );
-        if (context.framework === 'react') {
-            return ExtensionSection.serveExtensionSections(context);
+
+        const { interface: bindingInterface, framework, name } = context;
+
+        if (bindingInterface === 'Web Theme') {
+            if (framework === 'react' || framework === 'vue2') {
+                Logger.info(`Previewing Extension Binding`);
+                try {
+                    const {
+                        name: bundleName,
+                        appliedTheme,
+                        extensionId,
+                        organisationId,
+                        framework,
+                    } = context;
+
+                    const {
+                        companyId,
+                        applicationId,
+                        themeId
+                    } = appliedTheme;
+
+                    const isReact = framework === 'react';
+
+                    const { _id: extensionSectionId } =
+                        await extensionService.getExtensionBindings(
+                            extensionId,
+                            organisationId,
+                            bundleName,
+                            appliedTheme.companyType,
+                        );
+
+                    const { platform } = getPlatformUrls();
+
+                    const domain = `${platform}/company/${companyId}/application/${applicationId}/themes/${themeId}/edit`;
+
+                    const port = options['port'];
+                    const tunnelUrl = options['url'];
+
+                    const rootPath = process.cwd();
+
+                    const destinationPath = path.join(
+                        process.cwd(),
+                        isReact ? ExtensionSection.BINDINGS_DIR_REACT : ExtensionSection.BINDINGS_DIR_VUE,
+                        bundleName,
+                    )
+                    process.chdir(destinationPath);
+
+                    let data;
+
+                    Logger.info('Building Extension Code ...');
+
+                    if (isReact) {
+                        const { jsFile, cssFile } =
+                            await ExtensionSection.buildExtensionCode({
+                                bundleName,
+                                port,
+                                isLocal: true,
+                            });
+                        ExtensionSection.watchExtensionCodeBuild(
+                            bundleName,
+                            port,
+                            (stats) => {
+                                reload();
+                            },
+                        );
+                        const bundleDist = path.resolve(
+                            rootPath,
+                            ExtensionSection.BINDINGS_DIR_REACT,
+                            bundleName,
+                            'dist',
+                        );
+                        Logger.info('Starting Local Extension Server ...', bundleDist);
+                        await startExtensionServer({ bundleDist, port, framework });
+
+                        const assetUrls = {
+                            js: `${tunnelUrl}/${jsFile}`,
+                            css: `${tunnelUrl}/${cssFile}`,
+                        };
+
+                        data = {
+                            id: extensionSectionId,
+                            assets: assetUrls,
+                        };
+                    } else {
+                        const res = await ExtensionSection.buildExtensionCodeVue({
+                            bundleName,
+                        });
+
+                        let watcher = chokidar.watch(path.resolve(process.cwd(), 'src'), {
+                            persistent: true,
+                        });
+                        watcher.on('change', async () => {
+                            Logger.info(chalk.bold.green(`building`));
+                            await ExtensionSection.buildExtensionCodeVue({
+                                bundleName,
+                            });
+                        });
+
+                        const bundleDist = path.resolve(
+                            rootPath,
+                            ExtensionSection.BINDINGS_DIR_VUE,
+                            bundleName,
+                            'dist',
+                        );
+                        Logger.info('Starting Local Extension Server ...', bundleDist);
+                        await startExtensionServer({ bundleDist, port, framework });
+
+                        const assetUrls = {
+                            js: `${tunnelUrl}/${bundleName}.umd.js`,
+                            css: `${tunnelUrl}/${bundleName}.css`,
+                        };
+
+                        data = {
+                            id: extensionSectionId,
+                            assets: assetUrls,
+                        };
+                    }
+
+                    const encoded = encodeURI(JSON.stringify(data));
+
+                    const previewURL = `${domain}?extensionHash=${encoded}`;
+
+                    console.log(`PREVIEW URL :\n\n ${previewURL}\n\n`);
+                } catch (error) {
+                    console.log(error);
+                }
+            } else {
+                throw new CommandError(
+                    'Unsupported Framework! Only react and vue2 are supported',
+                );
+            }
         } else {
-            return ExtensionSection.serveExtensionSectionsVue(context);
+            throw new CommandError(
+                'Unsupported Interface! Only Web Themes are supported',
+            );
         }
+
+
     }
     static async serveExtensionSections(options: ContextData) {
-        console.log({ options });
-        try {
-            const { name: bundleName, appliedTheme } = options;
 
-            const { _id: extensionSectionId } =
-                await extensionService.getExtensionBindings(
-                    options.extensionId,
-                    options.organisationId,
-                    options.name,
-                    appliedTheme.companyType,
-                );
-
-            const { platform } = getPlatformUrls();
-
-            const domain = `${platform}/company/${appliedTheme.companyId}/application/${appliedTheme.applicationId}/themes/${appliedTheme.themeId}/edit`;
-
-            const port = options['port'];
-            const tunnelUrl = options['url'];
-
-            const rootPath = process.cwd();
-            process.chdir(
-                path.join(
-                    process.cwd(),
-                    ExtensionSection.BINDINGS_DIR_REACT,
-                    bundleName,
-                ),
-            );
-            Logger.info('Building Extension Code ...');
-            const { jsFile, cssFile } =
-                await ExtensionSection.buildExtensionCode({
-                    bundleName,
-                    port,
-                    isLocal: true,
-                });
-            ExtensionSection.watchExtensionCodeBuild(
-                bundleName,
-                port,
-                (stats) => {
-                    reload();
-                },
-            );
-            const bundleDist = path.resolve(
-                rootPath,
-                ExtensionSection.BINDINGS_DIR_REACT,
-                bundleName,
-                'dist',
-            );
-            Logger.info('Starting Local Extension Server ...', bundleDist);
-            await startExtensionServer({ bundleDist, port });
-
-            const assetUrls = {
-                js: `${tunnelUrl}/${jsFile}`,
-                css: `${tunnelUrl}/${cssFile}`,
-            };
-
-            const data = {
-                id: extensionSectionId,
-                assets: assetUrls,
-            };
-
-            const encoded = encodeURI(JSON.stringify(data));
-
-            const previewURL = `${domain}?extensionHash=${encoded}`;
-
-            console.log(`PREVIEW URL :\n\n ${previewURL}\n\n`);
-        } catch (error) {
-            console.log(error);
-        }
     }
 
-    static async serveExtensionSectionsVue(options: ContextData) {
-        try {
-            const {
-                name: bundleName,
-                url: tunnelUrl,
-                extensionId,
-                appliedTheme,
-            } = options;
-            const port = options.port;
-
-            const { _id: extensionSectionId } =
-                await extensionService.getExtensionBindings(
-                    extensionId,
-                    options.organisationId,
-                    options.name,
-                    appliedTheme.companyType,
-                );
-
-            const { platform } = getPlatformUrls();
-
-            const domain = `${platform}/company/${appliedTheme.companyId}/application/${appliedTheme.applicationId}/themes/${appliedTheme.themeId}/edit`;
-
-            const rootPath = process.cwd();
-            process.chdir(
-                path.join(
-                    process.cwd(),
-                    ExtensionSection.BINDINGS_DIR_VUE,
-                    bundleName,
-                ),
-            );
-            Logger.info('Building Extension Code ...');
-
-            const res = await ExtensionSection.buildExtensionCodeVue({
-                bundleName,
-            });
-
-            let watcher = chokidar.watch(path.resolve(process.cwd(), 'src'), {
-                persistent: true,
-            });
-            watcher.on('change', async () => {
-                Logger.info(chalk.bold.green(`building`));
-                await ExtensionSection.buildExtensionCodeVue({
-                    bundleName,
-                });
-            });
-
-            const bundleDist = path.resolve(
-                rootPath,
-                ExtensionSection.BINDINGS_DIR_VUE,
-                bundleName,
-                'dist',
-            );
-            Logger.info('Starting Local Extension Server ...', bundleDist);
-            await startExtensionServerVue({ bundleDist, port });
-
-            // todo: use URL to genereate url
-            const assetUrls = {
-                js: `${tunnelUrl}/${bundleName}.umd.js`,
-                css: `${tunnelUrl}/${bundleName}.css`,
-            };
-
-            const data = {
-                id: extensionSectionId,
-                assets: assetUrls,
-            };
-
-            const encoded = encodeURI(JSON.stringify(data));
-
-            const previewURL = `${domain}?extensionHash=${encoded}`;
-
-            console.log(`PREVIEW URL :\n\n ${previewURL}\n\n`);
-        } catch (error) {
-            console.log(error);
-        }
-    }
 }
