@@ -170,7 +170,11 @@ export default class ExtensionSection {
                         });
 
                     case 'port':
-                        return detect(5500);
+                        return promptUser({
+                            type: 'text',
+                            name: 'port',
+                            message: 'Please enter server port: ',
+                        });
 
                     case 'url':
                         return promptUser({
@@ -784,7 +788,7 @@ export default class ExtensionSection {
             'preview',
         );
 
-        const { interface: bindingInterface, framework, name } = context;
+        const { interface: bindingInterface, framework } = context;
 
         if (bindingInterface === 'Web Theme') {
             if (framework === 'react' || framework === 'vue2') {
@@ -796,6 +800,8 @@ export default class ExtensionSection {
                         extensionId,
                         organisationId,
                         framework,
+                        url: tunnelUrl,
+                        port,
                     } = context;
 
                     const {
@@ -817,9 +823,6 @@ export default class ExtensionSection {
                     const { platform } = getPlatformUrls();
 
                     const domain = `${platform}/company/${companyId}/application/${applicationId}/themes/${themeId}/edit`;
-
-                    const port = options['port'];
-                    const tunnelUrl = options['url'];
 
                     const rootPath = process.cwd();
 
@@ -901,6 +904,8 @@ export default class ExtensionSection {
                         };
                     }
 
+                    console.log({ data })
+
                     const encoded = encodeURI(JSON.stringify(data));
 
                     const previewURL = `${domain}?extensionHash=${encoded}`;
@@ -920,9 +925,6 @@ export default class ExtensionSection {
             );
         }
 
-
-    }
-    static async serveExtensionSections(options: ContextData) {
 
     }
 
