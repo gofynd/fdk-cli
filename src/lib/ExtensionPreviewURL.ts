@@ -1,4 +1,4 @@
-import ngrok from 'ngrok';
+import { startTunnel } from "untun";
 import chalk from 'chalk';
 import boxen from 'boxen';
 import urljoin from 'url-join';
@@ -6,7 +6,6 @@ import inquirer from 'inquirer';
 
 import Debug from './Debug';
 import { getPlatformUrls } from './api/services/url';
-import configStore, { CONFIG_KEYS } from './Config';
 import ExtensionLaunchURL from './ExtensionLaunchURL';
 import ExtensionService from './api/services/extension.service';
 import {
@@ -20,7 +19,7 @@ import Logger from './Logger';
 
 export default class ExtensionPreviewURL {
     organizationInfo: Object;
-    publicNgrokURL: string;
+    publicTunnelURL: string;
     options: Object;
     firstTunnelConnection: boolean = true;
 
@@ -29,7 +28,7 @@ export default class ExtensionPreviewURL {
         try {
             let partner_access_token = getPartnerAccessToken();
 
-            Debug(`Ngrok version: ${await ngrok.getVersion()}`);
+            // Debug(`Untun(Cloudflare Quick Tunnel package) version: ${untun.meta.version}`);
 
             // initialize class instance
             const extension = new ExtensionPreviewURL();
@@ -46,17 +45,15 @@ export default class ExtensionPreviewURL {
                     await extension.promptExtensionApiKey();
             }
 
-            // start Ngrok tunnel
-            let authtoken = await extension.getAuthtoken();
-            let spinner = new Spinner('Starting Ngrok tunnel');
+            // start tunnel
+            let spinner = new Spinner('Starting tunnel');
             try {
                 spinner.start();
-                extension.publicNgrokURL =
-                    await extension.startTunnel(authtoken);
+                extension.publicTunnelURL =
+                    await extension.startTunnel();
                 spinner.succeed();
             } catch (error) {
                 spinner.fail();
-                configStore.delete(CONFIG_KEYS.NGROK_AUTHTOKEN);
                 throw new CommandError(
                     ErrorCodes.NGROK_CONNECTION_ISSUE.message,
                     ErrorCodes.NGROK_CONNECTION_ISSUE.code,
@@ -67,7 +64,7 @@ export default class ExtensionPreviewURL {
             await ExtensionLaunchURL.updateLaunchURL(
                 extension.options.apiKey,
                 partner_access_token || options.accessToken,
-                extension.publicNgrokURL,
+                extension.publicTunnelURL,
             );
 
             // get preview URL
@@ -76,7 +73,7 @@ export default class ExtensionPreviewURL {
             Logger.info(
                 boxen(
                     chalk.bold.black(
-                        `NGROK URL: ${extension.publicNgrokURL}\nPREVIEW URL: ${previewURL}`,
+                        `TUNNEL URL: ${extension.publicTunnelURL}\nPREVIEW URL: ${previewURL}`,
                     ),
                     {
                         borderStyle: {
@@ -140,47 +137,13 @@ export default class ExtensionPreviewURL {
         return await this.promptDevelopmentCompany(choices);
     }
 
-    private async startTunnel(authtoken: string) {
-        Debug(`Starting Ngrok tunnel on port ${this.options.port}`);
-        return await ngrok.connect({
-            proto: 'http',
-            addr: this.options.port,
-            authtoken: authtoken,
-            onStatusChange: async (status) => {
-                if (status === 'connected') {
-                    await this.connectedTunnelHandler();
-                }
-
-                if (status === 'closed') {
-                    await this.closedTunnelHandler();
-                }
-            },
+    private async startTunnel() {
+        Debug(`Starting tunnel on port ${this.options.port}`);
+        const tunnel = await startTunnel({
+            protocol: 'http',
+            port: this.options.port,
         });
-    }
-
-    private async getAuthtoken() {
-        if (
-            !configStore.get(CONFIG_KEYS.NGROK_AUTHTOKEN) ||
-            this.options.updateAuthtoken
-        ) {
-            let authtoken = await this.promptNgrokAuthtoken();
-            configStore.set(CONFIG_KEYS.NGROK_AUTHTOKEN, authtoken);
-            return authtoken;
-        } else {
-            return configStore.get(CONFIG_KEYS.NGROK_AUTHTOKEN);
-        }
-    }
-
-    private async connectedTunnelHandler() {
-        if (this.firstTunnelConnection) {
-            this.firstTunnelConnection = false;
-            return;
-        }
-        Logger.info(chalk.gray('Ngrok tunnel Reconnected'));
-    }
-
-    private async closedTunnelHandler() {
-        Logger.info(chalk.red('Ngrok tunnel Closed'));
+        return await tunnel.getURL();
     }
 
     private async promptExtensionApiKey(): Promise<string> {
@@ -219,28 +182,5 @@ export default class ExtensionPreviewURL {
             throw new CommandError(error.message);
         }
         return companyId;
-    }
-
-    private async promptNgrokAuthtoken(): Promise<string> {
-        let authtoken: string;
-        try {
-            Logger.info(
-                chalk.grey(
-                    `Visit https://dashboard.ngrok.com/get-started/your-authtoken to get Authtoken`,
-                ),
-            );
-            let answers = await inquirer.prompt([
-                {
-                    type: 'input',
-                    name: 'ngrok_authtoken',
-                    message: 'Enter Ngrok Authtoken :',
-                    validate: validateEmpty,
-                },
-            ]);
-            authtoken = answers.ngrok_authtoken;
-        } catch (error) {
-            throw new CommandError(error.message);
-        }
-        return authtoken;
     }
 }
