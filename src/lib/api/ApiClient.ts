@@ -19,6 +19,7 @@ import {
 import Curl from '../../helper/curl';
 import Logger from '../Logger';
 import { MAX_RETRY } from '../../helper/constants';
+import https from 'https'
 axios.defaults.withCredentials = true;
 axios.defaults.timeout = 60000; // 1 minute
 

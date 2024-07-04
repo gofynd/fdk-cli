@@ -76,8 +76,44 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
             } else {
                 process.env.DEBUG = 'false';
             }
-
             initializeLogger();
+            
+            // check in config if user have set certificate
+            const CA_FILE = configStore.get(CONFIG_KEYS.CA_FILE)
+            // if user shared certificate while executing the command
+            const sharedInlineCert = process.env.FDK_EXTRA_CA_CERTS;
+            
+            // if shared inline then it should be exist
+            if(sharedInlineCert && !fs.existsSync(sharedInlineCert)){
+                throw new CommandError("Provided file path does not exist.");
+            }
+            // inline CA will get priority
+            if (!sharedInlineCert && CA_FILE) {
+                process.env.FDK_EXTRA_CA_CERTS = CA_FILE;
+            }
+
+            if(process.env.FDK_EXTRA_CA_CERTS){
+                Logger.info(`Using CA file from ${process.env.FDK_EXTRA_CA_CERTS}`)
+            }
+
+            const disableSSL = () => {
+                process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+                process.env.FDK_SSL_NO_VERIFY = 'true';
+            }
+
+            const sharedInlineNoSSL = process.env.FDK_SSL_NO_VERIFY;
+            const STRICT_SSL = configStore.get(CONFIG_KEYS.STRICT_SSL);
+            if(sharedInlineNoSSL == 'true'){
+                disableSSL();
+            }
+            if(!sharedInlineNoSSL && STRICT_SSL == 'false'){
+                disableSSL();
+            }
+
+            if(process.env.FDK_SSL_NO_VERIFY == 'true'){
+                Logger.warn(`Bypassing SSL verification`)
+            }
+
             const latest = await checkCliVersionAsync();
             const isCurrentLessThanLatest = semver.lt(
                 packageJSON.version,
