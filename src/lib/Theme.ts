@@ -87,6 +87,7 @@ export default class Theme {
         'react-template',
     );
     static BUILD_FOLDER = './.fdk/dist';
+    static SERVE_BUILD_FOLDER = './.fdk/distServed';
     static SRC_FOLDER = path.join('.fdk', 'temp-theme');
     static VUE_CLI_CONFIG_PATH = path.join('.fdk', 'vue.config.js');
     static REACT_CLI_CONFIG_PATH = 'webpack.config.js';
@@ -1171,7 +1172,7 @@ export default class Theme {
             Logger.info(`Locally building`);
             Theme.createVueConfig();
             await devBuild({
-                buildFolder: Theme.BUILD_FOLDER,
+                buildFolder: Theme.SERVE_BUILD_FOLDER,
                 imageCdnUrl: urlJoin(getFullLocalUrl(port), 'assets/images'),
                 isProd: isSSR,
             });
@@ -1192,7 +1193,7 @@ export default class Theme {
             watcher.on('change', async () => {
                 Logger.info(chalk.bold.green(`building`));
                 await devBuild({
-                    buildFolder: Theme.BUILD_FOLDER,
+                    buildFolder: Theme.SERVE_BUILD_FOLDER,
                     imageCdnUrl: urlJoin(
                         getFullLocalUrl(port),
                         'assets/images',
@@ -1222,7 +1223,7 @@ export default class Theme {
             await Theme.createReactSectionsIndexFile();
 
             await devReactBuild({
-                buildFolder: Theme.BUILD_FOLDER,
+                buildFolder: Theme.SERVE_BUILD_FOLDER,
                 runOnLocal: true,
                 localThemePort: port,
                 isHMREnabled,
@@ -1241,7 +1242,7 @@ export default class Theme {
             Logger.info(chalk.bold.green(`Watching files for changes`));
             devReactWatch(
                 {
-                    buildFolder: Theme.BUILD_FOLDER,
+                    buildFolder: Theme.SERVE_BUILD_FOLDER,
                     runOnLocal: true,
                     localThemePort: port,
                     isHMREnabled,
@@ -1617,6 +1618,7 @@ export default class Theme {
     };
     private static clearPreviousBuild = () => {
         rimraf.sync(Theme.BUILD_FOLDER);
+        rimraf.sync(Theme.SERVE_BUILD_FOLDER);
         rimraf.sync(Theme.SRC_ARCHIVE_FOLDER);
     };
 
@@ -1885,6 +1887,11 @@ export default class Theme {
                 'application-theme-assets',
             );
             const commonJsUrl = commonJsUrlRes.start.cdn.url;
+            // const commonJsUrlStart = commonJsUrlRes.start.cdn.url;
+            // const commonJsUrlComp = commonJsUrlRes.complete.cdn.url;
+            // console.log("commonJsUrl", commonJsUrlStart, commonJsUrlComp);
+            // https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/x0P9yNrqA_themeBundle.common.js
+            
 
             Logger.info('Uploading umdJS');
             const umdMinAssets = glob.sync(
@@ -1920,6 +1927,53 @@ export default class Theme {
                 );
             });
             const cssUrls = await Promise.all(cssPromisesArr);
+            // console.log("ddd", [
+            //     cssUrls.map((res) => res.start.cdn.url),
+            //     cssUrls.map((res) => res.complete.cdn.url),
+            //     commonJsUrl,
+            //     umdJsUrls.map((res) => res.start.cdn.url),
+            //     umdJsUrls.map((res) => res.complete.cdn.url),
+            // ]);
+            // [
+            //     [
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_extras.d37f1ebecbf820da9a48.css',
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_products-listing.7013c594ad5a03f9138a.css',
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_products.ee84dbf09d6f1721ee80.css',
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_profile.b90b821bcda97571c55f.css',
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.css', 
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_vendors_products-listing.c8fe85761d60286348e3.css'
+            //     ],
+            //     [
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_extras.d37f1ebecbf820da9a48.css',
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_products-listing.7013c594ad5a03f9138a.css',
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_products.ee84dbf09d6f1721ee80.css',
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_profile.b90b821bcda97571c55f.css',
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.css', 
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_vendors_products-listing.c8fe85761d60286348e3.css'
+            //     ],
+            //     'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.common.js',
+            //     [
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.7.js',
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.extras.js',
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.products-listing.js',
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.products.js',
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.profile.js',
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.vendors_products-listing.js',
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.vendors_products.js',
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.js'
+            //     ],
+            //     [
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.7.js',
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.extras.js',
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.products-listing.js',
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.products.js',
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.profile.js',
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.vendors_products-listing.js',
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.vendors_products.js',
+            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.js'
+            //     ]
+            // ]
+            
             return [
                 cssUrls.map((res) => res.start.cdn.url),
                 commonJsUrl,
@@ -2528,6 +2582,9 @@ export default class Theme {
                 zipFilePath,
                 'application-theme-src',
             );
+            // console.log("ddd", res.start.cdn.url, res.complete.cdn.url);
+            // https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/Ng5rmVtri-archive.zip
+            
             return res.start.cdn.url;
         } catch (err) {
             throw new CommandError(

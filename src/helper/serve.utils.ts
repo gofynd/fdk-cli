@@ -27,6 +27,7 @@ import https from 'https';
 const packageJSON = require('../../package.json');
 
 const BUILD_FOLDER = './.fdk/dist';
+const SERVE_BUILD_FOLDER = './.fdk/distServed';
 let port = 5001;
 let sockets = [];
 let publicCache = {};
@@ -171,7 +172,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 
     applyProxy(app);
 
-    app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
+    app.use(express.static(path.resolve(process.cwd(), SERVE_BUILD_FOLDER)));
     app.get(['/__webpack_hmr', '/manifest.json'], async (req, res, next) => {
         return res.end();
     });
@@ -193,7 +194,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 
         const BUNDLE_PATH = path.join(
             process.cwd(),
-            path.join('.fdk', 'dist', 'themeBundle.common.js'),
+            path.join('.fdk', 'distServed', 'themeBundle.common.js'),
         );
         if (!fs.existsSync(BUNDLE_PATH))
             return res.sendFile(
@@ -209,7 +210,7 @@ export async function startServer({ domain, host, isSSR, port }) {
         if (isSSR) {
             const BUNDLE_PATH = path.join(
                 process.cwd(),
-                '/.fdk/dist/themeBundle.common.js',
+                '/.fdk/distServed/themeBundle.common.js',
             );
             const User = Configstore.get(CONFIG_KEYS.AUTH_TOKEN);
             themeUrl = (
@@ -219,6 +220,9 @@ export async function startServer({ domain, host, isSSR, port }) {
                     User.current_user._id,
                 )
             ).start.cdn.url;
+            //https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/partners/fdk-cli-documents/free/original/qkln2gm3q-themeBundle.common.js
+            //https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/partners/fdk-cli-documents/free/original/igyA13S8P-themeBundle.common.js
+            
         } else {
             jetfireUrl.searchParams.set('__csr', 'true');
         }
@@ -262,7 +266,7 @@ export async function startServer({ domain, host, isSSR, port }) {
                 )}"></script>`,
             );
             const umdJsAssests = glob
-                .sync(`${Theme.BUILD_FOLDER}/themeBundle.umd.**.js`)
+                .sync(`${Theme.SERVE_BUILD_FOLDER}/themeBundle.umd.**.js`)
                 .filter((x) => !x.includes('.min.'));
             umdJsAssests.forEach((umdJsLink) => {
                 umdJsInitial.after(
@@ -273,13 +277,13 @@ export async function startServer({ domain, host, isSSR, port }) {
                 );
             });
 
-            const cssAssests = glob.sync(`${Theme.BUILD_FOLDER}/**.css`);
+            const cssAssests = glob.sync(`${Theme.SERVE_BUILD_FOLDER}/**.css`);
             const cssInitial = $('link[data-css-cli-source="initial"]');
             cssAssests.forEach((cssLink) => {
                 cssInitial.after(
                     `<link rel="stylesheet" href="${urlJoin(
                         getFullLocalUrl(port),
-                        cssLink.replace('./.fdk/dist/', ''),
+                        cssLink.replace('./.fdk/distServed/', ''),
                     )}"></link>`,
                 );
             });
@@ -296,7 +300,7 @@ export async function startServer({ domain, host, isSSR, port }) {
                     errorString = `<h3><b>${errorString}</b></h3>`;
                     const mapContent = JSON.parse(
                         fs.readFileSync(
-                            `${BUILD_FOLDER}/themeBundle.common.js.map`,
+                            `${SERVE_BUILD_FOLDER}/themeBundle.common.js.map`,
                             { encoding: 'utf8', flag: 'r' },
                         ),
                     );
@@ -370,7 +374,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
         }
 
         const ctx = {
-            buildPath: path.resolve(process.cwd(), Theme.BUILD_FOLDER),
+            buildPath: path.resolve(process.cwd(), Theme.SERVE_BUILD_FOLDER),
             NODE_ENV: 'development',
             localThemePort: port,
             context: process.cwd(),
@@ -394,7 +398,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 
         app.use(webpackHotMiddleware(compiler));
     }
-    app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
+    app.use(express.static(path.resolve(process.cwd(), SERVE_BUILD_FOLDER)));
 
     app.use((request, response, next) => {
         // Filtering so that HMR file requests are not routed to skyfire pods
