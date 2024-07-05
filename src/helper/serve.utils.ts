@@ -219,7 +219,7 @@ export async function startServer({ domain, host, isSSR, port }) {
                     'fdk-cli-dev-files',
                     User.current_user._id,
                 )
-            ).complete.cdn.url;
+            ).start.cdn.url;
 
         } else {
             jetfireUrl.searchParams.set('__csr', 'true');
