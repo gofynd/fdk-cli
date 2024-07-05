@@ -1884,7 +1884,7 @@ export default class Theme {
                 path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS),
                 'application-theme-assets',
             );
-            const commonJsUrl = commonJsUrlRes.start.cdn.url;
+            const commonJsUrl = commonJsUrlRes.complete.cdn.url;
 
             Logger.info('Uploading umdJS');
             const umdMinAssets = glob.sync(
@@ -1921,9 +1921,9 @@ export default class Theme {
             });
             const cssUrls = await Promise.all(cssPromisesArr);
             return [
-                cssUrls.map((res) => res.start.cdn.url),
+                cssUrls.map((res) => res.complete.cdn.url),
                 commonJsUrl,
-                umdJsUrls.map((res) => res.start.cdn.url),
+                umdJsUrls.map((res) => res.complete.cdn.url),
             ];
         } catch (err) {
             throw new CommandError(
@@ -2528,7 +2528,7 @@ export default class Theme {
                 zipFilePath,
                 'application-theme-src',
             );
-            return res.start.cdn.url;
+            return res.complete.cdn.url;
         } catch (err) {
             throw new CommandError(
                 err.message || `Failed to upload src folder`,
