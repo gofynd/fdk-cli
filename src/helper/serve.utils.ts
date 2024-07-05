@@ -198,7 +198,7 @@ export async function startServer({ domain, host, isSSR, port }) {
         );
         if (!fs.existsSync(BUNDLE_PATH))
             return res.sendFile(
-                path.join(__dirname, '../../', '/dist/helper', '/loader.html'),
+                path.join(__dirname, '../../', '/distServed/helper', '/loader.html'),
             );
         if (req.originalUrl == '/favicon.ico' || req.originalUrl == '/.webp') {
             return res.status(404).send('Not found');
@@ -219,10 +219,8 @@ export async function startServer({ domain, host, isSSR, port }) {
                     'fdk-cli-dev-files',
                     User.current_user._id,
                 )
-            ).start.cdn.url;
-            //https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/partners/fdk-cli-documents/free/original/qkln2gm3q-themeBundle.common.js
-            //https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/partners/fdk-cli-documents/free/original/igyA13S8P-themeBundle.common.js
-            
+            ).complete.cdn.url;
+
         } else {
             jetfireUrl.searchParams.set('__csr', 'true');
         }
@@ -272,7 +270,7 @@ export async function startServer({ domain, host, isSSR, port }) {
                 umdJsInitial.after(
                     `<script type="text/javascript" src="${urlJoin(
                         getFullLocalUrl(port),
-                        umdJsLink.replace('./.fdk/dist/', ''),
+                        umdJsLink.replace('./.fdk/distServed/', ''),
                     )}"></script>`,
                 );
             });
@@ -433,14 +431,14 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
                 currentContext.theme_id,
             );
         }
-        const BUNDLE_DIR = path.join(process.cwd(), path.join('.fdk', 'dist'));
+        const BUNDLE_DIR = path.join(process.cwd(), path.join('.fdk', 'distServed'));
         if (req.originalUrl == '/favicon.ico' || req.originalUrl == '/.webp') {
             return res.status(404).send('Not found');
         }
         // While build is not complete
         if (!fs.existsSync(path.join(BUNDLE_DIR, 'themeBundle.umd.js'))) {
             return res.sendFile(
-                path.join(__dirname, '../../', '/dist/helper', '/loader.html'),
+                path.join(__dirname, '../../', '/distServed/helper', '/loader.html'),
             );
         }
         const skyfireUrl = new URL(urlJoin(domain, req.originalUrl));

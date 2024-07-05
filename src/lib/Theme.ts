@@ -1886,11 +1886,7 @@ export default class Theme {
                 path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS),
                 'application-theme-assets',
             );
-            const commonJsUrl = commonJsUrlRes.start.cdn.url;
-            // const commonJsUrlStart = commonJsUrlRes.start.cdn.url;
-            // const commonJsUrlComp = commonJsUrlRes.complete.cdn.url;
-            // console.log("commonJsUrl", commonJsUrlStart, commonJsUrlComp);
-            // https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/x0P9yNrqA_themeBundle.common.js
+            const commonJsUrl = commonJsUrlRes.complete.cdn.url;
             
 
             Logger.info('Uploading umdJS');
@@ -1927,57 +1923,10 @@ export default class Theme {
                 );
             });
             const cssUrls = await Promise.all(cssPromisesArr);
-            // console.log("ddd", [
-            //     cssUrls.map((res) => res.start.cdn.url),
-            //     cssUrls.map((res) => res.complete.cdn.url),
-            //     commonJsUrl,
-            //     umdJsUrls.map((res) => res.start.cdn.url),
-            //     umdJsUrls.map((res) => res.complete.cdn.url),
-            // ]);
-            // [
-            //     [
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_extras.d37f1ebecbf820da9a48.css',
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_products-listing.7013c594ad5a03f9138a.css',
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_products.ee84dbf09d6f1721ee80.css',
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_profile.b90b821bcda97571c55f.css',
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.css', 
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_vendors_products-listing.c8fe85761d60286348e3.css'
-            //     ],
-            //     [
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_extras.d37f1ebecbf820da9a48.css',
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_products-listing.7013c594ad5a03f9138a.css',
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_products.ee84dbf09d6f1721ee80.css',
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_profile.b90b821bcda97571c55f.css',
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.css', 
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_vendors_products-listing.c8fe85761d60286348e3.css'
-            //     ],
-            //     'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.common.js',
-            //     [
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.7.js',
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.extras.js',
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.products-listing.js',
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.products.js',
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.profile.js',
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.vendors_products-listing.js',
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.vendors_products.js',
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.js'
-            //     ],
-            //     [
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.7.js',
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.extras.js',
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.products-listing.js',
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.products.js',
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.profile.js',
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.vendors_products-listing.js',
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.vendors_products.js',
-            //       'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/PSLykdCUC_themeBundle.umd.min.js'
-            //     ]
-            // ]
-            
             return [
-                cssUrls.map((res) => res.start.cdn.url),
+                cssUrls.map((res) => res.complete.cdn.url),
                 commonJsUrl,
-                umdJsUrls.map((res) => res.start.cdn.url),
+                umdJsUrls.map((res) => res.complete.cdn.url),
             ];
         } catch (err) {
             throw new CommandError(
@@ -2581,11 +2530,8 @@ export default class Theme {
             let res = await UploadService.uploadFile(
                 zipFilePath,
                 'application-theme-src',
-            );
-            // console.log("ddd", res.start.cdn.url, res.complete.cdn.url);
-            // https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/organization/64aec4634bc407961ed265c5/theme/assets/Ng5rmVtri-archive.zip
-            
-            return res.start.cdn.url;
+            );            
+            return res.complete.cdn.url;
         } catch (err) {
             throw new CommandError(
                 err.message || `Failed to upload src folder`,
