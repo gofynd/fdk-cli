@@ -138,8 +138,10 @@ export default class Auth {
                     const currentEnv = ConfigStore.get(
                         CONFIG_KEYS.CURRENT_ENV_VALUE,
                     );
+                    const extras = ConfigStore.get(CONFIG_KEYS.EXTRAS);
                     ConfigStore.clear();
                     ConfigStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, currentEnv);
+                    ConfigStore.set(CONFIG_KEYS.EXTRAS, extras);
                     Logger.info(`User logged out successfully`);
                 }
             });
