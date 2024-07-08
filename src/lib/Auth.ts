@@ -142,7 +142,6 @@ export default class Auth {
                 }
             } catch (err) {
                 console.log(`Open link on browser: ${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(ngrok_url || local_url)}`);
-                !ngrok_url && console.log(`If above link won't work please try using this link: ${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(local_url)}`);
             }
         } catch (error) {
             throw new CommandError(error.message, error.code);
