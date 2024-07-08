@@ -2,7 +2,6 @@ import CommandError from './CommandError';
 import Logger from './Logger';
 import inquirer from 'inquirer';
 import ConfigStore, { CONFIG_KEYS } from './Config';
-import { ALLOWD_ENV } from '../helper/constants';
 import open from 'open';
 import express from 'express';
 var cors = require('cors');
@@ -10,6 +9,8 @@ const port = 7071;
 import chalk from 'chalk';
 import ThemeService from './api/services/theme.service';
 import { getLocalBaseUrl } from '../helper/serve.utils';
+import Debug from './Debug';
+const ngrok = require('ngrok');
 
 async function checkTokenExpired(auth_token) {
     const { expiry_time } = auth_token;
@@ -20,6 +21,32 @@ async function checkTokenExpired(auth_token) {
         return false;
     }
 }
+
+async function getNgrokURL() {
+    try {
+        Debug("Starting ngrok...")
+        const ngrokUrl = await ngrok.connect(port);
+        Debug(`ngrok tunnel running at ${ngrokUrl}`);
+        return ngrokUrl;
+      } catch (error) {
+        Debug(`Error while starting ngrok:`);
+        Debug(error);
+      }
+    return null;
+}
+
+async function stopNgrok() {
+    try {
+        Debug("Stoping ngrok...")
+        await ngrok.disconnect();
+        await ngrok.kill();
+        Debug('ngrok tunnel stopped');
+    } catch (error) {
+        Debug('Error while stopping ngrok');
+        Debug(error);
+    }
+}
+  
 
 export const getApp = async () => {
     const app = express();
@@ -104,20 +131,18 @@ export default class Auth {
             let domain = null;
             let partnerDomain = env.replace('api', 'partners');
             domain = `https://${partnerDomain}`;
+            const need_to_login = Auth.isOrganizationChange || !isLoggedIn;
+            const ngrok_url = need_to_login && await getNgrokURL();
+            const local_url = `${getLocalBaseUrl()}:${port}`
             try {
-                if (Auth.isOrganizationChange || !isLoggedIn) {
+                if (need_to_login) {
                     await open(
-                        `${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
-                            `${getLocalBaseUrl()}:${port}`,
-                        )}`,
+                        `${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(ngrok_url || local_url)}`,
                     );
                 }
             } catch (err) {
-                console.log(
-                    `Open link on browser: ${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
-                        `${getLocalBaseUrl()}:${port}`,
-                    )}`,
-                );
+                console.log(`Open link on browser: ${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(ngrok_url || local_url)}`);
+                !ngrok_url && console.log(`If above link won't work please try using this link: ${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(local_url)}`);
             }
         } catch (error) {
             throw new CommandError(error.message, error.code);
@@ -174,6 +199,8 @@ export default class Auth {
         } else return false;
     };
     static stopSever = async () => {
-        Auth.server.close(() => {});
+        Auth.server.close(() => {
+            stopNgrok();
+        });
     };
 }
