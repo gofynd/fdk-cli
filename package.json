@@ -25,7 +25,8 @@
     "watch": "tsc --watch",
     "test": "jest --runInBand",
     "pretty": "prettier --config ./.prettierrc --write './src/**/*.*'",
-    "localInstall": "sh scripts/localInstall.sh"
+    "localInstall": "sh scripts/localInstall.sh",
+    "postinstall": "node dist/helper/install_cloudflared.js"
   },
   "devDependencies": {
     "@types/async": "^3.2.6",

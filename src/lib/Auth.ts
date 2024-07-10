@@ -10,7 +10,7 @@ import chalk from 'chalk';
 import ThemeService from './api/services/theme.service';
 import { getLocalBaseUrl } from '../helper/serve.utils';
 import Debug from './Debug';
-const ngrok = require('ngrok');
+const { startTunnel } = require("../helper/cloudflared.utils");
 
 async function checkTokenExpired(auth_token) {
     const { expiry_time } = auth_token;
@@ -22,27 +22,33 @@ async function checkTokenExpired(auth_token) {
     }
 }
 
-async function getNgrokURL() {
+async function getTunnelURL(): Promise<string> {
     try {
-        Debug("Starting ngrok...")
-        const ngrokUrl = await ngrok.connect(port);
-        Debug(`ngrok tunnel running at ${ngrokUrl}`);
-        return ngrokUrl;
+        Debug("Starting tunnel...")
+        const tunnel = await startTunnel({ port, acceptCloudflareNotice: false });
+        const tunnelUrl = await tunnel.getURL()
+        Auth.tunnel = tunnel;
+        Debug(`tunnel tunnel running at ${tunnelUrl}`);
+        console.log("Opening browser...");
+        return new Promise((res) => {
+            setTimeout(() => {
+                res(tunnelUrl);
+            }, 5000)
+        })
       } catch (error) {
-        Debug(`Error while starting ngrok:`);
+        Debug(`Error while starting tunnel:`);
         Debug(error);
       }
     return null;
 }
 
-async function stopNgrok() {
+async function stopTunnel() {
     try {
-        Debug("Stoping ngrok...")
-        await ngrok.disconnect();
-        await ngrok.kill();
-        Debug('ngrok tunnel stopped');
+        Debug("Stoping tunnel...")
+        await Auth.tunnel.close();
+        Debug('tunnel stopped');
     } catch (error) {
-        Debug('Error while stopping ngrok');
+        Debug('Error while stopping tunnel');
         Debug(error);
     }
 }
@@ -95,6 +101,7 @@ async function checkVersionCompatibility() {
 export default class Auth {
     static server = null;
     static isOrganizationChange = false;
+    static tunnel = null;
     constructor() {}
     public static async login() {
         await checkVersionCompatibility();
@@ -132,16 +139,16 @@ export default class Auth {
             let partnerDomain = env.replace('api', 'partners');
             domain = `https://${partnerDomain}`;
             const need_to_login = Auth.isOrganizationChange || !isLoggedIn;
-            const ngrok_url = need_to_login && await getNgrokURL();
+            const tunnel_url = need_to_login && await getTunnelURL();
             const local_url = `${getLocalBaseUrl()}:${port}`
             try {
                 if (need_to_login) {
                     await open(
-                        `${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(ngrok_url || local_url)}`,
+                        `${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(tunnel_url || local_url)}`,
                     );
                 }
             } catch (err) {
-                console.log(`Open link on browser: ${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(ngrok_url || local_url)}`);
+                console.log(`Open link on browser: ${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(tunnel_url || local_url)}`);
             }
         } catch (error) {
             throw new CommandError(error.message, error.code);
@@ -199,7 +206,7 @@ export default class Auth {
     };
     static stopSever = async () => {
         Auth.server.close(() => {
-            stopNgrok();
+            stopTunnel();
         });
     };
 }
