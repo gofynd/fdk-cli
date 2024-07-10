@@ -191,7 +191,7 @@ export default class Extension {
                         await ExtensionService.registerExtensionPartners(data);
                     answers.extension_api_key = extension_data.client_id;
                     answers.extension_api_secret = extension_data.secret;
-                    answers.base_url = extension_data.launch_url;
+                    answers.base_url = extension_data.base_url;
                     spinner.succeed();
                 } catch (error) {
                     spinner.fail();

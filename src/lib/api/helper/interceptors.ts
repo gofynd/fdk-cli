@@ -7,6 +7,8 @@ import ConfigStore, { CONFIG_KEYS } from '../../Config';
 import { MAX_RETRY } from '../../../helper/constants';
 import { COMMON_LOG_MESSAGES } from '../../../lib/Logger';
 import { transformRequestOptions } from '../../../helper/utils';
+import fs from 'fs-extra';
+import https from 'https'
 
 function getTransformer(config) {
     const { transformRequest } = config;
@@ -86,6 +88,13 @@ function interceptorFn(options) {
                 // config.headers = signingOptions.headers;
                 config.headers['x-fp-date'] = signature['x-fp-date'];
                 config.headers['x-fp-signature'] = signature['x-fp-signature'];
+            }
+            if(process.env.FDK_EXTRA_CA_CERTS){
+                // Load the VPN's CA certificate
+                const ca = fs.readFileSync(process.env.FDK_EXTRA_CA_CERTS);
+                // Create an HTTPS agent with the CA certificate
+                const httpsAgent = new https.Agent({ ca });
+                config.httpsAgent = httpsAgent;
             }
             return config;
         } catch (error) {
