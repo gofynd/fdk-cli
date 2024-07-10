@@ -90,6 +90,14 @@ ___
 | [preview-url](#extension-preview-url)   | Create a ngrok tunnel and provide a link to tryout extension on development company
 | [launch-url](#extension-launch-url)     | Get/set extension's lanuch url |
 
+### Config Commands
+
+| Command Type | Description                          |
+|--------------|--------------------------------------|
+| [set](#config-set-commands)        | Set configuration values.            |
+| [get](#config-get-commands)        | Retrieve current configuration values.|
+| [delete](#config-delete-commands)  (alias: `rm`)    | Delete configuration values.         |
+
 <div id="debugMode"></div>
 
 
@@ -104,7 +112,6 @@ fdk login --verbose
 <div id="commands-reference"><div/>
 
 ## Commands Reference
-___
 ### Environment Commands
 Before you start using FDK CLI you will have to set an environment
 
@@ -470,6 +477,87 @@ fdk partner connect [options]
 #### **Example**
 ```sh
 fdk partner connect
+```
+___
+### Config Commands
+<div id="config-commands"></div>
+
+<div id="config-set-commands"></div>
+
+#### Set Commands
+The `set` commands allow you to configure the `cafile` and `strict-ssl` settings for the tool. This is useful for ensuring that the tool uses the correct SSL certificates and validation settings according to your requirements.
+
+| Command                                   | Description                                  |
+|-------------------------------------------|----------------------------------------------|
+| `set cafile <file-path>`       | Sets the CA file to the specified file path.  |
+| `set strict-ssl <true/false>`  | Enables or disables strict SSL validation.   |
+
+#### **Example**
+```sh
+fdk config set cafile /etc/ssl/certs/ca-certificates.pem
+```
+```sh
+fdk config set strict-ssl false
+```
+
+#### Notes
+
+> - Ensure that the file path provided for the CA file is valid and accessible.
+> - The strict SSL setting should be either `true` or `false`.
+
+#### Environment Variables
+
+> Developers can configure settings using environment variables.<br/><hr/>`FDK_EXTRA_CA_CERTS`: Set this variable to specify the CA file path (`cafile`).
+<br/><hr/>`FDK_SSL_NO_VERIFY`: Set this variable to `true` to disable strict SSL validation (`strict-ssl=false`).<hr/>
+
+#### **Example**
+
+```sh
+FDK_EXTRA_CA_CERTS=/path/to/your/cafile fdk login
+```
+```sh
+FDK_SSL_NO_VERIFY=true fdk login
+```
+
+<div id="config-get-commands"></div>
+
+#### Get Commands
+The `get` commands allow you to view the current configuration values for `cafile` and `strict-ssl`. This is useful for verifying what values are currently set and ensuring that your configuration is correct.
+
+| Command                       | Description                                  |
+|-------------------------------|----------------------------------------------|
+| `get cafile`       | Retrieves the current CA file path.          |
+| `get strict-ssl`   | Retrieves the current strict SSL setting.    |
+
+#### **Example**
+```sh
+fdk config get cafile
+```
+```sh
+fdk config get strict-ssl
+```
+
+<div id="config-delete-commands"></div>
+
+#### Delete Commands
+The `delete` commands allow you to remove the current configuration for `cafile` and `strict-ssl`. This can be useful for resetting configurations or removing settings that are no longer needed.
+
+| Command                        | Description                                  |
+|------------------------------- |----------------------------------------------|
+| `delete cafile`     | Deletes the current CA file configuration.   |
+| `delete strict-ssl` | Deletes the current strict SSL configuration.|
+| `rm cafile`         | Alias for `delete`: Deletes the current CA file configuration.   |
+
+
+#### **Example**
+```sh
+fdk config delete cafile
+```
+```sh
+fdk config delete strict-ssl
+```
+```sh
+fdk config rm cafile
 ```
 ___
 

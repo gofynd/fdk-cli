@@ -8,6 +8,7 @@ const COMMANDS = [
     require('./extension'),
     require('./partner'),
     require('./binding'),
+    require('./config'),
 ];
 
 export function registerCommands(program: CommanderStatic) {
