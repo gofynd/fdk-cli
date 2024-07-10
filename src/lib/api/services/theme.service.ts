@@ -239,4 +239,16 @@ export default {
             throw err;
         }
     },
+    getAppliedTheme: async (data) => {
+        try {
+            const axiosOption = Object.assign({}, getCommonHeaderOptions());
+            const res = await ApiClient.get(
+                URLS.GET_APPLIED_THEME(data.company_id, data.application_id),
+                axiosOption,
+            );
+            return res?.data;
+        } catch (err) {
+            throw err;
+        }
+    },
 };
