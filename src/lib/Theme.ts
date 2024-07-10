@@ -1684,14 +1684,14 @@ export default class Theme {
                 __dirname,
                 '..',
                 '..',
-                'sample-upload'
+                'sample-upload.jpeg'
             );
 
             const response = await UploadService.uploadFile(
                 dummyFile,
                 'application-theme-images',
                 null,
-                'image/jpg'
+                'image/jpeg'
             );
 
             return path.dirname(response.complete.cdn.url);
@@ -1706,12 +1706,11 @@ export default class Theme {
 
     private static getAssetCdnBaseUrl = async () => {
         try {
-            console.log({__dirname});
             const dummyFile = path.join(
                 __dirname,
                 '..',
                 '..',
-                'sample-upload'
+                'sample-upload.js'
             );
 
             const response = await UploadService.uploadFile(

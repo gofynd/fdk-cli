@@ -8,24 +8,7 @@ import mime from 'mime';
 import Spinner from '../../../helper/spinner';
 
 export default {
-    startUpload: async (data, namespace) => {
-        try {
-            const axiosOption = Object.assign(
-                {},
-                {
-                    data: data,
-                },
-                getCommonHeaderOptions(),
-            );
-            const res = await ApiClient.post(
-                URLS.START_UPLOAD_FILE(namespace),
-                axiosOption,
-            );
-            return res;
-        } catch (error) {
-            throw error;
-        }
-    },
+
     uploadFile: async (filepath, namespace, file_name = null, mimeType = null) => {
         let spinner = new Spinner();
         let textMessage;
