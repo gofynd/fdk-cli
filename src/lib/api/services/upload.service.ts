@@ -26,7 +26,7 @@ export default {
             throw error;
         }
     },
-    uploadFile: async (filepath, namespace, file_name = null) => {
+    uploadFile: async (filepath, namespace, file_name = null, mimeType = null) => {
         let spinner = new Spinner();
         let textMessage;
         try {
@@ -35,7 +35,8 @@ export default {
                 filepath,
             )}  [${Math.round(stats.size / 1024)} KB]`;
             spinner.start(textMessage);
-            let contentType = mime.getType(path.extname(filepath));
+            let contentType = mimeType || mime.getType(path.extname(filepath));
+
             if (contentType === 'image/jpg') {
                 contentType = 'image/jpeg';
             }
