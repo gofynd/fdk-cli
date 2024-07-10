@@ -61,7 +61,6 @@ describe('Theme Context Commands', () => {
         setEnv();
         program = await init('fdk');
         const mock = new MockAdapter(axios);
-        mock.onGet(`${URLS.IS_VERSION_COMPATIBLE()}`).reply(200);
         mock.onGet(
             `${URLS.GET_APPLICATION_DETAILS(
                 appConfig.company_id,

@@ -52,7 +52,6 @@ describe('Auth Commands', () => {
         setEnv();
         program = await init('fdk');
         const mock = new MockAdapter(axios);
-        mock.onGet(`${URLS.IS_VERSION_COMPATIBLE()}`).reply(200);
         await login();
     });
 
