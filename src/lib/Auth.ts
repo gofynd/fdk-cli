@@ -61,16 +61,11 @@ export const startServer = async () => {
     return Auth.server;
 };
 
-async function checkVersionCompatibility() {
-    const response = await ThemeService.checkCompatibleVersion();
-}
-
 export default class Auth {
     static server = null;
     static isOrganizationChange = false;
     constructor() {}
     public static async login() {
-        await checkVersionCompatibility();
         Logger.info(
             chalk.green(
                 'Current env: ',
