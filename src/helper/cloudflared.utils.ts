@@ -8,6 +8,7 @@ async function startTunnel(opts) {
     Debug(`Starting cloudflared tunnel to ${url}`);
     const args = [
         ["--url", url],
+        ["--no-autoupdate", true],
         opts.verifyTLS ? void 0 : ["--no-tls-verify", ""]
     ].filter(Boolean);
     const tunnel = await startCloudflaredTunnel(Object.fromEntries(args));
