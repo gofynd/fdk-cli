@@ -18,13 +18,13 @@ import {
     reload,
 } from '../helper/serve.utils';
 import chalk from 'chalk';
-import ngrok from 'ngrok';
 import Theme from './Theme';
 import configurationService from './api/services/configuration.service';
 import inquirer from 'inquirer';
 import { exec } from 'child_process';
 import cheerio from 'cheerio';
 import chokidar from 'chokidar';
+import { v4 as uuidv4 } from 'uuid';
 import themeService from './api/services/theme.service';
 import { getPlatformUrls } from './api/services/url';
 
@@ -818,6 +818,7 @@ export default class ExtensionSection {
                             organisationId,
                             bundleName,
                             appliedTheme.companyType,
+                            framework
                         );
 
                     const { platform } = getPlatformUrls();
@@ -869,6 +870,7 @@ export default class ExtensionSection {
                             id: extensionSectionId,
                             assets: assetUrls,
                         };
+
                     } else {
                         const res = await ExtensionSection.buildExtensionCodeVue({
                             bundleName,
@@ -904,15 +906,38 @@ export default class ExtensionSection {
                         };
                     }
 
-                    console.log({ data })
+                    const sectionPreviewHash = await uuidv4();
 
-                    const encoded = encodeURI(JSON.stringify(data));
+                    const urls = await extensionService.previewExtensionBindings(
+                        extensionSectionId,
+                        organisationId,
+                        {
+                            application_id: applicationId,
+                            sectionPreviewHash,
+                            ...data,
+                        }
+                    );
 
-                    const previewURL = `${domain}?extensionHash=${encoded}`;
+                    const previewURL = `${domain}?section_preview_hash=${sectionPreviewHash}`;
 
                     console.log(`PREVIEW URL :\n\n ${previewURL}\n\n`);
+
+
+                    // Register a process termination listener here
+                    process.on('SIGINT', async function deleteRedisSession() {
+                        const data = await extensionService.deleteExtensionBindings(
+                            extensionSectionId,
+                            organisationId,
+                            {
+                                application_id: applicationId,
+                                sectionPreviewHash,
+                            }
+                        );
+                        Logger.info('Preview Session Closed');
+                        process.exit(0);
+                    })
                 } catch (error) {
-                    console.log(error);
+                    Logger.error(error);
                 }
             } else {
                 throw new CommandError(

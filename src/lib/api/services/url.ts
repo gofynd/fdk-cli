@@ -192,10 +192,22 @@ export const URLS = {
             `organization/${organization_id}/extension-section/${extension_id}/draft`,
         );
     },
-    GET_EXTENSION_SECTIONS: (extension_id: string, organization_id: string, binding_name: string, accountType: string) => {
+   PREVIEW_SECTIONS: (extension_id: string, organization_id) => {
         return urlJoin(
             THEME_URL(),
-            `organization/${organization_id}/extension-section/${extension_id}/${binding_name}?accountType=${accountType}`,
+            `organization/${organization_id}/extension-section/${extension_id}/preview`,
+        );
+    },
+   DELETE_SECTIONS: (extension_id: string, organization_id) => {
+        return urlJoin(
+            THEME_URL(),
+            `organization/${organization_id}/extension-section/${extension_id}/preview`,
+        );
+    },
+    GET_EXTENSION_SECTIONS: (extension_id: string, organization_id: string, binding_name: string, accountType: string, framework: string) => {
+        return urlJoin(
+            THEME_URL(),
+            `organization/${organization_id}/extension-section/${extension_id}/${binding_name}?accountType=${accountType}&type=${framework}`,
         );
     },
 

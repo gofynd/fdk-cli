@@ -187,6 +187,66 @@ export default {
         }
     },
 
+    previewExtensionBindings: async (
+        extensionId: string,
+        organisationId: string,
+        data : any
+    ) => {
+        try {
+
+            const axiosOption = Object.assign(
+                {},
+                { data },
+                {
+                    headers: {
+                        ...getCommonHeaderOptions().headers,
+                        'x-application-data': '{}',
+                        'x-user-data': '{}',
+                    }
+                },
+            );
+
+            const res = await ApiClient.post(
+                URLS.PREVIEW_SECTIONS(extensionId, organisationId),
+                axiosOption,
+            );
+
+            return res.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    deleteExtensionBindings: async (
+        extensionId: string,
+        organisationId: string,
+        data : any
+    ) => {
+        try {
+
+            const axiosOption = Object.assign(
+                {},
+                { data },
+                {
+                    headers: {
+                        ...getCommonHeaderOptions().headers,
+                        'x-application-data': '{}',
+                        'x-user-data': '{}',
+                    }
+                },
+            );
+
+            const res = await ApiClient.del(
+                URLS.DELETE_SECTIONS(extensionId, organisationId),
+                axiosOption,
+            );
+
+            return res.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
     draftExtensionBindings: async (
         extensionId: string,
         organisationId: string,
@@ -246,6 +306,7 @@ export default {
         organization_id: string,
         binding_name : string,
         accountType : string,
+        framework: string,
     ) => {
         try {
             const axiosOption = Object.assign(
@@ -261,7 +322,7 @@ export default {
             );
 
             const res = await ApiClient.get(
-                URLS.GET_EXTENSION_SECTIONS(extension_id, organization_id, binding_name, accountType),
+                URLS.GET_EXTENSION_SECTIONS(extension_id, organization_id, binding_name, accountType, framework),
                 axiosOption,
             );
 
