@@ -35,7 +35,7 @@ import ThemeService from './api/services/theme.service';
 import UploadService from './api/services/upload.service';
 import ExtensionService from './api/services/extension.service';
 import {
-    THEME_ENTRY_FILE,
+    DEV_VUE_THEME_ENTRY_FILE,
     build,
     devBuild,
     devReactBuild,
@@ -114,10 +114,8 @@ export default class Theme {
     public static async getThemeBundle(stats: MultiStats) {
         const fileList = stats.stats[0].toJson().assets.map(({ name }) => name);
         const outputFileName= fileList.find(file => file.startsWith('themeBundle') && file.endsWith('.js'));
-        
         const buildPath = path.join(process.cwd(), Theme.BUILD_FOLDER);
         const outputFilePath = path.resolve(buildPath, outputFileName);
-
         const bundle = Theme.evaluateBundle(outputFilePath);
 
         const parsed = await bundle({
@@ -350,6 +348,10 @@ export default class Theme {
             });
         config['application_id'] = selectedApplication;
         config['company_id'] = selectedCompany;
+        // config['application_id'] = "6672cdcc9399006687477a5c";
+        // config['company_id'] = 63;
+        console.log({config});
+        
         return config;
     }
 
@@ -610,7 +612,7 @@ export default class Theme {
                 spaces: 2,
             });
             const currentContext = getActiveContext();
-            await Theme.syncReactTheme(currentContext);
+            await Theme.syncReactTheme(currentContext, targetDirectory);
             var b5 = Box(
                 chalk.green.bold('DONE ') +
                     chalk.green.bold('Project ready\n') +
@@ -791,10 +793,7 @@ export default class Theme {
                     spaces: 2,
                 },
             );
-            if (
-                !fs.existsSync(path.join(process.cwd(), THEME_ENTRY_FILE)) &&
-                themeData.theme_type === THEME_TYPE.vue2
-            ) {
+            if (!fs.existsSync(path.join(process.cwd(), DEV_VUE_THEME_ENTRY_FILE)) && (themeData.theme_type === THEME_TYPE.vue2)) {
                 Logger.info('Restructuring folder structure');
                 let restructureSpinner = new Spinner(
                     'Restructuring folder structure',
@@ -822,7 +821,7 @@ export default class Theme {
         const currentContext = getActiveContext();
         switch (currentContext.theme_type) {
             case THEME_TYPE.react:
-                await Theme.syncReactTheme(currentContext);
+                await Theme.syncReactTheme(currentContext, undefined);
                 break;
             case THEME_TYPE.vue2:
                 await Theme.syncVueTheme(currentContext);
@@ -834,6 +833,7 @@ export default class Theme {
     };
     private static syncReactTheme = async (
         currentContext: ThemeContextInterface,
+        targetDirectory
     ) => {
         try {
             await Theme.ensureThemeTypeInPackageJson();
@@ -877,6 +877,7 @@ export default class Theme {
                 assetBasePath,
                 imageCdnUrl,
                 isHMREnabled: false,
+                targetDirectory
             });
 
             const parsed = await Theme.getThemeBundle(stats);
@@ -1680,20 +1681,22 @@ export default class Theme {
     };
 
     private static getImageCdnBaseUrl = async () => {
-        let imageCdnUrl = '';
         try {
-            let startData = {
-                file_name: 'test.jpg',
-                content_type: 'image/jpeg',
-                size: '1',
-            };
-            let startAssetData = (
-                await UploadService.startUpload(
-                    startData,
-                    'application-theme-images',
-                )
-            ).data;
-            return (imageCdnUrl = path.dirname(startAssetData.cdn.url));
+            const dummyFile = path.join(
+                __dirname,
+                '..',
+                '..',
+                'sample-upload.jpeg'
+            );
+
+            const response = await UploadService.uploadFile(
+                dummyFile,
+                'application-theme-images',
+                null,
+                'image/jpeg'
+            );
+
+            return path.dirname(response.complete.cdn.url);
         } catch (err) {
             Logger.error(err);
             throw new CommandError(
@@ -1704,20 +1707,23 @@ export default class Theme {
     };
 
     private static getAssetCdnBaseUrl = async () => {
-        let assetCdnUrl = '';
         try {
-            const startData = {
-                file_name: 'test.ttf',
-                content_type: 'font/ttf',
-                size: '10',
-            };
-            const startAssetData = (
-                await UploadService.startUpload(
-                    startData,
-                    'application-theme-assets',
-                )
-            ).data;
-            return (assetCdnUrl = path.dirname(startAssetData.cdn.url));
+            const dummyFile = path.join(
+                __dirname,
+                '..',
+                '..',
+                'sample-upload.js'
+            );
+
+            const response = await UploadService.uploadFile(
+                dummyFile,
+                'application-theme-assets',
+                null,
+                'application/javascript'
+            );
+
+            return path.dirname(response.complete.cdn.url);
+
         } catch (err) {
             throw new CommandError(
                 `Failed in getting assets CDN base url`,
@@ -1884,7 +1890,7 @@ export default class Theme {
                 path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS),
                 'application-theme-assets',
             );
-            const commonJsUrl = commonJsUrlRes.start.cdn.url;
+            const commonJsUrl = commonJsUrlRes.complete.cdn.url;
 
             Logger.info('Uploading umdJS');
             const umdMinAssets = glob.sync(
@@ -1921,9 +1927,9 @@ export default class Theme {
             });
             const cssUrls = await Promise.all(cssPromisesArr);
             return [
-                cssUrls.map((res) => res.start.cdn.url),
+                cssUrls.map((res) => res.complete.cdn.url),
                 commonJsUrl,
-                umdJsUrls.map((res) => res.start.cdn.url),
+                umdJsUrls.map((res) => res.complete.cdn.url),
             ];
         } catch (err) {
             throw new CommandError(
@@ -2528,7 +2534,7 @@ export default class Theme {
                 zipFilePath,
                 'application-theme-src',
             );
-            return res.start.cdn.url;
+            return res.complete.cdn.url;
         } catch (err) {
             throw new CommandError(
                 err.message || `Failed to upload src folder`,
