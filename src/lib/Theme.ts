@@ -114,7 +114,6 @@ export default class Theme {
     public static async getThemeBundle(stats: MultiStats) {
         const fileList = stats.stats[0].toJson().assets.map(({ name }) => name);
         const outputFileName= fileList.find(file => file.startsWith('themeBundle') && file.endsWith('.js'));
-        
         const buildPath = path.join(process.cwd(), Theme.BUILD_FOLDER);
         const outputFilePath = path.resolve(buildPath, outputFileName);
 
@@ -1684,20 +1683,22 @@ export default class Theme {
     };
 
     private static getImageCdnBaseUrl = async () => {
-        let imageCdnUrl = '';
         try {
-            let startData = {
-                file_name: 'test.jpg',
-                content_type: 'image/jpeg',
-                size: '1',
-            };
-            let startAssetData = (
-                await UploadService.startUpload(
-                    startData,
-                    'application-theme-images',
-                )
-            ).data;
-            return (imageCdnUrl = path.dirname(startAssetData.cdn.url));
+            const dummyFile = path.join(
+                __dirname,
+                '..',
+                '..',
+                'sample-upload.jpeg'
+            );
+
+            const response = await UploadService.uploadFile(
+                dummyFile,
+                'application-theme-images',
+                null,
+                'image/jpeg'
+            );
+
+            return path.dirname(response.complete.cdn.url);
         } catch (err) {
             Logger.error(err);
             throw new CommandError(
@@ -1708,20 +1709,23 @@ export default class Theme {
     };
 
     private static getAssetCdnBaseUrl = async () => {
-        let assetCdnUrl = '';
         try {
-            const startData = {
-                file_name: 'test.ttf',
-                content_type: 'font/ttf',
-                size: '10',
-            };
-            const startAssetData = (
-                await UploadService.startUpload(
-                    startData,
-                    'application-theme-assets',
-                )
-            ).data;
-            return (assetCdnUrl = path.dirname(startAssetData.cdn.url));
+            const dummyFile = path.join(
+                __dirname,
+                '..',
+                '..',
+                'sample-upload.js'
+            );
+
+            const response = await UploadService.uploadFile(
+                dummyFile,
+                'application-theme-assets',
+                null,
+                'application/javascript'
+            );
+
+            return path.dirname(response.complete.cdn.url);
+
         } catch (err) {
             throw new CommandError(
                 `Failed in getting assets CDN base url`,
@@ -1888,7 +1892,7 @@ export default class Theme {
                 path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS),
                 'application-theme-assets',
             );
-            const commonJsUrl = commonJsUrlRes.start.cdn.url;
+            const commonJsUrl = commonJsUrlRes.complete.cdn.url;
 
             Logger.info('Uploading umdJS');
             const umdMinAssets = glob.sync(
@@ -1925,9 +1929,9 @@ export default class Theme {
             });
             const cssUrls = await Promise.all(cssPromisesArr);
             return [
-                cssUrls.map((res) => res.start.cdn.url),
+                cssUrls.map((res) => res.complete.cdn.url),
                 commonJsUrl,
-                umdJsUrls.map((res) => res.start.cdn.url),
+                umdJsUrls.map((res) => res.complete.cdn.url),
             ];
         } catch (err) {
             throw new CommandError(
@@ -2532,7 +2536,7 @@ export default class Theme {
                 zipFilePath,
                 'application-theme-src',
             );
-            return res.start.cdn.url;
+            return res.complete.cdn.url;
         } catch (err) {
             throw new CommandError(
                 err.message || `Failed to upload src folder`,
