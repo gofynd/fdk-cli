@@ -35,7 +35,7 @@ import ThemeService from './api/services/theme.service';
 import UploadService from './api/services/upload.service';
 import ExtensionService from './api/services/extension.service';
 import {
-    THEME_ENTRY_FILE,
+    DEV_VUE_THEME_ENTRY_FILE,
     build,
     devBuild,
     devReactBuild,
@@ -116,7 +116,6 @@ export default class Theme {
         const outputFileName= fileList.find(file => file.startsWith('themeBundle') && file.endsWith('.js'));
         const buildPath = path.join(process.cwd(), Theme.BUILD_FOLDER);
         const outputFilePath = path.resolve(buildPath, outputFileName);
-
         const bundle = Theme.evaluateBundle(outputFilePath);
 
         const parsed = await bundle({
@@ -613,7 +612,7 @@ export default class Theme {
                 spaces: 2,
             });
             const currentContext = getActiveContext();
-            await Theme.syncReactTheme(currentContext);
+            await Theme.syncReactTheme(currentContext, targetDirectory);
             var b5 = Box(
                 chalk.green.bold('DONE ') +
                     chalk.green.bold('Project ready\n') +
@@ -794,10 +793,7 @@ export default class Theme {
                     spaces: 2,
                 },
             );
-            if (
-                !fs.existsSync(path.join(process.cwd(), THEME_ENTRY_FILE)) &&
-                themeData.theme_type === THEME_TYPE.vue2
-            ) {
+            if (!fs.existsSync(path.join(process.cwd(), DEV_VUE_THEME_ENTRY_FILE)) && (themeData.theme_type === THEME_TYPE.vue2)) {
                 Logger.info('Restructuring folder structure');
                 let restructureSpinner = new Spinner(
                     'Restructuring folder structure',
@@ -825,7 +821,7 @@ export default class Theme {
         const currentContext = getActiveContext();
         switch (currentContext.theme_type) {
             case THEME_TYPE.react:
-                await Theme.syncReactTheme(currentContext);
+                await Theme.syncReactTheme(currentContext, undefined);
                 break;
             case THEME_TYPE.vue2:
                 await Theme.syncVueTheme(currentContext);
@@ -837,6 +833,7 @@ export default class Theme {
     };
     private static syncReactTheme = async (
         currentContext: ThemeContextInterface,
+        targetDirectory
     ) => {
         try {
             await Theme.ensureThemeTypeInPackageJson();
@@ -880,6 +877,7 @@ export default class Theme {
                 assetBasePath,
                 imageCdnUrl,
                 isHMREnabled: false,
+                targetDirectory
             });
 
             const parsed = await Theme.getThemeBundle(stats);
