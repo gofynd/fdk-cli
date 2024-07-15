@@ -36,10 +36,12 @@ export const getApp = async () => {
             req.body.auth_token.expiry_time = expiryTimestamp;
             ConfigStore.set(CONFIG_KEYS.AUTH_TOKEN, req.body.auth_token);
             ConfigStore.set(CONFIG_KEYS.ORGANIZATION, req.body.organization);
+            ConfigStore.set(CONFIG_KEYS.ORGANIZATION_NAME, req.body.organization_name);
             Auth.stopSever();
             if (Auth.isOrganizationChange)
                 Logger.info('Organization changed successfully');
             else Logger.info('User logged in successfully');
+            Logger.info(`New Organization: ${req.body.organization} ${req.body.organization_name ? `(${req.body.organization_name})` : ''}`);
             res.status(200).json({ message: 'success' });
         } catch (err) {
             console.log(err);
@@ -80,6 +82,9 @@ export default class Auth {
         const isLoggedIn = await Auth.isAlreadyLoggedIn();
         await startServer();
         if (isLoggedIn) {
+            const organization_id = ConfigStore.get(CONFIG_KEYS.ORGANIZATION);
+            const organization_name = ConfigStore.get(CONFIG_KEYS.ORGANIZATION_NAME);
+            Logger.info(`Current logged in organization: ${organization_id} ${organization_name ? `(${organization_name})` : ''}`);
             const questions = [
                 {
                     type: 'list',
@@ -155,12 +160,13 @@ export default class Auth {
                 CONFIG_KEYS.AUTH_TOKEN,
             );
             const organization_id = ConfigStore.get(CONFIG_KEYS.ORGANIZATION);
+            const organization_name = ConfigStore.get(CONFIG_KEYS.ORGANIZATION_NAME);
             const activeEmail =
                 user.emails.find((e) => e.active && e.primary)?.email ||
                 'Not primary email set';
             Logger.info(`Name: ${user.first_name} ${user.last_name}`);
             Logger.info(`Email: ${activeEmail}`);
-            Logger.info(`Current organization: ${organization_id}`);
+            Logger.info(`Current organization: ${organization_id} ${organization_name ? `(${organization_name})` : ''}`);
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
