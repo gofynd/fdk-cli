@@ -2263,7 +2263,7 @@ export default class Theme {
                             customRoutes(ctTemplates[key].children, routerPath);
                         }
                     }else{
-                        throw new Error(`Invalid key found: ${key}`);
+                        throw new Error(`Found an invalid custom page URL: ${key}`);
                     }
                 }
             };
