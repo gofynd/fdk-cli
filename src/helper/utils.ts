@@ -357,3 +357,16 @@ export function findExportedVariable(
         return null;
     }
 }
+
+export function getOrganizationDisplayName(){
+    const organizationDetail = configStore.get(CONFIG_KEYS.ORGANIZATION_DETAIL);
+    if(!organizationDetail){
+        const organizationId = configStore.get(CONFIG_KEYS.ORGANIZATION);
+        if(!organizationId){
+            Debug("Organization details not found");
+            return null;
+        }
+        return `${organizationId}`;
+    }
+    return `${organizationDetail.name} (${organizationDetail._id})`;
+}

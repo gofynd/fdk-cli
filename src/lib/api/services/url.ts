@@ -2,7 +2,7 @@ import configStore, { CONFIG_KEYS } from '../../Config';
 import urlJoin from 'url-join';
 
 const apiVersion = configStore.get(CONFIG_KEYS.API_VERSION) || '1.0';
-const organization_id = configStore.get(CONFIG_KEYS.ORGANIZATION);
+const getOrganizationId = () => configStore.get(CONFIG_KEYS.ORGANIZATION);
 
 export const getBaseURL = () => {
     const currentEnv = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
@@ -44,13 +44,13 @@ export const URLS = {
     GET_APPLICATION_DETAILS: (company_id: number, application_id: string) => {
         return urlJoin(
             CONFIGURATION_URL(),
-            `/organization/${organization_id}/company/${company_id}/application/${application_id}`,
+            `/organization/${getOrganizationId()}/company/${company_id}/application/${application_id}`,
         );
     },
     GET_APPLICATION_LIST: (company_id: number) => {
         return urlJoin(
             MIXMASTER_URL('partner'),
-            `/organization/${organization_id}/company/${company_id}/application`,
+            `/organization/${getOrganizationId()}/company/${company_id}/application`,
         );
     },
 
@@ -58,13 +58,13 @@ export const URLS = {
     START_UPLOAD_FILE: (namespaces: string) => {
         return urlJoin(
             ASSET_URL(),
-            `/organization/${organization_id}/namespaces/${namespaces}/upload/start`,
+            `/organization/${getOrganizationId()}/namespaces/${namespaces}/upload/start`,
         );
     },
     COMPLETE_UPLOAD_FILE: (namespaces: string) => {
         return urlJoin(
             ASSET_URL(),
-            `/organization/${organization_id}/namespaces/${namespaces}/upload/complete`,
+            `/organization/${getOrganizationId()}/namespaces/${namespaces}/upload/complete`,
         );
     },
 
@@ -72,7 +72,7 @@ export const URLS = {
     CREATE_THEME: (company_id: number, application_id: string) => {
         return urlJoin(
             THEME_URL(),
-            `organization/${organization_id}/company/${company_id}/application/${application_id}`,
+            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}`,
         );
     },
     THEME_BY_ID: (
@@ -82,20 +82,20 @@ export const URLS = {
     ) => {
         return urlJoin(
             THEME_URL(),
-            `organization/${organization_id}/company/${company_id}/application/${application_id}/${theme_id}`,
+            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/${theme_id}`,
         );
     },
     GET_ALL_THEME: (company_id: number, application_id: string) => {
         return urlJoin(
             THEME_URL(),
-            `organization/${organization_id}/company/${company_id}/application/${application_id}/themes`,
+            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/themes`,
         );
     },
 
     GET_DEFAULT_THEME: (company_id: number, application_id: string) => {
         return urlJoin(
             THEME_URL(),
-            `organization/${organization_id}/company/${company_id}/application/${application_id}/default_theme`,
+            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/default_theme`,
         );
     },
 
@@ -108,7 +108,7 @@ export const URLS = {
     ) => {
         return urlJoin(
             THEME_URL(),
-            `organization/${organization_id}/company/${company_id}/application/${application_id}/${theme_id}/${page_value}`,
+            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/${theme_id}/${page_value}`,
         );
     },
 
@@ -119,28 +119,29 @@ export const URLS = {
     ) => {
         return urlJoin(
             THEME_URL(),
-            `organization/${organization_id}/company/${company_id}/application/${application_id}/page/${page_value}/system`,
+            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/page/${page_value}/system`,
         );
     },
 
     SETUP_COMPANY: (company_id: number) => {
         return urlJoin(
             MIXMASTER_URL('partner'),
-            `organization/${organization_id}/company/${company_id}/setup`,
+            `organization/${getOrganizationId()}/company/${company_id}/setup`,
         );
     },
 
+    // Extension
     REGISTER_EXTENSION_PARTNER: (): string => {
         return urlJoin(
             MIXMASTER_URL('partner'),
-            `organization/${organization_id}/extension`,
+            `organization/${getOrganizationId()}/extension`,
         );
     },
 
     GET_EXTENSION_DETAILS_PARTNERS: (extension_api_key: string): string => {
         return urlJoin(
             MIXMASTER_URL('partner'),
-            `organization/${organization_id}/extension/${extension_api_key}`,
+            `organization/${getOrganizationId()}/extension/${extension_api_key}`,
         );
     },
 
@@ -154,28 +155,36 @@ export const URLS = {
     UPDATE_EXTENSION_DETAILS_PARTNERS: (extension_api_key: string): string => {
         return urlJoin(
             MIXMASTER_URL('partner'),
-            `organization/${organization_id}/extension/${extension_api_key}`,
+            `organization/${getOrganizationId()}/extension/${extension_api_key}`,
         );
     },
 
     VALIDATE_ACCESS_TOKEN: (): string => {
         return urlJoin(
             MIXMASTER_URL('partner'),
-            `organization/${organization_id}/accesstoken/validate`,
+            `organization/${getOrganizationId()}/accesstoken/validate`,
         );
+    },
+
+    // Organization
+    GET_ORGANIZATION_DETAILS: () : string => {
+        return urlJoin(
+            MIXMASTER_URL('partner'),
+            `organization/${getOrganizationId()}`
+        )
     },
 
     // Preview URL
     GET_DEVELOPMENT_ACCOUNTS: (page_no: number, page_size: number): string => {
         return urlJoin(
             MIXMASTER_URL('partner'),
-            `/organization/${organization_id}/accounts?page_size=${page_size}&page_no=${page_no}`,
+            `/organization/${getOrganizationId()}/accounts?page_size=${page_size}&page_no=${page_no}`,
         );
     },
     GET_LIVE_ACCOUNTS: (page_no: number, page_size: number): string => {
         return urlJoin(
             MIXMASTER_URL('partner'),
-            `/organization/${organization_id}/accounts/access-request?page_size=${page_size}&page_no=${page_no}&request_status=accepted`,
+            `/organization/${getOrganizationId()}/accounts/access-request?page_size=${page_size}&page_no=${page_no}&request_status=accepted`,
         );
     },
 

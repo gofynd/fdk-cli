@@ -20,6 +20,7 @@ import { readFile } from '../helper/file.utils';
 import Spinner from '../helper/spinner';
 import CommandError, { ErrorCodes } from './CommandError';
 import Logger from './Logger';
+import { getOrganizationDisplayName } from '../helper/utils';
 
 export default class ExtensionPreviewURL {
     organizationInfo: Object;
@@ -122,7 +123,7 @@ export default class ExtensionPreviewURL {
         if (choices.length === 0) {
             Logger.info(
                 chalk.yellowBright(
-                    `You haven't created any development account in "${this.organizationInfo?.name}" organization.`,
+                    `You haven't created any development account in "${getOrganizationDisplayName()}" organization.`,
                 ),
             );
 
