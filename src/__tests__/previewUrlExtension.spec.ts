@@ -1,4 +1,5 @@
 import ngrok from 'ngrok';
+import untun from 'untun';
 import axios from 'axios';
 import { withoutErrorResponseInterceptorAxios } from '../lib/api/ApiClient';
 import rimraf from 'rimraf';
@@ -16,6 +17,7 @@ const TOKEN = 'mocktoken';
 const EXTENSION_KEY = 'mockextensionapikey';
 const ORGANIZATION_ID = 'mockorganizationid';
 const NGROK_TEST_URL = 'https://test_url.ngrok.io';
+const CLOUDFLARED_TEST_URL = 'https://das-multiple-licensed-eminem.trycloudflare.com';
 const COMPANY_ID = '1';
 const PORT = '3000';
 const COOKIE = 'mockcookies';
@@ -66,6 +68,10 @@ describe('Extension preview-url command', () => {
         // mock console.log
         winstonLoggerSpy = jest.spyOn(Logger, 'info');
         jest.spyOn(ngrok, 'connect').mockResolvedValue(NGROK_TEST_URL);
+        jest.spyOn(untun, 'startTunnel').mockResolvedValue({
+            getURL: () => new Promise(res => res(CLOUDFLARED_TEST_URL)),
+            close: () => new Promise(res => res())
+        });
 
         // mock axios
         mockAxios = new MockAdapter(axios);
@@ -115,7 +121,7 @@ describe('Extension preview-url command', () => {
         );
     });
 
-    it('should successfully return preview url', async () => {
+    it('should successfully return preview url using ngrok and 3 prompt should be asked', async () => {
         configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);
 
         const promptSpy = jest
@@ -131,9 +137,11 @@ describe('Extension preview-url command', () => {
             'preview-url',
             '-p',
             PORT,
+            '--use-tunnel',
+            'ngrok'
         ]);
 
-        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(NGROK_TEST_URL);
         expect(winstonLoggerSpy.mock.lastCall[0]).toContain(
             EXPECTED_PREVIEW_URL,
         );
@@ -144,8 +152,6 @@ describe('Extension preview-url command', () => {
         configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);
         configStore.set(CONFIG_KEYS.NGROK_AUTHTOKEN, AUTH_TOKEN);
         configStore.set(CONFIG_KEYS.PARTNER_ACCESS_TOKEN, TOKEN);
-
-        jest.spyOn(inquirer, 'prompt');
 
         await program.parseAsync([
             'ts-node',
@@ -158,9 +164,11 @@ describe('Extension preview-url command', () => {
             EXTENSION_KEY,
             '--company-id',
             COMPANY_ID,
+            '--use-tunnel',
+            'cloudflared'
         ]);
 
-        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(CLOUDFLARED_TEST_URL);
         expect(winstonLoggerSpy.mock.lastCall[0]).toContain(
             EXPECTED_PREVIEW_URL,
         );
@@ -169,7 +177,7 @@ describe('Extension preview-url command', () => {
     it('should prompt for ngrok url and return preview url', async () => {
         configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);
         configStore.set(CONFIG_KEYS.PARTNER_ACCESS_TOKEN, TOKEN);
-
+        
         jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({
             ngrok_authtoken: 'auth_token',
         });
@@ -185,9 +193,12 @@ describe('Extension preview-url command', () => {
             EXTENSION_KEY,
             '--company-id',
             COMPANY_ID,
+            '--use-tunnel',
+            'ngrok',
+            '--update-authtoken'
         ]);
 
-        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(NGROK_TEST_URL);
         expect(winstonLoggerSpy.mock.lastCall[0]).toContain(
             EXPECTED_PREVIEW_URL,
         );
@@ -202,7 +213,6 @@ describe('Extension preview-url command', () => {
         jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({
             ngrok_authtoken: 'auth_token',
         });
-
         await program.parseAsync([
             'ts-node',
             './src/fdk.ts',
@@ -214,7 +224,9 @@ describe('Extension preview-url command', () => {
             EXTENSION_KEY,
             '--company-id',
             COMPANY_ID,
-            '--update-authtoken',
+            '--use-tunnel',
+            'ngrok',
+            '--update-authtoken'
         ]);
 
         expect(winstonLoggerSpy.mock.lastCall[0]).toContain(EXPECTED_NGROK_URL);
@@ -244,7 +256,8 @@ describe('Extension preview-url command', () => {
             EXTENSION_KEY,
             '--company-id',
             COMPANY_ID,
-            '--update-authtoken',
+            '--use-tunnel',
+            'ngrok',
             '--access-token',
             TOKEN,
         ]);
@@ -281,8 +294,7 @@ describe('Extension preview-url command', () => {
                 '--api-key',
                 EXTENSION_KEY,
                 '--company-id',
-                COMPANY_ID,
-                '--update-authtoken',
+                COMPANY_ID
             ]);
         } catch (err) {
             expect(err.message).toBe(

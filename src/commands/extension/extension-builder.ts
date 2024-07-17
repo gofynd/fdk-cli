@@ -34,8 +34,9 @@ export default function extensionCommandBuilder() {
         )
         .option('--api-key <api-key>', 'Extension API Key')
         .option('--company-id <id>', 'Company ID')
-        .option('--use-tunnel <tunnel-tool>', 'Pass which tunneling tool you want to use')
         .option('--access-token <access-token>', 'Partner Access Token')
+        .option('--use-tunnel <tunnel-tool>', 'Pass which tunneling tool you want to use')
+        .option('--update-authtoken', 'When --use-tunnel is ngrok, you can pass this option to update ngrok auth token')
         .asyncAction(ExtensionPreviewURL.previewUrlExtensionHandler);
 
     const launch_url = new Command('launch-url').description(

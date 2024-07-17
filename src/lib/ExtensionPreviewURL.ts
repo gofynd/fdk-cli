@@ -40,6 +40,13 @@ export default class ExtensionPreviewURL {
                 );
             }
 
+            if(options.useTunnel !== "ngrok" && !!options.updateAuthtoken){
+                throw new CommandError(
+                    "--update-authtoken option is only allowed when using ngrok as a tunneling tool",
+                    ErrorCodes.INVALID_INPUT.code,
+                );
+            }
+
             if(options.useTunnel === "ngrok")
                 Debug(`Ngrok version: ${await ngrok.getVersion()}`);
             else
@@ -193,7 +200,7 @@ export default class ExtensionPreviewURL {
     }
 
     private async getNgrokAuthtoken() {
-        if (!configStore.get(CONFIG_KEYS.NGROK_AUTHTOKEN)) {
+        if (!configStore.get(CONFIG_KEYS.NGROK_AUTHTOKEN) || this.options.updateAuthtoken) {
             let authtoken = await this.promptNgrokAuthtoken();
             configStore.set(CONFIG_KEYS.NGROK_AUTHTOKEN, authtoken);
             return authtoken;
