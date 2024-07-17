@@ -126,12 +126,11 @@ export default class ExtensionPreviewURL {
                     `You haven't created any development account in "${getOrganizationDisplayName()}" organization.`,
                 ),
             );
-
+            const organizationId = configStore.get(CONFIG_KEYS.ORGANIZATION)
+            const createDevelopmentCompanyFormURL = organizationId ? urljoin(getPlatformUrls().partners, 'organizations', organizationId , 'accounts') : getPlatformUrls().partners;
             Logger.info(
                 chalk.yellowBright(
-                    `Please create a development account from ${
-                        getPlatformUrls().partners
-                    } and try again`,
+                    `Please create a development account from ${createDevelopmentCompanyFormURL} and try again`,
                 ),
             );
 
