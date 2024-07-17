@@ -417,6 +417,7 @@ fdk extension preview-url [options]
 | --api-key | Extension API key |
 | --access-token | Partner Access Token |
 | --use-tunnel | Pass which tunneling tool you want to use (Default: `cloudflared`) |
+| --update-authtoken | Pass this to update your ngrok authentication token |
 | --help    | Show help |
 | --verbose | enable debug mode |
 
@@ -435,6 +436,10 @@ By default, **cloudflared** will be used as the tunneling tool. To use a differe
 
 ```sh
 fdk extension preview-url -p 3000 --use-tunnel ngrok
+```
+Pass `--update-authtoken` flag to update your ngrok authentication token.
+```sh
+fdk extension preview-url -p 3000 --use-tunnel ngrok --update-authtoken
 ```
 
 ___
