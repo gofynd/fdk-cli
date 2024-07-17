@@ -250,6 +250,7 @@ export default class ExtensionPreviewURL {
         const tunnel = await startTunnel({
             protocol: 'http',
             port: this.options.port,
+            acceptCloudflareNotice: true
         });
         return await tunnel.getURL();
     }
