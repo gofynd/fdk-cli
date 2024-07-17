@@ -7,6 +7,7 @@ import execa from 'execa';
 import rimraf from 'rimraf';
 import which from 'which';
 
+import { getPlatformUrls } from './api/services/url';
 import Spinner from '../helper/spinner';
 import CommandError, { ErrorCodes } from './CommandError';
 import ExtensionService, {
@@ -28,13 +29,14 @@ import {
     installPythonDependencies,
 } from '../helper/utils';
 import Logger from './Logger';
+import urljoin from 'url-join';
 
-export const NODE_VUE = 'Node + Vue.js';
-export const NODE_REACT = 'Node + React.js';
-export const PYTHON_VUE = 'Python + Vue.js';
-export const PYTHON_REACT = 'Python + React.js';
-export const JAVA_VUE = 'Java + Vue.js';
-export const JAVA_REACT = 'Java + React.js';
+export const NODE_VUE = 'Node + Vue.js + Redis';
+export const NODE_REACT = 'Node + React.js + Redis';
+export const PYTHON_VUE = 'Python + Vue.js + Redis';
+export const PYTHON_REACT = 'Python + React.js + Redis';
+export const JAVA_VUE = 'Java + Vue.js + Redis';
+export const JAVA_REACT = 'Java + React.js + Redis';
 
 export const PROJECT_REPOS = {
     [NODE_VUE]: 'https://github.com/gofynd/example-extension-javascript.git',
@@ -237,12 +239,14 @@ export default class Extension {
             } catch (error) {
                 spinner.fail();
             }
-
+            const organizationId = ConfigStore.get(CONFIG_KEYS.ORGANIZATION)
+            const createDevelopmentCompanyFormURL = organizationId ? urljoin(getPlatformUrls().partners, 'organizations', organizationId , 'extensions', 'overview', answers.extension_api_key) : getPlatformUrls().partners;
             let text =
                 chalk.green.bold('DONE ') +
                 chalk.green.bold('Project ready\n') +
                 chalk.yellowBright.bold('NOTE: ') +
-                chalk.green.bold(`cd ${targetDir} to continue...`);
+                chalk.green.bold(`cd "${targetDir}" to continue...\n`) +
+                chalk.green.bold(`To manage your extension visit: ${createDevelopmentCompanyFormURL}`);
 
             Logger.info(
                 boxen(text, { padding: 1, borderColor: 'greenBright' }),
@@ -330,7 +334,7 @@ export default class Extension {
                     ],
                     default: NODE_VUE,
                     name: 'project_type',
-                    message: 'Development Language :',
+                    message: 'Template :',
                     validate: validateEmpty,
                 },
                 {
@@ -369,7 +373,7 @@ export default class Extension {
     private static checkFolderAndGitExists(folderPath: string) {
         if (fs.existsSync(folderPath)) {
             throw new CommandError(
-                `Folder at "${path}" already exists. Please choose another name or directory.`,
+                `Directory "${folderPath}" is already exists in current directory. Please choose another name or directory.`,
             );
         }
         if (fs.existsSync(path.join(folderPath, '/.git'))) {
@@ -442,7 +446,7 @@ export default class Extension {
                     ],
                     default: NODE_VUE,
                     name: 'project_type',
-                    message: 'Development Language :',
+                    message: 'Template :',
                     validate: validateEmpty,
                 },
                 {
