@@ -39,21 +39,21 @@ export const getApp = async () => {
             req.body.auth_token.expiry_time = expiryTimestamp;
             ConfigStore.set(CONFIG_KEYS.AUTH_TOKEN, req.body.auth_token);
             ConfigStore.set(CONFIG_KEYS.ORGANIZATION, req.body.organization);
-            const organization_detail = await OrganizationService.getOrganizationDetails();
-            ConfigStore.set(CONFIG_KEYS.ORGANIZATION_DETAIL, organization_detail.data);
+            const organization_detail =
+                await OrganizationService.getOrganizationDetails();
+            ConfigStore.set(
+                CONFIG_KEYS.ORGANIZATION_DETAIL,
+                organization_detail.data,
+            );
             Auth.stopSever();
-            if (Auth.isOrganizationChange){
-                Logger.info('Organization changed successfully');
-                Logger.info(`New Organization: ${getOrganizationDisplayName()}`);
-            }
-            else {
-                Logger.info(`Logged in successfully in organization ${getOrganizationDisplayName()}`);
-            }
+            Logger.info(
+                `Logged in successfully in organization ${getOrganizationDisplayName()}`,
+            );
             res.status(200).json({ message: 'success' });
         } catch (err) {
             Debug(err);
             Auth.stopSever();
-            res.status(500).json({ message: 'failed'})
+            res.status(500).json({ message: 'failed' });
         }
     });
 
@@ -91,7 +91,9 @@ export default class Auth {
         const isLoggedIn = await Auth.isAlreadyLoggedIn();
         await startServer();
         if (isLoggedIn) {
-            Logger.info(`Current logged in organization: ${getOrganizationDisplayName()}`);
+            Logger.info(
+                `Current logged in organization: ${getOrganizationDisplayName()}`,
+            );
             const questions = [
                 {
                     type: 'list',
@@ -171,7 +173,9 @@ export default class Auth {
                 'Not primary email set';
             Logger.info(`Name: ${user.first_name} ${user.last_name}`);
             Logger.info(`Email: ${activeEmail}`);
-            Logger.info(`Current organization: ${getOrganizationDisplayName()}`);
+            Logger.info(
+                `Current organization: ${getOrganizationDisplayName()}`,
+            );
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
