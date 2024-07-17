@@ -3,6 +3,8 @@ import chalk from 'chalk';
 import boxen from 'boxen';
 import urljoin from 'url-join';
 import inquirer from 'inquirer';
+import path from 'path';
+import fs from 'fs';
 
 import Debug from './Debug';
 import { getPlatformUrls } from './api/services/url';
@@ -14,6 +16,7 @@ import {
     Object,
     validateEmpty,
 } from '../helper/extension_utils';
+import { readFile } from '../helper/file.utils';
 import Spinner from '../helper/spinner';
 import CommandError, { ErrorCodes } from './CommandError';
 import Logger from './Logger';
@@ -186,20 +189,57 @@ export default class ExtensionPreviewURL {
 
     private async promptExtensionApiKey(): Promise<string> {
         let extension_api_key: string;
-        try {
-            let answers = await inquirer.prompt([
-                {
-                    type: 'input',
-                    name: 'extension_api_key',
-                    message: 'Enter Extension API Key :',
-                    validate: validateEmpty,
-                },
-            ]);
-            extension_api_key = answers.extension_api_key;
-        } catch (error) {
-            throw new CommandError(error.message);
+        const apiKeyFromEnv = this.getExtensionAPIKeyFromENV();
+        if(apiKeyFromEnv){
+            Logger.info(`Using Extension API key from environment : ${apiKeyFromEnv}`);
+            extension_api_key = apiKeyFromEnv
+        }
+        else{
+            try {
+                let answers = await inquirer.prompt([
+                    {
+                        type: 'input',
+                        name: 'extension_api_key',
+                        message: 'Enter Extension API Key :',
+                        validate: validateEmpty,
+                    },
+                ]);
+                extension_api_key = answers.extension_api_key;
+            } catch (error) {
+                throw new CommandError(error.message);
+            }
         }
         return extension_api_key;
+    }
+
+    public getExtensionAPIKeyFromENV(){
+        let java_env_file_path = path.join(
+            'src',
+            'main',
+            'resources',
+            'application.yml',
+        );
+
+        if (fs.existsSync('./.env')) {
+            let envData = readFile('./.env');
+            const keyMatchRegex = new RegExp(`^\\s*EXTENSION_API_KEY\\s*=\\s*(?:'([^']*)'|"([^"]*)"|([^'"\s]+))`, 'm')
+            const match = keyMatchRegex.exec(envData);
+            if(match){
+                const value = (match[1] || match[2] || match[3]).trim();
+                return value === '' ? null : value;
+            }
+        } else if (fs.existsSync(java_env_file_path)) {
+            let envData = readFile(java_env_file_path);
+            const keyMatchRegex = new RegExp(`^\\s*api_key\\s*:\\s*(?:'([^']*)'|"([^"]*)"|([^'"\s]+))`, 'm')
+            const match = keyMatchRegex.exec(envData);
+            if(match){
+                const value = (match[1] || match[2] || match[3]).trim();
+                return value === '' ? null : value;
+            }
+        } else {
+            return null;
+        }
+        return null;
     }
 
     private async promptDevelopmentCompany(choices): Promise<number> {

@@ -42,10 +42,13 @@ export const getApp = async () => {
             const organization_detail = await OrganizationService.getOrganizationDetails();
             ConfigStore.set(CONFIG_KEYS.ORGANIZATION_DETAIL, organization_detail.data);
             Auth.stopSever();
-            if (Auth.isOrganizationChange)
+            if (Auth.isOrganizationChange){
                 Logger.info('Organization changed successfully');
-            else Logger.info('User logged in successfully');
-            Logger.info(`New Organization: ${getOrganizationDisplayName()}`);
+                Logger.info(`New Organization: ${getOrganizationDisplayName()}`);
+            }
+            else {
+                Logger.info(`Logged in successfully in organization ${getOrganizationDisplayName()}`);
+            }
             res.status(200).json({ message: 'success' });
         } catch (err) {
             Debug(err);

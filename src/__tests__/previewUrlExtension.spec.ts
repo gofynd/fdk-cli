@@ -229,7 +229,7 @@ describe('Extension preview-url command', () => {
         configStore.set(CONFIG_KEYS.NGROK_AUTHTOKEN, AUTH_TOKEN);
         mockCustomAxios
             .onPatch(`${URLS.UPDATE_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY)}`)
-            .reply(404, {});
+            .reply(404, {message: "not found"});
         jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({
             ngrok_authtoken: 'auth_token',
         });
@@ -258,7 +258,7 @@ describe('Extension preview-url command', () => {
     it('Should throw an error for partner access token for lower versions than v1.9.2 to update base url of extension', async () => {
         mockAxios
             .onPatch(`${URLS.UPDATE_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY)}`)
-            .reply(404, {});
+            .reply(404, {message: "not found"});
         configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);
         configStore.set(CONFIG_KEYS.NGROK_AUTHTOKEN, AUTH_TOKEN);
 
