@@ -33,6 +33,7 @@ const deleteAvailablePage = require('./fixtures/deleteAvailablePage.json');
 const updateAllAvailablePageData = require('./fixtures/updateAllAvailablePage.json');
 const appList = require('./fixtures/applicationList.json');
 const data = require('./fixtures/email-login.json');
+const organizationData = require("./fixtures/organizationData.json")
 import { createDirectory } from '../helper/file.utils';
 import { init } from '../fdk';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
@@ -137,6 +138,7 @@ describe('Theme Commands', () => {
         const mockInstance = new MockAdapter(
             uninterceptedApiClient.axiosInstance,
         );
+        configStore.set(CONFIG_KEYS.ORGANIZATION, organizationData._id)
         mock.onGet(`${URLS.IS_VERSION_COMPATIBLE()}`).reply(200);
         mock.onGet(
             `${URLS.GET_APPLICATION_DETAILS(
@@ -317,6 +319,10 @@ describe('Theme Commands', () => {
                 appConfig.application_id,
             )}`,
         ).reply(200, { name: 'Emerge' });
+
+        
+        mock.onGet(`${URLS.GET_ORGANIZATION_DETAILS()}`).reply(200, organizationData);
+        configStore.delete(CONFIG_KEYS.ORGANIZATION)
 
         // user login
         configStore.set(CONFIG_KEYS.USER, data.user);

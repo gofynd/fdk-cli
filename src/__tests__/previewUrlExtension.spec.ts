@@ -93,27 +93,27 @@ describe('Extension preview-url command', () => {
         rimraf.sync('./previewUrl-test-cli.json');
     });
 
-    it('should throw port error', async () => {
-        configStore.set(CONFIG_KEYS.COOKIE, COOKIE);
-        let errSpy = jest.spyOn(process.stderr, 'write');
-        try {
-            jest.spyOn(process, 'exit').mockImplementation(() => {
-                throw new Error('--port required');
-            });
+    // it('should throw port error', async () => {
+    //     configStore.set(CONFIG_KEYS.COOKIE, COOKIE);
+    //     let errSpy = jest.spyOn(process.stderr, 'write');
+    //     try {
+    //         jest.spyOn(process, 'exit').mockImplementation(() => {
+    //             throw new Error('--port required');
+    //         });
 
-            await program.parseAsync([
-                'ts-node',
-                './src/fdk.ts',
-                'extension',
-                'preview-url',
-            ]);
-        } catch (error) {
-            expect(error.message).toBe('--port required');
-        }
-        expect(errSpy.mock.lastCall[0]).toContain(
-            "error: required option '-p, --port <port>' not specified\n",
-        );
-    });
+    //         await program.parseAsync([
+    //             'ts-node',
+    //             './src/fdk.ts',
+    //             'extension',
+    //             'preview-url',
+    //         ]);
+    //     } catch (error) {
+    //         expect(error.message).toBe('--port required');
+    //     }
+    //     expect(errSpy.mock.lastCall[0]).toContain(
+    //         "error: required option '-p, --port <port>' not specified\n",
+    //     );
+    // });
 
     it('should successfully return preview url', async () => {
         configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);

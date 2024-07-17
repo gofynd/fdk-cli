@@ -5,6 +5,7 @@ import mockFunction from './helper';
 import { setEnv } from './helper';
 import { init } from '../fdk';
 const tokenData = require('./fixtures/partnertoken.json');
+const organizationData = require("./fixtures/organizationData.json")
 const request = require('supertest');
 import { startServer, getApp } from '../lib/Auth';
 import { URLS } from '../lib/api/services/url';
@@ -52,7 +53,10 @@ describe('Auth Commands', () => {
         setEnv();
         program = await init('fdk');
         const mock = new MockAdapter(axios);
+        configStore.set(CONFIG_KEYS.ORGANIZATION, organizationData._id)
         mock.onGet(`${URLS.IS_VERSION_COMPATIBLE()}`).reply(200);
+        mock.onGet(`${URLS.GET_ORGANIZATION_DETAILS()}`).reply(200, organizationData);
+        configStore.delete(CONFIG_KEYS.ORGANIZATION)
         await login();
     });
 
