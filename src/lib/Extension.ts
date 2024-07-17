@@ -29,12 +29,12 @@ import {
 } from '../helper/utils';
 import Logger from './Logger';
 
-export const NODE_VUE = 'Node + Vue.js';
-export const NODE_REACT = 'Node + React.js';
-export const PYTHON_VUE = 'Python + Vue.js';
-export const PYTHON_REACT = 'Python + React.js';
-export const JAVA_VUE = 'Java + Vue.js';
-export const JAVA_REACT = 'Java + React.js';
+export const NODE_VUE = 'Node + Vue.js + Redis';
+export const NODE_REACT = 'Node + React.js + Redis';
+export const PYTHON_VUE = 'Python + Vue.js + Redis';
+export const PYTHON_REACT = 'Python + React.js + Redis';
+export const JAVA_VUE = 'Java + Vue.js + Redis';
+export const JAVA_REACT = 'Java + React.js + Redis';
 
 export const PROJECT_REPOS = {
     [NODE_VUE]: 'https://github.com/gofynd/example-extension-javascript.git',
@@ -330,7 +330,7 @@ export default class Extension {
                     ],
                     default: NODE_VUE,
                     name: 'project_type',
-                    message: 'Development Language :',
+                    message: 'Template :',
                     validate: validateEmpty,
                 },
                 {
