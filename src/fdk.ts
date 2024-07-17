@@ -126,17 +126,17 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
             const major = versionChange === 'major';
             const color = major ? 'red' : 'green';
 
-            const logMessage = `There is a new version of ${
-                packageJSON.name
-            } available (${latest}).
-You are currently using ${packageJSON.name} ${packageJSON.version}.
-Install fdk-cli globally using the package manager of your choice.
+            const logMessage = `A new version ${latest} is available!.
+You have version ${packageJSON.version}.
+Please update to the latest version.
 ${
     major
         ? `\nNote: You need to update \`${packageJSON.name}\` first inorder to use it.`
         : ''
 }
-Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
+
+Run the following command to upgrade:
+\`npm install -g ${packageJSON.name}\``;
 
             if (
                 allowed_update_version_types.includes(versionChange) &&
