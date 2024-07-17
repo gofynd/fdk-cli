@@ -19,6 +19,8 @@ import Spinner from '../helper/spinner';
 import CommandError, { ErrorCodes } from './CommandError';
 import Logger from './Logger';
 
+const SUPPORTED_TOOL = ["ngrok", "cloudflared"];
+
 export default class ExtensionPreviewURL {
     organizationInfo: Object;
     publicTunnelURL: string;
@@ -31,10 +33,17 @@ export default class ExtensionPreviewURL {
         try {
             let partner_access_token = getPartnerAccessToken();
 
-            if(options.updateNgrokAuthtoken || options.useNgrok)
-                Debug(`Ngrok version: ${await ngrok.getVersion()}`);
+            if(!!options.useTunnel && !SUPPORTED_TOOL.includes(options.useTunnel)){
+                throw new CommandError(
+                    "Tunneling tool specified is invalid",
+                    ErrorCodes.INVALID_INPUT.code,
+                );
+            }
 
-            // Debug(`Untun(Cloudflare Quick Tunnel package) version: ${untun.meta.version}`);
+            if(options.useTunnel === "ngrok")
+                Debug(`Ngrok version: ${await ngrok.getVersion()}`);
+            else
+                Debug(`Using cloudflared for tunneling.`);
 
             // initialize class instance
             const extension = new ExtensionPreviewURL();
@@ -52,9 +61,9 @@ export default class ExtensionPreviewURL {
             }
 
             // start tunnel
-            if(options.updateNgrokAuthtoken || options.useNgrok){
+            if(options.useTunnel === "ngrok"){
                 // start Ngrok tunnel
-                let authtoken = await extension.getAuthtoken();
+                let authtoken = await extension.getNgrokAuthtoken();
                 let spinner = new Spinner('Starting Ngrok tunnel');
                 try {
                     spinner.start();
@@ -70,6 +79,7 @@ export default class ExtensionPreviewURL {
                     );
                 }
             } else {
+                // start Cloudflared tunnel
                 let spinner = new Spinner('Starting tunnel');
                 try {
                     spinner.start();
@@ -182,11 +192,8 @@ export default class ExtensionPreviewURL {
         });
     }
 
-    private async getAuthtoken() {
-        if (
-            !configStore.get(CONFIG_KEYS.NGROK_AUTHTOKEN) ||
-            this.options.updateNgrokAuthtoken
-        ) {
+    private async getNgrokAuthtoken() {
+        if (!configStore.get(CONFIG_KEYS.NGROK_AUTHTOKEN)) {
             let authtoken = await this.promptNgrokAuthtoken();
             configStore.set(CONFIG_KEYS.NGROK_AUTHTOKEN, authtoken);
             return authtoken;
