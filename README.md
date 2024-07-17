@@ -12,7 +12,7 @@
 
 Fynd development Kit (FDK CLI) is a cli tool developed by Fynd to create and update themes, extensions and various other components of the [Fynd Platform](https://platform.fynd.com/).
 ### Quick Links
-| [Fynd Platform](https://platform.fynd.com/) | [Fynd Partners](https://partners.fynd.com/) | [Documentation](https://documentation.fynd.com/) | [Other Projects](#other-fynd-projects) | [Contributing](CONTRIBUTING.md) | 
+| [Fynd Platform](https://platform.fynd.com/) | [Fynd Partners](https://partners.fynd.com/) | [Partners Documentation](https://partners.fynd.com/help) | [Platform Documentation](https://platform.fynd.com/help) | [Other Projects](#other-fynd-projects) | [Contributing](CONTRIBUTING.md) | 
 
 # Prerequisites
 
@@ -42,7 +42,7 @@ To see the available extension commands, enter:
 ```sh
 fdk extension
 ```
-See the [Command overview](#commands-overview) for a listing of all available commands, or the [Command reference](#commands-reference) for syntax details and usage examples of the commands. 
+See the the [Command reference](#commands-reference) for syntax details and usage examples of the commands. 
 
 
 
