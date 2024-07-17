@@ -121,16 +121,11 @@ export default class ExtensionPreviewURL {
         });
 
         if (choices.length === 0) {
-            Logger.info(
-                chalk.yellowBright(
-                    `You haven't created any development account in "${getOrganizationDisplayName()}" organization.`,
-                ),
-            );
             const organizationId = configStore.get(CONFIG_KEYS.ORGANIZATION)
             const createDevelopmentCompanyFormURL = organizationId ? urljoin(getPlatformUrls().partners, 'organizations', organizationId , 'accounts') : getPlatformUrls().partners;
             Logger.info(
                 chalk.yellowBright(
-                    `Please create a development account from ${createDevelopmentCompanyFormURL} and try again`,
+                    `You don't have development account under organization ${getOrganizationDisplayName()}, You can create development account from ${createDevelopmentCompanyFormURL} and try again.`
                 ),
             );
 
