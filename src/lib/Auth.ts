@@ -171,7 +171,6 @@ export default class Auth {
             }\nEmail: ${activeEmail}\nOrganization: ${getOrganizationDisplayName()}`;
             console.log(
                 boxen(text, {
-                    title: 'info',
                     padding: 1,
                     borderColor: 'greenBright',
                 }),
