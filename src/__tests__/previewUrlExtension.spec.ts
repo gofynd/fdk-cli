@@ -1,4 +1,4 @@
-import ngrok from 'ngrok';
+import ngrok, { Listener } from '@ngrok/ngrok';
 import axios from 'axios';
 import { withoutErrorResponseInterceptorAxios } from '../lib/api/ApiClient';
 import rimraf from 'rimraf';
@@ -65,7 +65,11 @@ describe('Extension preview-url command', () => {
 
         // mock console.log
         winstonLoggerSpy = jest.spyOn(Logger, 'info');
-        jest.spyOn(ngrok, 'connect').mockResolvedValue(NGROK_TEST_URL);
+        
+        const mockListener = {
+            url: jest.fn().mockReturnValue(NGROK_TEST_URL),
+        }
+        jest.spyOn(ngrok, 'connect').mockResolvedValue(mockListener as unknown as Listener);
 
         // mock axios
         mockAxios = new MockAdapter(axios);

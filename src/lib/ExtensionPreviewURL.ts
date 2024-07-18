@@ -1,4 +1,4 @@
-import ngrok from 'ngrok';
+import ngrok from '@ngrok/ngrok';
 import chalk from 'chalk';
 import boxen from 'boxen';
 import urljoin from 'url-join';
@@ -22,6 +22,9 @@ import CommandError, { ErrorCodes } from './CommandError';
 import Logger from './Logger';
 import { getOrganizationDisplayName } from '../helper/utils';
 
+const packageJson = require('./../../package.json');
+const ngrokPackageVersion = packageJson.dependencies['@ngrok/ngrok'];
+
 export default class ExtensionPreviewURL {
     organizationInfo: Object;
     publicNgrokURL: string;
@@ -33,7 +36,7 @@ export default class ExtensionPreviewURL {
         try {
             let partner_access_token = getPartnerAccessToken();
 
-            Debug(`Ngrok version: ${await ngrok.getVersion()}`);
+            Debug(`Ngrok version: ${ngrokPackageVersion}`);
 
             // initialize class instance
             const extension = new ExtensionPreviewURL();
@@ -55,14 +58,24 @@ export default class ExtensionPreviewURL {
             let spinner = new Spinner('Starting Ngrok tunnel');
             try {
                 spinner.start();
-                extension.publicNgrokURL =
-                    await extension.startTunnel(authtoken);
+                const ngrokListener : ngrok.Listener = await extension.startTunnel(authtoken);
+                extension.publicNgrokURL = ngrokListener.url();
+                setInterval(() => {}, 10000);
+                process.on('SIGINT', async () => {
+                    Logger.info('Stopping Ngrok tunnel...');
+                    await ngrok.disconnect();
+                    process.exit();
+                  });
                 spinner.succeed();
             } catch (error) {
                 spinner.fail();
                 configStore.delete(CONFIG_KEYS.NGROK_AUTHTOKEN);
+                let errorMessage = null;
+                if(error.message || error.errorCode){
+                    errorMessage = error.errorCode + " - " + error.code + "\n" + error.message;
+                }
                 throw new CommandError(
-                    ErrorCodes.NGROK_CONNECTION_ISSUE.message,
+                    errorMessage || ErrorCodes.NGROK_CONNECTION_ISSUE.message,
                     ErrorCodes.NGROK_CONNECTION_ISSUE.code,
                 );
             }
