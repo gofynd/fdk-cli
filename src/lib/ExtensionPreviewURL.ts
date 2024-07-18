@@ -25,6 +25,8 @@ import { getOrganizationDisplayName } from '../helper/utils';
 const packageJson = require('./../../package.json');
 const ngrokPackageVersion = packageJson.dependencies['@ngrok/ngrok'];
 
+export let interval;
+
 export default class ExtensionPreviewURL {
     organizationInfo: Object;
     publicNgrokURL: string;
@@ -61,9 +63,10 @@ export default class ExtensionPreviewURL {
                 const ngrokListener: ngrok.Listener =
                     await extension.startTunnel(authtoken);
                 extension.publicNgrokURL = ngrokListener.url();
-                setInterval(() => {}, 10000);
+                interval = setInterval(() => {}, 900);
                 process.on('SIGINT', async () => {
                     Logger.info('Stopping Ngrok tunnel...');
+                    clearInterval(interval);
                     await ngrok.disconnect();
                     process.exit();
                 });

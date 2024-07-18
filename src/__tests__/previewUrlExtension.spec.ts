@@ -29,6 +29,8 @@ const EXPECTED_NGROK_URL = 'https://test_url.ngrok.io';
 let program: CommanderStatic;
 let winstonLoggerSpy: jest.SpyInstance<any>;
 
+import { interval } from './../lib/ExtensionPreviewURL'
+
 jest.mock('configstore', () => {
     const Store =
         jest.requireActual<typeof import('configstore')>('configstore');
@@ -95,6 +97,7 @@ describe('Extension preview-url command', () => {
     afterEach(async () => {
         // remove test config store
         rimraf.sync('./previewUrl-test-cli.json');
+        clearInterval(interval) 
     });
 
     // it('should throw port error', async () => {
