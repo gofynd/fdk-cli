@@ -77,11 +77,6 @@ export default class ExtensionLaunchURL {
                     Extension.updateExtensionEnvValue(launch_url);
 
                 spinner.succeed();
-                console.log(
-                    chalk.greenBright(
-                        `Extension Launch url updated successfully on Partners Panel`,
-                    ),
-                );
                 if (manualUpdateRequired) {
                     console.log(
                         chalk.blueBright(

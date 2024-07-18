@@ -98,20 +98,11 @@ export default class ExtensionPreviewURL {
 
             Logger.info(
                 boxen(
-                    chalk.bold.black(
-                        `NGROK URL: ${extension.publicNgrokURL}\nPREVIEW URL: ${previewURL}`,
+                    chalk.bold.green(
+                        `Ngrok URL: ${extension.publicNgrokURL}\nExtension preview URL: ${previewURL}`,
                     ),
                     {
-                        borderStyle: {
-                            topLeft: ' ',
-                            topRight: ' ',
-                            bottomLeft: ' ',
-                            bottomRight: ' ',
-                            horizontal: ' ',
-                            vertical: ' ',
-                        },
                         padding: 2,
-                        backgroundColor: 'greenBright',
                         textAlignment: 'center',
                     },
                 ),
