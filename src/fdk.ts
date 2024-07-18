@@ -247,6 +247,11 @@ Run the following command to upgrade:
                 Sentry.captureException(err);
                 Logger.error(err);
             }
+            let parent = args[1].parent;
+            while(parent.parent) parent = parent.parent;
+            if(!parent._optionValues.debug){
+                Logger.info(`You can pass ${chalk.yellowBright('--debug')} flag to get detailed logs`)
+            }
             Debug(err);
             process.exit(1);
         }
@@ -277,7 +282,7 @@ export async function init(programName: string) {
 
     //register commands with commander instance
     registerCommands(program);
-    //set API versios
+    //set API version
     configStore.set(CONFIG_KEYS.API_VERSION, '1.0');
     // set default environment
     const current_env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
