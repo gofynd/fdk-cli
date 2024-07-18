@@ -45,7 +45,10 @@ export default class ExtensionLaunchURL {
                         { base_url: launch_url },
                     );
                 } catch (err) {
-                    if (err.response.status === 404 && err?.response?.data?.message === "not found") {
+                    if (
+                        err.response.status === 404 &&
+                        err?.response?.data?.message === 'not found'
+                    ) {
                         if (!partner_access_token) {
                             spinner.fail();
                             throw new CommandError(
@@ -63,7 +66,10 @@ export default class ExtensionLaunchURL {
                             );
                         }
                     } else {
-                        throw new CommandError(err?.response?.data?.message || 'Failed updating Launch Url');
+                        throw new CommandError(
+                            err?.response?.data?.message ||
+                                'Failed updating Launch Url',
+                        );
                     }
                 }
 
@@ -73,15 +79,16 @@ export default class ExtensionLaunchURL {
                 spinner.succeed();
                 console.log(
                     chalk.greenBright(
-                        `Extension Launch url set successfully on Partners Panel`,
+                        `Extension Launch url updated successfully on Partners Panel`,
                     ),
                 );
-                if(manualUpdateRequired){
+                if (manualUpdateRequired) {
                     console.log(
-                        chalk.blueBright('\nPlease update extension launch url in your code.')
-                    )
+                        chalk.blueBright(
+                            '\nPlease update extension launch url in your code.',
+                        ),
+                    );
                 }
-                
             } catch (error) {
                 spinner.fail();
                 throw new CommandError(error.message);

@@ -4,6 +4,7 @@ import inquirer from 'inquirer';
 import ConfigStore, { CONFIG_KEYS } from './Config';
 import { ALLOWD_ENV } from '../helper/constants';
 import open from 'open';
+import boxen from 'boxen';
 import express from 'express';
 var cors = require('cors');
 const port = 7071;
@@ -82,12 +83,6 @@ export default class Auth {
     constructor() {}
     public static async login() {
         await checkVersionCompatibility();
-        Logger.info(
-            chalk.green(
-                'Current env: ',
-                ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE),
-            ),
-        );
         const isLoggedIn = await Auth.isAlreadyLoggedIn();
         await startServer();
         if (isLoggedIn) {
@@ -170,11 +165,16 @@ export default class Auth {
             );
             const activeEmail =
                 user.emails.find((e) => e.active && e.primary)?.email ||
-                'Not primary email set';
-            Logger.info(`Name: ${user.first_name} ${user.last_name}`);
-            Logger.info(`Email: ${activeEmail}`);
-            Logger.info(
-                `Current organization: ${getOrganizationDisplayName()}`,
+                'Primary email missing';
+            const text = `Name: ${user.first_name} ${
+                user.last_name
+            }\nEmail: ${activeEmail}\nOrganization: ${getOrganizationDisplayName()}`;
+            console.log(
+                boxen(text, {
+                    title: 'info',
+                    padding: 1,
+                    borderColor: 'greenBright',
+                }),
             );
         } catch (error) {
             throw new CommandError(error.message, error.code);

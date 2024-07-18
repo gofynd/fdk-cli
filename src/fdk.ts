@@ -57,7 +57,6 @@ export type Action = (...args: any[]) => void;
 Command.prototype.asyncAction = async function (asyncFn: Action) {
     return this.action(async (...args: any[]) => {
         try {
-            console.log('Version: ', packageJSON.version);
             let parent = args[1].parent;
             while (true) {
                 if (parent.parent) parent = parent.parent;
@@ -77,41 +76,43 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
                 process.env.DEBUG = 'false';
             }
             initializeLogger();
-            
+
             // check in config if user have set certificate
-            const CA_FILE = configStore.get(CONFIG_KEYS.CA_FILE)
+            const CA_FILE = configStore.get(CONFIG_KEYS.CA_FILE);
             // if user shared certificate while executing the command
             const sharedInlineCert = process.env.FDK_EXTRA_CA_CERTS;
-            
+
             // if shared inline then it should be exist
-            if(sharedInlineCert && !fs.existsSync(sharedInlineCert)){
-                throw new CommandError("Provided file path does not exist.");
+            if (sharedInlineCert && !fs.existsSync(sharedInlineCert)) {
+                throw new CommandError('Provided file path does not exist.');
             }
             // inline CA will get priority
             if (!sharedInlineCert && CA_FILE) {
                 process.env.FDK_EXTRA_CA_CERTS = CA_FILE;
             }
 
-            if(process.env.FDK_EXTRA_CA_CERTS){
-                Logger.info(`Using CA file from ${process.env.FDK_EXTRA_CA_CERTS}`)
+            if (process.env.FDK_EXTRA_CA_CERTS) {
+                Logger.info(
+                    `Using CA file from ${process.env.FDK_EXTRA_CA_CERTS}`,
+                );
             }
 
             const disableSSL = () => {
                 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
                 process.env.FDK_SSL_NO_VERIFY = 'true';
-            }
+            };
 
             const sharedInlineNoSSL = process.env.FDK_SSL_NO_VERIFY;
             const STRICT_SSL = configStore.get(CONFIG_KEYS.STRICT_SSL);
-            if(sharedInlineNoSSL == 'true'){
+            if (sharedInlineNoSSL == 'true') {
                 disableSSL();
             }
-            if(!sharedInlineNoSSL && STRICT_SSL == 'false'){
+            if (!sharedInlineNoSSL && STRICT_SSL == 'false') {
                 disableSSL();
             }
 
-            if(process.env.FDK_SSL_NO_VERIFY == 'true'){
-                Logger.warn(`Bypassing SSL verification`)
+            if (process.env.FDK_SSL_NO_VERIFY == 'true') {
+                Logger.warn(`Bypassing SSL verification`);
             }
 
             const latest = await checkCliVersionAsync();
@@ -248,9 +249,13 @@ Run the following command to upgrade:
                 Logger.error(err);
             }
             let parent = args[1].parent;
-            while(parent.parent) parent = parent.parent;
-            if(!parent._optionValues.debug){
-                Logger.info(`You can pass ${chalk.yellowBright('--debug')} flag to get detailed logs`)
+            while (parent.parent) parent = parent.parent;
+            if (!parent._optionValues.debug) {
+                Logger.info(
+                    `You can pass ${chalk.yellowBright(
+                        '--debug',
+                    )} flag to get detailed logs`,
+                );
             }
             Debug(err);
             process.exit(1);

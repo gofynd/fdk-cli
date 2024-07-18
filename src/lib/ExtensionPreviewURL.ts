@@ -58,21 +58,27 @@ export default class ExtensionPreviewURL {
             let spinner = new Spinner('Starting Ngrok tunnel');
             try {
                 spinner.start();
-                const ngrokListener : ngrok.Listener = await extension.startTunnel(authtoken);
+                const ngrokListener: ngrok.Listener =
+                    await extension.startTunnel(authtoken);
                 extension.publicNgrokURL = ngrokListener.url();
                 setInterval(() => {}, 10000);
                 process.on('SIGINT', async () => {
                     Logger.info('Stopping Ngrok tunnel...');
                     await ngrok.disconnect();
                     process.exit();
-                  });
+                });
                 spinner.succeed();
             } catch (error) {
                 spinner.fail();
                 configStore.delete(CONFIG_KEYS.NGROK_AUTHTOKEN);
                 let errorMessage = null;
-                if(error.message || error.errorCode){
-                    errorMessage = error.errorCode + " - " + error.code + "\n" + error.message;
+                if (error.message || error.errorCode) {
+                    errorMessage =
+                        error.errorCode +
+                        ' - ' +
+                        error.code +
+                        '\n' +
+                        error.message;
                 }
                 throw new CommandError(
                     errorMessage || ErrorCodes.NGROK_CONNECTION_ISSUE.message,
@@ -134,11 +140,18 @@ export default class ExtensionPreviewURL {
         });
 
         if (choices.length === 0) {
-            const organizationId = configStore.get(CONFIG_KEYS.ORGANIZATION)
-            const createDevelopmentCompanyFormURL = organizationId ? urljoin(getPlatformUrls().partners, 'organizations', organizationId , 'accounts') : getPlatformUrls().partners;
+            const organizationId = configStore.get(CONFIG_KEYS.ORGANIZATION);
+            const createDevelopmentCompanyFormURL = organizationId
+                ? urljoin(
+                      getPlatformUrls().partners,
+                      'organizations',
+                      organizationId,
+                      'accounts',
+                  )
+                : getPlatformUrls().partners;
             Logger.info(
                 chalk.yellowBright(
-                    `You don't have development account under organization ${getOrganizationDisplayName()}, You can create development account from ${createDevelopmentCompanyFormURL} and try again.`
+                    `You don't have development account under organization ${getOrganizationDisplayName()}, You can create development account from ${createDevelopmentCompanyFormURL} and try again.`,
                 ),
             );
 
@@ -187,21 +200,22 @@ export default class ExtensionPreviewURL {
             this.firstTunnelConnection = false;
             return;
         }
-        Logger.info(chalk.gray('Ngrok tunnel Reconnected'));
+        Logger.info(chalk.green('Ngrok tunnel Reconnected'));
     }
 
     private async closedTunnelHandler() {
-        Logger.info(chalk.red('Ngrok tunnel Closed'));
+        Logger.info(chalk.red('Ngrok tunnel disconnected'));
     }
 
     private async promptExtensionApiKey(): Promise<string> {
         let extension_api_key: string;
         const apiKeyFromEnv = this.getExtensionAPIKeyFromENV();
-        if(apiKeyFromEnv){
-            Logger.info(`Using Extension API key from environment : ${apiKeyFromEnv}`);
-            extension_api_key = apiKeyFromEnv
-        }
-        else{
+        if (apiKeyFromEnv) {
+            Logger.info(
+                `Using Extension API key from environment : ${apiKeyFromEnv}`,
+            );
+            extension_api_key = apiKeyFromEnv;
+        } else {
             try {
                 let answers = await inquirer.prompt([
                     {
@@ -219,7 +233,7 @@ export default class ExtensionPreviewURL {
         return extension_api_key;
     }
 
-    public getExtensionAPIKeyFromENV(){
+    public getExtensionAPIKeyFromENV() {
         let java_env_file_path = path.join(
             'src',
             'main',
@@ -229,17 +243,23 @@ export default class ExtensionPreviewURL {
 
         if (fs.existsSync('./.env')) {
             let envData = readFile('./.env');
-            const keyMatchRegex = new RegExp(`^\\s*EXTENSION_API_KEY\\s*=\\s*(?:'([^']*)'|"([^"]*)"|([^'"\s]+))`, 'm')
+            const keyMatchRegex = new RegExp(
+                `^\\s*EXTENSION_API_KEY\\s*=\\s*(?:'([^']*)'|"([^"]*)"|([^'"\s]+))`,
+                'm',
+            );
             const match = keyMatchRegex.exec(envData);
-            if(match){
+            if (match) {
                 const value = (match[1] || match[2] || match[3]).trim();
                 return value === '' ? null : value;
             }
         } else if (fs.existsSync(java_env_file_path)) {
             let envData = readFile(java_env_file_path);
-            const keyMatchRegex = new RegExp(`^\\s*api_key\\s*:\\s*(?:'([^']*)'|"([^"]*)"|([^'"\s]+))`, 'm')
+            const keyMatchRegex = new RegExp(
+                `^\\s*api_key\\s*:\\s*(?:'([^']*)'|"([^"]*)"|([^'"\s]+))`,
+                'm',
+            );
             const match = keyMatchRegex.exec(envData);
-            if(match){
+            if (match) {
                 const value = (match[1] || match[2] || match[3]).trim();
                 return value === '' ? null : value;
             }
