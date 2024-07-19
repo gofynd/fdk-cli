@@ -5,10 +5,10 @@ import { withoutErrorResponseInterceptorAxios } from '../lib/api/ApiClient';
 import rimraf from 'rimraf';
 import inquirer from 'inquirer';
 import MockAdapter from 'axios-mock-adapter';
-
 import { init } from '../fdk';
 import { CommanderStatic } from 'commander';
 import { URLS } from '../lib/api/services/url';
+import { successBox } from '../helper/formatter';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
 import Logger from '../lib/Logger';
 
@@ -33,6 +33,11 @@ let program: CommanderStatic;
 let winstonLoggerSpy: jest.SpyInstance<any>;
 
 import { interval } from './../lib/ExtensionPreviewURL';
+jest.mock('../helper/formatter', () => ({
+    successBox: ({ text }) => {
+        return text;
+    },
+}));
 
 jest.mock('configstore', () => {
     const Store =
