@@ -1,6 +1,5 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import boxen from 'boxen';
 import fs from 'fs';
 import path from 'path';
 import execa from 'execa';
@@ -9,6 +8,7 @@ import which from 'which';
 
 import { getPlatformUrls } from './api/services/url';
 import Spinner from '../helper/spinner';
+import { successBox } from '../helper/formatter';
 import CommandError, { ErrorCodes } from './CommandError';
 import ExtensionService, {
     RegisterExtensionPayloadNew,
@@ -239,17 +239,30 @@ export default class Extension {
             } catch (error) {
                 spinner.fail();
             }
-            const organizationId = ConfigStore.get(CONFIG_KEYS.ORGANIZATION)
-            const createDevelopmentCompanyFormURL = organizationId ? urljoin(getPlatformUrls().partners, 'organizations', organizationId , 'extensions', 'overview', answers.extension_api_key) : getPlatformUrls().partners;
+            const organizationId = ConfigStore.get(CONFIG_KEYS.ORGANIZATION);
+            const createDevelopmentCompanyFormURL = organizationId
+                ? urljoin(
+                      getPlatformUrls().partners,
+                      'organizations',
+                      organizationId,
+                      'extensions',
+                      'overview',
+                      answers.extension_api_key,
+                  )
+                : getPlatformUrls().partners;
             let text =
                 chalk.green.bold('DONE ') +
                 chalk.green.bold('Project ready\n') +
                 chalk.yellowBright.bold('NOTE: ') +
                 chalk.green.bold(`cd "${targetDir}" to continue...\n`) +
-                chalk.green.bold(`To manage your extension visit: ${createDevelopmentCompanyFormURL}`);
+                chalk.green.bold(
+                    `Check your extension: ${createDevelopmentCompanyFormURL}`,
+                );
 
             Logger.info(
-                boxen(text, { padding: 1, borderColor: 'greenBright' }),
+                successBox({
+                    text: text,
+                }),
             );
         } catch (error) {
             throw new CommandError(error.message, error.code);

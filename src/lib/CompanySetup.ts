@@ -1,10 +1,9 @@
-import CommandError from './CommandError';
 import Spinner from '../helper/spinner';
 import CompanySetupService from './api/services/company_setup.service';
 import { getCompanyId } from '../helper/extension_utils';
+import { successBox } from '../helper/formatter';
+import CommandError, { ErrorCodes } from '../lib/CommandError';
 import Logger from './Logger';
-import boxen from 'boxen';
-import chalk from 'chalk';
 import urljoin from 'url-join';
 import { getPlatformUrls } from './api/services/url';
 
@@ -24,7 +23,12 @@ export default class CompanySetup {
             );
             spinner.stop();
         } catch (error) {
-            spinner.fail(error.message);
+            if (error.code != ErrorCodes.API_ERROR) {
+                spinner.fail(
+                    'Failed during populating development company, please retry!',
+                );
+                throw new Error('Failed during populating development company');
+            }
             throw new CommandError(error.message, error.code);
         }
     }
@@ -62,15 +66,9 @@ export default class CompanySetup {
                   )
                 : getPlatformUrls().platform;
             Logger.info(
-                boxen(
-                    chalk.bold.green(
-                        `Visit: ${createDevelopmentCompanyFormURL} `,
-                    ),
-                    {
-                        padding: 2,
-                        textAlignment: 'center',
-                    },
-                ),
+                successBox({
+                    text: `Check sample products: ${createDevelopmentCompanyFormURL}`,
+                }),
             );
         }
         return data;

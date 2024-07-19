@@ -1,7 +1,6 @@
 import ngrok from '@ngrok/ngrok';
 import { startTunnel } from 'untun';
 import chalk from 'chalk';
-import boxen from 'boxen';
 import urljoin from 'url-join';
 import inquirer from 'inquirer';
 import path from 'path';
@@ -17,6 +16,7 @@ import {
     getCompanyId,
 } from '../helper/extension_utils';
 import { readFile } from '../helper/file.utils';
+import { successBox } from '../helper/formatter';
 import Spinner from '../helper/spinner';
 import CommandError, { ErrorCodes } from './CommandError';
 import Logger from './Logger';
@@ -137,21 +137,15 @@ export default class ExtensionPreviewURL {
 
             // get preview URL
             const previewURL = extension.getPreviewURL();
-
+            Debug(
+                `TUNNEL URL: ${
+                    extension.publicTunnelURL || extension.publicNgrokURL
+                }`,
+            );
             Logger.info(
-                boxen(
-                    chalk.bold.green(
-                        `${warningMsg}\n
-                        TUNNEL URL: ${
-                            extension.publicTunnelURL ||
-                            extension.publicNgrokURL
-                        }\nExtension preview URL: ${previewURL}`,
-                    ),
-                    {
-                        padding: 2,
-                        textAlignment: 'center',
-                    },
-                ),
+                successBox({
+                    text: `${warningMsg}\n\nExtension preview URL: ${previewURL}`,
+                }),
             );
         } catch (error) {
             throw new CommandError(error.message, error.code);

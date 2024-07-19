@@ -2,15 +2,13 @@ import CommandError from './CommandError';
 import Logger from './Logger';
 import inquirer from 'inquirer';
 import ConfigStore, { CONFIG_KEYS } from './Config';
-import { ALLOWD_ENV } from '../helper/constants';
 import open from 'open';
-import boxen from 'boxen';
 import express from 'express';
 var cors = require('cors');
 const port = 7071;
-import chalk from 'chalk';
 import ThemeService from './api/services/theme.service';
 import { getLocalBaseUrl } from '../helper/serve.utils';
+import { successBox } from '../helper/formatter';
 import OrganizationService from './api/services/organization.service';
 import { getOrganizationDisplayName } from '../helper/utils';
 import Debug from './Debug';
@@ -169,12 +167,7 @@ export default class Auth {
             const text = `Name: ${user.first_name} ${
                 user.last_name
             }\nEmail: ${activeEmail}\nOrganization: ${getOrganizationDisplayName()}`;
-            Logger.info(
-                boxen(text, {
-                    padding: 1,
-                    borderColor: 'greenBright',
-                }),
-            );
+            Logger.info(successBox({ text }));
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }

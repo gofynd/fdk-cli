@@ -2,7 +2,6 @@ import program, { Command } from 'commander';
 import leven from 'leven';
 import latestVersion from 'latest-version';
 import semver from 'semver';
-import boxen from 'boxen';
 import chalk from 'chalk';
 import Logger, { COMMON_LOG_MESSAGES } from './lib/Logger';
 import Debug from './lib/Debug';
@@ -12,6 +11,7 @@ import configStore, { CONFIG_KEYS } from './lib/Config';
 import fs from 'fs-extra';
 import { initializeLogger } from './lib/Logger';
 import { isAThemeDirectory } from './helper/utils';
+import { successBox } from './helper/formatter';
 import inquirer from 'inquirer';
 import path from 'path';
 import Env from './lib/Env';
@@ -141,11 +141,12 @@ Run the following command to upgrade:
                 allowed_update_version_types.includes(versionChange) &&
                 isCurrentLessThanLatest
             ) {
-                console.log(
-                    boxen(
-                        major ? chalk.red(logMessage) : chalk.green(logMessage),
-                        { borderColor: color, padding: 1 },
-                    ),
+                Logger.info(
+                    successBox({
+                        text: major
+                            ? chalk.red(logMessage)
+                            : chalk.green(logMessage),
+                    }),
                 );
 
                 if (major) {
@@ -249,10 +250,10 @@ Run the following command to upgrade:
             let parent = args[1].parent;
             while (parent.parent) parent = parent.parent;
             if (!parent._optionValues.debug && !(err instanceof CommandError)) {
-                Logger.info(
-                    `You can pass ${chalk.yellowBright(
+                Logger.warn(
+                    `Pass ${chalk.yellowBright(
                         '--debug',
-                    )} flag to get detailed logs`,
+                    )} flag to get detailed logs, it will generate debug.log file in your current folder`,
                 );
             }
             Debug(err);
