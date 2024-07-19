@@ -17,7 +17,7 @@ Fynd development Kit (FDK CLI) is a cli tool developed by Fynd to create and upd
 # Prerequisites
 
 - You must have created a [partner account](https://partners.fynd.com/)
-- You must created development account [guide](https://partners.fynd.com/help/docs/partners/testing-extension/development-acc) 
+- You must have created development account [guide](https://partners.fynd.com/help/docs/partners/testing-extension/development-acc) 
 - You must have installed [Git](https://github.com/git-guides/install-git), if you don't already have it.
 - You must have installed [Nodejs](https://nodejs.org/en/download/package-manager), if you don't already have it.
 -  Optional Prerequisites
