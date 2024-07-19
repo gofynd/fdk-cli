@@ -38,7 +38,7 @@ export default function extensionCommandBuilder() {
         .option('--access-token <access-token>', 'Partner Access Token')
         .option(
             '--use-tunnel <tunnel-tool>',
-            'Pass which tunneling tool you want to use',
+            'Pass which tunneling tool you want to use, currently available options are ngrok and cloudflared',
         )
         .option(
             '--update-authtoken',

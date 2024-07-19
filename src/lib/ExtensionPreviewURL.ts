@@ -84,6 +84,7 @@ export default class ExtensionPreviewURL {
                     const ngrokListener: ngrok.Listener =
                         await extension.startNgrokTunnel(authtoken);
                     extension.publicNgrokURL = ngrokListener.url();
+                    interval = setInterval(() => {}, 900);
                     process.on('SIGINT', async () => {
                         Logger.info('Stopping Ngrok tunnel...');
                         clearInterval(interval);
@@ -119,7 +120,8 @@ export default class ExtensionPreviewURL {
                 let spinner = new Spinner('Starting tunnel');
                 try {
                     spinner.start();
-                    extension.publicTunnelURL = await extension.startTunnel();
+                    extension.publicTunnelURL =
+                        await extension.startCloudflareTunnel();
                     spinner.succeed();
                 } catch (error) {
                     spinner.fail();
@@ -269,7 +271,7 @@ export default class ExtensionPreviewURL {
         return authtoken;
     }
 
-    private async startTunnel() {
+    private async startCloudflareTunnel() {
         Debug(`Starting tunnel on port ${this.options.port}`);
         // INSTALL CURRENT LATEST VERSION
         process.env.CLOUDFLARED_VERSION = '2024.6.1';
