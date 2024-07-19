@@ -108,7 +108,7 @@ export default class ExtensionPreviewURL {
                 extension.publicNgrokURL || extension.publicTunnelURL,
             );
 
-            Logger.info(chalk.yellow("Please start/restart your server..."))
+            Logger.info(chalk.yellow("Please restart your extension server..."))
 
             // get preview URL
             const previewURL = extension.getPreviewURL();
@@ -196,7 +196,24 @@ export default class ExtensionPreviewURL {
                     await this.closedTunnelHandler();
                 }
             },
-        });
+            onLogEvent: data => {
+                function getErrorMessage(message){
+                    const regex = /err="([^"]*)"/;
+                    const match = message.match(regex);
+                    return match?.[1]?.replace(/\\n/g, '\n')?.replace(/\\r/g, '\r') ?? null
+                }
+                Debug('NGROK: ' + data);
+                if(data.includes("authentication failed")){
+                    console.log(chalk.red("Ngrok auth error:"));
+                    const message = getErrorMessage(data)
+                    message && console.log(chalk.red(message));
+                    process.exit(1);
+                }
+            },
+            onTerminated() {
+                Debug("Ngrok terminated");
+            },
+        })
     }
 
     private async getNgrokAuthtoken() {
@@ -247,6 +264,13 @@ export default class ExtensionPreviewURL {
 
     private async startTunnel() {
         Debug(`Starting tunnel on port ${this.options.port}`);
+        // INSTALL CURRENT LATEST VERSION
+        process.env.CLOUDFLARED_VERSION = "2024.6.1";
+        // THIS WILL STOP CLOUDFLARED TO AUTO UPDATE
+        process.env.NO_AUTOUPDATE = 'true';
+        // ALWAYS USE HTTP2 PROTOCOL
+        process.env.TUNNEL_TRANSPORT_PROTOCOL = 'http2';
+
         const tunnel = await startTunnel({
             protocol: 'http',
             port: this.options.port,
