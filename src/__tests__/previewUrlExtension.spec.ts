@@ -77,6 +77,10 @@ describe('Extension preview-url command', () => {
         jest.spyOn(ngrok, 'connect').mockResolvedValue(
             mockListener as unknown as Listener,
         );
+        jest.spyOn(untun, 'startTunnel').mockResolvedValue({
+            getURL: () => new Promise((res) => res(CLOUDFLARED_TEST_URL)),
+            close: () => new Promise((res) => res()),
+        });
 
         // mock axios
         mockAxios = new MockAdapter(axios);
