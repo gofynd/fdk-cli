@@ -6,22 +6,20 @@ import urljoin from 'url-join';
 import inquirer from 'inquirer';
 import path from 'path';
 import fs from 'fs';
-
 import Debug from './Debug';
 import { getPlatformUrls } from './api/services/url';
 import configStore, { CONFIG_KEYS } from './Config';
 import ExtensionLaunchURL from './ExtensionLaunchURL';
-import ExtensionService from './api/services/extension.service';
 import {
     getPartnerAccessToken,
     Object,
     validateEmpty,
+    getCompanyId,
 } from '../helper/extension_utils';
 import { readFile } from '../helper/file.utils';
 import Spinner from '../helper/spinner';
 import CommandError, { ErrorCodes } from './CommandError';
 import Logger from './Logger';
-import { getOrganizationDisplayName } from '../helper/utils';
 
 const packageJson = require('./../../package.json');
 const ngrokPackageVersion = packageJson.dependencies['@ngrok/ngrok'];
@@ -66,7 +64,7 @@ export default class ExtensionPreviewURL {
 
             // get the companyId
             if (!extension.options.companyId) {
-                extension.options.companyId = await extension.getCompanyId();
+                extension.options.companyId = await getCompanyId();
             }
 
             // get the extension api key
@@ -117,14 +115,10 @@ export default class ExtensionPreviewURL {
                 }
             } else {
                 // start Cloudflared tunnel
-                let spinner = new Spinner('Starting tunnel');
                 try {
-                    spinner.start();
                     extension.publicTunnelURL =
                         await extension.startCloudflareTunnel();
-                    spinner.succeed();
                 } catch (error) {
-                    spinner.fail();
                     throw new CommandError(
                         ErrorCodes.ClOUDFLARE_CONNECTION_ISSUE.message,
                         ErrorCodes.ClOUDFLARE_CONNECTION_ISSUE.code,
@@ -137,9 +131,8 @@ export default class ExtensionPreviewURL {
                 partner_access_token || options.accessToken,
                 extension.publicNgrokURL || extension.publicTunnelURL,
             );
-
-            Logger.info(
-                chalk.yellow('Please restart your extension server...'),
+            const warningMsg = chalk.yellow(
+                'Before preview extension, please restart your extension server',
             );
 
             // get preview URL
@@ -148,7 +141,8 @@ export default class ExtensionPreviewURL {
             Logger.info(
                 boxen(
                     chalk.bold.green(
-                        `TUNNEL URL: ${
+                        `${warningMsg}\n
+                        TUNNEL URL: ${
                             extension.publicTunnelURL ||
                             extension.publicNgrokURL
                         }\nExtension preview URL: ${previewURL}`,
@@ -171,40 +165,6 @@ export default class ExtensionPreviewURL {
             `/company/${this.options.companyId}`,
             `/extensions/${this.options.apiKey}`,
         );
-    }
-
-    private async getCompanyId() {
-        let developmentCompanyData =
-            await ExtensionService.getDevelopmentAccounts(1, 9999);
-
-        let choices = [];
-        developmentCompanyData.items.map((data) => {
-            choices.push({ name: data.company.name, value: data.company.uid });
-        });
-
-        if (choices.length === 0) {
-            const organizationId = configStore.get(CONFIG_KEYS.ORGANIZATION);
-            const createDevelopmentCompanyFormURL = organizationId
-                ? urljoin(
-                      getPlatformUrls().partners,
-                      'organizations',
-                      organizationId,
-                      'accounts',
-                  )
-                : getPlatformUrls().partners;
-            Logger.info(
-                chalk.yellowBright(
-                    `You don't have development account under organization ${getOrganizationDisplayName()}, You can create development account from ${createDevelopmentCompanyFormURL} and try again.`,
-                ),
-            );
-
-            throw new CommandError(
-                ErrorCodes.NO_DEVELOPMENT_COMPANY.message,
-                ErrorCodes.NO_DEVELOPMENT_COMPANY.code,
-            );
-        }
-
-        return await this.promptDevelopmentCompany(choices);
     }
 
     private async startNgrokTunnel(authtoken: string) {
@@ -348,25 +308,5 @@ export default class ExtensionPreviewURL {
             return null;
         }
         return null;
-    }
-
-    private async promptDevelopmentCompany(choices): Promise<number> {
-        let companyId: number;
-        try {
-            let answers = await inquirer.prompt([
-                {
-                    type: 'list',
-                    choices: choices,
-                    name: 'company_id',
-                    message: 'Development Company :',
-                    pageSize: 6,
-                    validate: validateEmpty,
-                },
-            ]);
-            companyId = answers.company_id;
-        } catch (error) {
-            throw new CommandError(error.message);
-        }
-        return companyId;
     }
 }
