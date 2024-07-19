@@ -16,8 +16,10 @@ Fynd development Kit (FDK CLI) is a cli tool developed by Fynd to create and upd
 
 # Prerequisites
 
-- Git
-- Nodejs
+- You must have created a [partner account](https://partners.fynd.com/)
+- You must created development account [guide](https://partners.fynd.com/help/docs/partners/testing-extension/development-acc) 
+- You must have installed [Git](https://github.com/git-guides/install-git), if you don't already have it.
+- You must have installed [Nodejs](https://nodejs.org/en/download/package-manager), if you don't already have it.
 -  Optional Prerequisites
 	- Maven (To use `fdk extension init` for java extension initialization)
 	- pip (To use `fdk extension init` for python extension initialization)
@@ -49,12 +51,14 @@ See the the [Command reference](#commands-reference) for syntax details and usag
 ## Commands
 ___
 
-### Authentication Commands
+### Global Commands
 | Command        | Description           | 
 | ------------- |-------------| 
 | [login](#login)     | Login user |
 | [user](#user)     | Shows user details of logged in user |
 | [logout](#logout)     | Logout user |
+| [populate](#populate)     | Populate sample data into development account to get started with theme and extension development |
+
 
 
 ### Theme Commands
@@ -72,11 +76,6 @@ ___
 | [context-list](#theme-context-list)     | List all available contexts |
 | [active-context](theme-active-context)    | show currently active context |
 
-### Partner Commands
-| Command        | Description           | 
-| ------------- |-------------| 
-| [connect](#partner-connect)     | Add partner access token so that you don't need to add it explicitly  |
-
 ### Extension Commands
 | Command        | Description           | 
 | ------------- |-------------| 
@@ -84,6 +83,11 @@ ___
 | [setup](#extension-setup)     | Configure your extension locally using the existing API Key and API Secret provided for the extension inside the partners panel.
 | [preview-url](#extension-preview-url)   | Create a tunnel and provide a link to tryout extension on development company
 | [launch-url](#extension-launch-url)     | Get/set extension's lanuch url |
+
+### Partner Commands
+| Command        | Description           | 
+| ------------- |-------------| 
+| [connect](#partner-connect)     | Add partner access token so that you don't need to add it explicitly  |
 
 ### Config Commands
 
@@ -187,6 +191,17 @@ This command will logout the user.
 ```sh
 fdk logout
 ```
+
+<div id="populate"></div>
+
+___
+#### **populate**
+Using this command populate sample data into development account to get started with theme and extension development.
+#### **Syntax**
+```sh
+fdk populate
+```
+
 ___
 ### Theme Commands
 A theme is a VueJS project that developers can scaffold using this cli tool. Themes change the look and feel of websites built using Fynd Platform. Always create a new directory while creating or initializing a theme.
