@@ -144,7 +144,9 @@ export default class ExtensionPreviewURL {
             );
             Logger.info(
                 successBox({
-                    text: `${warningMsg}\n\nExtension preview URL: ${previewURL}`,
+                    text: `${warningMsg}\n\nTUNNEL URL: ${
+                        extension.publicTunnelURL || extension.publicNgrokURL
+                    }\nExtension preview URL: ${previewURL}`,
                 }),
             );
         } catch (error) {

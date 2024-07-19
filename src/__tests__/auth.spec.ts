@@ -93,6 +93,7 @@ describe('Auth Commands', () => {
         consoleWarnSpy = jest.spyOn(Logger, 'info').mockImplementation();
         await program.parseAsync(['ts-node', './src/fdk.ts', 'user']);
         const { current_user: user } = configStore.get(CONFIG_KEYS.AUTH_TOKEN);
+        expect(consoleWarnSpy.mock.lastCall[0]).toContain('Name: Jinal Virani');
         expect(user.emails[0].email).toMatch('jinalvirani@gofynd.com');
     });
     it('should successfully logout user', async () => {
