@@ -82,7 +82,7 @@ ___
 | ------------- |-------------| 
 | [init](#extension-init)     | Utilize this command to set up a new extension locally, leveraging existing templates of your choice.  |
 | [setup](#extension-setup)     | Configure your extension locally using the existing API Key and API Secret provided for the extension inside the partners panel.
-| [preview-url](#extension-preview-url)   | Create a ngrok tunnel and provide a link to tryout extension on development company
+| [preview-url](#extension-preview-url)   | Create a tunnel and provide a link to tryout extension on development company
 | [launch-url](#extension-launch-url)     | Get/set extension's lanuch url |
 
 ### Config Commands
@@ -415,21 +415,32 @@ fdk extension preview-url [options]
 | ----------|---------------|
 | -p, --port    | Port on which Extension is running |
 | --company-id | specify company id |
-| --update-authtoken | update Ngrok authtoken |
 | --api-key | Extension API key |
+| --access-token | Partner Access Token |
+| --use-tunnel | Pass which tunneling tool you want to use (Default: `cloudflared`) |
+| --update-authtoken | Pass this to update your ngrok authentication token |
 | --help    | Show help |
 | --verbose | enable debug mode |
-| --access-token | Partner Access Token |
 
 #### **Example**
 ```sh
 fdk extension preview-url --port 3000
 ```
 ```sh
-fdk extension preview-url -p 3000 --update-authtoken
+fdk extension preview-url -p 3000
 ```
 ```sh
-fdk extension preview-url -p 3000 --company-id 999 --update-authtoken
+fdk extension preview-url -p 3000 --company-id 999
+```
+
+By default, **cloudflared** will be used as the tunneling tool. To use a different tool, pass the `--use-tunnel` option. Currently, we support **cloudflared** and **ngrok** as tunneling tools. You will be prompted to enter your authentication token if you choose ngrok.
+
+```sh
+fdk extension preview-url -p 3000 --use-tunnel ngrok
+```
+Pass `--update-authtoken` flag to update your ngrok authentication token.
+```sh
+fdk extension preview-url -p 3000 --use-tunnel ngrok --update-authtoken
 ```
 
 ___

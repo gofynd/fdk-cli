@@ -1,4 +1,5 @@
 import ngrok from '@ngrok/ngrok';
+import { startTunnel } from 'untun';
 import chalk from 'chalk';
 import boxen from 'boxen';
 import urljoin from 'url-join';
@@ -27,8 +28,11 @@ const ngrokPackageVersion = packageJson.dependencies['@ngrok/ngrok'];
 
 export let interval;
 
+const SUPPORTED_TOOL = ['ngrok', 'cloudflared'];
+
 export default class ExtensionPreviewURL {
     organizationInfo: Object;
+    publicTunnelURL: string;
     publicNgrokURL: string;
     options: Object;
     firstTunnelConnection: boolean = true;
@@ -39,6 +43,22 @@ export default class ExtensionPreviewURL {
             let partner_access_token = getPartnerAccessToken();
 
             Debug(`Ngrok version: ${ngrokPackageVersion}`);
+            if (
+                !!options.useTunnel &&
+                !SUPPORTED_TOOL.includes(options.useTunnel)
+            ) {
+                throw new CommandError(
+                    'Tunneling tool specified is invalid',
+                    ErrorCodes.INVALID_INPUT.code,
+                );
+            }
+
+            if (options.useTunnel !== 'ngrok' && !!options.updateAuthtoken) {
+                throw new CommandError(
+                    '--update-authtoken option is only allowed when using ngrok as a tunneling tool',
+                    ErrorCodes.INVALID_INPUT.code,
+                );
+            }
 
             // initialize class instance
             const extension = new ExtensionPreviewURL();
@@ -55,49 +75,70 @@ export default class ExtensionPreviewURL {
                     await extension.promptExtensionApiKey();
             }
 
-            // start Ngrok tunnel
-            let authtoken = await extension.getNgrokAuthtoken();
-            let spinner = new Spinner('Starting Ngrok tunnel');
-            try {
-                spinner.start();
-                const ngrokListener: ngrok.Listener =
-                    await extension.startTunnel(authtoken);
-                extension.publicNgrokURL = ngrokListener.url();
-                interval = setInterval(() => {}, 900);
-                process.on('SIGINT', async () => {
-                    Logger.info('Stopping Ngrok tunnel...');
-                    clearInterval(interval);
-                    await ngrok.disconnect();
-                    process.exit();
-                });
-                configStore.set(CONFIG_KEYS.NGROK_AUTHTOKEN, authtoken);
-                spinner.succeed();
-            } catch (error) {
-                let errorCode = ErrorCodes.NGROK_GENERAL_ISSUE.code;
-                spinner.fail();
-                if (error.errorCode == 'ERR_NGROK_105') {
-                    errorCode = ErrorCodes.NGROK_AUTH_ISSUE.code;
+            if (options.useTunnel === 'ngrok') {
+                // start tunnel
+                let authtoken = await extension.getNgrokAuthtoken();
+                let spinner = new Spinner('Starting Ngrok tunnel');
+                try {
+                    spinner.start();
+                    const ngrokListener: ngrok.Listener =
+                        await extension.startNgrokTunnel(authtoken);
+                    extension.publicNgrokURL = ngrokListener.url();
+                    interval = setInterval(() => {}, 900);
+                    process.on('SIGINT', async () => {
+                        Logger.info('Stopping Ngrok tunnel...');
+                        clearInterval(interval);
+                        await ngrok.disconnect();
+                        process.exit();
+                    });
+                    configStore.set(CONFIG_KEYS.NGROK_AUTHTOKEN, authtoken);
+                    spinner.succeed();
+                } catch (error) {
+                    let errorCode = ErrorCodes.NGROK_GENERAL_ISSUE.code;
+                    spinner.fail();
+                    if (error.errorCode == 'ERR_NGROK_105') {
+                        errorCode = ErrorCodes.NGROK_AUTH_ISSUE.code;
+                        throw new CommandError(
+                            error.message ||
+                                ErrorCodes.NGROK_AUTH_ISSUE.message,
+                            errorCode,
+                        );
+                    } else if (error.errorCode == 'ERR_NGROK_108') {
+                        errorCode =
+                            ErrorCodes.NGROK_MULTIPLE_SESSION_ISSUE.code;
+                        throw new CommandError(
+                            error.message ||
+                                ErrorCodes.NGROK_MULTIPLE_SESSION_ISSUE.message,
+                            errorCode,
+                        );
+                    }
+                    Debug(error);
+                    throw new Error(ErrorCodes.NGROK_GENERAL_ISSUE.message);
+                }
+            } else {
+                // start Cloudflared tunnel
+                let spinner = new Spinner('Starting tunnel');
+                try {
+                    spinner.start();
+                    extension.publicTunnelURL = await extension.startTunnel();
+                    spinner.succeed();
+                } catch (error) {
+                    spinner.fail();
                     throw new CommandError(
-                        error.message || ErrorCodes.NGROK_AUTH_ISSUE.message,
-                        errorCode,
-                    );
-                } else if (error.errorCode == 'ERR_NGROK_108') {
-                    errorCode = ErrorCodes.NGROK_MULTIPLE_SESSION_ISSUE.code;
-                    throw new CommandError(
-                        error.message ||
-                            ErrorCodes.NGROK_MULTIPLE_SESSION_ISSUE.message,
-                        errorCode,
+                        ErrorCodes.ClOUDFLARE_CONNECTION_ISSUE.message,
+                        ErrorCodes.ClOUDFLARE_CONNECTION_ISSUE.code,
                     );
                 }
-                Debug(error);
-                throw new Error(ErrorCodes.NGROK_GENERAL_ISSUE.message);
             }
-
             // update launch url on partners panel
             await ExtensionLaunchURL.updateLaunchURL(
                 extension.options.apiKey,
                 partner_access_token || options.accessToken,
-                extension.publicNgrokURL,
+                extension.publicNgrokURL || extension.publicTunnelURL,
+            );
+
+            Logger.info(
+                chalk.yellow('Please restart your extension server...'),
             );
 
             // get preview URL
@@ -106,7 +147,10 @@ export default class ExtensionPreviewURL {
             Logger.info(
                 boxen(
                     chalk.bold.green(
-                        `Ngrok URL: ${extension.publicNgrokURL}\nExtension preview URL: ${previewURL}`,
+                        `TUNNEL URL: ${
+                            extension.publicTunnelURL ||
+                            extension.publicNgrokURL
+                        }\nExtension preview URL: ${previewURL}`,
                     ),
                     {
                         padding: 2,
@@ -162,7 +206,7 @@ export default class ExtensionPreviewURL {
         return await this.promptDevelopmentCompany(choices);
     }
 
-    private async startTunnel(authtoken: string) {
+    private async startNgrokTunnel(authtoken: string) {
         Debug(`Starting Ngrok tunnel on port ${this.options.port}`);
         return await ngrok.connect({
             proto: 'http',
@@ -172,7 +216,6 @@ export default class ExtensionPreviewURL {
                 if (status === 'connected') {
                     await this.connectedTunnelHandler();
                 }
-
                 if (status === 'closed') {
                     await this.closedTunnelHandler();
                 }
@@ -202,6 +245,46 @@ export default class ExtensionPreviewURL {
 
     private async closedTunnelHandler() {
         Logger.info(chalk.red('Ngrok tunnel disconnected'));
+    }
+
+    private async promptNgrokAuthtoken(): Promise<string> {
+        let authtoken: string;
+        try {
+            Logger.info(
+                chalk.grey(
+                    `Visit https://dashboard.ngrok.com/get-started/your-authtoken to get Authtoken`,
+                ),
+            );
+            let answers = await inquirer.prompt([
+                {
+                    type: 'input',
+                    name: 'ngrok_authtoken',
+                    message: 'Enter Ngrok Authtoken :',
+                    validate: validateEmpty,
+                },
+            ]);
+            authtoken = answers.ngrok_authtoken;
+        } catch (error) {
+            throw new CommandError(error.message);
+        }
+        return authtoken;
+    }
+
+    private async startTunnel() {
+        Debug(`Starting tunnel on port ${this.options.port}`);
+        // INSTALL CURRENT LATEST VERSION
+        process.env.CLOUDFLARED_VERSION = '2024.6.1';
+        // THIS WILL STOP CLOUDFLARED TO AUTO UPDATE
+        process.env.NO_AUTOUPDATE = 'true';
+        // ALWAYS USE HTTP2 PROTOCOL
+        process.env.TUNNEL_TRANSPORT_PROTOCOL = 'http2';
+
+        const tunnel = await startTunnel({
+            protocol: 'http',
+            port: this.options.port,
+            acceptCloudflareNotice: true,
+        });
+        return await tunnel.getURL();
     }
 
     private async promptExtensionApiKey(): Promise<string> {
@@ -284,28 +367,5 @@ export default class ExtensionPreviewURL {
             throw new CommandError(error.message);
         }
         return companyId;
-    }
-
-    private async promptNgrokAuthtoken(): Promise<string> {
-        let authtoken: string;
-        try {
-            Logger.info(
-                chalk.grey(
-                    `Visit https://dashboard.ngrok.com/get-started/your-authtoken to get Authtoken`,
-                ),
-            );
-            let answers = await inquirer.prompt([
-                {
-                    type: 'input',
-                    name: 'ngrok_authtoken',
-                    message: 'Enter Ngrok Authtoken :',
-                    validate: validateEmpty,
-                },
-            ]);
-            authtoken = answers.ngrok_authtoken;
-        } catch (error) {
-            throw new CommandError(error.message);
-        }
-        return authtoken;
     }
 }

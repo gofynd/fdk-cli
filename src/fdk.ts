@@ -72,8 +72,6 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
                 process.env.DEBUG = 'fdk';
                 const log_file_path = process.cwd() + '/debug.log';
                 if (fs.existsSync(log_file_path)) fs.removeSync(log_file_path);
-            } else {
-                process.env.DEBUG = 'false';
             }
             initializeLogger();
 

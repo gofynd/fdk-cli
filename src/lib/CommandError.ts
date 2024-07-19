@@ -87,6 +87,11 @@ export const ErrorCodes = {
             'Something wrong with ngrok tunnel, please pass --debug flag to get more details',
         code: 'FDK-0015',
     },
+    ClOUDFLARE_CONNECTION_ISSUE: {
+        message:
+            'Something wrong with cloudflare tunnel, please pass --debug flag to get more details',
+        code: 'FDK-0015',
+    },
     VPN_ISSUE: {
         message:
             'This can be caused due to VPN or Firewall, please contact your network administrator or disable and retry.',
