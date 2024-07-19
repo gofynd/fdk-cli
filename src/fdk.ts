@@ -2,7 +2,6 @@ import program, { Command } from 'commander';
 import leven from 'leven';
 import latestVersion from 'latest-version';
 import semver from 'semver';
-import boxen from 'boxen';
 import chalk from 'chalk';
 import Logger, { COMMON_LOG_MESSAGES } from './lib/Logger';
 import Debug from './lib/Debug';
@@ -12,6 +11,7 @@ import configStore, { CONFIG_KEYS } from './lib/Config';
 import fs from 'fs-extra';
 import { initializeLogger } from './lib/Logger';
 import { isAThemeDirectory } from './helper/utils';
+import { successBox } from './helper/formatter';
 import inquirer from 'inquirer';
 import path from 'path';
 import Env from './lib/Env';
@@ -57,7 +57,6 @@ export type Action = (...args: any[]) => void;
 Command.prototype.asyncAction = async function (asyncFn: Action) {
     return this.action(async (...args: any[]) => {
         try {
-            console.log('Version: ', packageJSON.version);
             let parent = args[1].parent;
             while (true) {
                 if (parent.parent) parent = parent.parent;
@@ -73,45 +72,45 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
                 process.env.DEBUG = 'fdk';
                 const log_file_path = process.cwd() + '/debug.log';
                 if (fs.existsSync(log_file_path)) fs.removeSync(log_file_path);
-            } else {
-                process.env.DEBUG = 'false';
             }
             initializeLogger();
-            
+
             // check in config if user have set certificate
-            const CA_FILE = configStore.get(CONFIG_KEYS.CA_FILE)
+            const CA_FILE = configStore.get(CONFIG_KEYS.CA_FILE);
             // if user shared certificate while executing the command
             const sharedInlineCert = process.env.FDK_EXTRA_CA_CERTS;
-            
+
             // if shared inline then it should be exist
-            if(sharedInlineCert && !fs.existsSync(sharedInlineCert)){
-                throw new CommandError("Provided file path does not exist.");
+            if (sharedInlineCert && !fs.existsSync(sharedInlineCert)) {
+                throw new CommandError('Provided file path does not exist.');
             }
             // inline CA will get priority
             if (!sharedInlineCert && CA_FILE) {
                 process.env.FDK_EXTRA_CA_CERTS = CA_FILE;
             }
 
-            if(process.env.FDK_EXTRA_CA_CERTS){
-                Logger.info(`Using CA file from ${process.env.FDK_EXTRA_CA_CERTS}`)
+            if (process.env.FDK_EXTRA_CA_CERTS) {
+                Logger.info(
+                    `Using CA file from ${process.env.FDK_EXTRA_CA_CERTS}`,
+                );
             }
 
             const disableSSL = () => {
                 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
                 process.env.FDK_SSL_NO_VERIFY = 'true';
-            }
+            };
 
             const sharedInlineNoSSL = process.env.FDK_SSL_NO_VERIFY;
             const STRICT_SSL = configStore.get(CONFIG_KEYS.STRICT_SSL);
-            if(sharedInlineNoSSL == 'true'){
+            if (sharedInlineNoSSL == 'true') {
                 disableSSL();
             }
-            if(!sharedInlineNoSSL && STRICT_SSL == 'false'){
+            if (!sharedInlineNoSSL && STRICT_SSL == 'false') {
                 disableSSL();
             }
 
-            if(process.env.FDK_SSL_NO_VERIFY == 'true'){
-                Logger.warn(`Bypassing SSL verification`)
+            if (process.env.FDK_SSL_NO_VERIFY == 'true') {
+                Logger.warn(`Bypassing SSL verification`);
             }
 
             const latest = await checkCliVersionAsync();
@@ -142,11 +141,12 @@ Run the following command to upgrade:
                 allowed_update_version_types.includes(versionChange) &&
                 isCurrentLessThanLatest
             ) {
-                console.log(
-                    boxen(
-                        major ? chalk.red(logMessage) : chalk.green(logMessage),
-                        { borderColor: color, padding: 1 },
-                    ),
+                Logger.info(
+                    successBox({
+                        text: major
+                            ? chalk.red(logMessage)
+                            : chalk.green(logMessage),
+                    }),
                 );
 
                 if (major) {
@@ -247,6 +247,15 @@ Run the following command to upgrade:
                 Sentry.captureException(err);
                 Logger.error(err);
             }
+            let parent = args[1].parent;
+            while (parent.parent) parent = parent.parent;
+            if (!parent._optionValues.debug && !(err instanceof CommandError)) {
+                Logger.warn(
+                    `Pass ${chalk.yellowBright(
+                        '--debug',
+                    )} flag to get detailed logs, it will generate debug.log file in your current folder`,
+                );
+            }
             Debug(err);
             process.exit(1);
         }
@@ -277,7 +286,7 @@ export async function init(programName: string) {
 
     //register commands with commander instance
     registerCommands(program);
-    //set API versios
+    //set API version
     configStore.set(CONFIG_KEYS.API_VERSION, '1.0');
     // set default environment
     const current_env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
