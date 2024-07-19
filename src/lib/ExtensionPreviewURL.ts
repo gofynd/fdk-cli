@@ -84,7 +84,6 @@ export default class ExtensionPreviewURL {
                     const ngrokListener: ngrok.Listener =
                         await extension.startNgrokTunnel(authtoken);
                     extension.publicNgrokURL = ngrokListener.url();
-                    interval = setInterval(() => {}, 900);
                     process.on('SIGINT', async () => {
                         Logger.info('Stopping Ngrok tunnel...');
                         clearInterval(interval);
