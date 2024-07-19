@@ -169,7 +169,7 @@ export default class Auth {
             const text = `Name: ${user.first_name} ${
                 user.last_name
             }\nEmail: ${activeEmail}\nOrganization: ${getOrganizationDisplayName()}`;
-            console.log(
+            Logger.info(
                 boxen(text, {
                     padding: 1,
                     borderColor: 'greenBright',
