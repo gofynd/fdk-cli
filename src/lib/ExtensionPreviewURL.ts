@@ -56,7 +56,7 @@ export default class ExtensionPreviewURL {
             }
 
             // start Ngrok tunnel
-            let authtoken = await extension.getAuthtoken();
+            let authtoken = await extension.getNgrokAuthtoken();
             let spinner = new Spinner('Starting Ngrok tunnel');
             try {
                 spinner.start();
@@ -70,23 +70,27 @@ export default class ExtensionPreviewURL {
                     await ngrok.disconnect();
                     process.exit();
                 });
+                configStore.set(CONFIG_KEYS.NGROK_AUTHTOKEN, authtoken);
                 spinner.succeed();
             } catch (error) {
+                let errorCode = ErrorCodes.NGROK_GENERAL_ISSUE.code;
                 spinner.fail();
-                configStore.delete(CONFIG_KEYS.NGROK_AUTHTOKEN);
-                let errorMessage = null;
-                if (error.message || error.errorCode) {
-                    errorMessage =
-                        error.errorCode +
-                        ' - ' +
-                        error.code +
-                        '\n' +
-                        error.message;
+                if (error.errorCode == 'ERR_NGROK_105') {
+                    errorCode = ErrorCodes.NGROK_AUTH_ISSUE.code;
+                    throw new CommandError(
+                        error.message || ErrorCodes.NGROK_AUTH_ISSUE.message,
+                        errorCode,
+                    );
+                } else if (error.errorCode == 'ERR_NGROK_108') {
+                    errorCode = ErrorCodes.NGROK_MULTIPLE_SESSION_ISSUE.code;
+                    throw new CommandError(
+                        error.message ||
+                            ErrorCodes.NGROK_MULTIPLE_SESSION_ISSUE.message,
+                        errorCode,
+                    );
                 }
-                throw new CommandError(
-                    errorMessage || ErrorCodes.NGROK_CONNECTION_ISSUE.message,
-                    ErrorCodes.NGROK_CONNECTION_ISSUE.code,
-                );
+                Debug(error);
+                throw new Error(ErrorCodes.NGROK_GENERAL_ISSUE.message);
             }
 
             // update launch url on partners panel
@@ -176,13 +180,12 @@ export default class ExtensionPreviewURL {
         });
     }
 
-    private async getAuthtoken() {
+    private async getNgrokAuthtoken() {
         if (
-            !configStore.get(CONFIG_KEYS.NGROK_AUTHTOKEN) ||
-            this.options.updateAuthtoken
+            this.options.updateAuthtoken ||
+            !configStore.get(CONFIG_KEYS.NGROK_AUTHTOKEN)
         ) {
             let authtoken = await this.promptNgrokAuthtoken();
-            configStore.set(CONFIG_KEYS.NGROK_AUTHTOKEN, authtoken);
             return authtoken;
         } else {
             return configStore.get(CONFIG_KEYS.NGROK_AUTHTOKEN);

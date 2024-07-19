@@ -250,7 +250,7 @@ Run the following command to upgrade:
             }
             let parent = args[1].parent;
             while (parent.parent) parent = parent.parent;
-            if (!parent._optionValues.debug) {
+            if (!parent._optionValues.debug && !(err instanceof CommandError)) {
                 Logger.info(
                     `You can pass ${chalk.yellowBright(
                         '--debug',
