@@ -1,5 +1,4 @@
 import ngrok, { Listener } from '@ngrok/ngrok';
-import untun from 'untun';
 import axios from 'axios';
 import { withoutErrorResponseInterceptorAxios } from '../lib/api/ApiClient';
 import rimraf from 'rimraf';
@@ -59,6 +58,26 @@ jest.mock('configstore', () => {
     };
 });
 
+jest.mock('cloudflared', () => ({
+    tunnel: jest.fn().mockImplementation(() => ({
+      url: Promise.resolve(CLOUDFLARED_TEST_URL),
+      connections: [],
+      child: {
+        stdout: {
+          on: jest.fn(),
+          pipe: jest.fn(),
+        },
+        stderr: {
+          on: jest.fn(),
+          pipe: jest.fn(),
+        },
+      },
+      stop: jest.fn(),
+    })),
+  }));
+  
+  
+
 let mockAxios;
 let mockCustomAxios;
 describe('Extension preview-url command', () => {
@@ -82,10 +101,6 @@ describe('Extension preview-url command', () => {
         jest.spyOn(ngrok, 'connect').mockResolvedValue(
             mockListener as unknown as Listener,
         );
-        jest.spyOn(untun, 'startTunnel').mockResolvedValue({
-            getURL: () => new Promise((res) => res(CLOUDFLARED_TEST_URL)),
-            close: () => new Promise((res) => res()),
-        });
 
         // mock axios
         mockAxios = new MockAdapter(axios);
