@@ -1,5 +1,5 @@
 import ngrok from '@ngrok/ngrok';
-import { startTunnel } from 'untun';
+import { tunnel as startTunnel } from 'cloudflared';
 import chalk from 'chalk';
 import urljoin from 'url-join';
 import inquirer from 'inquirer';
@@ -236,12 +236,43 @@ export default class ExtensionPreviewURL {
         // ALWAYS USE HTTP2 PROTOCOL
         process.env.TUNNEL_TRANSPORT_PROTOCOL = 'http2';
 
-        const tunnel = await startTunnel({
-            protocol: 'http',
-            port: this.options.port,
-            acceptCloudflareNotice: true,
-        });
-        return await tunnel.getURL();
+        const { url, connections, child, stop } = startTunnel({"--url": `http://localhost:${this.options.port}`});
+        
+        const cleanup = async () => {
+            stop();
+        };
+        
+        for (const signal of ["SIGINT", "SIGUSR1", "SIGUSR2"] as const) {
+          process.once(signal, cleanup);
+        }
+
+        const outputParser = (data) => {
+            const str = data.toString();
+
+            const connected_regex = /Registered tunnel connection/;
+            const disconnect_regex = /Unregistered tunnel connection/;
+            const retry_connection_regex = /Retrying connection in up to/;
+
+            if(str.match(connected_regex)){
+                console.log("Cloudflare tunnel connection established")
+            }
+            else if(str.match(disconnect_regex)){
+                console.log("Cloudflare tunnel disconnected")
+            }
+            else if(str.match(retry_connection_regex)){
+                console.log(`Retrying to connect cloudflare tunnel...`);
+            }
+        }
+        
+        child.stdout.on('data', outputParser);
+        child.stderr.on('data', outputParser);
+
+        if(process.env.DEBUG){
+            child.stdout.pipe(process.stdout);
+            child.stderr.pipe(process.stderr);
+        }
+
+        return await url;
     }
 
     private async promptExtensionApiKey(): Promise<string> {
