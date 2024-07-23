@@ -87,6 +87,7 @@ export default class Theme {
         'react-template',
     );
     static BUILD_FOLDER = './.fdk/dist';
+    static SERVE_BUILD_FOLDER = './.fdk/distServed';
     static SRC_FOLDER = path.join('.fdk', 'temp-theme');
     static VUE_CLI_CONFIG_PATH = path.join('.fdk', 'vue.config.js');
     static REACT_CLI_CONFIG_PATH = 'webpack.config.js';
@@ -1158,7 +1159,7 @@ export default class Theme {
             Logger.info(`Locally building`);
             Theme.createVueConfig();
             await devBuild({
-                buildFolder: Theme.BUILD_FOLDER,
+                buildFolder: Theme.SERVE_BUILD_FOLDER,
                 imageCdnUrl: urlJoin(getFullLocalUrl(port), 'assets/images'),
                 isProd: isSSR,
             });
@@ -1179,7 +1180,7 @@ export default class Theme {
             watcher.on('change', async () => {
                 Logger.info(chalk.bold.green(`building`));
                 await devBuild({
-                    buildFolder: Theme.BUILD_FOLDER,
+                    buildFolder: Theme.SERVE_BUILD_FOLDER,
                     imageCdnUrl: urlJoin(
                         getFullLocalUrl(port),
                         'assets/images',
@@ -1209,7 +1210,7 @@ export default class Theme {
             await Theme.createReactSectionsIndexFile();
 
             await devReactBuild({
-                buildFolder: Theme.BUILD_FOLDER,
+                buildFolder: Theme.SERVE_BUILD_FOLDER,
                 runOnLocal: true,
                 localThemePort: port,
                 isHMREnabled,
@@ -1228,7 +1229,7 @@ export default class Theme {
             Logger.info(chalk.bold.green(`Watching files for changes`));
             devReactWatch(
                 {
-                    buildFolder: Theme.BUILD_FOLDER,
+                    buildFolder: Theme.SERVE_BUILD_FOLDER,
                     runOnLocal: true,
                     localThemePort: port,
                     isHMREnabled,
@@ -1604,6 +1605,7 @@ export default class Theme {
     };
     private static clearPreviousBuild = () => {
         rimraf.sync(Theme.BUILD_FOLDER);
+        rimraf.sync(Theme.SERVE_BUILD_FOLDER);
         rimraf.sync(Theme.SRC_ARCHIVE_FOLDER);
     };
 

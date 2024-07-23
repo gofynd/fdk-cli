@@ -2,7 +2,6 @@
 
 # Fynd Development Kit
 >**Note:** Experimental support for Windows is available, it may not be fully stable.
-<div>
 
 [![NPM Version][npm-image]][npm-url]
 [![NPM Downloads][downloads-image]][downloads-url]
@@ -12,12 +11,12 @@
 
 Fynd development Kit (FDK CLI) is a cli tool developed by Fynd to create and update themes, extensions and various other components of the [Fynd Platform](https://platform.fynd.com/).
 ### Quick Links
-| [Fynd Platform](https://platform.fynd.com/) | [Fynd Partners](https://partners.fynd.com/) | [Partners Documentation](https://partners.fynd.com/help) | [Platform Documentation](https://platform.fynd.com/help) | [Other Projects](#other-fynd-projects) | [Contributing](CONTRIBUTING.md) | 
+| [Fynd Platform](https://platform.fynd.com/) | [Fynd Partners](https://partners.fynd.com/) | [Partners Documentation](https://partners.fynd.com/help) | [Platform Documentation](https://platform.fynd.com/help) | [Other Projects](#other-fynd-projects) | [Contributing](CONTRIBUTING.md) |
 
 # Prerequisites
 
 - You must have created a [partner account](https://partners.fynd.com/)
-- You must have created development account [guide](https://partners.fynd.com/help/docs/partners/testing-extension/development-acc) 
+- You must have created development account [guide](https://partners.fynd.com/help/docs/partners/testing-extension/development-acc)
 - You must have installed [Git](https://github.com/git-guides/install-git), if you don't already have it.
 - You must have installed [Nodejs](https://nodejs.org/en/download/package-manager), if you don't already have it.
 -  Optional Prerequisites
@@ -44,7 +43,7 @@ To see the available extension commands, enter:
 ```sh
 fdk extension
 ```
-See the the [Command reference](#commands-reference) for syntax details and usage examples of the commands. 
+See the the [Command reference](#commands-reference) for syntax details and usage examples of the commands.
 
 
 
@@ -52,8 +51,8 @@ See the the [Command reference](#commands-reference) for syntax details and usag
 ___
 
 ### Global Commands
-| Command        | Description           | 
-| ------------- |-------------| 
+| Command        | Description           |
+| ------------- |-------------|
 | [login](#login)     | Login user |
 | [user](#user)     | Shows user details of logged in user |
 | [logout](#logout)     | Logout user |
@@ -62,8 +61,8 @@ ___
 
 
 ### Theme Commands
-| Command        | Description           | 
-| ------------- |-------------| 
+| Command        | Description           |
+| ------------- |-------------|
 | [new](#theme-new)     | Create new theme |
 | [init](#theme-init)     | Clone or download the code of the live website onto your local machine to set up a local development environment for testing and modifications.  |
 | [serve](#theme-serve)     | Initiate theme development on your local machine. Your changes will automatically reflect in the browser whenever you save |
@@ -77,16 +76,16 @@ ___
 | [active-context](theme-active-context)    | show currently active context |
 
 ### Extension Commands
-| Command        | Description           | 
-| ------------- |-------------| 
+| Command        | Description           |
+| ------------- |-------------|
 | [init](#extension-init)     | Utilize this command to set up a new extension locally, leveraging existing templates of your choice.  |
 | [setup](#extension-setup)     | Configure your extension locally using the existing API Key and API Secret provided for the extension inside the partners panel.
 | [preview-url](#extension-preview-url)   | Create a tunnel and provide a link to tryout extension on development company
 | [launch-url](#extension-launch-url)     | Get/set extension's lanuch url |
 
 ### Partner Commands
-| Command        | Description           | 
-| ------------- |-------------| 
+| Command        | Description           |
+| ------------- |-------------|
 | [connect](#partner-connect)     | Add partner access token so that you don't need to add it explicitly  |
 
 ### Config Commands
@@ -95,11 +94,11 @@ ___
 |--------------|--------------------------------------|
 | [set](#config-set-commands)        | Set configuration values.            |
 | [get](#config-get-commands)        | Retrieve current configuration values.|
-| [delete](#config-delete-commands)  (alias: `rm`)    | Delete configuration values.  
+| [delete](#config-delete-commands)  (alias: `rm`)    | Delete configuration values.
 
 ### Environment Commands
-| Command        | Description           | 
-| ------------- |-------------| 
+| Command        | Description           |
+| ------------- |-------------|
 | [env get](#env-get)     | Shows current environment |
 | [env set](#env-set)     | Set active environment to the value provided by the user. Default environment: `fynd`|       |
 
@@ -162,8 +161,8 @@ This command allows user to login via partner panel.
 fdk login
 ```
 #### **Command Options**
-| Option        | Description           | 
-| ------------- |-------------| 
+| Option        | Description           |
+| ------------- |-------------|
 | --help    | Show help |
 | --verbose, -v | enable debug mode |
 
@@ -223,7 +222,7 @@ fdk theme new [options]
 
 #### **Example**
 ```sh
-fdk theme new -n [your-theme-name] 
+fdk theme new -n [your-theme-name]
 ```
 
 ___
@@ -238,8 +237,8 @@ This command is used to initialize an exisiting theme on your local system.
 fdk theme init [options]
 ```
 #### **Command Options**
-| Option        | Description | 
-| ------------- |-------------| 
+| Option        | Description |
+| ------------- |-------------|
 | --help    | Show help |
 | --verbose, -v | enable debug mode |
 
@@ -259,7 +258,7 @@ This command is used to add a new context.
 fdk theme context [options]
 ```
 #### **Command Options**
-| Option        | Description | Required | 
+| Option        | Description | Required |
 | ------------- |-------------| -------- |
 | --name, -n    | Context name | Yes |
 | --help    | Show help | No |
@@ -267,7 +266,7 @@ fdk theme context [options]
 
 #### **Example**
 ```sh
-fdk theme context -n [context-name] 
+fdk theme context -n [context-name]
 ```
 ___
 
@@ -300,8 +299,8 @@ This command is used to run a theme on your local system.
 fdk theme serve [options]
 ```
 #### **Command Options**
-| Option        | Description           | 
-| ------------- |-------------| 
+| Option        | Description           |
+| ------------- |-------------|
 | --ssr    | Enable/disable Server-side rendering |
 | --port   | Pass custom port number to serve theme. `Default: 5001` |
 | --help   | Show help |
@@ -362,7 +361,7 @@ ___
 This command is used to preview the theme on browser.
 #### **Syntax**
 ```sh
-fdk theme open 
+fdk theme open
 ```
 ### Extension Commands
 Extensions are pluggable snippets of code that can be installed in your applications so improve the feature set of your application. To know more visit - [Fynd Partners](https://partners.fynd.com/)
@@ -382,8 +381,8 @@ This command is used to create a extension's initial code with required dependen
 fdk extension init [options]
 ```
 #### **Command Options**
-| Option        | Description           | 
-| ------------- |-------------| 
+| Option        | Description           |
+| ------------- |-------------|
 | --target-dir    | Target Directory |
 | --help    | Show help |
 | --verbose | enable debug mode |
@@ -403,8 +402,8 @@ fdk extension setup [options]
 ```
 
 #### **Command Options**
-| Option        | Description           | 
-| ------------- |-------------| 
+| Option        | Description           |
+| ------------- |-------------|
 | --target-dir    | Target Directory |
 | --help    | Show help |
 | --verbose | enable debug mode |
@@ -468,8 +467,8 @@ This command is used to get or set the launch url of your extension
 fdk extension launch-url get/set [options]
 ```
 #### **Command Options**
-| Option        | Description  | 
-| ------------- |-------------| 
+| Option        | Description  |
+| ------------- |-------------|
 | --url | URL to be set |
 | --api-key    | Extension ID |
 | --help    | Show help |
@@ -496,8 +495,8 @@ This command is used to add your partner access token to update extension detail
 fdk partner connect [options]
 ```
 #### **Command Options**
-| Option        | Description           | 
-| ------------- |-------------| 
+| Option        | Description           |
+| ------------- |-------------|
 | --help    | Show help |
 | --verbose, -v | enable debug mode |
 
