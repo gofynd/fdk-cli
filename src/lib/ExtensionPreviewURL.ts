@@ -82,13 +82,16 @@ export default class ExtensionPreviewURL {
                     const ngrokListener: ngrok.Listener =
                         await extension.startNgrokTunnel(authtoken);
                     extension.publicNgrokURL = ngrokListener.url();
-                    interval = setInterval(() => {}, 900);
-                    process.on('SIGINT', async () => {
+                    interval = setInterval(() => {}, 10000);
+                    const cleanup = async () => {
                         Logger.info('Stopping Ngrok tunnel...');
                         clearInterval(interval);
                         await ngrok.disconnect();
-                        process.exit();
-                    });
+                        process.exit(0);
+                    }
+                    for (const signal of ["SIGINT", "SIGUSR1", "SIGUSR2", "SIGTERM"] as const) {
+                        process.on(signal, cleanup);
+                    }
                     configStore.set(CONFIG_KEYS.NGROK_AUTHTOKEN, authtoken);
                     spinner.succeed();
                 } catch (error) {
@@ -115,10 +118,14 @@ export default class ExtensionPreviewURL {
                 }
             } else {
                 // start Cloudflared tunnel
+                let spinner = new Spinner('Starting Cloudflare tunnel');
                 try {
+                    spinner.start();
                     extension.publicTunnelURL =
                         await extension.startCloudflareTunnel();
+                    spinner.succeed();
                 } catch (error) {
+                    spinner.fail();
                     throw new CommandError(
                         ErrorCodes.ClOUDFLARE_CONNECTION_ISSUE.message,
                         ErrorCodes.ClOUDFLARE_CONNECTION_ISSUE.code,
@@ -227,6 +234,33 @@ export default class ExtensionPreviewURL {
         return authtoken;
     }
 
+    isCloudflareTunnelShutdown = false;
+    cloudflareTunnelLogParser(data){
+        const str = data.toString();
+
+        const connected_regex = /Registered tunnel connection/;
+        const disconnect_regex = /Unregistered tunnel connection/;
+        const retry_connection_regex = /Retrying connection in up to/;
+        const shutdown_regex = /Initiating graceful shutdown due to signal interrupt/;
+
+        if(this.isCloudflareTunnelShutdown){
+            return;
+        }
+
+        if(str.match(connected_regex)){
+            console.log("Cloudflare tunnel connection established")
+        }
+        else if(str.match(disconnect_regex)){
+            console.log("Cloudflare tunnel disconnected")
+        }
+        else if(str.match(retry_connection_regex)){
+            console.log(`Retrying to connect cloudflare tunnel...`);
+        }
+        else if(str.match(shutdown_regex)){
+            this.isCloudflareTunnelShutdown = true;
+        }
+    }
+
     private async startCloudflareTunnel() {
         Debug(`Starting tunnel on port ${this.options.port}`);
         // INSTALL CURRENT LATEST VERSION
@@ -246,26 +280,8 @@ export default class ExtensionPreviewURL {
           process.once(signal, cleanup);
         }
 
-        const outputParser = (data) => {
-            const str = data.toString();
-
-            const connected_regex = /Registered tunnel connection/;
-            const disconnect_regex = /Unregistered tunnel connection/;
-            const retry_connection_regex = /Retrying connection in up to/;
-
-            if(str.match(connected_regex)){
-                console.log("Cloudflare tunnel connection established")
-            }
-            else if(str.match(disconnect_regex)){
-                console.log("Cloudflare tunnel disconnected")
-            }
-            else if(str.match(retry_connection_regex)){
-                console.log(`Retrying to connect cloudflare tunnel...`);
-            }
-        }
-        
-        child.stdout.on('data', outputParser);
-        child.stderr.on('data', outputParser);
+        child.stdout.on('data', this.cloudflareTunnelLogParser);
+        child.stderr.on('data', this.cloudflareTunnelLogParser);
 
         if(process.env.DEBUG){
             child.stdout.pipe(process.stdout);
