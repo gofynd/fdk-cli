@@ -1,3 +1,4 @@
+import './helper/instrument'
 import program, { Command } from 'commander';
 import leven from 'leven';
 import latestVersion from 'latest-version';
@@ -27,17 +28,6 @@ import {
 import { getPlatformUrls } from './lib/api/services/url';
 import * as Sentry from '@sentry/node';
 const packageJSON = require('../package.json');
-
-const sentryFilePath = path.join(__dirname, './sentry.json');
-const sentryDSN = fs.existsSync(sentryFilePath)
-    ? fs.readJsonSync(sentryFilePath)['dsn']
-    : undefined;
-if (sentryDSN) {
-    Sentry.init({
-        dsn: sentryDSN,
-        release: packageJSON.version,
-    });
-}
 
 async function checkTokenExpired(auth_token) {
     if (!auth_token) return true;
