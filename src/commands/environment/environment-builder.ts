@@ -10,19 +10,6 @@ export default function environmentCommandBuilder() {
         .description('Get current environment')
         .asyncAction(Env.getEnv);
 
-    // todo: remove in 4.0.6
-    env.command('ls')
-        .description('List supported environments')
-        .action(() => {
-            console.warn(
-                chalk.yellow(
-                    `Warning: The "env ls" command is deprecated. Ref: ${
-                        getPlatformUrls().partners
-                    }/help/docs/partners/themes/vuejs/command-reference#environment-commands-1`,
-                ),
-            );
-        });
-
     env.command('set')
         // todo: remove -n option in future version
         .option('-n, --name [env-name]', 'Environment name')
