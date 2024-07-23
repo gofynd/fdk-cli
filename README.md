@@ -2,7 +2,7 @@
 
 # Fynd Development Kit
 >**Note:** Experimental support for Windows is available, it may not be fully stable.
-<div>
+<div className="fd_cli">
 
 [![NPM Version][npm-image]][npm-url]
 [![NPM Downloads][downloads-image]][downloads-url]
