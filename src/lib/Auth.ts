@@ -1,15 +1,18 @@
 import CommandError from './CommandError';
 import Logger from './Logger';
+import chalk from 'chalk';
 import inquirer from 'inquirer';
 import ConfigStore, { CONFIG_KEYS } from './Config';
-import { ALLOWD_ENV } from '../helper/constants';
 import open from 'open';
 import express from 'express';
 var cors = require('cors');
 const port = 7071;
-import chalk from 'chalk';
 import ThemeService from './api/services/theme.service';
 import { getLocalBaseUrl } from '../helper/serve.utils';
+import { successBox } from '../helper/formatter';
+import OrganizationService from './api/services/organization.service';
+import { getOrganizationDisplayName } from '../helper/utils';
+import Debug from './Debug';
 
 async function checkTokenExpired(auth_token) {
     const { expiry_time } = auth_token;
@@ -36,13 +39,21 @@ export const getApp = async () => {
             req.body.auth_token.expiry_time = expiryTimestamp;
             ConfigStore.set(CONFIG_KEYS.AUTH_TOKEN, req.body.auth_token);
             ConfigStore.set(CONFIG_KEYS.ORGANIZATION, req.body.organization);
+            const organization_detail =
+                await OrganizationService.getOrganizationDetails();
+            ConfigStore.set(
+                CONFIG_KEYS.ORGANIZATION_DETAIL,
+                organization_detail.data,
+            );
             Auth.stopSever();
-            if (Auth.isOrganizationChange)
-                Logger.info('Organization changed successfully');
-            else Logger.info('User logged in successfully');
+            Logger.info(
+                `Logged in successfully in organization ${getOrganizationDisplayName()}`,
+            );
             res.status(200).json({ message: 'success' });
         } catch (err) {
-            console.log(err);
+            Debug(err);
+            Auth.stopSever();
+            res.status(500).json({ message: 'failed' });
         }
     });
 
@@ -55,7 +66,7 @@ export const startServer = async () => {
     const { app } = await getApp();
     const serverIn = require('http').createServer(app);
     Auth.server = serverIn.listen(port, (err) => {
-        if (err) console.log(err);
+        if (err) Debug(err);
     });
 
     return Auth.server;
@@ -75,6 +86,9 @@ export default class Auth {
         const isLoggedIn = await Auth.isAlreadyLoggedIn();
         await startServer();
         if (isLoggedIn) {
+            Logger.info(
+                `Current logged in organization: ${getOrganizationDisplayName()}`,
+            );
             const questions = [
                 {
                     type: 'list',
@@ -149,13 +163,13 @@ export default class Auth {
             const { current_user: user } = ConfigStore.get(
                 CONFIG_KEYS.AUTH_TOKEN,
             );
-            const organization_id = ConfigStore.get(CONFIG_KEYS.ORGANIZATION);
             const activeEmail =
                 user.emails.find((e) => e.active && e.primary)?.email ||
-                'Not primary email set';
-            Logger.info(`Name: ${user.first_name} ${user.last_name}`);
-            Logger.info(`Email: ${activeEmail}`);
-            Logger.info(`Current organization: ${organization_id}`);
+                'Primary email missing';
+            const text = `Name: ${user.first_name} ${
+                user.last_name
+            }\nEmail: ${activeEmail}\nOrganization: ${getOrganizationDisplayName()}`;
+            Logger.info(successBox({ text }));
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
