@@ -47,6 +47,10 @@ jest.mock('configstore', () => {
     };
 });
 
+jest.mock('open', () => {
+    return () => {}
+})
+
 export async function login() {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
     const app = await startServer();

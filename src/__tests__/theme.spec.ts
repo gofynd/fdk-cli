@@ -72,6 +72,10 @@ jest.mock('configstore', () => {
     };
 });
 
+jest.mock('open', () => {
+    return () => {}
+})
+
 async function createThemeFromZip() {
     let zipPath = path.join(__dirname, 'fixtures', 'rolex.zip');
     let destination = path.join(__dirname, '..', '..', 'test-theme');
