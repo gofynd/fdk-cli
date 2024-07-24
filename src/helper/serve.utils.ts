@@ -200,7 +200,7 @@ export async function startServer({ domain, host, isSSR, port }) {
         );
         if (!fs.existsSync(BUNDLE_PATH))
             return res.sendFile(
-                path.join(__dirname, '../../', '/distServed/helper', '/loader.html'),
+                path.join(__dirname, '../../', '/dist/helper', '/loader.html'),
             );
         if (req.originalUrl == '/favicon.ico' || req.originalUrl == '/.webp') {
             return res.status(404).send('Not found');
@@ -435,7 +435,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
         // While build is not complete
         if (!fs.existsSync(path.join(BUNDLE_DIR, 'themeBundle.umd.js'))) {
             return res.sendFile(
-                path.join(__dirname, '../../', '/distServed/helper', '/loader.html'),
+                path.join(__dirname, '../../', '/dist/helper', '/loader.html'),
             );
         }
         const skyfireUrl = new URL(urlJoin(domain, req.originalUrl));
