@@ -34,7 +34,7 @@ export default class ExtensionLaunchURL {
                 'resources',
                 'application.yml',
             );
-            let spinner = new Spinner('Updating Launch URL on Partners Panel');
+            let spinner = new Spinner('Updating Launch URL');
             try {
                 spinner.start();
                 let manualUpdateRequired = false;

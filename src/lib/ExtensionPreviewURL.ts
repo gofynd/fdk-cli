@@ -88,8 +88,13 @@ export default class ExtensionPreviewURL {
                         clearInterval(interval);
                         await ngrok.disconnect();
                         process.exit(0);
-                    }
-                    for (const signal of ["SIGINT", "SIGUSR1", "SIGUSR2", "SIGTERM"] as const) {
+                    };
+                    for (const signal of [
+                        'SIGINT',
+                        'SIGUSR1',
+                        'SIGUSR2',
+                        'SIGTERM',
+                    ] as const) {
                         process.on(signal, cleanup);
                     }
                     configStore.set(CONFIG_KEYS.NGROK_AUTHTOKEN, authtoken);
@@ -208,7 +213,7 @@ export default class ExtensionPreviewURL {
     }
 
     private async closedTunnelHandler() {
-        Logger.info(chalk.red('Ngrok tunnel disconnected'));
+        Logger.error(chalk.red('Ngrok tunnel disconnected'));
     }
 
     private async promptNgrokAuthtoken(): Promise<string> {
@@ -235,28 +240,25 @@ export default class ExtensionPreviewURL {
     }
 
     isCloudflareTunnelShutdown = false;
-    cloudflareTunnelLogParser(data){
+    cloudflareTunnelLogParser(data) {
         const str = data.toString();
-
         const connected_regex = /Registered tunnel connection/;
         const disconnect_regex = /Unregistered tunnel connection/;
         const retry_connection_regex = /Retrying connection in up to/;
-        const shutdown_regex = /Initiating graceful shutdown due to signal interrupt/;
+        const shutdown_regex =
+            /Initiating graceful shutdown due to signal interrupt/;
 
-        if(this.isCloudflareTunnelShutdown){
+        if (this.isCloudflareTunnelShutdown) {
             return;
         }
 
-        if(str.match(connected_regex)){
-            console.log("Cloudflare tunnel connection established")
-        }
-        else if(str.match(disconnect_regex)){
-            console.log("Cloudflare tunnel disconnected")
-        }
-        else if(str.match(retry_connection_regex)){
-            console.log(`Retrying to connect cloudflare tunnel...`);
-        }
-        else if(str.match(shutdown_regex)){
+        if (str.match(connected_regex)) {
+            Logger.info('Tunnel connection established');
+        } else if (str.match(disconnect_regex)) {
+            Logger.error('Tunnel disconnected');
+        } else if (str.match(retry_connection_regex)) {
+            Logger.warn(`Retrying to connect tunnel...`);
+        } else if (str.match(shutdown_regex)) {
             this.isCloudflareTunnelShutdown = true;
         }
     }
@@ -270,20 +272,22 @@ export default class ExtensionPreviewURL {
         // ALWAYS USE HTTP2 PROTOCOL
         process.env.TUNNEL_TRANSPORT_PROTOCOL = 'http2';
 
-        const { url, connections, child, stop } = startTunnel({"--url": `http://localhost:${this.options.port}`});
-        
+        const { url, connections, child, stop } = startTunnel({
+            '--url': `http://localhost:${this.options.port}`,
+        });
+
         const cleanup = async () => {
             stop();
         };
-        
-        for (const signal of ["SIGINT", "SIGUSR1", "SIGUSR2"] as const) {
-          process.once(signal, cleanup);
+
+        for (const signal of ['SIGINT', 'SIGUSR1', 'SIGUSR2'] as const) {
+            process.once(signal, cleanup);
         }
 
         child.stdout.on('data', this.cloudflareTunnelLogParser);
         child.stderr.on('data', this.cloudflareTunnelLogParser);
 
-        if(process.env.DEBUG){
+        if (process.env.DEBUG) {
             child.stdout.pipe(process.stdout);
             child.stderr.pipe(process.stderr);
         }
