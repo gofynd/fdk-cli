@@ -18,7 +18,7 @@ let program;
 
 jest.mock('configstore', () => {
     const Store =
-        jest.requireActual<typeof import('configstore')>('configstore');
+        jest.requireActual('configstore');
     return class MockConfigstore {
         store = new Store('test-cli', undefined, {
             configPath: './auth-test-cli.json',

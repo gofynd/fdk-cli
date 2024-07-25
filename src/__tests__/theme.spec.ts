@@ -45,7 +45,7 @@ let program;
 
 jest.mock('configstore', () => {
     const Store =
-        jest.requireActual<typeof import('configstore')>('configstore');
+        jest.requireActual('configstore');
     const path = jest.requireActual<typeof import('path')>('path');
     return class MockConfigstore {
         store = new Store('@gofynd/fdk-cli', undefined, {

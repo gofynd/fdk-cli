@@ -83,7 +83,7 @@ export default class CurlHelper {
                 this.reqConfig.headers[headerName] &&
                 this.reqConfig.headers[headerName] !== ''
             ) {
-                if (this.reqConfig.headers[headerName] instanceof Object) {
+                if (this.reqConfig.headers[headerName] as any instanceof Object) {
                     headers[headerName.toLowerCase()] = JSON.stringify(
                         this.reqConfig.headers[headerName],
                     );
