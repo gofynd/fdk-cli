@@ -2232,28 +2232,32 @@ export default class Theme {
             let settingProps;
             const customRoutes = (ctTemplates, parentKey = null) => {
                 for (let key in ctTemplates) {
-                    const routerPath =
-                        (parentKey && `${parentKey}/${key}`) || `c/${key}`;
-                    const value = routerPath.replace(/\//g, ':::');
-                    if (
-                        ctTemplates[key].component &&
-                        ctTemplates[key].component.__settings
-                    ) {
-                        settingProps =
-                            ctTemplates[key].component.__settings.props;
-                    }
-                    customFiles[value] = {
-                        fileSetting: settingProps,
-                        value,
-                        text: pageNameModifier(key),
-                        path: routerPath,
-                    };
+                    if (/^[a-zA-Z0-9_]+$/.test(key)) {
+                        const routerPath =
+                            (parentKey && `${parentKey}/${key}`) || `c/${key}`;
+                        const value = routerPath.replace(/\//g, ':::');
+                        if (
+                            ctTemplates[key].component &&
+                            ctTemplates[key].component.__settings
+                        ) {
+                            settingProps =
+                                ctTemplates[key].component.__settings.props;
+                        }
+                        customFiles[value] = {
+                            fileSetting: settingProps,
+                            value,
+                            text: pageNameModifier(key),
+                            path: routerPath,
+                        };
 
-                    if (
-                        ctTemplates[key].children &&
-                        Object.keys(ctTemplates[key].children).length
-                    ) {
-                        customRoutes(ctTemplates[key].children, routerPath);
+                        if (
+                            ctTemplates[key].children &&
+                            Object.keys(ctTemplates[key].children).length
+                        ) {
+                            customRoutes(ctTemplates[key].children, routerPath);
+                        }
+                    }else{
+                        throw new Error(`Found an invalid custom page URL: ${key}`);
                     }
                 }
             };
