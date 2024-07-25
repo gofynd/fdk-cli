@@ -35,6 +35,10 @@ export const ErrorCodes = {
         message: 'Development account not found',
         code: 'FDK-0008',
     },
+    NO_EXTENSION_FOUND: {
+        message: 'Extension not found',
+        code: 'FDK-00013'
+    },
     NO_COMPANY_FOUND: {
         message: (company_type = 'live', domain) => {
             if (company_type === 'live')

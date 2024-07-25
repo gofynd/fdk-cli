@@ -209,6 +209,7 @@ Run the following command to upgrade:
                     throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
             }
             if (
+                parent.args.includes('theme') &&
                 THEME_COMMANDS.findIndex((c) => themeCommand.includes(c)) !== -1
             ) {
                 const activeContextEnv = getActiveContext().env;

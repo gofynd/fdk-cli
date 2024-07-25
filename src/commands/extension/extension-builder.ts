@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import Extension from '../../lib/Extension';
 import ExtensionLaunchURL from '../../lib/ExtensionLaunchURL';
 import ExtensionPreviewURL from '../../lib/ExtensionPreviewURL';
+import ExtensionEnv from '../../lib/ExtensionEnv';
 
 export default function extensionCommandBuilder() {
     const extension = new Command('extension').description(
@@ -64,5 +65,12 @@ export default function extensionCommandBuilder() {
         .asyncAction(ExtensionLaunchURL.setLaunchURLHandler);
 
     extension.addCommand(launch_url);
+
+
+    extension
+        .command('pull-env')
+        .description('Pull environment variable for the extension from partners panel')
+        .asyncAction(ExtensionEnv.extensionEnvPullHandler);
+
     return extension;
 }

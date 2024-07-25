@@ -131,6 +131,13 @@ export const URLS = {
     },
 
     // Extension
+    GET_ALL_EXTENSION: (page_no: number, page_size: number): string => {
+        return urlJoin(
+            MIXMASTER_URL('partner'),
+            `organization/${getOrganizationId()}/extension?page_size=${page_size}&page_no=${page_no}`,
+        )
+    },
+
     REGISTER_EXTENSION_PARTNER: (): string => {
         return urlJoin(
             MIXMASTER_URL('partner'),
