@@ -18,7 +18,7 @@ export default class CurlHelper {
 
         let queryParamString = '';
 
-        if (this.reqConfig.paramsSerializer) {
+        if (this.reqConfig.paramsSerializer && typeof this.reqConfig.paramsSerializer === 'function') {
             let queryParams = this.reqConfig.paramsSerializer(
                 this.reqConfig.params,
             );
