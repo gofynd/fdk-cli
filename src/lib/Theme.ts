@@ -816,7 +816,7 @@ export default class Theme {
         const currentContext = getActiveContext();
         switch (currentContext.theme_type) {
             case THEME_TYPE.react:
-                await Theme.syncReactTheme(currentContext, undefined);
+                await Theme.syncReactTheme(currentContext);
                 break;
             case THEME_TYPE.vue2:
                 await Theme.syncVueTheme(currentContext);
@@ -828,7 +828,7 @@ export default class Theme {
     };
     private static syncReactTheme = async (
         currentContext: ThemeContextInterface,
-        targetDirectory
+        targetDirectory?: string
     ) => {
         try {
             await Theme.ensureThemeTypeInPackageJson();

@@ -83,6 +83,16 @@ ___
 | [preview-url](#extension-preview-url)   | Create a tunnel and provide a link to tryout extension on development company
 | [launch-url](#extension-launch-url)     | Get/set extension's lanuch url |
 
+### Extension Binding Commands
+| Command        | Description           |
+| ------------- |-------------|
+| [init](#binding-init)     | Utilize this command to set up a new extension section binding locally, leveraging existing templates of either Vue 2 or React JS.  |
+| [draft](#binding-draft)     | Create a draft entry of section binding accessible on dev companies.
+| [publish](#binding-publish)     | Publish the bindings across all the companies where extension is installed..
+| [preview](#binding-preview)     | Create a tunnel and provide a link to tryout extension on any company.
+| [show-context](#binding-show-context)     | Show current extension section context.
+| [clear-context](#binding-clear-context)     | Clear current extension section context.
+
 ### Partner Commands
 | Command        | Description           |
 | ------------- |-------------|
@@ -484,6 +494,135 @@ fdk extension launch-url set --url [url] --api-key [Extension API Key]
 fdk extension launch-url get --api-key [Extension API Key]
 ```
 ___
+
+### Extension Binding Commands
+Extensions bindings are reusable components which are pluggable through the theme editor to improve the user interface of your application. These can be used just like theme sections.
+
+Set the active environment before running extension commands
+```sh
+fdk env set -u api.fynd.com
+```
+
+
+<div id="binding-init"></div>
+
+#### **init**
+This command is used to create a basic boilerplate code for extension binding with required dependencies.
+#### ****Syntax****
+```sh
+fdk binding init [options]
+```
+#### **Command Options**
+| Option        | Description           |
+| ------------- |-------------|
+| -n, --name    | (Optional) Name of the section binding |
+| -i, --interface    | (Optional) Interface where this binding will be used. Currently, we only support Web Theme. |
+| -f, --framework | (Optional) Runtime framework. Supported values are vue2 and react |
+
+#### **Example**
+```sh
+fdk binding init
+```
+___
+<div id="binding-draft"></div>
+
+#### **draft**
+This command is used to register the binding with your development companies for alpha or beta testing.
+
+#### ****Syntax****
+```sh
+fdk binding draft [options]
+```
+
+#### **Command Options**
+| Option        | Description           |
+| ------------- |-------------|
+| -n, --name    | (Optional) Name of the section binding |
+| -f, --framework | (Optional) Runtime framework. Supported values are vue2 and react |
+| -id, --extensionId    | (Optional) Extension Id of the current extension. |
+| -org, --organisationId    | (Optional) Organisation Id of the current extension. |
+
+
+#### **Example**
+```sh
+fdk binding draft
+```
+___
+
+<div id="binding-publish"></div>
+
+#### **publish**
+This command is used to publish the binding across all live companies.
+
+#### ****Syntax****
+```sh
+fdk binding publish [options]
+```
+
+#### **Command Options**
+| Option        | Description           |
+| ------------- |-------------|
+| -n, --name    | (Optional) Name of the section binding |
+| -f, --framework | (Optional) Runtime framework. Supported values are vue2 and react |
+| -id, --extensionId    | (Optional) Extension Id of the current extension. |
+| -org, --organisationId    | (Optional) Organisation Id of the current extension. |
+
+
+#### **Example**
+```sh
+fdk binding publish
+```
+___
+
+<div id="binding-preview"></div>
+
+#### **preview**
+This command will allow developers to locally serve the extension binding which has been added to a live storefront.
+
+#### ****Syntax****
+```sh
+fdk binding preview [options]
+```
+
+#### **Command Options**
+| Option        | Description           |
+| ------------- |-------------|
+| -n, --name    | (Optional) Name of the section binding |
+| -f, --framework | (Optional) Runtime framework. Supported values are vue2 and react |
+| -id, --extensionId    | (Optional) Extension Id of the current extension. |
+| -org, --organisationId    | (Optional) Organisation Id of the current extension. |
+| -p, --port    | (Optional) Port number where the local tunnel is proxying to. |
+| -u, --url    | (Optional) Local tunnel URL. |
+
+
+#### **Example**
+```sh
+fdk binding preview
+```
+
+___
+
+<div id="binding-show-context"></div>
+
+#### **show-context**
+This command will allow developers to see the current extension section context.
+
+#### ****Syntax****
+```sh
+fdk binding show-context
+```
+___
+
+<div id="binding-clear-context"></div>
+
+#### **clear-context**
+This command will allow developers to clear the current extension section context.
+
+#### ****Syntax****
+```sh
+fdk binding clear-context
+```
+
 ### Partner Commands
 
 <div id="partner-connect"></div>

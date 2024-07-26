@@ -1,7 +1,7 @@
 <template>
     <div class="main-div">
         <h1>Header - {{ getHeader }}</h1>
-        <h2>Product List using Extension for Jetfire</h2>
+        <h2>Products List</h2>
 
         <div v-if="products.length == 0" class="no-product">
             No Products Found
@@ -23,7 +23,7 @@
 <script>
 export default {
     name: 'test',
-    props: ['settings', 'apiSDK', 'serverProps', 'global_config'],
+    props: ['settings', 'serverProps', 'global_config'],
     async initializeServerProps({ settings, apiSDK }) {
         try {
             const data = await apiSDK.catalog.getProducts({

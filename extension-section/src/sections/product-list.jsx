@@ -23,7 +23,7 @@ export function Component({ props }) {
       <Helmet>
         <title>{ title }</title>
       </Helmet>
-      <h1>Product List using Extension for Sky🔥</h1>
+      <h1>Products List</h1>
 
       {!productItems.length ? (
         <h2>No Products</h2>
