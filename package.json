@@ -62,8 +62,7 @@
     "source-map-support": "^0.5.19",
     "supertest": "^6.3.3",
     "ts-jest": "^27.1.4",
-    "typescript": "^4.6.4",
-    "webpack": "^5.83.1"
+    "typescript": "^4.6.4"
   },
   "dependencies": {
     "@babel/core": "7.14.3",
@@ -109,6 +108,7 @@
     "ora": "^5.4.0",
     "query-string": "^7.1.0",
     "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "react-refresh": "^0.14.0",
     "react-router-dom": "^6.23.0",
     "rimraf": "^3.0.2",
@@ -123,6 +123,7 @@
     "url-join": "^4.0.1",
     "uuid": "^10.0.0",
     "vue-template-compiler": "^2.6.13",
+    "webpack": "^5.93.0",
     "webpack-dev-middleware": "^6.1.1",
     "webpack-hot-middleware": "^2.25.3",
     "webpack-merge": "^5.8.0",
