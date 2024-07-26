@@ -15,22 +15,35 @@ export const DEV_VUE_THEME_ENTRY_FILE = path.join('theme', 'index.js');
 export const CDN_ENTRY_FILE =  path.join('.fdk', 'cdn_index.js');
 
 export const dynamicCDNScript = ({assetNormalizedBasePath,vueJs }) => {
-    return `function getCDNurl() {
-        \n let cdnUrl; 
-        \n try{ 
-            \n if(fynd_platform_cdn) { 
-                \n cdnUrl = fynd_platform_cdn 
-                \n } else { 
-                    \n throw new Error("undefiend variable")}  
-        \n } catch(error){ 
-            \n cdnUrl = '${assetNormalizedBasePath}'} 
-        \n return cdnUrl; 
-            \n  }   
-    \n __webpack_public_path__ =  getCDNurl() ${vueJs ? `\n
+
+    const functionSnippet = `
+        function getCDNurl() {
+            let cdnUrl;
+            try {
+                if (fynd_platform_cdn) {
+                    cdnUrl = fynd_platform_cdn
+                } else {
+                    throw new Error("undefiend variable")
+                }
+            } catch (error) {
+                cdnUrl = '${assetNormalizedBasePath}'
+            }
+
+            return cdnUrl;
+        }
+
+        __webpack_public_path__ =  getCDNurl();
+    `;
+
+    const vueSpecificBundleImport = vueJs ? `
     import bundle from "../theme/index.js";
-    \n export default bundle;
-    `
-    : ''}`
+    export default bundle;
+    ` : '';
+
+    return `
+    ${functionSnippet}
+
+    ${vueSpecificBundleImport}`
 }
 export function build({
     buildFolder,
