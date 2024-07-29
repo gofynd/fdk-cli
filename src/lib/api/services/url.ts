@@ -99,6 +99,13 @@ export const URLS = {
         );
     },
 
+    GET_APPLIED_THEME: (company_id: number, application_id: string) => {
+        return urlJoin(
+            THEME_URL(),
+            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/applied-theme`,
+        );
+    },
+
     // AVAILABLE_PAGE
     AVAILABLE_PAGE: (
         application_id: string,
@@ -138,6 +145,13 @@ export const URLS = {
         );
     },
 
+    GET_EXTENSION_LIST: () => {
+        return urlJoin(
+            MIXMASTER_URL('partner'),
+            `/organization/${getOrganizationId()}/extension?page_size=100`,
+        );
+    },
+
     GET_EXTENSION_DETAILS_PARTNERS: (extension_api_key: string): string => {
         return urlJoin(
             MIXMASTER_URL('partner'),
@@ -166,6 +180,37 @@ export const URLS = {
         );
     },
 
+    // Extension Section
+    PUBLISH_SECTIONS: (extension_id: string, organization_id) => {
+        return urlJoin(
+            THEME_URL(),
+            `organization/${organization_id}/extension-section/${extension_id}/publish`,
+        );
+    },
+    DRAFT_SECTIONS: (extension_id: string, organization_id) => {
+        return urlJoin(
+            THEME_URL(),
+            `organization/${organization_id}/extension-section/${extension_id}/draft`,
+        );
+    },
+   PREVIEW_SECTIONS: (extension_id: string, organization_id) => {
+        return urlJoin(
+            THEME_URL(),
+            `organization/${organization_id}/extension-section/${extension_id}/preview`,
+        );
+    },
+   DELETE_SECTIONS: (extension_id: string, organization_id) => {
+        return urlJoin(
+            THEME_URL(),
+            `organization/${organization_id}/extension-section/${extension_id}/preview`,
+        );
+    },
+    GET_EXTENSION_SECTIONS: (extension_id: string, organization_id: string, binding_name: string, accountType: string, framework: string) => {
+        return urlJoin(
+            THEME_URL(),
+            `organization/${organization_id}/extension-section/${extension_id}/${binding_name}?accountType=${accountType}&type=${framework}`,
+        );
+    },
     // Organization
     GET_ORGANIZATION_DETAILS: () : string => {
         return urlJoin(
@@ -186,9 +231,5 @@ export const URLS = {
             MIXMASTER_URL('partner'),
             `/organization/${getOrganizationId()}/accounts/access-request?page_size=${page_size}&page_no=${page_no}&request_status=accepted`,
         );
-    },
-
-    IS_VERSION_COMPATIBLE: () => {
-        return urlJoin(BLITZKRIEG_PANEL_URL(), '/_compatibility');
     },
 };

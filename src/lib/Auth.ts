@@ -1,5 +1,6 @@
 import CommandError from './CommandError';
 import Logger from './Logger';
+import chalk from 'chalk';
 import inquirer from 'inquirer';
 import ConfigStore, { CONFIG_KEYS } from './Config';
 import open from 'open';
@@ -71,16 +72,17 @@ export const startServer = async () => {
     return Auth.server;
 };
 
-async function checkVersionCompatibility() {
-    const response = await ThemeService.checkCompatibleVersion();
-}
-
 export default class Auth {
     static server = null;
     static isOrganizationChange = false;
     constructor() {}
     public static async login() {
-        await checkVersionCompatibility();
+        Logger.info(
+            chalk.green(
+                'Current env: ',
+                ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE),
+            ),
+        );
         const isLoggedIn = await Auth.isAlreadyLoggedIn();
         await startServer();
         if (isLoggedIn) {

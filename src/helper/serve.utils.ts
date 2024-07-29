@@ -13,6 +13,7 @@ import Theme from '../lib/Theme';
 import glob from 'glob';
 import detect from 'detect-port';
 import chalk from 'chalk';
+import cors from 'cors';
 import UploadService from '../lib/api/services/upload.service';
 import Configstore, { CONFIG_KEYS } from '../lib/Config';
 import { createProxyMiddleware, fixRequestBody } from 'http-proxy-middleware';
@@ -23,10 +24,12 @@ import webpackHotMiddleware from 'webpack-hot-middleware';
 import webpack from 'webpack';
 import createBaseWebpackConfig from '../helper/theme.react.config';
 import Debug from '../lib/Debug';
+import { SupportedFrameworks } from '../lib/ExtensionSection';
 import https from 'https';
 const packageJSON = require('../../package.json');
 
 const BUILD_FOLDER = './.fdk/dist';
+const SERVE_BUILD_FOLDER = './.fdk/distServed';
 let port = 5001;
 let sockets = [];
 let publicCache = {};
@@ -171,7 +174,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 
     applyProxy(app);
 
-    app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
+    app.use(express.static(path.resolve(process.cwd(), SERVE_BUILD_FOLDER)));
     app.get(['/__webpack_hmr', '/manifest.json'], async (req, res, next) => {
         return res.end();
     });
@@ -193,7 +196,7 @@ export async function startServer({ domain, host, isSSR, port }) {
 
         const BUNDLE_PATH = path.join(
             process.cwd(),
-            path.join('.fdk', 'dist', 'themeBundle.common.js'),
+            path.join('.fdk', 'distServed', 'themeBundle.common.js'),
         );
         if (!fs.existsSync(BUNDLE_PATH))
             return res.sendFile(
@@ -209,7 +212,7 @@ export async function startServer({ domain, host, isSSR, port }) {
         if (isSSR) {
             const BUNDLE_PATH = path.join(
                 process.cwd(),
-                '/.fdk/dist/themeBundle.common.js',
+                '/.fdk/distServed/themeBundle.common.js',
             );
             const User = Configstore.get(CONFIG_KEYS.AUTH_TOKEN);
             themeUrl = (
@@ -218,7 +221,7 @@ export async function startServer({ domain, host, isSSR, port }) {
                     'fdk-cli-dev-files',
                     User.current_user._id,
                 )
-            ).start.cdn.url;
+            ).complete.cdn.url;
         } else {
             jetfireUrl.searchParams.set('__csr', 'true');
         }
@@ -262,24 +265,24 @@ export async function startServer({ domain, host, isSSR, port }) {
                 )}"></script>`,
             );
             const umdJsAssests = glob
-                .sync(`${Theme.BUILD_FOLDER}/themeBundle.umd.**.js`)
+                .sync(`${Theme.SERVE_BUILD_FOLDER}/themeBundle.umd.**.js`)
                 .filter((x) => !x.includes('.min.'));
             umdJsAssests.forEach((umdJsLink) => {
                 umdJsInitial.after(
                     `<script type="text/javascript" src="${urlJoin(
                         getFullLocalUrl(port),
-                        umdJsLink.replace('./.fdk/dist/', ''),
+                        umdJsLink.replace('./.fdk/distServed/', ''),
                     )}"></script>`,
                 );
             });
 
-            const cssAssests = glob.sync(`${Theme.BUILD_FOLDER}/**.css`);
+            const cssAssests = glob.sync(`${Theme.SERVE_BUILD_FOLDER}/**.css`);
             const cssInitial = $('link[data-css-cli-source="initial"]');
             cssAssests.forEach((cssLink) => {
                 cssInitial.after(
                     `<link rel="stylesheet" href="${urlJoin(
                         getFullLocalUrl(port),
-                        cssLink.replace('./.fdk/dist/', ''),
+                        cssLink.replace('./.fdk/distServed/', ''),
                     )}"></link>`,
                 );
             });
@@ -296,7 +299,7 @@ export async function startServer({ domain, host, isSSR, port }) {
                     errorString = `<h3><b>${errorString}</b></h3>`;
                     const mapContent = JSON.parse(
                         fs.readFileSync(
-                            `${BUILD_FOLDER}/themeBundle.common.js.map`,
+                            `${SERVE_BUILD_FOLDER}/themeBundle.common.js.map`,
                             { encoding: 'utf8', flag: 'r' },
                         ),
                     );
@@ -305,20 +308,17 @@ export async function startServer({ domain, host, isSSR, port }) {
                     stack?.forEach(({ methodName, lineNumber, column }) => {
                         try {
                             if (lineNumber == null || lineNumber < 1) {
-                                errorString += `<p>      at  <strong>${
-                                    methodName || ''
-                                }</strong></p>`;
+                                errorString += `<p>      at  <strong>${methodName || ''
+                                    }</strong></p>`;
                             } else {
                                 const pos = smc.originalPositionFor({
                                     line: lineNumber,
                                     column,
                                 });
                                 if (pos && pos.line != null) {
-                                    errorString += `<p>      at  <strong>${
-                                        methodName || pos.name || ''
-                                    }</strong> (${pos.source}:${pos.line}:${
-                                        pos.column
-                                    })</p>`;
+                                    errorString += `<p>      at  <strong>${methodName || pos.name || ''
+                                        }</strong> (${pos.source}:${pos.line}:${pos.column
+                                        })</p>`;
                                 }
                             }
                         } catch (err) {
@@ -343,8 +343,7 @@ export async function startServer({ domain, host, isSSR, port }) {
                 return reject(err);
             }
             Logger.info(
-                `Starting starter at port -- ${port} in ${
-                    isSSR ? 'SSR' : 'Non-SSR'
+                `Starting starter at port -- ${port} in ${isSSR ? 'SSR' : 'Non-SSR'
                 } mode`,
             );
             Logger.info(`************* Using Debugging build`);
@@ -370,7 +369,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
         }
 
         const ctx = {
-            buildPath: path.resolve(process.cwd(), Theme.BUILD_FOLDER),
+            buildPath: path.resolve(process.cwd(), Theme.SERVE_BUILD_FOLDER),
             NODE_ENV: 'development',
             localThemePort: port,
             context: process.cwd(),
@@ -394,7 +393,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 
         app.use(webpackHotMiddleware(compiler));
     }
-    app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
+    app.use(express.static(path.resolve(process.cwd(), SERVE_BUILD_FOLDER)));
 
     app.use((request, response, next) => {
         // Filtering so that HMR file requests are not routed to skyfire pods
@@ -429,7 +428,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
                 currentContext.theme_id,
             );
         }
-        const BUNDLE_DIR = path.join(process.cwd(), path.join('.fdk', 'dist'));
+        const BUNDLE_DIR = path.join(process.cwd(), path.join('.fdk', 'distServed'));
         if (req.originalUrl == '/favicon.ico' || req.originalUrl == '/.webp') {
             return res.status(404).send('Not found');
         }
@@ -498,9 +497,8 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 				<script>
 				var socket = io();
 				socket.on('reload',function(){
-					${
-                        isHMREnabled
-                            ? `
+					${isHMREnabled
+                ? `
 						try {
 							window.APP_DATA.themeBundleUMDURL = '/themeBundle.umd.js';
 							window.APP_DATA.isServerRendered = false;
@@ -513,10 +511,10 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 							window.loadApp().catch(console.log);
 						} catch(e) { console.log( e );}
 					`
-                            : `
+                : `
 						window.location.reload();
 					`
-                    }
+            }
 
 				});
 				</script>
@@ -531,6 +529,43 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
             }
             Logger.info(`Starting server at port -- ${port}`);
             Logger.info(`************* Using Debugging build`);
+            resolve(true);
+        });
+    });
+}
+
+type ExtensionServerOptions = {
+    bundleDist: string;
+    port: number;
+    framework: SupportedFrameworks;
+};
+export async function startExtensionServer(options: ExtensionServerOptions) {
+    const { bundleDist, port, framework } = options;
+    const app = express();
+    const server = require('http').createServer(app);
+
+    if (framework === 'react') {
+        const io = require('socket.io')(server);
+
+        io.on('connection', function (socket) {
+            sockets.push(socket);
+            socket.on('disconnect', function () {
+                sockets = sockets.filter((s) => s !== socket);
+            });
+        });
+    }
+    app.use(cors());
+    // parse application/x-www-form-urlencoded
+    app.use(express.json());
+
+    app.use(express.static(bundleDist));
+
+    return new Promise((resolve, reject) => {
+        server.listen(port, (err) => {
+            if (err) {
+                return reject(err);
+            }
+            Logger.info(`Starting server at port -- ${port}`);
             resolve(true);
         });
     });

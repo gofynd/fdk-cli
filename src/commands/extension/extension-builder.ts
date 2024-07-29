@@ -64,5 +64,6 @@ export default function extensionCommandBuilder() {
         .asyncAction(ExtensionLaunchURL.setLaunchURLHandler);
 
     extension.addCommand(launch_url);
+
     return extension;
 }
