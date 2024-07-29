@@ -31,11 +31,11 @@ import {
 import Logger from './Logger';
 import urljoin from 'url-join';
 
-export const NODE_VUE = 'Node + Vue.js + Redis';
+export const NODE_VUE = 'Node + Vue.js 3 + Redis';
 export const NODE_REACT = 'Node + React.js + Redis';
-export const PYTHON_VUE = 'Python + Vue.js + Redis';
+export const PYTHON_VUE = 'Python + Vue.js 3 + Redis';
 export const PYTHON_REACT = 'Python + React.js + Redis';
-export const JAVA_VUE = 'Java + Vue.js + Redis';
+export const JAVA_VUE = 'Java + Vue.js 3 + Redis';
 export const JAVA_REACT = 'Java + React.js + Redis';
 
 export const PROJECT_REPOS = {
@@ -49,16 +49,6 @@ export const PROJECT_REPOS = {
     [JAVA_REACT]: 'https://github.com/gofynd/example-extension-java-react.git',
 };
 export default class Extension {
-    private static checkForVue(answers: Object): boolean {
-        if (
-            answers.project_type === NODE_VUE ||
-            answers.project_type === JAVA_VUE ||
-            answers.project_type === PYTHON_VUE
-        ) {
-            return true;
-        }
-        return false;
-    }
 
     // clone extension boilerplate from github
     private static async copyTemplateFiles(
@@ -75,15 +65,9 @@ export default class Extension {
                 ['remote', 'add', 'origin', answers.project_url],
                 { cwd: targetDirectory },
             );
-            if (answers.vue_version === 'vue3') {
-                await execa('git', ['pull', 'origin', 'main-vue3:main-vue3'], {
-                    cwd: targetDirectory,
-                });
-            } else {
-                await execa('git', ['pull', 'origin', 'main:main'], {
-                    cwd: targetDirectory,
-                });
-            }
+            await execa('git', ['pull', 'origin', 'main:main'], {
+                cwd: targetDirectory,
+            });
             rimraf.sync(`${targetDirectory}/.git`); // unmark as git repo
             return true;
         } catch (error) {
@@ -349,19 +333,7 @@ export default class Extension {
                     name: 'project_type',
                     message: 'Template :',
                     validate: validateEmpty,
-                },
-                {
-                    type: 'list',
-                    choices: [
-                        { name: 'Vue 2', value: 'vue2' },
-                        { name: 'Vue 3', value: 'vue3' },
-                    ],
-                    default: 'vue2',
-                    name: 'vue_version',
-                    message: 'Vue Version: ',
-                    when: Extension.checkForVue,
-                    validate: validateEmpty,
-                },
+                }
             ];
 
             let prompt_answers: Object = await inquirer.prompt(
@@ -461,19 +433,7 @@ export default class Extension {
                     name: 'project_type',
                     message: 'Template :',
                     validate: validateEmpty,
-                },
-                {
-                    type: 'list',
-                    choices: [
-                        { name: 'Vue 2', value: 'vue2' },
-                        { name: 'Vue 3', value: 'vue3' },
-                    ],
-                    default: 'vue2',
-                    name: 'vue_version',
-                    message: 'Vue Version: ',
-                    when: Extension.checkForVue,
-                    validate: validateEmpty,
-                },
+                }
             ];
 
             answers = { ...answers, ...(await inquirer.prompt(questions)) };
