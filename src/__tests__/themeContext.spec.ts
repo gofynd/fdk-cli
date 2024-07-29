@@ -2,12 +2,14 @@ import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import inquirer from 'inquirer';
 import { URLS } from '../lib/api/services/url';
+import configStore, { CONFIG_KEYS } from '../lib/Config';
 import mockFunction from './helper';
 import { setEnv } from './helper';
 const appConfig = require('./fixtures/appConfig.json');
 const tokenData = require('./fixtures/partnertoken.json');
 const appList = require('./fixtures/applicationList.json');
 const themeList = require('./fixtures/themeList.json');
+const organizationData = require('./fixtures/organizationData.json');
 import { getActiveContext } from '../helper/utils';
 import fs from 'fs-extra';
 import path from 'path';
@@ -16,7 +18,6 @@ import rimraf from 'rimraf';
 import { readFile } from '../helper/file.utils';
 import CommandError from '../lib/CommandError';
 import { startServer, getApp } from '../lib/Auth';
-import { login } from './auth.spec';
 const request = require('supertest');
 
 jest.mock('inquirer');
@@ -46,6 +47,14 @@ jest.mock('configstore', () => {
     };
 });
 
+export async function login() {
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
+    const app = await startServer();
+    const req = request(app);
+    await program.parseAsync(['ts-node', './src/fdk.ts', 'login']);
+    return await req.post('/token').send(tokenData);
+}
+
 afterAll(() => {
     rimraf.sync('./themeCtx-test-cli.json');
     let filePath = path.join(process.cwd(), '.fdk', 'context.json');
@@ -61,6 +70,9 @@ describe('Theme Context Commands', () => {
         setEnv();
         program = await init('fdk');
         const mock = new MockAdapter(axios);
+        
+        configStore.set(CONFIG_KEYS.ORGANIZATION, organizationData._id)
+        
         mock.onGet(`${URLS.IS_VERSION_COMPATIBLE()}`).reply(200);
         mock.onGet(
             `${URLS.GET_APPLICATION_DETAILS(
@@ -112,6 +124,9 @@ describe('Theme Context Commands', () => {
                 appConfig.theme_id,
             )}`,
         ).reply(200, appConfig);
+
+        mock.onGet(`${URLS.GET_ORGANIZATION_DETAILS()}`).reply(200, organizationData);
+        configStore.delete(CONFIG_KEYS.ORGANIZATION)
     });
 
     it('should successfully add theme context ', async () => {

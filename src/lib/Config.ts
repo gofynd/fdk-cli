@@ -12,6 +12,7 @@ export const CONFIG_KEYS = {
     COMPANY_ID: 'current_env.company_id',
     AUTH_TOKEN: 'current_env.auth_token',
     ORGANIZATION: 'current_env.organization',
+    ORGANIZATION_DETAIL: 'current_env.organization_detail',
     EXTRAS: 'extras',
     STRICT_SSL: 'extras.strict_ssl',
     CA_FILE: 'extras.ca_file',

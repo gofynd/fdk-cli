@@ -20,7 +20,6 @@ import path from 'path';
 import execa from 'execa';
 import rimraf from 'rimraf';
 import terminalLink from 'terminal-link';
-import Box from 'boxen';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import cheerio from 'cheerio';
@@ -55,6 +54,7 @@ import { getBaseURL, getPlatformUrls } from './api/services/url';
 import open from 'open';
 import chokidar from 'chokidar';
 import { downloadFile } from '../helper/download';
+import { successBox } from '../helper/formatter';
 import Env from './Env';
 import Spinner from '../helper/spinner';
 import {
@@ -113,8 +113,10 @@ export default class Theme {
     }
     public static async getThemeBundle(stats: MultiStats) {
         const fileList = stats.stats[0].toJson().assets.map(({ name }) => name);
-        const outputFileName= fileList.find(file => file.startsWith('themeBundle') && file.endsWith('.js'));
-        
+        const outputFileName = fileList.find(
+            (file) => file.startsWith('themeBundle') && file.endsWith('.js'),
+        );
+
         const buildPath = path.join(process.cwd(), Theme.BUILD_FOLDER);
         const outputFilePath = path.resolve(buildPath, outputFileName);
 
@@ -489,19 +491,16 @@ export default class Theme {
                 assetHash,
                 imageCdnUrl,
             });
-            var b5 = Box(
-                chalk.green.bold('DONE ') +
+            var b5 = successBox({
+                text:
+                    chalk.green.bold('DONE ') +
                     chalk.green.bold('Project ready\n') +
                     chalk.yellowBright.bold('NOTE ') +
                     chalk.green.bold(
                         'cd ' + targetDirectory + ' to continue ...',
                     ),
-                {
-                    padding: 1,
-                    margin: 1,
-                },
-            );
-            Logger.info(b5.toString());
+            });
+            Logger.info(b5);
         } catch (error) {
             if (shouldDelete) await Theme.cleanUp(targetDirectory);
             throw new CommandError(error.message, error.code);
@@ -615,18 +614,15 @@ export default class Theme {
             });
             const currentContext = getActiveContext();
             await Theme.syncReactTheme(currentContext);
-            var b5 = Box(
-                chalk.green.bold('DONE ') +
+            var b5 = successBox({
+                text:
+                    chalk.green.bold('DONE ') +
                     chalk.green.bold('Project ready\n') +
                     chalk.yellowBright.bold('NOTE ') +
                     chalk.green.bold(
                         'cd ' + targetDirectory + ' to continue ...',
                     ),
-                {
-                    padding: 1,
-                    margin: 1,
-                },
-            );
+            });
             Logger.info(b5.toString());
         } catch (error) {
             Logger.error(error);
@@ -925,8 +921,9 @@ export default class Theme {
             await ThemeService.updateTheme(newTheme);
 
             Logger.info('Theme syncing DONE');
-            var b5 = Box(
-                chalk.green.bold('Your Theme was pushed successfully\n') +
+            var b5 = successBox({
+                text:
+                    chalk.green.bold('Your Theme was pushed successfully\n') +
                     chalk.white('\n') +
                     chalk.white('View your theme:\n') +
                     chalk.green(
@@ -950,12 +947,7 @@ export default class Theme {
                             }/edit?preview=true`,
                         ),
                     ),
-                {
-                    padding: 1,
-                    margin: 1,
-                    borderColor: 'green',
-                },
-            );
+            });
             Logger.info(b5.toString());
         } catch (error) {
             Logger.error(error);
@@ -1074,8 +1066,9 @@ export default class Theme {
             await ThemeService.updateTheme(newTheme);
 
             Logger.info('Theme syncing DONE');
-            var b5 = Box(
-                chalk.green.bold('Your Theme was pushed successfully\n') +
+            var b5 = successBox({
+                text:
+                    chalk.green.bold('Your Theme was pushed successfully\n') +
                     chalk.white('\n') +
                     chalk.white('View your theme:\n') +
                     chalk.green(
@@ -1099,12 +1092,7 @@ export default class Theme {
                             }/edit?preview=true`,
                         ),
                     ),
-                {
-                    padding: 1,
-                    margin: 1,
-                    borderColor: 'green',
-                },
-            );
+            });
             Logger.info(b5.toString());
         } catch (error) {
             throw new CommandError(error.message, error.code);
@@ -3101,8 +3089,7 @@ export default class Theme {
             const git = simpleGit();
             if (themeType === 'react') {
                 await git.clone(url, targetDirectory, ['--branch', 'master']);
-            }
-            else {
+            } else {
                 await git.clone(url, targetDirectory);
             }
             spinner.succeed();

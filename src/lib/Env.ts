@@ -53,7 +53,7 @@ export default class Env {
             );
             await axios.get(url);
             Env.setEnv(options.url);
-            Logger.info(`CLI will start using: ${chalk.bold(options.url)}`);
+            Logger.info(`FDK CLI environment is now set to ${chalk.bold(options.url)}.\nAll subsequent commands will be executed in this environment.`);
         } catch (e) {
             throw new CommandError(e.message);
         }
