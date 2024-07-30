@@ -107,9 +107,5 @@ export default (ctx, extendedWebpackConfig): Configuration[] => {
         },
     })(extendedWebpackResolved, baseWebpackConfig);
 
-    if (mergedBaseConfig.entry.hasOwnProperty('themeBundle')) {
-        mergedBaseConfig.entry['themeBundle'] = mergedBaseConfig.entry['themeBundle'];
-    }
-
     return [mergedBaseConfig];
 };
