@@ -548,7 +548,6 @@ export default class Theme {
             const stats = await devReactBuild({
                 buildFolder: Theme.BUILD_FOLDER,
                 runOnLocal: true,
-                isHMREnabled: false,
             });
 
             const parsed = await Theme.getThemeBundle(stats);
@@ -876,7 +875,6 @@ export default class Theme {
                 runOnLocal: false,
                 assetBasePath,
                 imageCdnUrl,
-                isHMREnabled: false,
             });
 
             const parsed = await Theme.getThemeBundle(stats);
@@ -1201,12 +1199,6 @@ export default class Theme {
         try {
             const { port, domain, host } = await Theme.commonSetup(options);
 
-            const isHMREnabled =
-                typeof options['hmr'] === 'boolean'
-                    ? options['hmr']
-                    : options['hmr'] == 'true'
-                    ? true
-                    : false;
 
             // initial build
             Logger.info(`Locally building`);
@@ -1217,7 +1209,6 @@ export default class Theme {
                 buildFolder: Theme.BUILD_FOLDER,
                 runOnLocal: true,
                 localThemePort: port,
-                isHMREnabled,
             });
 
             // start dev server
@@ -1227,7 +1218,6 @@ export default class Theme {
                 domain,
                 host,
                 port,
-                isHMREnabled,
             });
 
             Logger.info(chalk.bold.green(`Watching files for changes`));
@@ -1236,7 +1226,6 @@ export default class Theme {
                     buildFolder: Theme.BUILD_FOLDER,
                     runOnLocal: true,
                     localThemePort: port,
-                    isHMREnabled,
                 },
                 () => {
                     Logger.info(chalk.bold.green(`reloading`));
@@ -2675,7 +2664,6 @@ export default class Theme {
             runOnLocal: false,
             assetBasePath: assetCdnUrl,
             imageCdnUrl,
-            isHMREnabled: false,
         });
 
         await Theme.createReactSectionsIndexFile();
