@@ -76,7 +76,7 @@ export default class ExtensionPreviewURL {
             if (options.useTunnel === 'ngrok') {
                 // start tunnel
                 let authtoken = await extension.getNgrokAuthtoken();
-                let spinner = new Spinner('Starting Ngrok tunnel');
+                let spinner = new Spinner(`Starting Ngrok tunnel on port ${extension.options.port}`);
                 try {
                     spinner.start();
                     const ngrokListener: ngrok.Listener =
