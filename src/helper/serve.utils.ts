@@ -353,47 +353,8 @@ export async function startServer({ domain, host, isSSR, port }) {
     });
 }
 
-export async function startReactServer({ domain, host, isHMREnabled, port }) {
+export async function startReactServer({ domain, host, port }) {
     const { currentContext, app, server, io } = await setupServer({ domain });
-
-    if (isHMREnabled) {
-        let webpackConfigFromTheme = {};
-        const themeWebpackConfigPath = path.join(
-            process.cwd(),
-            Theme.REACT_CLI_CONFIG_PATH,
-        );
-
-        if (fs.existsSync(themeWebpackConfigPath)) {
-            ({ default: webpackConfigFromTheme } = await import(
-                themeWebpackConfigPath
-            ));
-        }
-
-        const ctx = {
-            buildPath: path.resolve(process.cwd(), Theme.BUILD_FOLDER),
-            NODE_ENV: 'development',
-            localThemePort: port,
-            context: process.cwd(),
-            isHMREnabled,
-        };
-        const [baseWebpackConfig] = createBaseWebpackConfig(
-            ctx,
-            webpackConfigFromTheme,
-        );
-
-        const compiler = webpack(baseWebpackConfig);
-
-        app.use(
-            webpackDevMiddleware(compiler, {
-                publicPath: baseWebpackConfig.output.publicPath,
-                serverSideRender: true,
-                writeToDisk: true,
-                stats: 'none',
-            }),
-        );
-
-        app.use(webpackHotMiddleware(compiler));
-    }
     app.use(express.static(path.resolve(process.cwd(), BUILD_FOLDER)));
 
     app.use((request, response, next) => {
@@ -499,22 +460,17 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 				var socket = io();
 				socket.on('reload',function(){
 					${
-                        isHMREnabled
-                            ? `
+                         `
 						try {
 							window.APP_DATA.themeBundleUMDURL = '/themeBundle.umd.js';
 							window.APP_DATA.isServerRendered = false;
 							window.APP_DATA.forceRender = true;
 							window.webpackChunkthemeBundle = [];
-							// document.getElementById('app').innerHTML='';
 							if (window.fpi) {
 								window.APP_DATA.reduxData = window.fpi.store.getState();
 							}
 							window.loadApp().catch(console.log);
 						} catch(e) { console.log( e );}
-					`
-                            : `
-						window.location.reload();
 					`
                     }
 

@@ -7,7 +7,6 @@ const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin'
 const baseConfig = (configOptions) => {
     const {
         isLocal,
-        isHMREnabled,
         assetNormalizedBasePath,
         localBasePath,
         buildPath,
@@ -59,16 +58,6 @@ const baseConfig = (configOptions) => {
             assetModuleFilename: '[contenthash][ext]',
         },
         plugins: [
-            ...(isLocal && isHMREnabled
-                ? [new webpack.HotModuleReplacementPlugin()]
-                : []),
-            ...(isLocal && isHMREnabled
-                ? [
-                      new ReactRefreshWebpackPlugin({
-                          overlay: false,
-                      }),
-                  ]
-                : []),
             new webpack.ProvidePlugin({
                 // you must "npm install buffer" to use this.
                 Buffer: ['buffer', 'Buffer'],
@@ -82,7 +71,6 @@ export default (ctx, extendedWebpackConfig): Configuration[] => {
         assetBasePath = '',
         imageCdnUrl = '',
         localThemePort = 5500,
-        isHMREnabled = true,
     } = ctx;
 
     const assetNormalizedBasePath =
@@ -118,16 +106,6 @@ export default (ctx, extendedWebpackConfig): Configuration[] => {
             },
         },
     })(extendedWebpackResolved, baseWebpackConfig);
-
-    if (mergedBaseConfig.entry.hasOwnProperty('themeBundle')) {
-        mergedBaseConfig.entry['themeBundle'] =
-            isLocal && isHMREnabled
-                ? [
-                      require.resolve('webpack-hot-middleware/client'),
-                      ...mergedBaseConfig.entry['themeBundle'],
-                  ]
-                : mergedBaseConfig.entry['themeBundle'];
-    }
 
     return [mergedBaseConfig];
 };

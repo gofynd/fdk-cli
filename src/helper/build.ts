@@ -74,7 +74,7 @@ interface DevReactBuild {
     assetBasePath?: string;
     imageCdnUrl?: string;
     localThemePort?: string;
-    isHMREnabled: boolean;
+
 }
 
 export function devBuild({ buildFolder, imageCdnUrl, isProd }: DevBuild) {
@@ -128,7 +128,6 @@ export async function devReactBuild({
     assetBasePath,
     localThemePort,
     imageCdnUrl,
-    isHMREnabled,
 }: DevReactBuild): Promise<MultiStats> {
     const buildPath = path.join(process.cwd(), buildFolder);
     try {
@@ -153,7 +152,6 @@ export async function devReactBuild({
             imageCdnUrl: imageCdnUrl,
             localThemePort: localThemePort,
             context: process.cwd(),
-            isHMREnabled,
         };
         const baseWebpackConfig = createBaseWebpackConfig(
             ctx,
@@ -181,7 +179,7 @@ export async function devReactWatch(
         assetBasePath,
         localThemePort,
         imageCdnUrl,
-        isHMREnabled,
+
     }: DevReactBuild,
     callback: Function,
 ) {
@@ -205,7 +203,6 @@ export async function devReactWatch(
             imageCdnUrl: imageCdnUrl,
             localThemePort: localThemePort,
             context: process.cwd(),
-            isHMREnabled,
         };
 
         const baseWebpackConfig = createBaseWebpackConfig(
