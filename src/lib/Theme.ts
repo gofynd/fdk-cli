@@ -352,9 +352,7 @@ export default class Theme {
             });
         config['application_id'] = selectedApplication;
         config['company_id'] = selectedCompany;
-        // config['application_id'] = "6672cdcc9399006687477a5c";
-        // config['company_id'] = 63;
-        console.log({config});
+
         
         return config;
     }
