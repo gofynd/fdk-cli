@@ -34,7 +34,7 @@ export default class ExtensionLaunchURL {
                 'resources',
                 'application.yml',
             );
-            let spinner = new Spinner('Updating Launch URL');
+            let spinner = new Spinner('Updating Launch URL on Partners Panel');
             try {
                 spinner.start();
                 let manualUpdateRequired = false;
@@ -44,6 +44,7 @@ export default class ExtensionLaunchURL {
                         extension_api_key,
                         { base_url: launch_url },
                     );
+                    spinner.succeed();
                 } catch (err) {
                     if (
                         err.response.status === 404 &&
@@ -61,28 +62,36 @@ export default class ExtensionLaunchURL {
                             { base_url: launch_url },
                         );
                         if (res.code) {
+                            spinner.fail();
                             throw new CommandError(
-                                'Failed updating Launch Url',
+                                'Failed updating Launch Url on Partners Panel',
                             );
                         }
                     } else {
+                        spinner.fail();
                         throw new CommandError(
                             err?.response?.data?.message ||
-                                'Failed updating Launch Url',
+                                'Failed updating Launch Url on Partners Panel',
                         );
                     }
                 }
 
+                spinner = new Spinner('Updating Launch URL environment variable in extension code');
+                spinner.start();
+
                 manualUpdateRequired =
                     Extension.updateExtensionEnvValue(launch_url);
-
-                spinner.succeed();
+                
                 if (manualUpdateRequired) {
+                    spinner.fail();
                     console.log(
                         chalk.blueBright(
-                            '\nPlease update extension launch url in your code.',
+                            '\nPlease update extension launch url in your extension code manually.',
                         ),
                     );
+                }
+                else{
+                    spinner.succeed();
                 }
             } catch (error) {
                 spinner.fail();

@@ -119,6 +119,7 @@ export default class ExtensionPreviewURL {
                     extension.publicTunnelURL =
                         await extension.startCloudflareTunnel();
                 } catch (error) {
+                    Debug(error)
                     throw new CommandError(
                         ErrorCodes.ClOUDFLARE_CONNECTION_ISSUE.message,
                         ErrorCodes.ClOUDFLARE_CONNECTION_ISSUE.code,
