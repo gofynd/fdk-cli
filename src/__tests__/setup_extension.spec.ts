@@ -61,7 +61,7 @@ describe('Setup extension command', () => {
         jest.spyOn(Extension, 'checkDependencies').mockReturnValue();
     });
 
-    it('should clone node vue tempalte files', async () => {
+    it('should clone node vue template files', async () => {
         jest.spyOn(inquirer, 'prompt').mockResolvedValue({
             extension_api_key: 'api_key',
             extension_api_secret: 'api_secret',
@@ -78,10 +78,13 @@ describe('Setup extension command', () => {
         expect(
             fs.readFileSync('./Test_Extension/.env', { encoding: 'utf-8' }),
         ).toBe(envFileData);
-        const packageJson = fs.readFileSync('./Test_Extension/package.json', {
-            encoding: 'utf-8',
-        });
-        expect(JSON.parse(packageJson).name).toBe('test_extension');
+        const packageJson = JSON.parse(
+            fs.readFileSync('./Test_Extension/package.json', {
+                encoding: 'utf-8',
+            })
+        );
+        expect(packageJson.name).toBe('test_extension');
+        expect(packageJson.dependencies.vue).toMatch(/\^3\..+/);
     });
 
     it('should throw directory already exists error', async () => {
@@ -220,30 +223,5 @@ describe('Setup extension command', () => {
             { encoding: 'utf-8' },
         );
         expect(JSON.parse(packageJson).name).toBe('test_extension');
-    });
-
-    it('should clone vue3 verison', async () => {
-        jest.spyOn(inquirer, 'prompt').mockResolvedValue({
-            extension_api_key: 'api_key',
-            extension_api_secret: 'api_secret',
-            project_type: NODE_VUE,
-            vue_version: 'vue3',
-        });
-
-        await program.parseAsync([
-            'ts-node',
-            './src/fdk.ts',
-            'extension',
-            'setup',
-        ]);
-
-        expect(fs.existsSync('./Test_Extension')).toEqual(true);
-        const packageJson = JSON.parse(
-            fs.readFileSync('./Test_Extension/package.json', {
-                encoding: 'utf-8',
-            }),
-        );
-        expect(packageJson.name).toBe('test_extension');
-        expect(packageJson.dependencies.vue).toMatch(/\^3\..+/);
     });
 });
