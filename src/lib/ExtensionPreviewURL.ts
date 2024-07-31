@@ -89,7 +89,6 @@ export default class ExtensionPreviewURL {
 
             const frontend_port = await extension.getRandomFreePort([]);
             const backend_port = await extension.getRandomFreePort([frontend_port]);
-            console.log("Ports: ", frontend_port, " ", backend_port)
 
             extension.options.port = frontend_port;
 
@@ -159,7 +158,6 @@ export default class ExtensionPreviewURL {
                 const projectConfig = require(fdkConfigFilePath);
 
                 if(projectConfig['dev']){
-                    console.log("Running dev server from: ", projectDir)
                     extension.runShellCommand(projectConfig['dev'], projectDir, projectConfig['project'], { FRONTEND_PORT: frontend_port, BACKEND_PORT: backend_port })
                 }
             }
@@ -371,13 +369,26 @@ export default class ExtensionPreviewURL {
                     ... extraEnv
                 }
             });
+
+            const color = this.getRandomColor();
+            
             child.stdout.on('data', (data) => {
-                console.log(`[${commandName}]`, data.toString());
-                Debug(data.toString());
+                const logs = data.toString().trim().split('\n');
+                logs.forEach((log) => {
+                    console.log(
+                        `${chalk[color](`[${commandName}]`)} `, 
+                        log
+                    );
+                })
             });
             child.stderr.on('data', (data) => {
-                console.log(`[${commandName}]`, data.toString());
-                Debug(data.toString());
+                const logs = data.toString().trim().split('\n');
+                logs.forEach((log) => {
+                    console.log(
+                        `${chalk[color](`[${commandName}]`)} `, 
+                        log
+                    );
+                })
             });
             child.on('exit', (code) => {
                 if (!code) {
@@ -388,15 +399,17 @@ export default class ExtensionPreviewURL {
         });
     }
 
-    public async getRandomFreePort(excluded_port = [], times = undefined){
+    usedColorIndex = -1;
+    getRandomColor() {
+        const allColors = ['yellow', 'magenta', 'green', 'cyan', 'blue', 'gray', 'red'];
+        this.usedColorIndex = (this.usedColorIndex + 1) % allColors.length;
+        return allColors[this.usedColorIndex];
+    }
 
-        if(!times){
-            return await this.getRandomFreePort([], 1);
-        }
+    public async getRandomFreePort(excluded_port = []){
 
         const randomPort = Math.floor(Math.random() * (10000)) + 40000;
         if(excluded_port.includes(randomPort)){
-            console.log("Got from excluded_port")
             return await this.getRandomFreePort();
         }
         const availablePort = await detectPort(randomPort);
