@@ -22,16 +22,16 @@ export default class ExtensionEnv {
     
         if (fs.existsSync(envFilePath)) {
             let envData = readFile(envFilePath);
-            envData = replaceContent(envData, `EXTENSION_BASE_URL\s*=\s*.*[\n]`, `EXTENSION_BASE_URL="${launch_url}"\n`);
-            envData = replaceContent(envData, `EXTENSION_API_KEY\s*=\s*.*[\n]`, `EXTENSION_API_KEY="${api_key}"\n`);
-            envData = replaceContent(envData, `EXTENSION_API_SECRET\s*=\s*.*[\n]`, `EXTENSION_API_SECRET="${api_secret}"\n`);
+            envData = replaceContent(envData, `EXTENSION_BASE_URL[ ]*=[ ]*.*[\n]`, `EXTENSION_BASE_URL="${launch_url}"\n`);
+            envData = replaceContent(envData, `EXTENSION_API_KEY[ ]*=[ ]*.*[\n]`, `EXTENSION_API_KEY="${api_key}"\n`);
+            envData = replaceContent(envData, `EXTENSION_API_SECRET[ ]*=[ ]*.*[\n]`, `EXTENSION_API_SECRET="${api_secret}"\n`);
             writeFile(envFilePath, envData)
         } 
         else if (fs.existsSync(ymlFilePath)) {
             let ymlData = readFile(ymlFilePath);
-            ymlData = this.replaceContent(ymlData, /base_url\s*:\s*.*[\n]/, `base_url : '${launch_url}'\n`);
-            ymlData = this.replaceContent(ymlData, /api_key\s*:\s*.*[\n]/, `api_key : '${api_key}'\n`);
-            ymlData = this.replaceContent(ymlData, /api_secret\s*:\s*.*[\n]/, `api_secret : '${api_secret}'\n`);
+            ymlData = this.replaceContent(ymlData, /base_url[ ]*:[ ]*.*[\n]/, `base_url : '${launch_url}'\n`);
+            ymlData = this.replaceContent(ymlData, /api_key[ ]*:[ ]*.*[\n]/, `api_key : '${api_key}'\n`);
+            ymlData = this.replaceContent(ymlData, /api_secret[ ]*:[ ]*.*[\n]/, `api_secret : '${api_secret}'\n`);
             writeFile(ymlFilePath, ymlData);
         } else {
             console.log(`EXTENSION_BASE_URL="${launch_url}"`);
@@ -46,9 +46,7 @@ export default class ExtensionEnv {
 
     public static async extensionEnvPullHandler(){
         const extension_id = await getExtensionId();
-        console.log(extension_id);
         const extension = await extensionService.getExtensionDataPartners(extension_id);
-        console.log(extension.base_url, extension._id, extension.client_data.secret[0]);
         ExtensionEnv.updateExtensionEnvValues(extension.base_url, extension._id, extension.client_data.secret[0]);
     }
 }
