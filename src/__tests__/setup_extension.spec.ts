@@ -9,8 +9,6 @@ import Extension, {
     NODE_REACT,
     JAVA_REACT,
     JAVA_VUE,
-    PYTHON_REACT,
-    PYTHON_VUE,
 } from '../lib/Extension';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
 
@@ -114,54 +112,6 @@ describe('Setup extension command', () => {
             extension_api_key: 'api_key',
             extension_api_secret: 'api_secret',
             project_type: NODE_REACT,
-        });
-
-        await program.parseAsync([
-            'ts-node',
-            './src/fdk.ts',
-            'extension',
-            'setup',
-        ]);
-
-        expect(fs.existsSync('./Test_Extension')).toEqual(true);
-        expect(
-            fs.readFileSync('./Test_Extension/.env', { encoding: 'utf-8' }),
-        ).toBe(envFileData);
-        const packageJson = fs.readFileSync('./Test_Extension/package.json', {
-            encoding: 'utf-8',
-        });
-        expect(JSON.parse(packageJson).name).toBe('test_extension');
-    });
-
-    it('should clone python vue template files', async () => {
-        jest.spyOn(inquirer, 'prompt').mockResolvedValue({
-            extension_api_key: 'api_key',
-            extension_api_secret: 'api_secret',
-            project_type: PYTHON_VUE,
-        });
-
-        await program.parseAsync([
-            'ts-node',
-            './src/fdk.ts',
-            'extension',
-            'setup',
-        ]);
-
-        expect(fs.existsSync('./Test_Extension')).toEqual(true);
-        expect(
-            fs.readFileSync('./Test_Extension/.env', { encoding: 'utf-8' }),
-        ).toBe(envFileData);
-        const packageJson = fs.readFileSync('./Test_Extension/package.json', {
-            encoding: 'utf-8',
-        });
-        expect(JSON.parse(packageJson).name).toBe('test_extension');
-    });
-
-    it('should clone python react template files', async () => {
-        jest.spyOn(inquirer, 'prompt').mockResolvedValue({
-            extension_api_key: 'api_key',
-            extension_api_secret: 'api_secret',
-            project_type: PYTHON_REACT,
         });
 
         await program.parseAsync([

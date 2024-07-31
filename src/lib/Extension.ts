@@ -33,8 +33,6 @@ import urljoin from 'url-join';
 
 export const NODE_VUE = 'Node + Vue 3 + SQLite';
 export const NODE_REACT = 'Node + React.js + SQLite';
-export const PYTHON_VUE = 'Python + Vue.js + Redis';
-export const PYTHON_REACT = 'Python + React.js + Redis';
 export const JAVA_VUE = 'Java + Vue.js 3 + Redis';
 export const JAVA_REACT = 'Java + React.js + Redis';
 
@@ -42,9 +40,6 @@ export const PROJECT_REPOS = {
     [NODE_VUE]: 'https://github.com/gofynd/example-extension-javascript.git',
     [NODE_REACT]:
         'https://github.com/gofynd/example-extension-javascript-react.git',
-    [PYTHON_VUE]: 'https://github.com/gofynd/example-extension-python-vue.git',
-    [PYTHON_REACT]:
-        'https://github.com/gofynd/example-extension-python-react.git',
     [JAVA_VUE]: 'https://github.com/gofynd/example-extension-java-vue.git',
     [JAVA_REACT]: 'https://github.com/gofynd/example-extension-java-react.git',
 };
@@ -113,13 +108,6 @@ export default class Extension {
         if (project_type === NODE_VUE || project_type === NODE_REACT) {
             // installing dependencies for Node projects
             await installNpmPackages(answers.targetDir);
-        } else if (
-            project_type === PYTHON_VUE ||
-            project_type === PYTHON_REACT
-        ) {
-            // installing dependencies for Python projects
-            await installNpmPackages(answers.targetDir);
-            await installPythonDependencies(answers.targetDir);
         } else if (project_type === JAVA_VUE || project_type === JAVA_REACT) {
             // installing dependencies for java projects
             // await Extension.installNpmPackages(`${answers.targetDir}/app`);
@@ -262,16 +250,6 @@ export default class Extension {
             requiredDependencies.push('mvn');
         }
 
-        if (project_type === PYTHON_REACT || project_type === PYTHON_VUE) {
-            const osPlatform = process.platform;
-
-            if (osPlatform === 'darwin' || osPlatform === 'linux') {
-                requiredDependencies.push('python3');
-            } else if (osPlatform === 'win32') {
-                requiredDependencies.push('python');
-            }
-        }
-
         for (const dependency of requiredDependencies) {
             try {
                 which.sync(dependency);
@@ -324,8 +302,6 @@ export default class Extension {
                     choices: [
                         NODE_VUE,
                         NODE_REACT,
-                        PYTHON_VUE,
-                        PYTHON_REACT,
                         JAVA_VUE,
                         JAVA_REACT,
                     ],
@@ -424,8 +400,6 @@ export default class Extension {
                     choices: [
                         NODE_VUE,
                         NODE_REACT,
-                        PYTHON_VUE,
-                        PYTHON_REACT,
                         JAVA_VUE,
                         JAVA_REACT,
                     ],
