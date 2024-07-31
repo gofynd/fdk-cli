@@ -31,9 +31,9 @@ import {
 import Logger from './Logger';
 import urljoin from 'url-join';
 
-export const NODE_VUE = 'Node + Vue.js 3 + Redis';
-export const NODE_REACT = 'Node + React.js + Redis';
-export const PYTHON_VUE = 'Python + Vue.js 3 + Redis';
+export const NODE_VUE = 'Node + Vue 3 + SQLite';
+export const NODE_REACT = 'Node + React.js + SQLite';
+export const PYTHON_VUE = 'Python + Vue.js + Redis';
 export const PYTHON_REACT = 'Python + React.js + Redis';
 export const JAVA_VUE = 'Java + Vue.js 3 + Redis';
 export const JAVA_REACT = 'Java + React.js + Redis';
