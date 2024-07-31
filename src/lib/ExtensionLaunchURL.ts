@@ -79,7 +79,7 @@ export default class ExtensionLaunchURL {
                 spinner.succeed();
                 if (manualUpdateRequired) {
                     console.log(
-                        chalk.blueBright(
+                        chalk.yellowBright(
                             '\nPlease update extension launch url in your code.',
                         ),
                     );

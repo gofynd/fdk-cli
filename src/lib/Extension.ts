@@ -355,10 +355,10 @@ export default class Extension {
         }
     }
 
-    private static checkFolderAndGitExists(folderPath: string) {
+    private static checkFolderAndGitExists(folderPath: string, fixedExtensionName = false) {
         if (fs.existsSync(folderPath)) {
             throw new CommandError(
-                `Directory "${folderPath}" is already exists in current directory. Please choose another name or directory.`,
+                `Directory "${folderPath}" already exists in the current directory. Please ${fixedExtensionName ? '' : 'choose a different name or '}specify a different target directory.`
             );
         }
         if (fs.existsSync(path.join(folderPath, '/.git'))) {
@@ -464,7 +464,7 @@ export default class Extension {
             answers.base_url = extension_data.base_url;
             answers.name = extension_data.name;
             answers.targetDir = options['targetDir'] || answers.name;
-            Extension.checkFolderAndGitExists(answers.targetDir);
+            Extension.checkFolderAndGitExists(answers.targetDir, true);
 
             await Extension.createExtension(answers, false);
         } catch (error) {
