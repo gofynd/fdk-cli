@@ -19,7 +19,7 @@ const envFileData = `EXTENSION_API_KEY="api_key"\nEXTENSION_API_SECRET="api_secr
 
 jest.mock('configstore', () => {
     const Store =
-        jest.requireActual<typeof import('configstore')>('configstore');
+        jest.requireActual('configstore');
     return class MockConfigstore {
         store = new Store('test-cli', undefined, {
             configPath: './setupExt-test-cli.json',

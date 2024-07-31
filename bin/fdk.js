@@ -7,6 +7,7 @@ const chalk = require('chalk');
 const currentNodeVersion = process.versions.node;
 const semver = currentNodeVersion.split('.');
 const major = Number(semver[0]);
+const minCompatibleVersion = 16;
 
 const bootstrap = () => {
     const { init, parseCommands } = require('../dist/fdk');
@@ -14,15 +15,10 @@ const bootstrap = () => {
     parseCommands();
     return program;
 };
-
-if (major < 12) {
+if (major < minCompatibleVersion) {
     console.error(
         chalk.red(
-            'You are running Node ' +
-                currentNodeVersion +
-                '.\n' +
-                'Fynd development kit requires Node 12 or higher. \n' +
-                'Please update your version of Node.',
+            `It looks like you're using an older version of Node.js ${currentNodeVersion}. Please upgrade to version ${minCompatibleVersion}.X.X or higher to use this tool.`,
         ),
     );
     process.exit(1);
