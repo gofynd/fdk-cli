@@ -1,3 +1,4 @@
+import { spawn } from 'node:child_process'
 import ngrok from '@ngrok/ngrok';
 import { startTunnel } from 'untun';
 import chalk from 'chalk';
@@ -5,6 +6,7 @@ import urljoin from 'url-join';
 import inquirer from 'inquirer';
 import path from 'path';
 import fs from 'fs';
+import detectPort from 'detect-port'
 import Debug from './Debug';
 import { getPlatformUrls } from './api/services/url';
 import configStore, { CONFIG_KEYS } from './Config';
@@ -73,6 +75,24 @@ export default class ExtensionPreviewURL {
                     await extension.promptExtensionApiKey();
             }
 
+            const fdkConfigFiles = extension.findAllFilePathFromCurrentDirWithName('fdk.config.json');
+            
+            // Install dependencies
+            for(let fdkConfigFilePath of fdkConfigFiles){
+                const projectDir = path.dirname(fdkConfigFilePath);
+                const projectConfig = require(fdkConfigFilePath);
+
+                if(projectConfig['install']){
+                    await extension.runShellCommand(projectConfig['install'], projectDir, projectConfig['project'])
+                }
+            }
+
+            const frontend_port = await extension.getRandomFreePort([]);
+            const backend_port = await extension.getRandomFreePort([frontend_port]);
+            console.log("Ports: ", frontend_port, " ", backend_port)
+
+            extension.options.port = frontend_port;
+
             if (options.useTunnel === 'ngrok') {
                 // start tunnel
                 let authtoken = await extension.getNgrokAuthtoken();
@@ -82,7 +102,7 @@ export default class ExtensionPreviewURL {
                     const ngrokListener: ngrok.Listener =
                         await extension.startNgrokTunnel(authtoken);
                     extension.publicNgrokURL = ngrokListener.url();
-                    interval = setInterval(() => {}, 900);
+                    interval = setInterval(() => { }, 900);
                     process.on('SIGINT', async () => {
                         Logger.info('Stopping Ngrok tunnel...');
                         clearInterval(interval);
@@ -98,7 +118,7 @@ export default class ExtensionPreviewURL {
                         errorCode = ErrorCodes.NGROK_AUTH_ISSUE.code;
                         throw new CommandError(
                             error.message ||
-                                ErrorCodes.NGROK_AUTH_ISSUE.message,
+                            ErrorCodes.NGROK_AUTH_ISSUE.message,
                             errorCode,
                         );
                     } else if (error.errorCode == 'ERR_NGROK_108') {
@@ -106,7 +126,7 @@ export default class ExtensionPreviewURL {
                             ErrorCodes.NGROK_MULTIPLE_SESSION_ISSUE.code;
                         throw new CommandError(
                             error.message ||
-                                ErrorCodes.NGROK_MULTIPLE_SESSION_ISSUE.message,
+                            ErrorCodes.NGROK_MULTIPLE_SESSION_ISSUE.message,
                             errorCode,
                         );
                     }
@@ -132,6 +152,18 @@ export default class ExtensionPreviewURL {
                 partner_access_token || options.accessToken,
                 extension.publicNgrokURL || extension.publicTunnelURL,
             );
+
+            // Start Dev servers
+            for(let fdkConfigFilePath of fdkConfigFiles){
+                const projectDir = path.dirname(fdkConfigFilePath);
+                const projectConfig = require(fdkConfigFilePath);
+
+                if(projectConfig['dev']){
+                    console.log("Running dev server from: ", projectDir)
+                    extension.runShellCommand(projectConfig['dev'], projectDir, projectConfig['project'], { FRONTEND_PORT: frontend_port, BACKEND_PORT: backend_port })
+                }
+            }
+
             const warningMsg = chalk.yellow(
                 'Before preview extension, please restart your extension server',
             );
@@ -147,7 +179,7 @@ export default class ExtensionPreviewURL {
                 successBox({
                     text: `${warningMsg}\n\nTUNNEL URL: ${
                         extension.publicTunnelURL || extension.publicNgrokURL
-                    }\nExtension preview URL: ${previewURL}`,
+                        }\nExtension preview URL: ${previewURL}`,
                 }),
             );
         } catch (error) {
@@ -305,5 +337,75 @@ export default class ExtensionPreviewURL {
             return null;
         }
         return null;
+    }
+
+    public findAllFilePathFromCurrentDirWithName(fileName: string) {
+        const files = [];
+        const dir = process.cwd();
+
+        const search = (dir : string) => {
+            const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+            for (const entry of entries) {
+                const fullPath = path.join(dir, entry.name);
+
+                if (entry.isDirectory()) {
+                    search(fullPath);
+                } else if (entry.name === fileName) {
+                    files.push(fullPath);
+                }
+            }
+        };
+
+        search(dir);
+        return files;
+    }
+
+    public runShellCommand(command: string, path: string, commandName: string, extraEnv: Record<string, string> = {}){
+        return new Promise(async (resolve, reject) => {
+            const child = spawn(command, [], {
+                cwd: path,
+                shell: true,
+                env: {
+                    ...process.env,
+                    ... extraEnv
+                }
+            });
+            child.stdout.on('data', (data) => {
+                console.log(`[${commandName}]`, data.toString());
+                Debug(data.toString());
+            });
+            child.stderr.on('data', (data) => {
+                console.log(`[${commandName}]`, data.toString());
+                Debug(data.toString());
+            });
+            child.on('exit', (code) => {
+                if (!code) {
+                    return resolve(code);
+                }
+                reject({ message: `${commandName} failed` });
+            });
+        });
+    }
+
+    public async getRandomFreePort(excluded_port = [], times = undefined){
+
+        if(!times){
+            return await this.getRandomFreePort([], 1);
+        }
+
+        const randomPort = Math.floor(Math.random() * (10000)) + 40000;
+        if(excluded_port.includes(randomPort)){
+            console.log("Got from excluded_port")
+            return await this.getRandomFreePort();
+        }
+        const availablePort = await detectPort(randomPort);
+
+        // If the randomly selected port is free, return it. Otherwise, retry until a free port is found.
+        if (availablePort === randomPort) {
+            return randomPort;
+        } else {
+            return await this.getRandomFreePort();
+        }
     }
 }
