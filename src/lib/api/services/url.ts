@@ -148,7 +148,7 @@ export const URLS = {
     GET_EXTENSION_LIST: () => {
         return urlJoin(
             MIXMASTER_URL('partner'),
-            `/organization/${getOrganizationId()}/extension?page_size=100`,
+            `/organization/${getOrganizationId()}/extension?page_size=500`,
         );
     },
 
