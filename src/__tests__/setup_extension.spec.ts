@@ -83,7 +83,7 @@ describe('Setup extension command', () => {
                 encoding: 'utf-8',
             })
         );
-        expect(packageJson.name).toBe('test_extension');
+        expect(packageJson.name).toBe('frontend');
         expect(packageJson.dependencies.vue).toMatch(/\^3\..+/);
     });
 
