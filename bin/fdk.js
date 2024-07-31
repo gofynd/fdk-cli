@@ -9,9 +9,9 @@ const semver = currentNodeVersion.split('.');
 const major = Number(semver[0]);
 const minCompatibleVersion = 16;
 
-const bootstrap = () => {
+const bootstrap = async () => {
     const { init, parseCommands } = require('../dist/fdk');
-    const program = init('fdk');
+    const program = await init('fdk');
     parseCommands();
     return program;
 };
