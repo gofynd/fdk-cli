@@ -26,7 +26,6 @@ import { getBaseURL } from './api/services/url';
 import {
     installNpmPackages,
     installJavaPackages,
-    installPythonDependencies,
 } from '../helper/utils';
 import Logger from './Logger';
 import urljoin from 'url-join';
