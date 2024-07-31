@@ -144,42 +144,6 @@ export const evaluateModule = (code) => {
     return res;
 };
 
-export const installPythonDependencies = async (
-    targetDir: string = process.cwd(),
-) => {
-    return new Promise(async (resolve, reject) => {
-        const os_platform = process.platform;
-        let exec;
-        if (os_platform === 'darwin' || os_platform === 'linux') {
-            await execa('python3', ['-m', 'venv', 'venv'], { cwd: targetDir });
-            exec = execa(
-                './venv/bin/pip',
-                ['install', '-r', 'requirements.txt'],
-                { cwd: targetDir },
-            );
-        } else if (os_platform === 'win32') {
-            await execa('python', ['-m', 'venv', 'venv'], { cwd: targetDir });
-            exec = execa(
-                'venv\\Scripts\\pip',
-                ['install', '-r', 'requirements.txt'],
-                { cwd: targetDir },
-            );
-        }
-        exec.stdout.on('data', (data) => {
-            Debug(data);
-        });
-        exec.stderr.on('data', (data) => {
-            Debug(data);
-        });
-        exec.on('exit', (code) => {
-            if (!code) {
-                return resolve(code);
-            }
-            reject({ message: 'Node Modules Installation Failed' });
-        });
-    });
-};
-
 export const installJavaPackages = async (
     targetDir: string = process.cwd(),
 ) => {

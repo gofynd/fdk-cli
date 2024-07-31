@@ -22,7 +22,6 @@ Fynd development Kit (FDK CLI) is a cli tool developed by Fynd to create and upd
 - You must have installed [Nodejs](https://nodejs.org/en/download/package-manager) version 16.X.X or higher version, if you don't already have it.
 -  Optional Prerequisites
 	- Maven (To use `fdk extension init` for java extension initialization)
-	- pip (To use `fdk extension init` for python extension initialization)
 
 
 
