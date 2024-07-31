@@ -33,7 +33,7 @@ import urljoin from 'url-join';
 
 export const NODE_VUE = 'Node + Vue 3 + SQLite';
 export const NODE_REACT = 'Node + React.js + SQLite';
-export const JAVA_VUE = 'Java + Vue.js 3 + Redis';
+export const JAVA_VUE = 'Java + Vue 2 + Redis';
 export const JAVA_REACT = 'Java + React.js + Redis';
 
 export const PROJECT_REPOS = {
