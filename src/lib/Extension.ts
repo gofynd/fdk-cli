@@ -107,6 +107,8 @@ export default class Extension {
         if (project_type === NODE_VUE || project_type === NODE_REACT) {
             // installing dependencies for Node projects
             await installNpmPackages(answers.targetDir);
+            //added to support new boilerplate structure
+            await installNpmPackages(path.join(answers.targetDir, 'frontend'));
         } else if (project_type === JAVA_VUE || project_type === JAVA_REACT) {
             // installing dependencies for java projects
             // await Extension.installNpmPackages(`${answers.targetDir}/app`);
