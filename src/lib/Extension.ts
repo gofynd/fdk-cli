@@ -198,7 +198,7 @@ export default class Extension {
                         answers.extension_api_secret
                     }"\nEXTENSION_BASE_URL="${
                         answers.base_url
-                    }"\nEXTENSION_CLUSTER_URL="${getBaseURL()}"`;
+                    }"\nEXTENSION_CLUSTER_URL="${getBaseURL()}"\nBACKEND_PORT=8080\nFRONTEND_PORT=8081`;
                     fs.writeFileSync(`${answers.targetDir}/.env`, envData);
                 }
                 await Extension.replaceGrootWithExtensionName(
