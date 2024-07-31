@@ -79,7 +79,7 @@ describe('Setup extension command', () => {
             fs.readFileSync('./Test_Extension/.env', { encoding: 'utf-8' }),
         ).toBe(envFileData);
         const packageJson = JSON.parse(
-            fs.readFileSync('./Test_Extension/package.json', {
+            fs.readFileSync('./Test_Extension/frontend/package.json', {
                 encoding: 'utf-8',
             })
         );
