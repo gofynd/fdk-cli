@@ -1,3 +1,4 @@
+import './helper/instrument'
 import program, { Command } from 'commander';
 import leven from 'leven';
 import latestVersion from 'latest-version';
@@ -27,17 +28,6 @@ import {
 import { getPlatformUrls } from './lib/api/services/url';
 import * as Sentry from '@sentry/node';
 const packageJSON = require('../package.json');
-
-const sentryFilePath = path.join(__dirname, './sentry.json');
-const sentryDSN = fs.existsSync(sentryFilePath)
-    ? fs.readJsonSync(sentryFilePath)['dsn']
-    : undefined;
-if (sentryDSN) {
-    Sentry.init({
-        dsn: sentryDSN,
-        release: packageJSON.version,
-    });
-}
 
 async function checkTokenExpired(auth_token) {
     if (!auth_token) return true;
@@ -111,47 +101,6 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
 
             if (process.env.FDK_SSL_NO_VERIFY == 'true') {
                 Logger.warn(`Bypassing SSL verification`);
-            }
-
-            const latest = await checkCliVersionAsync();
-            const isCurrentLessThanLatest = semver.lt(
-                packageJSON.version,
-                latest,
-            );
-            Debug(`Latest version: ${latest} | ${isCurrentLessThanLatest}`);
-
-            const versionChange = semver.diff(packageJSON.version, latest);
-            const allowed_update_version_types = ['patch', 'minor', 'major'];
-            const major = versionChange === 'major';
-            const color = major ? 'red' : 'green';
-
-            const logMessage = `A new version ${latest} is available!.
-You have version ${packageJSON.version}.
-Please update to the latest version.
-${
-    major
-        ? `\nNote: You need to update \`${packageJSON.name}\` first inorder to use it.`
-        : ''
-}
-
-Run the following command to upgrade:
-\`npm install -g ${packageJSON.name}\``;
-
-            if (
-                allowed_update_version_types.includes(versionChange) &&
-                isCurrentLessThanLatest
-            ) {
-                Logger.info(
-                    successBox({
-                        text: major
-                            ? chalk.red(logMessage)
-                            : chalk.green(logMessage),
-                    }),
-                );
-
-                if (major) {
-                    process.exit(1);
-                }
             }
 
             // check if user is logged in and context is set
@@ -271,10 +220,12 @@ Run the following command to upgrade:
 // };
 
 export async function init(programName: string) {
+    await checkForLatestVersion();
+    
     //Setup commander instance
     program
         .name(programName)
-        .version(packageJSON.version)
+        .version('Current version: ' + packageJSON.version)
         .option(
             '-v, --verbose',
             'Display detailed output for debugging purposes',
@@ -345,6 +296,48 @@ export function parseCommands() {
 
 async function checkCliVersionAsync() {
     return await latestVersion(packageJSON.name, { version: '*' });
+}
+
+async function checkForLatestVersion() {
+    const latest = await checkCliVersionAsync();
+    const isCurrentLessThanLatest = semver.lt(
+        packageJSON.version,
+        latest,
+    );
+    Debug(`Latest version: ${latest} | ${isCurrentLessThanLatest}`);
+
+    const versionChange = semver.diff(packageJSON.version, latest);
+    const allowed_update_version_types = ['patch', 'minor', 'major'];
+    const major = versionChange === 'major';
+
+    const logMessage = `A new version ${latest} is available!.
+You have version ${packageJSON.version}.
+Please update to the latest version.
+${
+major
+? `\nNote: You need to update \`${packageJSON.name}\` first inorder to use it.`
+: ''
+}
+
+Run the following command to upgrade:
+\`npm install -g ${packageJSON.name}\``;
+
+    if (
+        allowed_update_version_types.includes(versionChange) &&
+        isCurrentLessThanLatest
+    ) {
+        console.log(
+            successBox({
+                text: major
+                    ? chalk.red(logMessage)
+                    : chalk.green(logMessage),
+            }),
+        );
+
+        if (major) {
+            process.exit(1);
+        }
+    }
 }
 
 async function promptForFDKFolder() {
