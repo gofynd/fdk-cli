@@ -16,12 +16,15 @@ import {
     Object,
     validateEmpty,
     getCompanyId,
+    getExtensionList,
 } from '../helper/extension_utils';
 import { readFile } from '../helper/file.utils';
 import { successBox } from '../helper/formatter';
 import Spinner from '../helper/spinner';
 import CommandError, { ErrorCodes } from './CommandError';
 import Logger from './Logger';
+import ExtensionService from './api/services/extension.service';
+const yaml = require('js-yaml');
 
 const packageJson = require('./../../package.json');
 const ngrokPackageVersion = packageJson.dependencies['@ngrok/ngrok'];
@@ -71,19 +74,57 @@ export default class ExtensionPreviewURL {
 
             // get the extension api key
             if (!extension.options.apiKey) {
-                extension.options.apiKey =
-                    await extension.promptExtensionApiKey();
+                extension.options.apiKey = await getExtensionList();
+                Logger.info(
+                    `Using Extension API key from environment : ${extension.options.apiKey}`,
+                );
             }
+            const extensionDetails = await ExtensionService.getExtensionDataPartners(extension.options.apiKey);
+            extension.options.apiSecret = extensionDetails.client_data.secret[0];
 
-            const fdkConfigFiles = extension.findAllFilePathFromCurrentDirWithName('fdk.config.json');
+            let fdkConfigFiles = extension.findAllFilePathFromCurrentDirWithName(['fdk.ext.config.json', 'fdk.ext.config.yml']);
+        
             
-            // Install dependencies
-            for(let fdkConfigFilePath of fdkConfigFiles){
-                const projectDir = path.dirname(fdkConfigFilePath);
-                const projectConfig = require(fdkConfigFilePath);
-
-                if(projectConfig['install']){
-                    await extension.runShellCommand(projectConfig['install'], projectDir, projectConfig['project'])
+            if(fdkConfigFiles.length == 0){
+                throw new CommandError(
+                    ErrorCodes.MISSING_FDK_CONFIG_FILE.message,
+                    ErrorCodes.MISSING_FDK_CONFIG_FILE.code,
+                );
+            }
+            // length indicates SSR projects which contains only single file of fdk.ext.config.json
+            else if(fdkConfigFiles.length == 1)
+            {
+                const projectConfig = require(fdkConfigFiles[0]);
+                if(!projectConfig.roles.includes("frontend") || !projectConfig.roles.includes("backend"))
+                    throw new CommandError(
+                        ErrorCodes.INVALID_FDK_CONFIG_FILE.message,
+                        ErrorCodes.INVALID_FDK_CONFIG_FILE.code,
+                    );
+            }
+            else{
+                // Install dependencies
+                for(let fdkConfigFilePath of fdkConfigFiles){
+                    const projectDir = path.dirname(fdkConfigFilePath);
+                    
+                    let projectConfig;
+                    if(path.extname(fdkConfigFilePath) === '.yml'){
+                        const fileContents = fs.readFileSync(fdkConfigFilePath, 'utf8');
+                        projectConfig = yaml.load(fileContents);
+                    }
+                    else
+                        projectConfig = require(fdkConfigFilePath);
+                    
+                    if((fdkConfigFilePath.includes('frontend') && !projectConfig.roles.includes("frontend")) || (!fdkConfigFilePath.includes('frontend') && !projectConfig.roles.includes("backend")))
+                    {
+                        throw new CommandError(
+                            ErrorCodes.INVALID_FDK_CONFIG_FILE.message,
+                            ErrorCodes.INVALID_FDK_CONFIG_FILE.code,
+                        );
+                    }
+                    
+                    if(projectConfig['install']){
+                        await extension.runShellCommand(projectConfig['install'], projectDir, projectConfig['roles'])
+                    }
                 }
             }
 
@@ -155,10 +196,23 @@ export default class ExtensionPreviewURL {
             // Start Dev servers
             for(let fdkConfigFilePath of fdkConfigFiles){
                 const projectDir = path.dirname(fdkConfigFilePath);
-                const projectConfig = require(fdkConfigFilePath);
+                
+                let projectConfig;
+                if(path.extname(fdkConfigFilePath) === '.yml'){
+                    const fileContents = fs.readFileSync(fdkConfigFilePath, 'utf8');
+                    projectConfig = yaml.load(fileContents);
+                }
+                else
+                    projectConfig = require(fdkConfigFilePath);
 
                 if(projectConfig['dev']){
-                    extension.runShellCommand(projectConfig['dev'], projectDir, projectConfig['project'], { FRONTEND_PORT: frontend_port, BACKEND_PORT: backend_port })
+                    extension.runShellCommand(projectConfig['dev'], projectDir, projectConfig['roles'], 
+                    { 
+                        FRONTEND_PORT: frontend_port, 
+                        BACKEND_PORT: backend_port, 
+                        EXTENSION_API_KEY: extension.options.apiKey,
+                        EXTENSION_API_SECRET: extension.options.apiSecret,
+                    })
                 }
             }
 
@@ -337,7 +391,7 @@ export default class ExtensionPreviewURL {
         return null;
     }
 
-    public findAllFilePathFromCurrentDirWithName(fileName: string) {
+    public findAllFilePathFromCurrentDirWithName(fileName: Array) {
         const files = [];
         const dir = process.cwd();
 
@@ -349,7 +403,7 @@ export default class ExtensionPreviewURL {
 
                 if (entry.isDirectory()) {
                     search(fullPath);
-                } else if (entry.name === fileName) {
+                } else if (fileName.includes(entry.name)) {
                     files.push(fullPath);
                 }
             }

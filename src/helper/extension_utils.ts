@@ -68,6 +68,47 @@ export const getCompanyId = async () => {
     return await promptDevelopmentCompany(choices);
 };
 
+export const getExtensionList = async () => {
+    let extensionList = await ExtensionService.getExtensionList(
+        1,
+        9999,
+    );
+
+    let choices = [];
+    extensionList.items.map((data) => {
+        choices.push({ name: data.name, value: data._id });
+    });
+
+    if (choices.length === 0) {
+        throw new CommandError(
+            ErrorCodes.NO_EXTENSION_FOUND.message,
+            ErrorCodes.NO_EXTENSION_FOUND.code,
+        );
+    }
+
+    return await prompExtensionList(choices);
+};
+
+async function prompExtensionList(choices): Promise<number> {
+    let extensionId: number;
+    try {
+        let answers = await inquirer.prompt([
+            {
+                type: 'list',
+                choices: choices,
+                name: 'extension_id',
+                message: 'Select Extension :',
+                pageSize: 6,
+                validate: validateEmpty,
+            },
+        ]);
+        extensionId = answers.extension_id;
+    } catch (error) {
+        throw new CommandError(error.message);
+    }
+    return extensionId;
+}
+
 async function promptDevelopmentCompany(choices): Promise<number> {
     let companyId: number;
     try {

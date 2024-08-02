@@ -58,6 +58,21 @@ export const ErrorCodes = {
             'Seems like current Fynd Platform version is not compatible with installed CLI version.\n\nIn order to continue with current FP version, Please use previous version of CLI `npm install -g @gofynd/fdk-cli@3.0.4` command.',
         code: 'FDK-00012',
     },
+    NO_EXTENSION_FOUND: {
+        message:
+            'Extension not found',
+        code: 'FDK-0016',
+    },
+    MISSING_FDK_CONFIG_FILE: {
+        message:
+            'fdk.ext.config.json or fdk.ext.config.yml file not found',
+        code: 'FDK-0017',
+    },
+    INVALID_FDK_CONFIG_FILE: {
+        message:
+            'fdk.ext.config.json or fdk.ext.config.yml file is in invalid formate',
+        code: 'FDK-0018',
+    },
 
     // generic
     ECONN_RESET: {
