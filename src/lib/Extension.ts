@@ -34,6 +34,8 @@ export const NODE_VUE = 'Node + Vue 3 + SQLite';
 export const NODE_REACT = 'Node + React.js + SQLite';
 export const JAVA_VUE = 'Java + Vue 2 + Redis';
 export const JAVA_REACT = 'Java + React.js + Redis';
+// TODO: Change this to main before merging to master branch
+const branch = 'add-config-file-support';
 
 export const PROJECT_REPOS = {
     [NODE_VUE]: 'https://github.com/gofynd/example-extension-javascript.git',
@@ -59,7 +61,7 @@ export default class Extension {
                 ['remote', 'add', 'origin', answers.project_url],
                 { cwd: targetDirectory },
             );
-            await execa('git', ['pull', 'origin', 'main:main'], {
+            await execa('git', ['pull', 'origin', `${branch}:${branch}`], {
                 cwd: targetDirectory,
             });
             rimraf.sync(`${targetDirectory}/.git`); // unmark as git repo

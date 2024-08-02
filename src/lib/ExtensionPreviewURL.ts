@@ -441,7 +441,7 @@ export default class ExtensionPreviewURL {
         return null;
     }
 
-    public findAllFilePathFromCurrentDirWithName(fileName: Array) {
+    public findAllFilePathFromCurrentDirWithName(fileName: Array<String>) {
         const files = [];
         const dir = process.cwd();
 
