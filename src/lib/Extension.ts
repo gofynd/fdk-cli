@@ -141,7 +141,7 @@ export default class Extension {
                 const data: RegisterExtensionPayloadNew = {
                     name: answers.name,
                     base_url: 'http://localdev.fynd.com',
-                    // We are just passing this url as temporary when preview url is called it gets updated with the ngrok url
+                    // We are just passing this url as temporary when preview url is called it gets updated with the tunnel url
                     extention_type: answers.type.toLowerCase(),
                     // Adding this for backward compatibility for v1.8.X
                     callbacks: {
