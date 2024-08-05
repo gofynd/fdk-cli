@@ -540,7 +540,6 @@ export default class Theme {
                 throw new CommandError(error.message);
             }
 
-            Logger.info('Building Theme...');
             const stats = await devReactBuild({
                 buildFolder: Theme.BUILD_FOLDER,
                 runOnLocal: true,
@@ -866,7 +865,6 @@ export default class Theme {
             const imageCdnUrl = await Theme.getImageCdnBaseUrl();
             const assetBasePath = await Theme.getAssetCdnBaseUrl();
 
-            Logger.info('Building Theme for Production...');
             const stats = await devReactBuild({
                 buildFolder: Theme.BUILD_FOLDER,
                 runOnLocal: false,
