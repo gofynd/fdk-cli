@@ -66,10 +66,12 @@ export default class Extension {
             await execa('git', ['submodule', 'update', '--init', '--recursive'], {
                 cwd: targetDirectory,
             });
-            const { stdout } = await execa('git', ['config', '--file', '.gitmodules', '--get-regexp', 'path'], {
+            const s = await execa('git', ['config', '--file', '.gitmodules', '--get-regexp', 'path'], {
                 cwd: targetDirectory,
+            }).catch((err) => {
+                return err;
             });
-            const submodulePath = stdout.split(" ")?.[1] ?? null;
+            const submodulePath = s?.stdout?.split?.(" ")?.[1] ?? null;
             
             rimraf.sync(`${targetDirectory}/.git`); // unmark as git repo
             rimraf.sync(`${targetDirectory}/.gitmodules`); // Remove the .gitmodules file
