@@ -29,6 +29,7 @@ import {
 } from '../helper/utils';
 import Logger from './Logger';
 import urljoin from 'url-join';
+import Debug from './Debug';
 
 export const NODE_VUE = 'Node + Vue 3 + SQLite';
 export const NODE_REACT = 'Node + React.js + SQLite';
@@ -66,16 +67,21 @@ export default class Extension {
             await execa('git', ['submodule', 'update', '--init', '--recursive'], {
                 cwd: targetDirectory,
             });
+            Debug("Fetching submodule path")
             const s = await execa('git', ['config', '--file', '.gitmodules', '--get-regexp', 'path'], {
                 cwd: targetDirectory,
             }).catch((err) => {
+                Debug("No submodule found")
                 return err;
             });
             const submodulePath = s?.stdout?.split?.(" ")?.[1] ?? null;
             
             rimraf.sync(`${targetDirectory}/.git`); // unmark as git repo
             rimraf.sync(`${targetDirectory}/.gitmodules`); // Remove the .gitmodules file
-            submodulePath && rimraf.sync(`${targetDirectory}/${submodulePath}/.git`); // unmark as git repo from submodules
+            
+            const submoduleGitPath = `${targetDirectory}/${submodulePath}/.git`
+            submodulePath && Debug(`Deleting ${submoduleGitPath}`)
+            submodulePath && rimraf.sync(submoduleGitPath); // unmark as git repo from submodules
             return true;
         } catch (error) {
             return Promise.reject(error);
@@ -296,7 +302,7 @@ export default class Extension {
                     },
                 ])
                 .then((value) => {
-                    answers.name = value.name;
+                    answers.name = String(value.name).trim();
                 });
             answers.targetDir = options['targetDir'] || answers.name;
 
