@@ -59,10 +59,21 @@ export default class Extension {
                 ['remote', 'add', 'origin', answers.project_url],
                 { cwd: targetDirectory },
             );
-            await execa('git', ['pull', 'origin', 'main:main'], {
+            
+            await execa('git', ['pull', '--recurse-submodules', 'origin', 'main:main'], {
                 cwd: targetDirectory,
             });
+            await execa('git', ['submodule', 'update', '--init', '--recursive'], {
+                cwd: targetDirectory,
+            });
+            const { stdout } = await execa('git', ['config', '--file', '.gitmodules', '--get-regexp', 'path'], {
+                cwd: targetDirectory,
+            });
+            const submodulePath = stdout.split(" ")?.[1] ?? null;
+            
             rimraf.sync(`${targetDirectory}/.git`); // unmark as git repo
+            rimraf.sync(`${targetDirectory}/.gitmodules`); // Remove the .gitmodules file
+            submodulePath && rimraf.sync(`${targetDirectory}/${submodulePath}/.git`); // unmark as git repo from submodules
             return true;
         } catch (error) {
             return Promise.reject(error);
