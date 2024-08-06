@@ -5,6 +5,7 @@ import path from 'path';
 import execa from 'execa';
 import rimraf from 'rimraf';
 import which from 'which';
+import glob from 'glob'
 
 import { getPlatformUrls } from './api/services/url';
 import Spinner from '../helper/spinner';
@@ -86,7 +87,16 @@ export default class Extension {
             submodulePath && rimraf.sync(submoduleGitPath); // unmark as git repo from submodules
             
             // move project from temporary directory to main directory
-            fs.moveSync(tempDirectory, targetDirectory)
+            const files = glob.sync(path.join(tempDirectory, '{*,.*}'));
+            for (const file of files) {
+                const fileName = path.basename(file);
+                const destFile = path.join(targetDirectory, fileName);
+                Debug(`Moving ${fileName}...`)
+                await fs.move(file, destFile);
+                Debug(`Moved: ${fileName}`)
+            }
+            Debug(`All extension files moved successfully.`)
+            
             return true;
         } catch (error) {
             return Promise.reject(error);
