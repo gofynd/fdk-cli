@@ -251,43 +251,6 @@ export default class ExtensionPreviewURL {
         return await url;
     }
 
-    // DeadCode: Kept as command for future use
-    // public getExtensionAPIKeyFromENV() {
-    //     let java_env_file_path = path.join(
-    //         'src',
-    //         'main',
-    //         'resources',
-    //         'application.yml',
-    //     );
-
-    //     if (fs.existsSync('./.env')) {
-    //         let envData = readFile('./.env');
-    //         const keyMatchRegex = new RegExp(
-    //             `^\\s*EXTENSION_API_KEY\\s*=\\s*(?:'([^']*)'|"([^"]*)"|([^'"\s]+))`,
-    //             'm',
-    //         );
-    //         const match = keyMatchRegex.exec(envData);
-    //         if (match) {
-    //             const value = (match[1] || match[2] || match[3]).trim();
-    //             return value === '' ? null : value;
-    //         }
-    //     } else if (fs.existsSync(java_env_file_path)) {
-    //         let envData = readFile(java_env_file_path);
-    //         const keyMatchRegex = new RegExp(
-    //             `^\\s*api_key\\s*:\\s*(?:'([^']*)'|"([^"]*)"|([^'"\s]+))`,
-    //             'm',
-    //         );
-    //         const match = keyMatchRegex.exec(envData);
-    //         if (match) {
-    //             const value = (match[1] || match[2] || match[3]).trim();
-    //             return value === '' ? null : value;
-    //         }
-    //     } else {
-    //         return null;
-    //     }
-    //     return null;
-    // }
-
     public findAllFilePathFromCurrentDirWithName(fileName: Array<String>) {
         const files = [];
         const dir = process.cwd();
