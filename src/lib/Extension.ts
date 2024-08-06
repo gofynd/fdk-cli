@@ -119,7 +119,7 @@ export default class Extension {
                 replaceContent(pomXml, 'groot', answerObject.name),
             );
 
-            targetDir = `${targetDir}/app`;
+            targetDir = `${targetDir}/frontend`;
         }
 
         let packageJson = readFile(`${targetDir}/package.json`);
@@ -140,7 +140,7 @@ export default class Extension {
             await installNpmPackages(path.join(answers.targetDir, 'frontend'));
         } else if (project_type === JAVA_VUE || project_type === JAVA_REACT) {
             // installing dependencies for java projects
-            // await Extension.installNpmPackages(`${answers.targetDir}/app`);
+            await installNpmPackages(path.join(answers.targetDir, 'frontend'));
             await installJavaPackages(answers.targetDir);
         }
     }
@@ -239,6 +239,7 @@ export default class Extension {
                 await Extension.installDependencies(answers);
                 spinner.succeed();
             } catch (error) {
+                Debug(error);
                 spinner.fail();
             }
             const organizationId = ConfigStore.get(CONFIG_KEYS.ORGANIZATION);
