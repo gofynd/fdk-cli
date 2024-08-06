@@ -31,6 +31,7 @@ import {
 import Logger from './Logger';
 import urljoin from 'url-join';
 import Debug from './Debug';
+import { TEMP_DIR_NAME } from '../helper/constants';
 
 export const NODE_VUE = 'Node + Vue 3 + SQLite';
 export const NODE_REACT = 'Node + React.js + SQLite';
@@ -52,7 +53,7 @@ export default class Extension {
         targetDirectory: string,
         answers: Object,
     ) {
-        const tempDirectory = targetDirectory + '/temp';
+        const tempDirectory = targetDirectory + `/${TEMP_DIR_NAME}`;
         try {
             if (!fs.existsSync(targetDirectory)) {
                 createDirectory(targetDirectory);
@@ -396,7 +397,8 @@ export default class Extension {
                 `EXTENSION_BASE_URL="${launch_url}"\n`,
             );
             writeFile('./.env', envData);
-        } else if (fs.existsSync(java_env_file_path)) {
+        } 
+        if (fs.existsSync(java_env_file_path)) {
             let envData = readFile(java_env_file_path);
             envData = replaceContent(
                 envData,

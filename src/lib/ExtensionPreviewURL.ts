@@ -340,7 +340,8 @@ export default class ExtensionPreviewURL {
                 const value = (match[1] || match[2] || match[3]).trim();
                 return value === '' ? null : value;
             }
-        } else if (fs.existsSync(java_env_file_path)) {
+        } 
+        if (fs.existsSync(java_env_file_path)) {
             let envData = readFile(java_env_file_path);
             const keyMatchRegex = new RegExp(
                 `^\\s*api_key\\s*:\\s*(?:'([^']*)'|"([^"]*)"|([^'"\s]+))`,
