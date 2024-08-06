@@ -1,9 +1,8 @@
-import { spawn } from 'node:child_process'
 import { tunnel as startTunnel } from 'cloudflared';
-import chalk from 'chalk';
 import urljoin from 'url-join';
-import inquirer from 'inquirer';
+import execa from 'execa';
 import path from 'path';
+const serverProcesses = [];
 import fs from 'fs';
 import detectPort from 'detect-port'
 import Debug from './Debug';
@@ -12,7 +11,6 @@ import ExtensionLaunchURL from './ExtensionLaunchURL';
 import {
     getPartnerAccessToken,
     Object,
-    validateEmpty,
     getCompanyId,
     getExtensionList,
 } from '../helper/extension_utils';
@@ -24,6 +22,11 @@ import Logger from './Logger';
 import ExtensionService from './api/services/extension.service';
 import yaml from 'js-yaml';
 export let interval;
+
+interface ServerOptions {
+    cwd?: string;
+    env?: NodeJS.ProcessEnv;
+}
 
 export default class ExtensionPreviewURL {
     organizationInfo: Object;
@@ -47,56 +50,55 @@ export default class ExtensionPreviewURL {
 
             // get the extension api key
             if (!extension.options.apiKey) {
-                extension.options.apiKey = await getExtensionList();
+                let selected = await getExtensionList();
+                extension.options.apiKey = selected.extension.id;
                 Logger.info(
-                    `Using Extension API key from environment : ${extension.options.apiKey}`,
+                    `Using Extension API key from environment : ${selected.extension.name}`,
                 );
             }
             const extensionDetails = await ExtensionService.getExtensionDataPartners(extension.options.apiKey);
             extension.options.apiSecret = extensionDetails.client_data.secret[0];
 
             let fdkConfigFiles = extension.findAllFilePathFromCurrentDirWithName(['fdk.ext.config.json', 'fdk.ext.config.yml']);
-        
-            
-            if(fdkConfigFiles.length == 0){
+
+
+            if (fdkConfigFiles.length == 0) {
                 throw new CommandError(
                     ErrorCodes.MISSING_FDK_CONFIG_FILE.message,
                     ErrorCodes.MISSING_FDK_CONFIG_FILE.code,
                 );
             }
             // length indicates SSR projects which contains only single file of fdk.ext.config.json
-            else if(fdkConfigFiles.length == 1)
-            {
+            else if (fdkConfigFiles.length == 1) {
                 const projectConfig = require(fdkConfigFiles[0]);
-                if(!projectConfig.roles.includes("frontend") || !projectConfig.roles.includes("backend"))
+                if (!projectConfig.roles.includes("frontend") || !projectConfig.roles.includes("backend"))
                     throw new CommandError(
                         ErrorCodes.INVALID_FDK_CONFIG_FILE.message,
                         ErrorCodes.INVALID_FDK_CONFIG_FILE.code,
                     );
             }
-            else{
+            else {
                 // Install dependencies
-                for(let fdkConfigFilePath of fdkConfigFiles){
+                for (let fdkConfigFilePath of fdkConfigFiles) {
                     const projectDir = path.dirname(fdkConfigFilePath);
-                    
+
                     let projectConfig;
-                    if(path.extname(fdkConfigFilePath) === '.yml'){
+                    if (path.extname(fdkConfigFilePath) === '.yml') {
                         const fileContents = fs.readFileSync(fdkConfigFilePath, 'utf8');
                         projectConfig = yaml.load(fileContents);
                     }
                     else
                         projectConfig = require(fdkConfigFilePath);
-                    
-                    if((fdkConfigFilePath.includes('frontend') && !projectConfig.roles.includes("frontend")) || (!fdkConfigFilePath.includes('frontend') && !projectConfig.roles.includes("backend")))
-                    {
+
+                    if ((fdkConfigFilePath.includes('frontend') && !projectConfig.roles.includes("frontend")) || (!fdkConfigFilePath.includes('frontend') && !projectConfig.roles.includes("backend"))) {
                         throw new CommandError(
                             ErrorCodes.INVALID_FDK_CONFIG_FILE.message,
                             ErrorCodes.INVALID_FDK_CONFIG_FILE.code,
                         );
                     }
-                    
-                    if(projectConfig['install']){
-                        await extension.runShellCommand(projectConfig['install'], projectDir, projectConfig['roles'])
+
+                    if (projectConfig['install']) {
+                        await extension.execCommand(projectConfig['install'], {cwd: projectDir})
                     }
                 }
             }
@@ -126,46 +128,43 @@ export default class ExtensionPreviewURL {
                 partner_access_token || options.accessToken,
                 extension.publicTunnelURL,
             );
-
+            let processes = [];
             // Start Dev servers
-            for(let fdkConfigFilePath of fdkConfigFiles){
+            for (let fdkConfigFilePath of fdkConfigFiles) {
                 const projectDir = path.dirname(fdkConfigFilePath);
-                
+
                 let projectConfig;
-                if(path.extname(fdkConfigFilePath) === '.yml'){
+                if (path.extname(fdkConfigFilePath) === '.yml') {
                     const fileContents = fs.readFileSync(fdkConfigFilePath, 'utf8');
                     projectConfig = yaml.load(fileContents);
                 }
                 else
                     projectConfig = require(fdkConfigFilePath);
 
-                if(projectConfig['dev']){
-                    extension.runShellCommand(projectConfig['dev'], projectDir, projectConfig['roles'], 
-                    { 
-                        FRONTEND_PORT: frontend_port, 
-                        BACKEND_PORT: backend_port, 
-                        EXTENSION_API_KEY: extension.options.apiKey,
-                        EXTENSION_API_SECRET: extension.options.apiSecret,
-                        EXTENSION_BASE_URL:  extension.publicTunnelURL
+                if (projectConfig['dev']) {
+                    extension.execCommand(projectConfig['dev'], {
+                        cwd: projectDir,
+                        env: {
+                            FRONTEND_PORT: frontend_port,
+                            BACKEND_PORT: backend_port,
+                            EXTENSION_API_KEY: extension.options.apiKey,
+                            EXTENSION_API_SECRET: extension.options.apiSecret,
+                            EXTENSION_BASE_URL: extension.publicTunnelURL
+                        }
                     })
                 }
             }
-
-            const warningMsg = chalk.yellow(
-                'Before preview extension, please restart your extension server',
-            );
+            // await Promise.all(processes);
 
             // get preview URL
             const previewURL = extension.getPreviewURL();
             Debug(
-                `TUNNEL URL: ${
-                    extension.publicTunnelURL
+                `TUNNEL URL: ${extension.publicTunnelURL
                 }`,
             );
             Logger.info(
                 successBox({
-                    text: `${warningMsg}\n\nTUNNEL URL: ${
-                        extension.publicTunnelURL
+                    text: `TUNNEL URL: ${extension.publicTunnelURL
                         }\nExtension preview URL: ${previewURL}`,
                 }),
             );
@@ -279,7 +278,7 @@ export default class ExtensionPreviewURL {
         const files = [];
         const dir = process.cwd();
 
-        const search = (dir : string) => {
+        const search = (dir: string) => {
             const entries = fs.readdirSync(dir, { withFileTypes: true });
 
             for (const entry of entries) {
@@ -297,57 +296,36 @@ export default class ExtensionPreviewURL {
         return files;
     }
 
-    public runShellCommand(command: string, path: string, commandName: string, extraEnv: Record<string, string> = {}){
-        return new Promise(async (resolve, reject) => {
-            const child = spawn(command, [], {
-                cwd: path,
+    async execCommand(command, options: ServerOptions = {}) {
+        try {
+            const subprocess = execa.command(command, {
+                cwd: options.cwd || process.cwd(),
+                env: options.env || process.env,
                 shell: true,
-                env: {
-                    ...process.env,
-                    ... extraEnv
-                }
             });
 
-            const color = this.getRandomColor();
-            
-            child.stdout.on('data', (data) => {
-                const logs = data.toString().trim().split('\n');
-                logs.forEach((log) => {
-                    console.log(
-                        `${chalk[color](`[${commandName}]`)} `, 
-                        log
-                    );
-                })
+            // Forward stdout and stderr to the main process
+            subprocess.stdout.pipe(process.stdout);
+            subprocess.stderr.pipe(process.stderr);
+
+            // Handle process exit
+            subprocess.on('exit', (code) => {
+                Logger.error(`Command exited with code ${code}`);
             });
-            child.stderr.on('data', (data) => {
-                const logs = data.toString().trim().split('\n');
-                logs.forEach((log) => {
-                    console.log(
-                        `${chalk[color](`[${commandName}]`)} `, 
-                        log
-                    );
-                })
-            });
-            child.on('exit', (code) => {
-                if (!code) {
-                    return resolve(code);
-                }
-                reject({ message: `${commandName} failed` });
-            });
-        });
+
+            // Store the subprocess
+            serverProcesses.push(subprocess);
+
+            return subprocess;
+        } catch (error) {
+            Logger.error(`Error while executing command "${command}":`, error.message);
+        }
     }
 
-    usedColorIndex = -1;
-    getRandomColor() {
-        const allColors = ['yellow', 'magenta', 'green', 'cyan', 'blue', 'gray', 'red'];
-        this.usedColorIndex = (this.usedColorIndex + 1) % allColors.length;
-        return allColors[this.usedColorIndex];
-    }
-
-    public async getRandomFreePort(excluded_port = []){
+    public async getRandomFreePort(excluded_port = []) {
 
         const randomPort = Math.floor(Math.random() * (10000)) + 40000;
-        if(excluded_port.includes(randomPort)){
+        if (excluded_port.includes(randomPort)) {
             return await this.getRandomFreePort();
         }
         const availablePort = await detectPort(randomPort);

@@ -76,7 +76,7 @@ export const getExtensionList = async () => {
 
     let choices = [];
     extensionList.items.map((data) => {
-        choices.push({ name: data.name, value: data._id });
+        choices.push({ name: data.name, value: {id: data._id, name: data.name}});
     });
 
     if (choices.length === 0) {
@@ -89,24 +89,21 @@ export const getExtensionList = async () => {
     return await prompExtensionList(choices);
 };
 
-async function prompExtensionList(choices): Promise<number> {
-    let extensionId: number;
+async function prompExtensionList(choices): Promise<Object> {
     try {
-        let answers = await inquirer.prompt([
+        return await inquirer.prompt([
             {
                 type: 'list',
                 choices: choices,
-                name: 'extension_id',
-                message: 'Select Extension :',
+                name: 'extension',
+                message: 'Select the existing extension to use:',
                 pageSize: 6,
                 validate: validateEmpty,
             },
         ]);
-        extensionId = answers.extension_id;
     } catch (error) {
         throw new CommandError(error.message);
     }
-    return extensionId;
 }
 
 async function promptDevelopmentCompany(choices): Promise<number> {
@@ -117,7 +114,7 @@ async function promptDevelopmentCompany(choices): Promise<number> {
                 type: 'list',
                 choices: choices,
                 name: 'company_id',
-                message: 'Development Company :',
+                message: `Select the development company you'd like to use to run the extension: ?`,
                 pageSize: 6,
                 validate: validateEmpty,
             },
