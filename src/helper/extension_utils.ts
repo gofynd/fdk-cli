@@ -88,6 +88,61 @@ async function promptDevelopmentCompany(choices): Promise<number> {
     return companyId;
 }
 
+export async function getExtensionId() {
+    let extensionData = await ExtensionService.getAllExtensions(1, 9999);
+
+    let choices = [];
+    extensionData.items.map((extension) => {
+        choices.push({name: extension.name, value: extension._id})
+    })
+
+    if (choices.length === 0) {
+        const organizationId = configStore.get(CONFIG_KEYS.ORGANIZATION);
+        const createExtensionFormURL = organizationId
+            ? urljoin(
+                  getPlatformUrls().partners,
+                  'organizations',
+                  organizationId,
+                  'extensions',
+              )
+            : getPlatformUrls().partners;
+        Logger.info(
+            chalk.yellowBright(
+                `You don't have any extension under organization ${getOrganizationDisplayName()}, You can create extension from ${createExtensionFormURL} and try again.`,
+            ),
+        );
+
+        throw new CommandError(
+            ErrorCodes.NO_EXTENSION_FOUND.message,
+            ErrorCodes.NO_EXTENSION_FOUND.code,
+        );
+    }
+
+    return await promptExtension(choices);
+}
+
+async function promptExtension(choices){ 
+    let extension;
+    try{
+        let answers = await inquirer.prompt([
+            {
+                type: 'list',
+                choices: choices,
+                name: 'extension',
+                message: 'Select Extension :',
+                pageSize: 6,
+                validate: validateEmpty,
+            },
+        ]);
+        extension = answers.extension;
+    }
+    catch(error){
+        throw new CommandError(error.message);
+    }
+    return extension;
+}
+
+
 export const getActiveContext = (throwError = false) => {
     let contextData: Object = {};
     try {

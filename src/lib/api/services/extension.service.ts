@@ -18,6 +18,19 @@ type UpdateLaunchURLPayload = {
 };
 
 export default {
+
+    getAllExtensions: async (page_no: number, page_size: number) => {
+        try{
+            const response = await ApiClient.get(
+                URLS.GET_ALL_EXTENSION(page_no, page_size), 
+                getCommonHeaderOptions()
+            );
+            return response.data;
+        }
+        catch (error){
+            throw error;
+        }
+    },
     registerExtensionPartners: async (data: RegisterExtensionPayloadNew) => {
         try {
             let headers = getCommonHeaderOptions().headers;
