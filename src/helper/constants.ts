@@ -30,3 +30,5 @@ export const ALLOWD_ENV = {
     fyndx5: 'https://partners.fyndx5.de',
     fynd: 'https://partners.fynd.com',
 };
+
+export const TEMP_DIR_NAME = 'temp'

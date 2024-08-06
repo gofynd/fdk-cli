@@ -242,7 +242,7 @@ export default class Extension {
                 await Extension.installDependencies(answers);
                 spinner.succeed();
             } catch (error) {
-                Debug(error);
+                Debug(JSON.stringify(error));
                 spinner.fail();
             }
             const organizationId = ConfigStore.get(CONFIG_KEYS.ORGANIZATION);
