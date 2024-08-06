@@ -32,7 +32,7 @@ export const getDefaultContextData = (): Object => {
     };
 };
 
-export const getCompanyId = async () => {
+export const getCompanyId = async (promptMessage = undefined) => {
     let developmentCompanyData = await ExtensionService.getDevelopmentAccounts(
         1,
         9999,
@@ -65,7 +65,7 @@ export const getCompanyId = async () => {
         );
     }
 
-    return await promptDevelopmentCompany(choices);
+    return await promptDevelopmentCompany(choices, promptMessage);
 };
 
 export const getExtensionList = async () => {
@@ -86,10 +86,10 @@ export const getExtensionList = async () => {
         );
     }
 
-    return await prompExtensionList(choices);
+    return await promptExtensionList(choices);
 };
 
-async function prompExtensionList(choices): Promise<Object> {
+async function promptExtensionList(choices): Promise<Object> {
     try {
         return await inquirer.prompt([
             {
@@ -106,7 +106,7 @@ async function prompExtensionList(choices): Promise<Object> {
     }
 }
 
-async function promptDevelopmentCompany(choices): Promise<number> {
+async function promptDevelopmentCompany(choices, promptMessage = undefined): Promise<number> {
     let companyId: number;
     try {
         let answers = await inquirer.prompt([
@@ -114,7 +114,7 @@ async function promptDevelopmentCompany(choices): Promise<number> {
                 type: 'list',
                 choices: choices,
                 name: 'company_id',
-                message: `Select the development company you'd like to use to run the extension: ?`,
+                message: promptMessage || 'Development Company :',
                 pageSize: 6,
                 validate: validateEmpty,
             },

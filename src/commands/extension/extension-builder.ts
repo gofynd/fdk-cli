@@ -29,13 +29,10 @@ export default function extensionCommandBuilder() {
         .command('preview-url')
         .aliases(['preview'])
         .description('Get extension preview url to launch the extension')
-        .option(
-            '-p, --port <port>',
-            'Port on which extension is running',
-            '8080',
-        )
         .option('--api-key <api-key>', 'Extension API Key')
         .option('--company-id <id>', 'Company ID')
+        .option('--tunnel-url <tunnel-url>', 'Tunnel URL')
+        .option('--auto-update <auto-update>', 'Auto update tunnel URL as extension launch url on partners panel', 'true')
         .option('--access-token <access-token>', 'Partner Access Token')
         .asyncAction(ExtensionPreviewURL.previewUrlExtensionHandler);
 

@@ -37,78 +37,88 @@ export default class ExtensionPreviewURL {
     // command handler for "extension preview-url"
     public static async previewUrlExtensionHandler(options) {
         try {
+            // Validate Options
+            // Validate autoUpdate flag
+            if(!['true', 'false'].includes(options.autoUpdate)){
+                throw new CommandError(
+                    `Auto Update must be a boolean value. Allowed values: true, false`, 
+                    ErrorCodes.INVALID_INPUT.code,
+                );
+            }
+            
             let partner_access_token = getPartnerAccessToken();
 
             // initialize class instance
             const extension = new ExtensionPreviewURL();
             extension.options = options;
 
+            // Read and validate fdk.ext config files
+            const projectConfigs = extension.readAndValidateFDKExtConfigFiles();
+
             // get the companyId
             if (!extension.options.companyId) {
-                extension.options.companyId = await getCompanyId();
+                extension.options.companyId = await getCompanyId("Select the development company you'd like to use to run the extension: ?");
             }
 
             // get the extension api key
             if (!extension.options.apiKey) {
                 let selected = await getExtensionList();
-                extension.options.apiKey = selected.extension.id;
-                Logger.info(
-                    `Using Extension API key from environment : ${selected.extension.name}`,
+                extension.options.apiKey = selected.extension.id;                
+                Debug(
+                    `Using Extension ${selected.extension.name} with API key ${selected.extension.id} `,
                 );
             }
             const extensionDetails = await ExtensionService.getExtensionDataPartners(extension.options.apiKey);
             extension.options.apiSecret = extensionDetails.client_data.secret[0];
 
-            let fdkConfigFiles = extension.findAllFilePathFromCurrentDirWithName(['fdk.ext.config.json', 'fdk.ext.config.yml']);
-
-
-            if (fdkConfigFiles.length == 0) {
-                throw new CommandError(
-                    ErrorCodes.MISSING_FDK_CONFIG_FILE.message,
-                    ErrorCodes.MISSING_FDK_CONFIG_FILE.code,
-                );
-            }
-            // length indicates SSR projects which contains only single file of fdk.ext.config.json
-            else if (fdkConfigFiles.length == 1) {
-                const projectConfig = require(fdkConfigFiles[0]);
-                if (!projectConfig.roles.includes("frontend") || !projectConfig.roles.includes("backend"))
-                    throw new CommandError(
-                        ErrorCodes.INVALID_FDK_CONFIG_FILE.message,
-                        ErrorCodes.INVALID_FDK_CONFIG_FILE.code,
-                    );
-            }
-            else {
-                // Install dependencies
-                for (let fdkConfigFilePath of fdkConfigFiles) {
-                    const projectDir = path.dirname(fdkConfigFilePath);
-
-                    let projectConfig;
-                    if (path.extname(fdkConfigFilePath) === '.yml') {
-                        const fileContents = fs.readFileSync(fdkConfigFilePath, 'utf8');
-                        projectConfig = yaml.load(fileContents);
+            // install project dependencies
+            for(const projectConfig of projectConfigs){
+                if (projectConfig['install']) {
+                    Logger.info(`Installing dependencies for ${projectConfig['roles'].join(' and ')} project`)
+                    try{
+                        await extension.execCommand(projectConfig['install'], {cwd: projectConfig['configFilePath']}, `Successfully Installed dependencies for ${projectConfig['roles'].join(' and ')} project`)
                     }
-                    else
-                        projectConfig = require(fdkConfigFilePath);
-
-                    if ((fdkConfigFilePath.includes('frontend') && !projectConfig.roles.includes("frontend")) || (!fdkConfigFilePath.includes('frontend') && !projectConfig.roles.includes("backend"))) {
-                        throw new CommandError(
-                            ErrorCodes.INVALID_FDK_CONFIG_FILE.message,
-                            ErrorCodes.INVALID_FDK_CONFIG_FILE.code,
-                        );
-                    }
-
-                    if (projectConfig['install']) {
-                        await extension.execCommand(projectConfig['install'], {cwd: projectDir})
+                    catch(error){
+                        Debug(error);
+                        throw new CommandError(error.shortMessage, error.code);
                     }
                 }
             }
 
-            const frontend_port = await extension.getRandomFreePort([]);
-            const backend_port = await extension.getRandomFreePort([frontend_port]);
+            // Get Port to start the extension server
+            let frontend_port : number;
+            let backend_port : number;
+            
+            // Get the port value from config files if present
+            for(const projectConfig of projectConfigs) {
+                if(projectConfig['roles'].includes('frontend')){
+                    frontend_port = projectConfig['port'];
+                }
+                else if(projectConfig['roles'].includes('backend')){
+                    backend_port = projectConfig['port'];
+                }
+            }
+            
+            // If port is not defined in config files generate random port to start server
+            if(!frontend_port){
+                frontend_port = await extension.getRandomFreePort([]);
+            }
+            if(!backend_port){
+                backend_port = await extension.getRandomFreePort([frontend_port]);
+            }
+            extension.options.port = frontend_port;
 
-            extension.options.port = frontend_port; {
+            // Start Tunnel
+            // Check if tunnel url is provided in options, use it
+            if(extension.options.tunnelUrl){
+                extension.publicTunnelURL = extension.options.tunnelUrl;
+                Logger.info(
+                    `Using tunnel url : ${extension.publicTunnelURL}`
+                );
+            }
+            else {
                 // start Cloudflared tunnel
-                let spinner = new Spinner('Starting Cloudflare tunnel');
+                let spinner = new Spinner(`Starting Cloudflare tunnel on port ${extension.options.port}`);
                 try {
                     spinner.start();
                     extension.publicTunnelURL =
@@ -122,40 +132,43 @@ export default class ExtensionPreviewURL {
                     );
                 }
             }
+            
             // update launch url on partners panel
-            await ExtensionLaunchURL.updateLaunchURL(
-                extension.options.apiKey,
-                partner_access_token || options.accessToken,
-                extension.publicTunnelURL,
-            );
-            let processes = [];
+            if(extension.options.autoUpdate && extension.options.autoUpdate == 'true'){
+                await ExtensionLaunchURL.updateLaunchURL(
+                    extension.options.apiKey,
+                    partner_access_token || options.accessToken,
+                    extension.publicTunnelURL,
+                );
+            }
+            else {
+                Logger.info(`Skipped updating launch URL on partners panel`)
+            }
+
             // Start Dev servers
-            for (let fdkConfigFilePath of fdkConfigFiles) {
-                const projectDir = path.dirname(fdkConfigFilePath);
-
-                let projectConfig;
-                if (path.extname(fdkConfigFilePath) === '.yml') {
-                    const fileContents = fs.readFileSync(fdkConfigFilePath, 'utf8');
-                    projectConfig = yaml.load(fileContents);
-                }
-                else
-                    projectConfig = require(fdkConfigFilePath);
-
+            for(const projectConfig of projectConfigs){
                 if (projectConfig['dev']) {
                     extension.execCommand(projectConfig['dev'], {
-                        cwd: projectDir,
+                        cwd: projectConfig['configFilePath'],
                         env: {
-                            FRONTEND_PORT: frontend_port,
-                            BACKEND_PORT: backend_port,
+                            FRONTEND_PORT: frontend_port.toString(),
+                            BACKEND_PORT: backend_port.toString(),
                             EXTENSION_API_KEY: extension.options.apiKey,
                             EXTENSION_API_SECRET: extension.options.apiSecret,
                             EXTENSION_BASE_URL: extension.publicTunnelURL
                         }
+                    }).catch((error) => {
+                        Debug(error);
+                        if(['SIGINT', 'SIGUSR1', 'SIGUSR2'].includes(error.signal) || error.code == 0 || error.code == 130){
+                            Logger.info(`${projectConfig['roles'].join(' and ')} process exited successfully.`);
+                        }
+                        else{
+                            throw new CommandError(error.shortMessage, error.code);
+                        }
                     })
                 }
-            }
-            // await Promise.all(processes);
-
+            }            
+            
             // get preview URL
             const previewURL = extension.getPreviewURL();
             Debug(
@@ -238,41 +251,42 @@ export default class ExtensionPreviewURL {
         return await url;
     }
 
-    public getExtensionAPIKeyFromENV() {
-        let java_env_file_path = path.join(
-            'src',
-            'main',
-            'resources',
-            'application.yml',
-        );
+    // DeadCode: Kept as command for future use
+    // public getExtensionAPIKeyFromENV() {
+    //     let java_env_file_path = path.join(
+    //         'src',
+    //         'main',
+    //         'resources',
+    //         'application.yml',
+    //     );
 
-        if (fs.existsSync('./.env')) {
-            let envData = readFile('./.env');
-            const keyMatchRegex = new RegExp(
-                `^\\s*EXTENSION_API_KEY\\s*=\\s*(?:'([^']*)'|"([^"]*)"|([^'"\s]+))`,
-                'm',
-            );
-            const match = keyMatchRegex.exec(envData);
-            if (match) {
-                const value = (match[1] || match[2] || match[3]).trim();
-                return value === '' ? null : value;
-            }
-        } else if (fs.existsSync(java_env_file_path)) {
-            let envData = readFile(java_env_file_path);
-            const keyMatchRegex = new RegExp(
-                `^\\s*api_key\\s*:\\s*(?:'([^']*)'|"([^"]*)"|([^'"\s]+))`,
-                'm',
-            );
-            const match = keyMatchRegex.exec(envData);
-            if (match) {
-                const value = (match[1] || match[2] || match[3]).trim();
-                return value === '' ? null : value;
-            }
-        } else {
-            return null;
-        }
-        return null;
-    }
+    //     if (fs.existsSync('./.env')) {
+    //         let envData = readFile('./.env');
+    //         const keyMatchRegex = new RegExp(
+    //             `^\\s*EXTENSION_API_KEY\\s*=\\s*(?:'([^']*)'|"([^"]*)"|([^'"\s]+))`,
+    //             'm',
+    //         );
+    //         const match = keyMatchRegex.exec(envData);
+    //         if (match) {
+    //             const value = (match[1] || match[2] || match[3]).trim();
+    //             return value === '' ? null : value;
+    //         }
+    //     } else if (fs.existsSync(java_env_file_path)) {
+    //         let envData = readFile(java_env_file_path);
+    //         const keyMatchRegex = new RegExp(
+    //             `^\\s*api_key\\s*:\\s*(?:'([^']*)'|"([^"]*)"|([^'"\s]+))`,
+    //             'm',
+    //         );
+    //         const match = keyMatchRegex.exec(envData);
+    //         if (match) {
+    //             const value = (match[1] || match[2] || match[3]).trim();
+    //             return value === '' ? null : value;
+    //         }
+    //     } else {
+    //         return null;
+    //     }
+    //     return null;
+    // }
 
     public findAllFilePathFromCurrentDirWithName(fileName: Array<String>) {
         const files = [];
@@ -296,7 +310,7 @@ export default class ExtensionPreviewURL {
         return files;
     }
 
-    async execCommand(command, options: ServerOptions = {}) {
+    async execCommand(command : string, options: ServerOptions = {}, successExitMessage: string = undefined) {
         try {
             const subprocess = execa.command(command, {
                 cwd: options.cwd || process.cwd(),
@@ -310,7 +324,9 @@ export default class ExtensionPreviewURL {
 
             // Handle process exit
             subprocess.on('exit', (code) => {
-                Logger.error(`Command exited with code ${code}`);
+                if(successExitMessage || code == 0 || code == 130){
+                    Logger.info(successExitMessage);
+                }
             });
 
             // Store the subprocess
@@ -326,7 +342,7 @@ export default class ExtensionPreviewURL {
 
         const randomPort = Math.floor(Math.random() * (10000)) + 40000;
         if (excluded_port.includes(randomPort)) {
-            return await this.getRandomFreePort();
+            return await this.getRandomFreePort(excluded_port);
         }
         const availablePort = await detectPort(randomPort);
 
@@ -334,7 +350,91 @@ export default class ExtensionPreviewURL {
         if (availablePort === randomPort) {
             return randomPort;
         } else {
-            return await this.getRandomFreePort();
+            return await this.getRandomFreePort([...excluded_port, randomPort]);
         }
+    }
+
+    public readAndValidateFDKExtConfigFiles(){
+        let fdkConfigFiles = this.findAllFilePathFromCurrentDirWithName(['fdk.ext.config.json', 'fdk.ext.config.yml']);
+        const projectConfigs = [];
+
+        const validateConfigStructure = (config) => {
+            if(Object.keys(config).length == 0){
+                throw new CommandError(
+                    ErrorCodes.INVALID_FDK_CONFIG_FILE.message,
+                    ErrorCodes.INVALID_FDK_CONFIG_FILE.code,
+                );
+            }
+
+            if(!config.hasOwnProperty('roles') || !Array.isArray(config['roles'])){
+                throw new CommandError(
+                    ErrorCodes.INVALID_FDK_CONFIG_FILE.message + "\nkey `roles` must be an array of string",
+                    ErrorCodes.INVALID_FDK_CONFIG_FILE.code,
+                );
+            }
+
+            if(!config.hasOwnProperty('dev') || typeof config['dev'] !== "string"){
+                throw new CommandError(
+                    ErrorCodes.INVALID_FDK_CONFIG_FILE.message + "\nkey `dev` must be a string",
+                    ErrorCodes.INVALID_FDK_CONFIG_FILE.code,
+                );
+            }
+
+            if(config.hasOwnProperty('install') && typeof config['install'] !== "string"){
+                throw new CommandError(
+                    ErrorCodes.INVALID_FDK_CONFIG_FILE.message + "\nkey `install` must be a string",
+                    ErrorCodes.INVALID_FDK_CONFIG_FILE.code,
+                );
+            }
+
+            if(config.hasOwnProperty('port') && typeof config['port'] !== "number"){
+                throw new CommandError(
+                    ErrorCodes.INVALID_FDK_CONFIG_FILE.message + "\nkey `port` must be a number",
+                    ErrorCodes.INVALID_FDK_CONFIG_FILE.code,
+                );
+            }
+
+            return true;
+        }
+
+        const readConfigFile = (configFilePath) => {
+            let projectConfig;
+            if (path.extname(configFilePath) === '.yml') {
+                const fileContents = fs.readFileSync(configFilePath, 'utf8');
+                projectConfig = yaml.load(fileContents);
+            }
+            else{
+                projectConfig = require(configFilePath);
+            }
+            return projectConfig;
+        }
+
+        
+        if (fdkConfigFiles.length == 0) {
+            throw new CommandError(
+                ErrorCodes.MISSING_FDK_CONFIG_FILE.message,
+                ErrorCodes.MISSING_FDK_CONFIG_FILE.code,
+            );
+        }
+        else{
+            let definedProjectRoles = [];
+            for (let fdkConfigFilePath of fdkConfigFiles) {
+                const projectConfig = readConfigFile(fdkConfigFilePath);
+                validateConfigStructure(projectConfig);
+
+                definedProjectRoles = definedProjectRoles.concat(projectConfig.roles);
+                
+                projectConfig['configFilePath'] = path.dirname(fdkConfigFilePath);
+                projectConfigs.push(projectConfig);
+            }
+            if (!definedProjectRoles.includes("frontend") || !definedProjectRoles.includes("backend")){
+                throw new CommandError(
+                    ErrorCodes.INVALID_FDK_CONFIG_FILE.message + "\nConfig files for both `frontend` and `backend` roles should be defined",
+                    ErrorCodes.INVALID_FDK_CONFIG_FILE.code,
+                );
+            }
+        }
+
+        return projectConfigs;
     }
 }

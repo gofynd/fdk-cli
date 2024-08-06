@@ -427,25 +427,28 @@ fdk extension preview-url [options]
 #### **Command Options**
 | Option    | Description   |
 | ----------|---------------|
-| -p, --port    | Port on which Extension is running |
 | --company-id | specify company id |
 | --api-key | Extension API key |
 | --access-token | Partner Access Token |
+| --tunnel-url | Tunnel URL |
+| --auto-update | Auto update tunnel URL as extension launch url on partners panel (default: true) |
 | --help    | Show help |
 | --verbose | enable debug mode |
 
 #### **Example**
 ```sh
-fdk extension preview-url --port 3000
+fdk extension preview-url
 ```
 ```sh
-fdk extension preview-url -p 3000
+fdk extension preview-url --tunnel-url https://broke-casey-eric-recommendations.trycloudflare.com
 ```
 ```sh
-fdk extension preview-url -p 3000 --company-id 999
+fdk extension preview-url --company-id 999
 ```
 
-By default, **cloudflared** will be used as the tunneling tool.
+- **Cloudflared** will be used as the tunneling tool.
+
+- If you pass Tunnel URL, it will not created new tunnel and use the passed url as tunnel url.
 
 ___
 <div id="extension-launch-url"></div>
