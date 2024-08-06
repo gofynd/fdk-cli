@@ -36,7 +36,7 @@ export const NODE_VUE = 'Node + Vue 3 + SQLite';
 export const NODE_REACT = 'Node + React.js + SQLite';
 export const JAVA_VUE = 'Java + Vue 2 + Redis';
 export const JAVA_REACT = 'Java + React.js + Redis';
-export const EXTENSION_BRANCH = 'main:main'; // update-sub-module
+export const EXTENSION_BRANCH = 'update-sub-module'; // update-sub-module
 
 export const PROJECT_REPOS = {
     [NODE_VUE]: 'https://github.com/gofynd/example-extension-javascript.git',
@@ -118,7 +118,6 @@ export default class Extension {
                 `${targetDir}/pom.xml`,
                 replaceContent(pomXml, 'groot', answerObject.name),
             );
-
             targetDir = `${targetDir}/frontend`;
         }
 
