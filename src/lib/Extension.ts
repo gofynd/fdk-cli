@@ -222,6 +222,9 @@ export default class Extension {
                         ymlData,
                         { flag: 'a+' },
                     );
+                    // add env in java too, as we are using this env from frontend
+                    const envData = `BACKEND_PORT=8080\nFRONTEND_PORT=5173`;
+                    fs.writeFileSync(`${answers.targetDir}/.env`, envData);
                 } else {
                     const envData = `EXTENSION_API_KEY="${
                         answers.extension_api_key
@@ -229,7 +232,7 @@ export default class Extension {
                         answers.extension_api_secret
                     }"\nEXTENSION_BASE_URL="${
                         answers.base_url
-                    }"\nEXTENSION_CLUSTER_URL="${getBaseURL()}"\nBACKEND_PORT=8080\nFRONTEND_PORT=8081`;
+                    }"\nEXTENSION_CLUSTER_URL="${getBaseURL()}"\nBACKEND_PORT=8080\nFRONTEND_PORT=5173`;
                     fs.writeFileSync(`${answers.targetDir}/.env`, envData);
                 }
                 await Extension.replaceGrootWithExtensionName(
