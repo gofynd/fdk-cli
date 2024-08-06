@@ -1,6 +1,6 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import fs from 'fs';
+import fs from 'fs-extra';
 import path from 'path';
 import execa from 'execa';
 import rimraf from 'rimraf';
@@ -50,41 +50,48 @@ export default class Extension {
         targetDirectory: string,
         answers: Object,
     ) {
+        const tempDirectory = targetDirectory + '/temp';
         try {
             if (!fs.existsSync(targetDirectory)) {
                 createDirectory(targetDirectory);
+                createDirectory(tempDirectory);
             }
-            await execa('git', ['init'], { cwd: targetDirectory });
+            await execa('git', ['init'], { cwd: tempDirectory });
             await execa(
                 'git',
                 ['remote', 'add', 'origin', answers.project_url],
-                { cwd: targetDirectory },
+                { cwd: tempDirectory },
             );
             
             await execa('git', ['pull', '--recurse-submodules', 'origin', 'main:main'], {
-                cwd: targetDirectory,
+                cwd: tempDirectory,
             });
             await execa('git', ['submodule', 'update', '--init', '--recursive'], {
-                cwd: targetDirectory,
+                cwd: tempDirectory,
             });
             Debug("Fetching submodule path")
             const s = await execa('git', ['config', '--file', '.gitmodules', '--get-regexp', 'path'], {
-                cwd: targetDirectory,
+                cwd: tempDirectory,
             }).catch((err) => {
                 Debug("No submodule found")
                 return err;
             });
             const submodulePath = s?.stdout?.split?.(" ")?.[1] ?? null;
             
-            rimraf.sync(`${targetDirectory}/.git`); // unmark as git repo
-            rimraf.sync(`${targetDirectory}/.gitmodules`); // Remove the .gitmodules file
+            rimraf.sync(`${tempDirectory}/.git`); // unmark as git repo
+            rimraf.sync(`${tempDirectory}/.gitmodules`); // Remove the .gitmodules file
             
-            const submoduleGitPath = `${targetDirectory}/${submodulePath}/.git`
+            const submoduleGitPath = `${tempDirectory}/${submodulePath}/.git`
             submodulePath && Debug(`Deleting ${submoduleGitPath}`)
             submodulePath && rimraf.sync(submoduleGitPath); // unmark as git repo from submodules
+            
+            // move project from temporary directory to main directory
+            fs.moveSync(tempDirectory, targetDirectory)
             return true;
         } catch (error) {
             return Promise.reject(error);
+        } finally {
+            fs.removeSync(tempDirectory);
         }
     }
 
