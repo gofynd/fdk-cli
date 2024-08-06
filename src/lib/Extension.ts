@@ -5,7 +5,6 @@ import path from 'path';
 import execa from 'execa';
 import rimraf from 'rimraf';
 import which from 'which';
-import glob from 'glob'
 
 import { getPlatformUrls } from './api/services/url';
 import Spinner from '../helper/spinner';
@@ -27,6 +26,7 @@ import { getBaseURL } from './api/services/url';
 import {
     installNpmPackages,
     installJavaPackages,
+    moveDirContent,
 } from '../helper/utils';
 import Logger from './Logger';
 import urljoin from 'url-join';
@@ -36,6 +36,7 @@ export const NODE_VUE = 'Node + Vue 3 + SQLite';
 export const NODE_REACT = 'Node + React.js + SQLite';
 export const JAVA_VUE = 'Java + Vue 2 + Redis';
 export const JAVA_REACT = 'Java + React.js + Redis';
+export const EXTENSION_BRANCH = 'main:main'; // update-sub-module
 
 export const PROJECT_REPOS = {
     [NODE_VUE]: 'https://github.com/gofynd/example-extension-javascript.git',
@@ -64,7 +65,7 @@ export default class Extension {
                 { cwd: tempDirectory },
             );
             
-            await execa('git', ['pull', '--recurse-submodules', 'origin', 'main:main'], {
+            await execa('git', ['pull', '--recurse-submodules', 'origin', EXTENSION_BRANCH], {
                 cwd: tempDirectory,
             });
             await execa('git', ['submodule', 'update', '--init', '--recursive'], {
@@ -86,15 +87,7 @@ export default class Extension {
             submodulePath && Debug(`Deleting ${submoduleGitPath}`)
             submodulePath && rimraf.sync(submoduleGitPath); // unmark as git repo from submodules
             
-            // move project from temporary directory to main directory
-            const files = glob.sync(path.join(tempDirectory, '{*,.*}'));
-            for (const file of files) {
-                const fileName = path.basename(file);
-                const destFile = path.join(targetDirectory, fileName);
-                Debug(`Moving ${fileName}...`)
-                await fs.move(file, destFile);
-                Debug(`Moved: ${fileName}`)
-            }
+            await moveDirContent(tempDirectory, targetDirectory) // move project from temporary directory to extension directory
             Debug(`All extension files moved successfully.`)
             
             return true;
