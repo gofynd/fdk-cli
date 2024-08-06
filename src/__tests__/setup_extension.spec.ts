@@ -13,7 +13,7 @@ import Extension, {
 import configStore, { CONFIG_KEYS } from '../lib/Config';
 
 let program;
-const envFileData = `EXTENSION_API_KEY="api_key"\nEXTENSION_API_SECRET="api_secret"\nEXTENSION_BASE_URL="https://abc.com"\nEXTENSION_CLUSTER_URL="https://api.fynd.com"\nBACKEND_PORT=8080\nFRONTEND_PORT=5173`;
+const envFileData = `EXTENSION_API_KEY="api_key"\nEXTENSION_API_SECRET="api_secret"\nEXTENSION_BASE_URL="https://abc.com"\nEXTENSION_CLUSTER_URL="https://api.fynd.com"\nBACKEND_PORT=8080\nFRONTEND_PORT=8081`;
 
 jest.mock('configstore', () => {
     const Store =
