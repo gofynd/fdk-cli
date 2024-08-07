@@ -45,7 +45,7 @@ let program;
 
 jest.mock('configstore', () => {
     const Store =
-        jest.requireActual<typeof import('configstore')>('configstore');
+        jest.requireActual('configstore');
     const path = jest.requireActual<typeof import('path')>('path');
     return class MockConfigstore {
         store = new Store('@gofynd/fdk-cli', undefined, {
@@ -71,6 +71,10 @@ jest.mock('configstore', () => {
         }
     };
 });
+
+jest.mock('open', () => {
+    return () => {}
+})
 
 async function createThemeFromZip() {
     let zipPath = path.join(__dirname, 'fixtures', 'rolex.zip');

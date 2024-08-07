@@ -1,5 +1,5 @@
 import ngrok from '@ngrok/ngrok';
-import { startTunnel } from 'untun';
+import { tunnel as startTunnel } from 'cloudflared';
 import chalk from 'chalk';
 import urljoin from 'url-join';
 import inquirer from 'inquirer';
@@ -82,13 +82,21 @@ export default class ExtensionPreviewURL {
                     const ngrokListener: ngrok.Listener =
                         await extension.startNgrokTunnel(authtoken);
                     extension.publicNgrokURL = ngrokListener.url();
-                    interval = setInterval(() => {}, 900);
-                    process.on('SIGINT', async () => {
+                    interval = setInterval(() => {}, 10000);
+                    const cleanup = async () => {
                         Logger.info('Stopping Ngrok tunnel...');
                         clearInterval(interval);
                         await ngrok.disconnect();
-                        process.exit();
-                    });
+                        process.exit(0);
+                    };
+                    for (const signal of [
+                        'SIGINT',
+                        'SIGUSR1',
+                        'SIGUSR2',
+                        'SIGTERM',
+                    ] as const) {
+                        process.on(signal, cleanup);
+                    }
                     configStore.set(CONFIG_KEYS.NGROK_AUTHTOKEN, authtoken);
                     spinner.succeed();
                 } catch (error) {
@@ -115,10 +123,14 @@ export default class ExtensionPreviewURL {
                 }
             } else {
                 // start Cloudflared tunnel
+                let spinner = new Spinner('Starting Cloudflare tunnel');
                 try {
+                    spinner.start();
                     extension.publicTunnelURL =
                         await extension.startCloudflareTunnel();
+                    spinner.succeed();
                 } catch (error) {
+                    spinner.fail();
                     throw new CommandError(
                         ErrorCodes.ClOUDFLARE_CONNECTION_ISSUE.message,
                         ErrorCodes.ClOUDFLARE_CONNECTION_ISSUE.code,
@@ -201,7 +213,7 @@ export default class ExtensionPreviewURL {
     }
 
     private async closedTunnelHandler() {
-        Logger.info(chalk.red('Ngrok tunnel disconnected'));
+        Logger.error(chalk.red('Ngrok tunnel disconnected'));
     }
 
     private async promptNgrokAuthtoken(): Promise<string> {
@@ -227,6 +239,30 @@ export default class ExtensionPreviewURL {
         return authtoken;
     }
 
+    isCloudflareTunnelShutdown = false;
+    cloudflareTunnelLogParser(data) {
+        const str = data.toString();
+        const connected_regex = /Registered tunnel connection/;
+        const disconnect_regex = /Unregistered tunnel connection/;
+        const retry_connection_regex = /Retrying connection in up to/;
+        const shutdown_regex =
+            /Initiating graceful shutdown due to signal interrupt/;
+
+        if (this.isCloudflareTunnelShutdown) {
+            return;
+        }
+
+        if (str.match(connected_regex)) {
+            Logger.info('Tunnel connection established');
+        } else if (str.match(disconnect_regex)) {
+            Logger.error('Tunnel disconnected');
+        } else if (str.match(retry_connection_regex)) {
+            Logger.warn(`Retrying to connect tunnel...`);
+        } else if (str.match(shutdown_regex)) {
+            this.isCloudflareTunnelShutdown = true;
+        }
+    }
+
     private async startCloudflareTunnel() {
         Debug(`Starting tunnel on port ${this.options.port}`);
         // INSTALL CURRENT LATEST VERSION
@@ -236,12 +272,27 @@ export default class ExtensionPreviewURL {
         // ALWAYS USE HTTP2 PROTOCOL
         process.env.TUNNEL_TRANSPORT_PROTOCOL = 'http2';
 
-        const tunnel = await startTunnel({
-            protocol: 'http',
-            port: this.options.port,
-            acceptCloudflareNotice: true,
+        const { url, connections, child, stop } = startTunnel({
+            '--url': `http://localhost:${this.options.port}`,
         });
-        return await tunnel.getURL();
+
+        const cleanup = async () => {
+            stop();
+        };
+
+        for (const signal of ['SIGINT', 'SIGUSR1', 'SIGUSR2'] as const) {
+            process.once(signal, cleanup);
+        }
+
+        child.stdout.on('data', this.cloudflareTunnelLogParser);
+        child.stderr.on('data', this.cloudflareTunnelLogParser);
+
+        if (process.env.DEBUG) {
+            child.stdout.pipe(process.stdout);
+            child.stderr.pipe(process.stderr);
+        }
+
+        return await url;
     }
 
     private async promptExtensionApiKey(): Promise<string> {

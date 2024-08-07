@@ -26,39 +26,23 @@ import { getBaseURL } from './api/services/url';
 import {
     installNpmPackages,
     installJavaPackages,
-    installPythonDependencies,
 } from '../helper/utils';
 import Logger from './Logger';
 import urljoin from 'url-join';
 
-export const NODE_VUE = 'Node + Vue.js + Redis';
-export const NODE_REACT = 'Node + React.js + Redis';
-export const PYTHON_VUE = 'Python + Vue.js + Redis';
-export const PYTHON_REACT = 'Python + React.js + Redis';
-export const JAVA_VUE = 'Java + Vue.js + Redis';
+export const NODE_VUE = 'Node + Vue 3 + SQLite';
+export const NODE_REACT = 'Node + React.js + SQLite';
+export const JAVA_VUE = 'Java + Vue 2 + Redis';
 export const JAVA_REACT = 'Java + React.js + Redis';
 
 export const PROJECT_REPOS = {
     [NODE_VUE]: 'https://github.com/gofynd/example-extension-javascript.git',
     [NODE_REACT]:
         'https://github.com/gofynd/example-extension-javascript-react.git',
-    [PYTHON_VUE]: 'https://github.com/gofynd/example-extension-python-vue.git',
-    [PYTHON_REACT]:
-        'https://github.com/gofynd/example-extension-python-react.git',
     [JAVA_VUE]: 'https://github.com/gofynd/example-extension-java-vue.git',
     [JAVA_REACT]: 'https://github.com/gofynd/example-extension-java-react.git',
 };
 export default class Extension {
-    private static checkForVue(answers: Object): boolean {
-        if (
-            answers.project_type === NODE_VUE ||
-            answers.project_type === JAVA_VUE ||
-            answers.project_type === PYTHON_VUE
-        ) {
-            return true;
-        }
-        return false;
-    }
 
     // clone extension boilerplate from github
     private static async copyTemplateFiles(
@@ -75,15 +59,9 @@ export default class Extension {
                 ['remote', 'add', 'origin', answers.project_url],
                 { cwd: targetDirectory },
             );
-            if (answers.vue_version === 'vue3') {
-                await execa('git', ['pull', 'origin', 'main-vue3:main-vue3'], {
-                    cwd: targetDirectory,
-                });
-            } else {
-                await execa('git', ['pull', 'origin', 'main:main'], {
-                    cwd: targetDirectory,
-                });
-            }
+            await execa('git', ['pull', 'origin', 'main:main'], {
+                cwd: targetDirectory,
+            });
             rimraf.sync(`${targetDirectory}/.git`); // unmark as git repo
             return true;
         } catch (error) {
@@ -129,13 +107,8 @@ export default class Extension {
         if (project_type === NODE_VUE || project_type === NODE_REACT) {
             // installing dependencies for Node projects
             await installNpmPackages(answers.targetDir);
-        } else if (
-            project_type === PYTHON_VUE ||
-            project_type === PYTHON_REACT
-        ) {
-            // installing dependencies for Python projects
-            await installNpmPackages(answers.targetDir);
-            await installPythonDependencies(answers.targetDir);
+            //added to support new boilerplate structure
+            await installNpmPackages(path.join(answers.targetDir, 'frontend'));
         } else if (project_type === JAVA_VUE || project_type === JAVA_REACT) {
             // installing dependencies for java projects
             // await Extension.installNpmPackages(`${answers.targetDir}/app`);
@@ -227,7 +200,7 @@ export default class Extension {
                         answers.extension_api_secret
                     }"\nEXTENSION_BASE_URL="${
                         answers.base_url
-                    }"\nEXTENSION_CLUSTER_URL="${getBaseURL()}"`;
+                    }"\nEXTENSION_CLUSTER_URL="${getBaseURL()}"\nBACKEND_PORT=8080\nFRONTEND_PORT=8081`;
                     fs.writeFileSync(`${answers.targetDir}/.env`, envData);
                 }
                 await Extension.replaceGrootWithExtensionName(
@@ -276,16 +249,6 @@ export default class Extension {
 
         if (project_type === JAVA_REACT || project_type === JAVA_VUE) {
             requiredDependencies.push('mvn');
-        }
-
-        if (project_type === PYTHON_REACT || project_type === PYTHON_VUE) {
-            const osPlatform = process.platform;
-
-            if (osPlatform === 'darwin' || osPlatform === 'linux') {
-                requiredDependencies.push('python3');
-            } else if (osPlatform === 'win32') {
-                requiredDependencies.push('python');
-            }
         }
 
         for (const dependency of requiredDependencies) {
@@ -340,8 +303,6 @@ export default class Extension {
                     choices: [
                         NODE_VUE,
                         NODE_REACT,
-                        PYTHON_VUE,
-                        PYTHON_REACT,
                         JAVA_VUE,
                         JAVA_REACT,
                     ],
@@ -349,19 +310,7 @@ export default class Extension {
                     name: 'project_type',
                     message: 'Template :',
                     validate: validateEmpty,
-                },
-                {
-                    type: 'list',
-                    choices: [
-                        { name: 'Vue 2', value: 'vue2' },
-                        { name: 'Vue 3', value: 'vue3' },
-                    ],
-                    default: 'vue2',
-                    name: 'vue_version',
-                    message: 'Vue Version: ',
-                    when: Extension.checkForVue,
-                    validate: validateEmpty,
-                },
+                }
             ];
 
             let prompt_answers: Object = await inquirer.prompt(
@@ -383,10 +332,10 @@ export default class Extension {
         }
     }
 
-    private static checkFolderAndGitExists(folderPath: string) {
+    private static checkFolderAndGitExists(folderPath: string, fixedExtensionName = false) {
         if (fs.existsSync(folderPath)) {
             throw new CommandError(
-                `Directory "${folderPath}" is already exists in current directory. Please choose another name or directory.`,
+                `Directory "${folderPath}" already exists in the current directory. Please ${fixedExtensionName ? '' : 'choose a different name or '}specify a different target directory.`
             );
         }
         if (fs.existsSync(path.join(folderPath, '/.git'))) {
@@ -452,8 +401,6 @@ export default class Extension {
                     choices: [
                         NODE_VUE,
                         NODE_REACT,
-                        PYTHON_VUE,
-                        PYTHON_REACT,
                         JAVA_VUE,
                         JAVA_REACT,
                     ],
@@ -461,19 +408,7 @@ export default class Extension {
                     name: 'project_type',
                     message: 'Template :',
                     validate: validateEmpty,
-                },
-                {
-                    type: 'list',
-                    choices: [
-                        { name: 'Vue 2', value: 'vue2' },
-                        { name: 'Vue 3', value: 'vue3' },
-                    ],
-                    default: 'vue2',
-                    name: 'vue_version',
-                    message: 'Vue Version: ',
-                    when: Extension.checkForVue,
-                    validate: validateEmpty,
-                },
+                }
             ];
 
             answers = { ...answers, ...(await inquirer.prompt(questions)) };
@@ -504,7 +439,7 @@ export default class Extension {
             answers.base_url = extension_data.base_url;
             answers.name = extension_data.name;
             answers.targetDir = options['targetDir'] || answers.name;
-            Extension.checkFolderAndGitExists(answers.targetDir);
+            Extension.checkFolderAndGitExists(answers.targetDir, true);
 
             await Extension.createExtension(answers, false);
         } catch (error) {
