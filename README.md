@@ -79,8 +79,9 @@ ___
 | Command        | Description           | 
 | ------------- |-------------| 
 | [init](#extension-init)     | Utilize this command to set up a new extension locally, leveraging existing templates of your choice.  |
-| [setup](#extension-setup)     | Configure your extension locally using the existing API Key and API Secret provided for the extension inside the partners panel.
-| [preview-url](#extension-preview-url)   | Create a tunnel and provide a link to tryout extension on development company
+| [setup](#extension-setup)     | Configure your extension locally using the existing API Key and API Secret provided for the extension inside the partners panel. |
+| [preview-url](#extension-preview-url)   | Create a tunnel and provide a link to tryout extension on development company |
+| [tunnel](#extension-tunnel) | Start tunnel |
 | [launch-url](#extension-launch-url)     | Get/set extension's lanuch url |
 
 ### Partner Commands
@@ -451,6 +452,32 @@ fdk extension preview-url --company-id 999
 - If you pass Tunnel URL, it will not created new tunnel and use the passed url as tunnel url.
 
 ___
+
+
+<div id="extension-tunnel"></div>
+
+#### **tunnel**
+This command will start a tunnel using cloudflare by which you can access your local port on public url
+
+#### ****Syntax****
+```sh
+fdk extension tunnel [options]
+```
+
+#### **Command Options**
+| Option    | Description   |
+| ----------|---------------|
+| --port | Port (required) |
+| --help    | Show help |
+| --verbose | enable debug mode |
+
+#### **Example**
+```sh
+fdk extension tunnel --port 8080
+```
+
+___
+
 <div id="extension-launch-url"></div>
 
 #### **launch-url**

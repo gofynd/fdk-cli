@@ -30,7 +30,6 @@ const fdkExtConfigBackEnd = require('./fixtures/fdkExtConfigBackEnd.json')
 let program: CommanderStatic;
 let winstonLoggerSpy: jest.SpyInstance<any>;
 
-import { interval } from './../lib/ExtensionPreviewURL';
 jest.mock('../helper/formatter', () => ({
     successBox: ({ text }) => {
         return text;
@@ -137,7 +136,6 @@ describe('Extension preview-url command', () => {
     afterEach(async () => {
         // remove test config store
         rimraf.sync('./previewUrl-test-cli.json');
-        clearInterval(interval);
 
         rimraf.sync('./fdk.ext.config.json');
         rimraf.sync('./frontend');

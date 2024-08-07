@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import Extension from '../../lib/Extension';
 import ExtensionLaunchURL from '../../lib/ExtensionLaunchURL';
 import ExtensionPreviewURL from '../../lib/ExtensionPreviewURL';
+import ExtensionTunnel from '../../lib/ExtensionTunnel';
 
 export default function extensionCommandBuilder() {
     const extension = new Command('extension')
@@ -35,6 +36,12 @@ export default function extensionCommandBuilder() {
         .option('--auto-update <auto-update>', 'Auto update tunnel URL as extension launch url on partners panel', 'true')
         .option('--access-token <access-token>', 'Partner Access Token')
         .asyncAction(ExtensionPreviewURL.previewUrlExtensionHandler);
+
+    extension
+        .command('tunnel')
+        .description('Start local tunnel for extension preview')
+        .requiredOption('--port <port>', 'Port number')
+        .asyncAction(ExtensionTunnel.tunnelHandler);
 
     const launch_url = new Command('launch-url').description(
         'launch url commands',

@@ -1,4 +1,3 @@
-import { tunnel as startTunnel } from 'cloudflared';
 import urljoin from 'url-join';
 import execa from 'execa';
 import path from 'path';
@@ -15,13 +14,12 @@ import {
     getExtensionList,
 } from '../helper/extension_utils';
 import { successBox } from '../helper/formatter';
-import Spinner from '../helper/spinner';
 import CommandError, { ErrorCodes } from './CommandError';
 import * as CONSTANTS from './../helper/constants';
 import Logger from './Logger';
 import ExtensionService from './api/services/extension.service';
 import yaml from 'js-yaml';
-export let interval;
+import ExtensionTunnel from './ExtensionTunnel';
 
 interface ServerOptions {
     cwd?: string;
@@ -68,7 +66,7 @@ export default class ExtensionPreviewURL {
                 }
                 else{
                     extension.options.companyId = extensionConfig[CONSTANTS.EXTENSION_CONFIG.DEVELOPMENT_COMPANY];
-                    Logger.info(`Using development company ${extension.options.companyId} from extension config file`);
+                    Logger.info(`Using development company ${extension.options.companyId} from extension config file\n`);
                 }
             }
 
@@ -84,7 +82,7 @@ export default class ExtensionPreviewURL {
                 }
                 else{
                     extension.options.apiKey = extensionConfig[CONSTANTS.EXTENSION_CONFIG.EXTENSION_API_KEY];
-                    Logger.info(`Using Extension API key ${extensionConfig[CONSTANTS.EXTENSION_CONFIG.EXTENSION_API_KEY]} from extension config file`);
+                    Logger.info(`Using Extension API key ${extensionConfig[CONSTANTS.EXTENSION_CONFIG.EXTENSION_API_KEY]} from extension config file\n`);
                 }
                 
             }
@@ -97,7 +95,7 @@ export default class ExtensionPreviewURL {
             }
             else{
                 extension.options.apiSecret = extensionConfig[CONSTANTS.EXTENSION_CONFIG.EXTENSION_API_SECRET];
-                Logger.info(`Using Extension Secret from extension config file`);
+                Logger.info(`Using Extension Secret from extension config file\n`);
             }
 
             // install project dependencies
@@ -105,7 +103,7 @@ export default class ExtensionPreviewURL {
                 if (projectConfig['install']) {
                     Logger.info(`Installing dependencies for ${projectConfig['roles'].join(' and ')} project`)
                     try{
-                        await extension.execCommand(projectConfig['install'], {cwd: projectConfig['configFilePath']}, `Successfully Installed dependencies for ${projectConfig['roles'].join(' and ')} project`)
+                        await extension.execCommand(projectConfig['install'], {cwd: projectConfig['configFilePath']}, `Successfully Installed dependencies for ${projectConfig['roles'].join(' and ')} project\n\n`)
                     }
                     catch(error){
                         Debug(error);
@@ -146,20 +144,11 @@ export default class ExtensionPreviewURL {
                 );
             }
             else {
-                // start Cloudflared tunnel
-                let spinner = new Spinner(`Starting Cloudflare tunnel on port ${extension.options.port}`);
-                try {
-                    spinner.start();
-                    extension.publicTunnelURL =
-                        await extension.startCloudflareTunnel();
-                    spinner.succeed();
-                } catch (error) {
-                    spinner.fail();
-                    throw new CommandError(
-                        ErrorCodes.ClOUDFLARE_CONNECTION_ISSUE.message,
-                        ErrorCodes.ClOUDFLARE_CONNECTION_ISSUE.code,
-                    );
-                }
+                const extensionTunnel = new ExtensionTunnel({port: extension.options.port});
+
+                await extensionTunnel.startTunnel();
+
+                extension.publicTunnelURL = extensionTunnel.publicTunnelURL;
             }
 
             // Store tunnel url in extension config file
@@ -229,62 +218,6 @@ export default class ExtensionPreviewURL {
             `/company/${this.options.companyId}`,
             `/extensions/${this.options.apiKey}`,
         );
-    }
-
-    isCloudflareTunnelShutdown = false;
-    cloudflareTunnelLogParser(data) {
-        const str = data.toString();
-        const connected_regex = /Registered tunnel connection/;
-        const disconnect_regex = /Unregistered tunnel connection/;
-        const retry_connection_regex = /Retrying connection in up to/;
-        const shutdown_regex =
-            /Initiating graceful shutdown due to signal interrupt/;
-
-        if (this.isCloudflareTunnelShutdown) {
-            return;
-        }
-
-        if (str.match(connected_regex)) {
-            Logger.info('Tunnel connection established');
-        } else if (str.match(disconnect_regex)) {
-            Logger.error('Tunnel disconnected');
-        } else if (str.match(retry_connection_regex)) {
-            Logger.warn(`Retrying to connect tunnel...`);
-        } else if (str.match(shutdown_regex)) {
-            this.isCloudflareTunnelShutdown = true;
-        }
-    }
-
-    private async startCloudflareTunnel() {
-        Debug(`Starting tunnel on port ${this.options.port}`);
-        // INSTALL CURRENT LATEST VERSION
-        process.env.CLOUDFLARED_VERSION = '2024.6.1';
-        // THIS WILL STOP CLOUDFLARED TO AUTO UPDATE
-        process.env.NO_AUTOUPDATE = 'true';
-        // ALWAYS USE HTTP2 PROTOCOL
-        process.env.TUNNEL_TRANSPORT_PROTOCOL = 'http2';
-
-        const { url, connections, child, stop } = startTunnel({
-            '--url': `http://localhost:${this.options.port}`,
-        });
-
-        const cleanup = async () => {
-            stop();
-        };
-
-        for (const signal of ['SIGINT', 'SIGUSR1', 'SIGUSR2'] as const) {
-            process.once(signal, cleanup);
-        }
-
-        child.stdout.on('data', this.cloudflareTunnelLogParser);
-        child.stderr.on('data', this.cloudflareTunnelLogParser);
-
-        if (process.env.DEBUG) {
-            child.stdout.pipe(process.stdout);
-            child.stderr.pipe(process.stderr);
-        }
-
-        return await url;
     }
 
     public findAllFilePathFromCurrentDirWithName(fileName: Array<String>) {
@@ -410,6 +343,9 @@ export default class ExtensionPreviewURL {
 
         
         if (projectConfigFiles.length == 0) {
+            Logger.error(`No fdk.ext.config file found in current directory.
+Seems like you are using old extension structure. Please refer this doc to update your boilerplate structure
+Or you can use fdk extension tunnel --port <port> command to start tunnel\n`)
             throw new CommandError(
                 ErrorCodes.MISSING_FDK_CONFIG_FILE.message,
                 ErrorCodes.MISSING_FDK_CONFIG_FILE.code,
