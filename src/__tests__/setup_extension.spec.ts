@@ -77,12 +77,18 @@ describe('Setup extension command', () => {
             fs.readFileSync('./Test_Extension/.env', { encoding: 'utf-8' }),
         ).toBe(envFileData);
         const packageJson = JSON.parse(
+            fs.readFileSync('./Test_Extension/package.json', {
+                encoding: 'utf-8',
+            })
+        );
+        expect(packageJson.name).toBe('test_extension');
+
+        const frontendPackageJson = JSON.parse(
             fs.readFileSync('./Test_Extension/frontend/package.json', {
                 encoding: 'utf-8',
             })
         );
-        expect(packageJson.name).toBe('frontend');
-        expect(packageJson.dependencies.vue).toMatch(/\^3\..+/);
+        expect(frontendPackageJson.dependencies.vue).toMatch(/\^3\..+/);
     });
 
     it('should throw directory already exists error', async () => {
@@ -147,7 +153,7 @@ describe('Setup extension command', () => {
 
         expect(fs.existsSync('./Test_Extension')).toEqual(true);
         const packageJson = fs.readFileSync(
-            './Test_Extension/app/package.json',
+            './Test_Extension/frontend/package.json',
             { encoding: 'utf-8' },
         );
         expect(JSON.parse(packageJson).name).toBe('test_extension');
@@ -169,7 +175,7 @@ describe('Setup extension command', () => {
 
         expect(fs.existsSync('./Test_Extension')).toEqual(true);
         const packageJson = fs.readFileSync(
-            './Test_Extension/app/package.json',
+            './Test_Extension/frontend/package.json',
             { encoding: 'utf-8' },
         );
         expect(JSON.parse(packageJson).name).toBe('test_extension');

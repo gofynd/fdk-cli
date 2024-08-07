@@ -1,6 +1,6 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import fs from 'fs';
+import fs from 'fs-extra';
 import path from 'path';
 import execa from 'execa';
 import rimraf from 'rimraf';
@@ -26,16 +26,18 @@ import { getBaseURL } from './api/services/url';
 import {
     installNpmPackages,
     installJavaPackages,
+    moveDirContent,
 } from '../helper/utils';
 import Logger from './Logger';
 import urljoin from 'url-join';
+import Debug from './Debug';
+import { TEMP_DIR_NAME } from '../helper/constants';
 
 export const NODE_VUE = 'Node + Vue 3 + SQLite';
 export const NODE_REACT = 'Node + React.js + SQLite';
 export const JAVA_VUE = 'Java + Vue 2 + Redis';
 export const JAVA_REACT = 'Java + React.js + Redis';
-// TODO: Change this to main before merging to master branch
-const branch = 'add-config-file-support';
+export const EXTENSION_BRANCH = 'update-sub-module'; // update-sub-module
 
 export const PROJECT_REPOS = {
     [NODE_VUE]: 'https://github.com/gofynd/example-extension-javascript.git',
@@ -51,23 +53,49 @@ export default class Extension {
         targetDirectory: string,
         answers: Object,
     ) {
+        const tempDirectory = targetDirectory + `/${TEMP_DIR_NAME}`;
         try {
             if (!fs.existsSync(targetDirectory)) {
                 createDirectory(targetDirectory);
+                createDirectory(tempDirectory);
             }
-            await execa('git', ['init'], { cwd: targetDirectory });
+            await execa('git', ['init'], { cwd: tempDirectory });
             await execa(
                 'git',
                 ['remote', 'add', 'origin', answers.project_url],
-                { cwd: targetDirectory },
+                { cwd: tempDirectory },
             );
-            await execa('git', ['pull', 'origin', `${branch}:${branch}`], {
-                cwd: targetDirectory,
+            
+            await execa('git', ['pull', '--recurse-submodules', 'origin', EXTENSION_BRANCH], {
+                cwd: tempDirectory,
             });
-            rimraf.sync(`${targetDirectory}/.git`); // unmark as git repo
+            await execa('git', ['submodule', 'update', '--init', '--recursive'], {
+                cwd: tempDirectory,
+            });
+            Debug("Fetching submodule path")
+            const s = await execa('git', ['config', '--file', '.gitmodules', '--get-regexp', 'path'], {
+                cwd: tempDirectory,
+            }).catch((err) => {
+                Debug("No submodule found")
+                return err;
+            });
+            const submodulePath = s?.stdout?.split?.(" ")?.[1] ?? null;
+            
+            rimraf.sync(`${tempDirectory}/.git`); // unmark as git repo
+            rimraf.sync(`${tempDirectory}/.gitmodules`); // Remove the .gitmodules file
+            
+            const submoduleGitPath = `${tempDirectory}/${submodulePath}/.git`
+            submodulePath && Debug(`Deleting ${submoduleGitPath}`)
+            submodulePath && rimraf.sync(submoduleGitPath); // unmark as git repo from submodules
+            
+            await moveDirContent(tempDirectory, targetDirectory) // move project from temporary directory to extension directory
+            Debug(`All extension files moved successfully.`)
+            
             return true;
         } catch (error) {
             return Promise.reject(error);
+        } finally {
+            fs.removeSync(tempDirectory);
         }
     }
 
@@ -91,8 +119,7 @@ export default class Extension {
                 `${targetDir}/pom.xml`,
                 replaceContent(pomXml, 'groot', answerObject.name),
             );
-
-            targetDir = `${targetDir}/app`;
+            targetDir = `${targetDir}/frontend`;
         }
 
         let packageJson = readFile(`${targetDir}/package.json`);
@@ -113,7 +140,7 @@ export default class Extension {
             await installNpmPackages(path.join(answers.targetDir, 'frontend'));
         } else if (project_type === JAVA_VUE || project_type === JAVA_REACT) {
             // installing dependencies for java projects
-            // await Extension.installNpmPackages(`${answers.targetDir}/app`);
+            await installNpmPackages(path.join(answers.targetDir, 'frontend'));
             await installJavaPackages(answers.targetDir);
         }
     }
@@ -195,6 +222,9 @@ export default class Extension {
                         ymlData,
                         { flag: 'a+' },
                     );
+                    // add env in java too, as we are using this env from frontend
+                    const envData = `BACKEND_PORT=8080\nFRONTEND_PORT=8081`;
+                    fs.writeFileSync(`${answers.targetDir}/.env`, envData);
                 } else {
                     const envData = `EXTENSION_API_KEY="${
                         answers.extension_api_key
@@ -212,6 +242,7 @@ export default class Extension {
                 await Extension.installDependencies(answers);
                 spinner.succeed();
             } catch (error) {
+                Debug(JSON.stringify(error));
                 spinner.fail();
             }
             const organizationId = ConfigStore.get(CONFIG_KEYS.ORGANIZATION);
@@ -285,7 +316,7 @@ export default class Extension {
                     },
                 ])
                 .then((value) => {
-                    answers.name = value.name;
+                    answers.name = String(value.name).trim();
                 });
             answers.targetDir = options['targetDir'] || answers.name;
 
@@ -366,7 +397,8 @@ export default class Extension {
                 `EXTENSION_BASE_URL="${launch_url}"\n`,
             );
             writeFile('./.env', envData);
-        } else if (fs.existsSync(java_env_file_path)) {
+        } 
+        if (fs.existsSync(java_env_file_path)) {
             let envData = readFile(java_env_file_path);
             envData = replaceContent(
                 envData,
