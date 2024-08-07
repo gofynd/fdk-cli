@@ -14,10 +14,10 @@ import {
     getCompanyId,
     getExtensionList,
 } from '../helper/extension_utils';
-import { readFile } from '../helper/file.utils';
 import { successBox } from '../helper/formatter';
 import Spinner from '../helper/spinner';
 import CommandError, { ErrorCodes } from './CommandError';
+import * as CONSTANTS from './../helper/constants';
 import Logger from './Logger';
 import ExtensionService from './api/services/extension.service';
 import yaml from 'js-yaml';
@@ -33,6 +33,7 @@ export default class ExtensionPreviewURL {
     publicTunnelURL: string;
     options: Object;
     firstTunnelConnection: boolean = true;
+    private extensionConfigFilePath: string = undefined;
 
     // command handler for "extension preview-url"
     public static async previewUrlExtensionHandler(options) {
@@ -55,21 +56,49 @@ export default class ExtensionPreviewURL {
             // Read and validate fdk.ext config files
             const projectConfigs = extension.readAndValidateFDKExtConfigFiles();
 
+            // Read extension config file
+            const extensionConfig = extension.readExtensionConfig();
+
             // get the companyId
             if (!extension.options.companyId) {
-                extension.options.companyId = await getCompanyId("Select the development company you'd like to use to run the extension: ?");
+                if(!extensionConfig[CONSTANTS.EXTENSION_CONFIG.DEVELOPMENT_COMPANY]){
+                    extension.options.companyId = await getCompanyId("Select the development company you'd like to use to run the extension: ?");
+                    extension.updateExtensionConfig(extensionConfig, CONSTANTS.EXTENSION_CONFIG.DEVELOPMENT_COMPANY, extension.options.companyId);
+                    Debug(`Using user selected development company ${extension.options.companyId}`)
+                }
+                else{
+                    extension.options.companyId = extensionConfig[CONSTANTS.EXTENSION_CONFIG.DEVELOPMENT_COMPANY];
+                    Logger.info(`Using development company ${extension.options.companyId} from extension config file`);
+                }
             }
 
             // get the extension api key
             if (!extension.options.apiKey) {
-                let selected = await getExtensionList();
-                extension.options.apiKey = selected.extension.id;                
-                Debug(
-                    `Using Extension ${selected.extension.name} with API key ${selected.extension.id} `,
-                );
+                if(!extensionConfig[CONSTANTS.EXTENSION_CONFIG.EXTENSION_API_KEY]){
+                    let selected = await getExtensionList();
+                    extension.options.apiKey = selected.extension.id;
+                    extension.updateExtensionConfig(extensionConfig, CONSTANTS.EXTENSION_CONFIG.EXTENSION_API_KEY, extension.options.apiKey);
+                    Debug(
+                        `Using user selected Extension ${selected.extension.name} with API key ${selected.extension.id}`,
+                    );
+                }
+                else{
+                    extension.options.apiKey = extensionConfig[CONSTANTS.EXTENSION_CONFIG.EXTENSION_API_KEY];
+                    Logger.info(`Using Extension API key ${extensionConfig[CONSTANTS.EXTENSION_CONFIG.EXTENSION_API_KEY]} from extension config file`);
+                }
+                
             }
-            const extensionDetails = await ExtensionService.getExtensionDataPartners(extension.options.apiKey);
-            extension.options.apiSecret = extensionDetails.client_data.secret[0];
+
+            // Get the extension api secret
+            if(!extensionConfig[CONSTANTS.EXTENSION_CONFIG.EXTENSION_API_SECRET]){
+                const extensionDetails = await ExtensionService.getExtensionDataPartners(extension.options.apiKey);
+                extension.options.apiSecret = extensionDetails.client_data.secret[0];
+                extension.updateExtensionConfig(extensionConfig, CONSTANTS.EXTENSION_CONFIG.EXTENSION_API_SECRET, extension.options.apiSecret);
+            }
+            else{
+                extension.options.apiSecret = extensionConfig[CONSTANTS.EXTENSION_CONFIG.EXTENSION_API_SECRET];
+                Logger.info(`Using Extension Secret from extension config file`);
+            }
 
             // install project dependencies
             for(const projectConfig of projectConfigs){
@@ -89,7 +118,7 @@ export default class ExtensionPreviewURL {
             let frontend_port : number;
             let backend_port : number;
             
-            // Get the port value from config files if present
+            // Get the port value from project config files if present
             for(const projectConfig of projectConfigs) {
                 if(projectConfig['roles'].includes('frontend')){
                     frontend_port = projectConfig['port'];
@@ -132,6 +161,13 @@ export default class ExtensionPreviewURL {
                     );
                 }
             }
+
+            // Store tunnel url in extension config file
+            extension.updateExtensionConfig(extensionConfig, CONSTANTS.EXTENSION_CONFIG.EXTENSION_LAUNCH_URL, extension.publicTunnelURL)
+            // Remove tunnel url from extension config on exit
+            process.on('exit', ()=>{
+                extension.deleteKeyFromExtensionConfig(extensionConfig, CONSTANTS.EXTENSION_CONFIG.EXTENSION_LAUNCH_URL);
+            })
             
             // update launch url on partners panel
             if(extension.options.autoUpdate && extension.options.autoUpdate == 'true'){
@@ -318,7 +354,7 @@ export default class ExtensionPreviewURL {
     }
 
     public readAndValidateFDKExtConfigFiles(){
-        let fdkConfigFiles = this.findAllFilePathFromCurrentDirWithName(['fdk.ext.config.json', 'fdk.ext.config.yml']);
+        let projectConfigFiles = this.findAllFilePathFromCurrentDirWithName(['fdk.ext.config.json', 'fdk.ext.config.yml']);
         const projectConfigs = [];
 
         const validateConfigStructure = (config) => {
@@ -373,7 +409,7 @@ export default class ExtensionPreviewURL {
         }
 
         
-        if (fdkConfigFiles.length == 0) {
+        if (projectConfigFiles.length == 0) {
             throw new CommandError(
                 ErrorCodes.MISSING_FDK_CONFIG_FILE.message,
                 ErrorCodes.MISSING_FDK_CONFIG_FILE.code,
@@ -381,7 +417,7 @@ export default class ExtensionPreviewURL {
         }
         else{
             let definedProjectRoles = [];
-            for (let fdkConfigFilePath of fdkConfigFiles) {
+            for (let fdkConfigFilePath of projectConfigFiles) {
                 const projectConfig = readConfigFile(fdkConfigFilePath);
                 validateConfigStructure(projectConfig);
 
@@ -399,5 +435,36 @@ export default class ExtensionPreviewURL {
         }
 
         return projectConfigs;
+    }
+
+    public readExtensionConfig(){
+        let extensionConfigFiles = this.findAllFilePathFromCurrentDirWithName([CONSTANTS.EXTENSION_CONFIG_FILE_NAME]);
+
+        if (extensionConfigFiles.length > 1) {
+            throw new CommandError(
+                ErrorCodes.MULTIPLE_EXTENSION_CONFIG_FILE.message,
+                ErrorCodes.MULTIPLE_EXTENSION_CONFIG_FILE.code
+            )
+        }
+        else if(extensionConfigFiles.length == 0){
+            fs.writeFileSync(CONSTANTS.EXTENSION_CONFIG_FILE_NAME, '{}');
+            extensionConfigFiles = [path.resolve(CONSTANTS.EXTENSION_CONFIG_FILE_NAME)];
+        }
+
+        this.extensionConfigFilePath = extensionConfigFiles[0];
+
+        const extensionConfig = require(this.extensionConfigFilePath);
+
+        return extensionConfig;
+    }
+
+    public updateExtensionConfig(extensionConfig: Record<string, string|number>, key: string, value: string){
+        extensionConfig[key] = value;
+        fs.writeFileSync(CONSTANTS.EXTENSION_CONFIG_FILE_NAME, JSON.stringify(extensionConfig, null, 4));
+    }
+
+    public deleteKeyFromExtensionConfig(extensionConfig: Record<string, string|number>, key: string){
+        delete extensionConfig[key];
+        fs.writeFileSync(CONSTANTS.EXTENSION_CONFIG_FILE_NAME, JSON.stringify(extensionConfig, null, 4));
     }
 }
