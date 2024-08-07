@@ -207,7 +207,7 @@ export default class Extension {
                     let extension_data: Object =
                         await ExtensionService.registerExtensionPartners(data);
                     answers.extension_api_key = extension_data.client_id;
-                    answers.extension_api_secret = extension_data.secret;
+                    answers.extension_api_secret = extension_data.secret[0];
                     answers.base_url = extension_data.base_url;
                     spinner.succeed();
                 } catch (error) {
