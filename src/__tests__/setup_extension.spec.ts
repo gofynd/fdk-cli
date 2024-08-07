@@ -74,7 +74,7 @@ describe('Setup extension command', () => {
         ]);
         expect(fs.existsSync('./Test_Extension')).toEqual(true);
         expect(
-            fs.readFileSync('./Test_Extension/.env', { encoding: 'utf-8' }),
+            fs.readFileSync('./Test_Extension/.env.example', { encoding: 'utf-8' }),
         ).toBe(envFileData);
         const packageJson = JSON.parse(
             fs.readFileSync('./Test_Extension/package.json', {
@@ -129,7 +129,7 @@ describe('Setup extension command', () => {
 
         expect(fs.existsSync('./Test_Extension')).toEqual(true);
         expect(
-            fs.readFileSync('./Test_Extension/.env', { encoding: 'utf-8' }),
+            fs.readFileSync('./Test_Extension/.env.example', { encoding: 'utf-8' }),
         ).toBe(envFileData);
         const packageJson = fs.readFileSync('./Test_Extension/package.json', {
             encoding: 'utf-8',
