@@ -80,8 +80,8 @@ ___
 | ------------- |-------------| 
 | [init](#extension-init)     | Utilize this command to set up a new extension locally, leveraging existing templates of your choice.  |
 | [setup](#extension-setup)     | Configure your extension locally using the existing API Key and API Secret provided for the extension inside the partners panel. |
-| [preview-url](#extension-preview-url)   | Create a tunnel and provide a link to tryout extension on development company |
-| [tunnel](#extension-tunnel) | Start tunnel |
+| [preview](#extension-preview-url)   | Start the extension development server and provide a tunnel URL to preview the extension on the development company. |
+| [tunnel](#extension-tunnel) | Create a tunnel on the specified port number to enable remote access for development and testing. |
 | [launch-url](#extension-launch-url)     | Get/set extension's lanuch url |
 
 ### Partner Commands
@@ -417,12 +417,12 @@ ___
 
 <div id="extension-preview-url"></div>
 
-#### **preview-url**
+#### **preview**
 This command will return the preview URL, which the user can use to launch or install the extension.
 
 #### ****Syntax****
 ```sh
-fdk extension preview-url [options]
+fdk extension preview [options]
 ```
 
 #### **Command Options**
@@ -438,13 +438,13 @@ fdk extension preview-url [options]
 
 #### **Example**
 ```sh
-fdk extension preview-url
+fdk extension preview
 ```
 ```sh
-fdk extension preview-url --tunnel-url https://broke-casey-eric-recommendations.trycloudflare.com
+fdk extension preview --tunnel-url https://broke-casey-eric-recommendations.trycloudflare.com
 ```
 ```sh
-fdk extension preview-url --company-id 999
+fdk extension preview --company-id 999
 ```
 
 - **Cloudflared** will be used as the tunneling tool.
