@@ -163,10 +163,10 @@ export default class ExtensionPreviewURL {
             }
 
             // Store tunnel url in extension config file
-            extension.updateExtensionConfig(extensionConfig, CONSTANTS.EXTENSION_CONFIG.EXTENSION_LAUNCH_URL, extension.publicTunnelURL)
+            extension.updateExtensionConfig(extensionConfig, CONSTANTS.EXTENSION_CONFIG.EXTENSION_BASE_URL, extension.publicTunnelURL)
             // Remove tunnel url from extension config on exit
             process.on('exit', ()=>{
-                extension.deleteKeyFromExtensionConfig(extensionConfig, CONSTANTS.EXTENSION_CONFIG.EXTENSION_LAUNCH_URL);
+                extension.deleteKeyFromExtensionConfig(extensionConfig, CONSTANTS.EXTENSION_CONFIG.EXTENSION_BASE_URL);
             })
             
             // update launch url on partners panel
