@@ -206,35 +206,6 @@ export default class Extension {
             spinner = new Spinner('Installing Dependencies');
             try {
                 spinner.start();
-                if (
-                    answers.project_type === JAVA_VUE ||
-                    answers.project_type === JAVA_REACT
-                ) {
-                    const ymlData = `\n\next :\n  api_key : "${
-                        answers.extension_api_key
-                    }"\n  api_secret : "${
-                        answers.extension_api_secret
-                    }"\n  scopes : ""\n  base_url : "${
-                        answers.base_url
-                    }"\n  cluster : "${getBaseURL()}"`;
-                    fs.writeFileSync(
-                        `${answers.targetDir}/src/main/resources/application.yml`,
-                        ymlData,
-                        { flag: 'a+' },
-                    );
-                    // add env in java too, as we are using this env from frontend
-                    const envData = `BACKEND_PORT=8080\nFRONTEND_PORT=8081`;
-                    fs.writeFileSync(`${answers.targetDir}/.env`, envData);
-                } else {
-                    const envData = `EXTENSION_API_KEY="${
-                        answers.extension_api_key
-                    }"\nEXTENSION_API_SECRET="${
-                        answers.extension_api_secret
-                    }"\nEXTENSION_BASE_URL="${
-                        answers.base_url
-                    }"\nEXTENSION_CLUSTER_URL="${getBaseURL()}"\nBACKEND_PORT=8080\nFRONTEND_PORT=8081`;
-                    fs.writeFileSync(`${answers.targetDir}/.env`, envData);
-                }
                 await Extension.replaceGrootWithExtensionName(
                     answers.targetDir,
                     answers,
