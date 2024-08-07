@@ -31,7 +31,7 @@ import {
 import Logger from './Logger';
 import urljoin from 'url-join';
 import Debug from './Debug';
-import { TEMP_DIR_NAME } from '../helper/constants';
+import { TEMP_DIR_NAME, EXTENSION_CONFIG_FILE_NAME } from '../helper/constants';
 
 export const NODE_VUE = 'Node + Vue 3 + SQLite';
 export const NODE_REACT = 'Node + React.js + SQLite';
@@ -130,6 +130,19 @@ export default class Extension {
         );
     }
 
+    private static async updateExtensionContextFile(
+        targetDir: string,
+        extension_api_key: string, 
+        extension_api_secret: string
+    ){
+        const extensionContext = {
+            EXTENSION_API_KEY: extension_api_key,
+            EXTENSION_API_SECRET: extension_api_secret
+        };
+
+        fs.writeFileSync(path.join(targetDir, EXTENSION_CONFIG_FILE_NAME), JSON.stringify(extensionContext, null, 4));
+    }
+
     // wrapper function for installing dependencies in extension
     static async installDependencies(answers: Object): Promise<void> {
         let project_type = answers.project_type;
@@ -206,6 +219,11 @@ export default class Extension {
             spinner = new Spinner('Installing Dependencies');
             try {
                 spinner.start();
+                await Extension.updateExtensionContextFile(
+                    answers.targetDir,
+                    answers.extension_api_key,
+                    answers.extension_api_secret
+                );
                 await Extension.replaceGrootWithExtensionName(
                     answers.targetDir,
                     answers,

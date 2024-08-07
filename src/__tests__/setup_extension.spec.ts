@@ -13,7 +13,6 @@ import Extension, {
 import configStore, { CONFIG_KEYS } from '../lib/Config';
 
 let program;
-const envFileData = `EXTENSION_API_KEY="api_key"\nEXTENSION_API_SECRET="api_secret"\nEXTENSION_BASE_URL="https://abc.com"\nEXTENSION_CLUSTER_URL="https://api.fynd.com"\nBACKEND_PORT=8080\nFRONTEND_PORT=8081`;
 
 jest.mock('configstore', () => {
     const Store =
@@ -73,9 +72,9 @@ describe('Setup extension command', () => {
             'setup',
         ]);
         expect(fs.existsSync('./Test_Extension')).toEqual(true);
-        expect(
-            fs.readFileSync('./Test_Extension/.env.example', { encoding: 'utf-8' }),
-        ).toBe(envFileData);
+        const extensionContext = fs.readFileSync('./Test_Extension/extension.context.json', { encoding: 'utf-8'});
+        expect(extensionContext['EXTENSION_API_KEY']).not.toBeNull();
+        expect(extensionContext['EXTENSION_API_SECRET']).not.toBeNull();
         const packageJson = JSON.parse(
             fs.readFileSync('./Test_Extension/package.json', {
                 encoding: 'utf-8',
@@ -128,9 +127,9 @@ describe('Setup extension command', () => {
         ]);
 
         expect(fs.existsSync('./Test_Extension')).toEqual(true);
-        expect(
-            fs.readFileSync('./Test_Extension/.env.example', { encoding: 'utf-8' }),
-        ).toBe(envFileData);
+        const extensionContext = fs.readFileSync('./Test_Extension/extension.context.json', { encoding: 'utf-8'});
+        expect(extensionContext['EXTENSION_API_KEY']).not.toBeNull();
+        expect(extensionContext['EXTENSION_API_SECRET']).not.toBeNull();
         const packageJson = fs.readFileSync('./Test_Extension/package.json', {
             encoding: 'utf-8',
         });
