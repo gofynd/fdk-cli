@@ -437,13 +437,14 @@ fdk extension preview [options]
 #### **Command Options**
 | Option    | Description   |
 | ----------|---------------|
-| --company-id | specify company id |
+| --company-id | Unique identifier of your company |
 | --api-key | Extension API key |
 | --access-token | Partner Access Token |
-| --tunnel-url | Tunnel URL |
-| --auto-update | Auto update tunnel URL as extension launch url on partners panel (default: true) |
+| --tunnel-url | Specify a manual Tunnel URL to bypass automatic tunnel creation. |
+| --no-auto-update | Disables auto-updating of tunnel URL as extension launch url on partners panel |
+| --reset | Resets the extension's context data, prompting you to re-enter all required details. Useful for a fresh start! |
 | --help    | Show help |
-| --verbose | enable debug mode |
+| --verbose | Enables debug mode, providing detailed logs for troubleshooting. |
 
 #### **Example**
 ```sh

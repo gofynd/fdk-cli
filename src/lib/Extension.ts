@@ -32,7 +32,7 @@ import {
 import Logger from './Logger';
 import urljoin from 'url-join';
 import Debug from './Debug';
-import { TEMP_DIR_NAME, EXTENSION_CONFIG_FILE_NAME } from '../helper/constants';
+import { TEMP_DIR_NAME, EXTENSION_CONTEXT_FILE_NAME } from '../helper/constants';
 
 export const NODE_VUE = 'Node + Vue 3 + SQLite';
 export const NODE_REACT = 'Node + React.js + SQLite';
@@ -158,7 +158,7 @@ export default class Extension {
             EXTENSION_API_SECRET: extension_api_secret
         };
 
-        fs.writeFileSync(path.join(targetDir, EXTENSION_CONFIG_FILE_NAME), JSON.stringify(extensionContext, null, 4));
+        fs.writeFileSync(path.join(targetDir, EXTENSION_CONTEXT_FILE_NAME), JSON.stringify(extensionContext, null, 4));
     }
 
     // wrapper function for installing dependencies in extension
@@ -398,7 +398,7 @@ export default class Extension {
                         NODE_REACT,
                         NODE_VUE,
                         JAVA_REACT,
-                        JAVA_VUE,
+                        JAVA_VUE
                     ],
                     default: NODE_REACT,
                     name: 'project_type',
@@ -503,10 +503,10 @@ export default class Extension {
                 {
                     type: 'list',
                     choices: [
-                        NODE_VUE,
                         NODE_REACT,
-                        JAVA_VUE,
+                        NODE_VUE,
                         JAVA_REACT,
+                        JAVA_VUE
                     ],
                     default: NODE_VUE,
                     name: 'project_type',

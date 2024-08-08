@@ -1,6 +1,7 @@
 import urljoin from 'url-join';
 import execa from 'execa';
 import path from 'path';
+import rimraf from 'rimraf';
 const serverProcesses = [];
 import fs from 'fs';
 import detectPort from 'detect-port'
@@ -13,7 +14,7 @@ import {
     getCompanyId,
     selectExtensionFromList,
 } from '../helper/extension_utils';
-import { successBox } from '../helper/formatter';
+import { displayFixedText, successBox } from '../helper/formatter';
 import CommandError, { ErrorCodes } from './CommandError';
 import * as CONSTANTS from './../helper/constants';
 import Logger from './Logger';
@@ -31,20 +32,11 @@ export default class ExtensionPreviewURL {
     publicTunnelURL: string;
     options: Object;
     firstTunnelConnection: boolean = true;
-    private extensionConfigFilePath: string = undefined;
+    private extensionContextFilePath: string = undefined;
 
     // command handler for "extension preview-url"
     public static async previewUrlExtensionHandler(options) {
         try {
-            // Validate Options
-            // Validate autoUpdate flag
-            if(!['true', 'false'].includes(options.autoUpdate)){
-                throw new CommandError(
-                    `Auto Update must be a boolean value. Allowed values: true, false`, 
-                    ErrorCodes.INVALID_INPUT.code,
-                );
-            }
-            
             let partner_access_token = getPartnerAccessToken();
 
             // initialize class instance
@@ -54,48 +46,54 @@ export default class ExtensionPreviewURL {
             // Read and validate fdk.ext config files
             const projectConfigs = extension.readAndValidateFDKExtConfigFiles();
 
-            // Read extension config file
-            const extensionConfig = extension.readExtensionConfig();
+            // Delete Extension context file if reset flag is passed
+            if(options.reset){
+                Logger.info(`Cleared extension context data`)
+                extension.deleteExtensionContext();
+            }
+
+            // Read extension context file
+            const extensionContext = extension.readExtensionContext();
 
             // get the companyId
             if (!extension.options.companyId) {
-                if(!extensionConfig[CONSTANTS.EXTENSION_CONFIG.DEVELOPMENT_COMPANY]){
+                if(!extensionContext[CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY]){
                     extension.options.companyId = await getCompanyId("Select the development company you'd like to use to run the extension: ?");
-                    extension.updateExtensionConfig(extensionConfig, CONSTANTS.EXTENSION_CONFIG.DEVELOPMENT_COMPANY, extension.options.companyId);
+                    extension.updateExtensionContext(extensionContext, CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY, extension.options.companyId);
                     Debug(`Using user selected development company ${extension.options.companyId}`)
                 }
                 else{
-                    extension.options.companyId = extensionConfig[CONSTANTS.EXTENSION_CONFIG.DEVELOPMENT_COMPANY];
-                    Logger.info(`Using development company ${extension.options.companyId} from extension config file\n`);
+                    extension.options.companyId = extensionContext[CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY];
+                    Logger.info(`Using development company ${extension.options.companyId} from extension context file\n`);
                 }
             }
 
             // get the extension api key
             if (!extension.options.apiKey) {
-                if(!extensionConfig[CONSTANTS.EXTENSION_CONFIG.EXTENSION_API_KEY]){
+                if(!extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]){
                     let selected = await selectExtensionFromList();
                     extension.options.apiKey = selected.extension.id;
-                    extension.updateExtensionConfig(extensionConfig, CONSTANTS.EXTENSION_CONFIG.EXTENSION_API_KEY, extension.options.apiKey);
+                    extension.updateExtensionContext(extensionContext, CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY, extension.options.apiKey);
                     Debug(
                         `Using user selected Extension ${selected.extension.name} with API key ${selected.extension.id}`,
                     );
                 }
                 else{
-                    extension.options.apiKey = extensionConfig[CONSTANTS.EXTENSION_CONFIG.EXTENSION_API_KEY];
-                    Logger.info(`Using Extension API key ${extensionConfig[CONSTANTS.EXTENSION_CONFIG.EXTENSION_API_KEY]} from extension config file\n`);
+                    extension.options.apiKey = extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY];
+                    Logger.info(`Using Extension API key ${extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]} from extension context file\n`);
                 }
                 
             }
 
             // Get the extension api secret
-            if(!extensionConfig[CONSTANTS.EXTENSION_CONFIG.EXTENSION_API_SECRET]){
+            if(!extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_SECRET]){
                 const extensionDetails = await ExtensionService.getExtensionDataPartners(extension.options.apiKey);
                 extension.options.apiSecret = extensionDetails.client_data.secret[0];
-                extension.updateExtensionConfig(extensionConfig, CONSTANTS.EXTENSION_CONFIG.EXTENSION_API_SECRET, extension.options.apiSecret);
+                extension.updateExtensionContext(extensionContext, CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_SECRET, extension.options.apiSecret);
             }
             else{
-                extension.options.apiSecret = extensionConfig[CONSTANTS.EXTENSION_CONFIG.EXTENSION_API_SECRET];
-                Logger.info(`Using Extension Secret from extension config file\n`);
+                extension.options.apiSecret = extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_SECRET];
+                Logger.info(`Using Extension Secret from extension context file\n`);
             }
 
             // install project dependencies
@@ -151,15 +149,15 @@ export default class ExtensionPreviewURL {
                 extension.publicTunnelURL = extensionTunnel.publicTunnelURL;
             }
 
-            // Store tunnel url in extension config file
-            extension.updateExtensionConfig(extensionConfig, CONSTANTS.EXTENSION_CONFIG.EXTENSION_BASE_URL, extension.publicTunnelURL)
-            // Remove tunnel url from extension config on exit
+            // Store tunnel url in extension context file
+            extension.updateExtensionContext(extensionContext, CONSTANTS.EXTENSION_CONTEXT.EXTENSION_BASE_URL, extension.publicTunnelURL)
+            // Remove tunnel url from extension context on exit
             process.on('exit', ()=>{
-                extension.deleteKeyFromExtensionConfig(extensionConfig, CONSTANTS.EXTENSION_CONFIG.EXTENSION_BASE_URL);
+                extension.deleteKeyFromExtensionContext(extensionContext, CONSTANTS.EXTENSION_CONTEXT.EXTENSION_BASE_URL);
             })
             
             // update launch url on partners panel
-            if(extension.options.autoUpdate && extension.options.autoUpdate == 'true'){
+            if(extension.options.autoUpdate){
                 await ExtensionLaunchURL.updateLaunchURL(
                     extension.options.apiKey,
                     partner_access_token || options.accessToken,
@@ -200,11 +198,14 @@ export default class ExtensionPreviewURL {
                 `TUNNEL URL: ${extension.publicTunnelURL
                 }`,
             );
+            const stickyText = successBox({
+                text: `TUNNEL URL: ${extension.publicTunnelURL
+                    }\nExtension preview URL: ${previewURL}`,
+            });
+
+            displayFixedText(stickyText);
             Logger.info(
-                successBox({
-                    text: `TUNNEL URL: ${extension.publicTunnelURL
-                        }\nExtension preview URL: ${previewURL}`,
-                }),
+                stickyText
             );
         } catch (error) {
             throw new CommandError(error.message, error.code);
@@ -373,34 +374,38 @@ Or you can use fdk extension tunnel --port <port> command to start tunnel\n`)
         return projectConfigs;
     }
 
-    public readExtensionConfig(){
-        let extensionConfigFiles = this.findAllFilePathFromCurrentDirWithName([CONSTANTS.EXTENSION_CONFIG_FILE_NAME]);
+    public readExtensionContext(){
+        let extensionContextFiles = this.findAllFilePathFromCurrentDirWithName([CONSTANTS.EXTENSION_CONTEXT_FILE_NAME]);
 
-        if (extensionConfigFiles.length > 1) {
+        if (extensionContextFiles.length > 1) {
             throw new CommandError(
-                ErrorCodes.MULTIPLE_EXTENSION_CONFIG_FILE.message,
-                ErrorCodes.MULTIPLE_EXTENSION_CONFIG_FILE.code
+                ErrorCodes.MULTIPLE_EXTENSION_CONTEXT_FILE.message,
+                ErrorCodes.MULTIPLE_EXTENSION_CONTEXT_FILE.code
             )
         }
-        else if(extensionConfigFiles.length == 0){
-            fs.writeFileSync(CONSTANTS.EXTENSION_CONFIG_FILE_NAME, '{}');
-            extensionConfigFiles = [path.resolve(CONSTANTS.EXTENSION_CONFIG_FILE_NAME)];
+        else if(extensionContextFiles.length == 0){
+            fs.writeFileSync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME, '{}');
+            extensionContextFiles = [path.resolve(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME)];
         }
 
-        this.extensionConfigFilePath = extensionConfigFiles[0];
+        this.extensionContextFilePath = extensionContextFiles[0];
 
-        const extensionConfig = require(this.extensionConfigFilePath);
+        const extensionContext = require(this.extensionContextFilePath);
 
-        return extensionConfig;
+        return extensionContext;
     }
 
-    public updateExtensionConfig(extensionConfig: Record<string, string|number>, key: string, value: string){
-        extensionConfig[key] = value;
-        fs.writeFileSync(CONSTANTS.EXTENSION_CONFIG_FILE_NAME, JSON.stringify(extensionConfig, null, 4));
+    public updateExtensionContext(extensionContext: Record<string, string|number>, key: string, value: string){
+        extensionContext[key] = value;
+        fs.writeFileSync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME, JSON.stringify(extensionContext, null, 4));
     }
 
-    public deleteKeyFromExtensionConfig(extensionConfig: Record<string, string|number>, key: string){
-        delete extensionConfig[key];
-        fs.writeFileSync(CONSTANTS.EXTENSION_CONFIG_FILE_NAME, JSON.stringify(extensionConfig, null, 4));
+    public deleteKeyFromExtensionContext(extensionContext: Record<string, string|number>, key: string){
+        delete extensionContext[key];
+        fs.writeFileSync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME, JSON.stringify(extensionContext, null, 4));
+    }
+
+    public deleteExtensionContext(){
+        rimraf.sync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME);
     }
 }

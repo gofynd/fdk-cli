@@ -33,9 +33,9 @@ export const ALLOWD_ENV = {
 
 export const TEMP_DIR_NAME = 'temp'
 
-export const EXTENSION_CONFIG_FILE_NAME = 'extension.context.json'
+export const EXTENSION_CONTEXT_FILE_NAME = 'extension.context.json'
 
-export const EXTENSION_CONFIG = {    
+export const EXTENSION_CONTEXT = {    
     EXTENSION_API_KEY: 'EXTENSION_API_KEY',
     EXTENSION_API_SECRET: 'EXTENSION_API_SECRET',
     EXTENSION_BASE_URL: 'EXTENSION_BASE_URL',
