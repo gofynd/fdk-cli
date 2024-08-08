@@ -11,7 +11,7 @@ import {
     getPartnerAccessToken,
     Object,
     getCompanyId,
-    getExtensionList,
+    selectExtensionFromList,
 } from '../helper/extension_utils';
 import { successBox } from '../helper/formatter';
 import CommandError, { ErrorCodes } from './CommandError';
@@ -73,7 +73,7 @@ export default class ExtensionPreviewURL {
             // get the extension api key
             if (!extension.options.apiKey) {
                 if(!extensionConfig[CONSTANTS.EXTENSION_CONFIG.EXTENSION_API_KEY]){
-                    let selected = await getExtensionList();
+                    let selected = await selectExtensionFromList();
                     extension.options.apiKey = selected.extension.id;
                     extension.updateExtensionConfig(extensionConfig, CONSTANTS.EXTENSION_CONFIG.EXTENSION_API_KEY, extension.options.apiKey);
                     Debug(

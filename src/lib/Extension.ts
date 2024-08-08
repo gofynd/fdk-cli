@@ -18,7 +18,7 @@ import {
     Object,
     validateEmpty,
     replaceContent,
-    getExtensionList,
+    selectExtensionFromList,
 } from '../helper/extension_utils';
 
 import { createDirectory, writeFile, readFile } from '../helper/file.utils';
@@ -264,13 +264,16 @@ export default class Extension {
                   )
                 : getPlatformUrls().partners;
             let text =
-                chalk.green.bold('DONE ') +
-                chalk.green.bold('Project ready\n') +
-                chalk.yellowBright.bold('NOTE: ') +
-                chalk.green.bold(`cd "${targetDir}" to continue...\n`) +
+                chalk.green('Success! Created your extension at ') + chalk.bold.blue(targetDir) +
+                chalk.green('\nInside that directory, you can run several commands:\n\n') +
+                `  ${chalk.cyan('fdk extension preview')}\n` +
+                `  ${chalk.cyan('fdk extension launch-url')}\n\n` +
+                chalk.green('We suggest that you begin by typing:\n\n') +
+                `  ${chalk.cyan('cd')} ${chalk.bold.blue(targetDir)}\n` +
+                `  ${chalk.cyan('fdk extension preview')}\n\n` +
                 chalk.green.bold(
-                    `Check your extension: ${createDevelopmentCompanyFormURL}`,
-                );
+                    `Check your extension: ${createDevelopmentCompanyFormURL}\n\n`,
+                ) + 'Happy coding!';
 
             Logger.info(
                 successBox({
@@ -332,11 +335,16 @@ export default class Extension {
             let answers: Object = {};
             let selected_ext_type;
 
-            const action = await Extension.confirmInitAction();
+            let action =  INIT_ACTIONS.create_extension;
+            Debug("Checking if extensions exist in developer's organization...")
+            const extensionList = await ExtensionService.getExtensionList(1, 9999);
 
+            if(extensionList.items.length)
+                action = await Extension.confirmInitAction();
+            
             // if developer wants to select from existing extension
             if(action === INIT_ACTIONS.select_extension){
-                const selected_extension = await getExtensionList();
+                const selected_extension = await selectExtensionFromList(extensionList);
                 const selected_ext_api_key = selected_extension.extension.id;
                 const extensionDetails = await ExtensionService.getExtensionDataPartners(selected_ext_api_key);
                 selected_ext_type = extensionDetails.extention_type;
@@ -387,12 +395,12 @@ export default class Extension {
                 extensionTypeQuestions.push({
                     type: 'list',
                     choices: [
-                        NODE_VUE,
                         NODE_REACT,
-                        JAVA_VUE,
+                        NODE_VUE,
                         JAVA_REACT,
+                        JAVA_VUE,
                     ],
-                    default: NODE_VUE,
+                    default: NODE_REACT,
                     name: 'project_type',
                     message: 'Template :',
                     validate: validateEmpty,

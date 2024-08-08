@@ -68,15 +68,20 @@ export const getCompanyId = async (promptMessage = undefined) => {
     return await promptDevelopmentCompany(choices, promptMessage);
 };
 
-export const getExtensionList = async () => {
-    let extensionList = await ExtensionService.getExtensionList(
-        1,
-        9999,
-    );
+export const selectExtensionFromList = async (prefetchedExtensionList = undefined) => {
+    let extensionList;
 
+    if (prefetchedExtensionList) {
+        extensionList = prefetchedExtensionList;
+    } else {
+        extensionList = await ExtensionService.getExtensionList(
+            1,
+            9999,
+        );
+    }
     let choices = [];
     extensionList.items.map((data) => {
-        choices.push({ name: data.name, value: {id: data._id, name: data.name}});
+        choices.push({ name: data.name, value: { id: data._id, name: data.name } });
     });
 
     if (choices.length === 0) {
