@@ -33,8 +33,9 @@ export default function extensionCommandBuilder() {
         .option('--api-key <api-key>', 'Extension API Key')
         .option('--company-id <id>', 'Company ID')
         .option('--tunnel-url <tunnel-url>', 'Tunnel URL')
-        .option('--auto-update <auto-update>', 'Auto update tunnel URL as extension launch url on partners panel', 'true')
+        .option('--no-auto-update', 'Auto update tunnel URL as extension launch url on partners panel')
         .option('--access-token <access-token>', 'Partner Access Token')
+        .option('--reset', 'Reset extension.context file and start fresh')
         .asyncAction(ExtensionPreviewURL.previewUrlExtensionHandler);
 
     extension

@@ -82,7 +82,7 @@ describe('Extension preview-url command', () => {
     beforeAll(async () => {
         rimraf.sync('./fdk.ext.config.json');
         rimraf.sync('./frontend');
-        rimraf.sync(CONSTANTS.EXTENSION_CONFIG_FILE_NAME);
+        rimraf.sync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME);
     });
 
     afterAll(async () => {
@@ -139,7 +139,7 @@ describe('Extension preview-url command', () => {
 
         rimraf.sync('./fdk.ext.config.json');
         rimraf.sync('./frontend');
-        rimraf.sync(CONSTANTS.EXTENSION_CONFIG_FILE_NAME);
+        rimraf.sync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME);
     });
 
     it('should successfully return preview url without any prompt', async () => {
