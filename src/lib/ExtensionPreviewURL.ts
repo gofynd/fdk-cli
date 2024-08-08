@@ -14,7 +14,7 @@ import {
     getCompanyId,
     getExtensionList,
 } from '../helper/extension_utils';
-import { successBox } from '../helper/formatter';
+import { displayFixedText, successBox } from '../helper/formatter';
 import CommandError, { ErrorCodes } from './CommandError';
 import * as CONSTANTS from './../helper/constants';
 import Logger from './Logger';
@@ -198,11 +198,14 @@ export default class ExtensionPreviewURL {
                 `TUNNEL URL: ${extension.publicTunnelURL
                 }`,
             );
+            const stickyText = successBox({
+                text: `TUNNEL URL: ${extension.publicTunnelURL
+                    }\nExtension preview URL: ${previewURL}`,
+            });
+
+            displayFixedText(stickyText);
             Logger.info(
-                successBox({
-                    text: `TUNNEL URL: ${extension.publicTunnelURL
-                        }\nExtension preview URL: ${previewURL}`,
-                }),
+                stickyText
             );
         } catch (error) {
             throw new CommandError(error.message, error.code);
