@@ -18,6 +18,7 @@ import {
     Object,
     validateEmpty,
     replaceContent,
+    getExtensionList,
 } from '../helper/extension_utils';
 
 import { createDirectory, writeFile, readFile } from '../helper/file.utils';
@@ -45,6 +46,16 @@ const TEMPLATES = {
     'java-vue': JAVA_VUE,
     'java-react': JAVA_REACT
 }
+
+const INIT_ACTIONS = {
+    create_extension: "create_extension",
+    select_extension: "select_extension"
+}
+
+const INIT_ACTION_LIST = [
+    { name: 'Create new extension', value: INIT_ACTIONS.create_extension },
+    { name: 'Select existing extension', value: INIT_ACTIONS.select_extension }
+]
 
 export const PROJECT_REPOS = {
     [NODE_VUE]: 'https://github.com/gofynd/example-extension-javascript.git',
@@ -297,37 +308,83 @@ export default class Extension {
         }
     }
 
+    private static async confirmInitAction(){
+        const extensionTypeQuestions = [
+            {
+                type: 'list',
+                choices: INIT_ACTION_LIST,
+                name: 'action',
+                message: 'Do you want to :',
+                validate: validateEmpty,
+            }
+        ];
+        
+        let prompt_answers: Object = await inquirer.prompt(
+            extensionTypeQuestions,
+        );
+
+        return prompt_answers.action
+    }
+
     // command handler for "extension init"
     public static async initExtensionHandler(options: Object) {
         try {
             let answers: Object = {};
+            let selected_ext_type;
 
-            await inquirer
-                .prompt([
-                    {
-                        type: 'input',
-                        name: 'name',
-                        message: 'Enter Extension name :',
-                        validate: validateEmpty,
-                    },
-                ])
-                .then((value) => {
-                    answers.name = String(value.name).trim();
-                });
+            const action = await Extension.confirmInitAction();
+
+            // if developer wants to select from existing extension
+            if(action === INIT_ACTIONS.select_extension){
+                const selected_extension = await getExtensionList();
+                const selected_ext_api_key = selected_extension.extension.id;
+                const extensionDetails = await ExtensionService.getExtensionDataPartners(selected_ext_api_key);
+                selected_ext_type = extensionDetails.extention_type;
+                
+                // set answers for createExtension function, this will be use to set data in extension config
+                answers.name = selected_extension.extension.name;
+                answers.type = selected_ext_type;
+                answers.extension_api_key = selected_ext_api_key;
+                answers.extension_api_secret = extensionDetails.client_data.secret[0];
+            } else {
+                // ask new extension name
+                await inquirer
+                    .prompt([
+                        {
+                            type: 'input',
+                            name: 'name',
+                            message: 'Enter Extension name :',
+                            validate: validateEmpty,
+                        },
+                    ])
+                    .then((value) => {
+                        answers.name = String(value.name).trim();
+                    });
+            }
             answers.targetDir = options['targetDir'] || answers.name;
 
             Extension.checkFolderAndGitExists(answers.targetDir);
 
-            const extensionTypeQuestions = [
-                {
+            const extensionTypeQuestions = [];
+
+            // If user wants to create new extension then ask type else it is already set in above section
+            if (action === INIT_ACTIONS.create_extension) {
+                extensionTypeQuestions.push({
                     type: 'list',
                     choices: ['Private', 'Public'],
                     default: 'Private',
                     name: 'type',
                     message: 'Extension type :',
                     validate: validateEmpty,
-                },
-                {
+                })
+            }
+            const template = options.template;
+            if(!!template){
+                if(!Object.keys(TEMPLATES).includes(template)){
+                    throw new CommandError("Invalid template passed.", ErrorCodes.INVALID_INPUT.code);
+                }
+            } else {
+                extensionTypeQuestions.push({
                     type: 'list',
                     choices: [
                         NODE_VUE,
@@ -339,22 +396,20 @@ export default class Extension {
                     name: 'project_type',
                     message: 'Template :',
                     validate: validateEmpty,
-                }
-            ];
-            const template = options.template;
-            if(!!template){
-                if(!Object.keys(TEMPLATES).includes(template)){
-                    throw new CommandError("Invalid template passed.", ErrorCodes.INVALID_INPUT.code);
-                }
-                extensionTypeQuestions.pop();
+                })
             }
 
-            let prompt_answers: Object = await inquirer.prompt(
-                extensionTypeQuestions,
-            );
-
+            let prompt_answers: Object = {};
+            if (extensionTypeQuestions.length) {
+                prompt_answers = await inquirer.prompt(
+                    extensionTypeQuestions,
+                );
+            }
             if(template){
                 prompt_answers.project_type = TEMPLATES[template]
+            }
+            if(action === INIT_ACTIONS.select_extension){
+                prompt_answers.type = selected_ext_type;
             }
 
             Extension.checkDependencies(prompt_answers.project_type);
@@ -365,8 +420,8 @@ export default class Extension {
                 ...answers,
                 ...prompt_answers,
             };
-
-            await Extension.createExtension(answers, true);
+            
+            await Extension.createExtension(answers, action === INIT_ACTIONS.create_extension);
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
