@@ -385,6 +385,7 @@ fdk extension init [options]
 | Option        | Description           | 
 | ------------- |-------------| 
 | --target-dir    | Target Directory |
+| --template    | Specify the template you want to use to create the extension |
 | --help    | Show help |
 | --verbose | enable debug mode |
 
@@ -392,6 +393,14 @@ fdk extension init [options]
 ```sh
 fdk extension init --target-dir [your-directory]
 ```
+```sh
+fdk extension init --template [template-name]
+```
+You can pass the following values for the template:
+1. node-vue
+2. node-react
+3. java-vue
+4. java-react
 ___
 <div id="extension-setup"></div>
 

@@ -11,6 +11,7 @@ export default function extensionCommandBuilder() {
     extension
         .command('init')
         .description('Initialize extension')
+        .option('--template <template-name>', 'Create extension from specific template')
         .option(
             '--target-dir <path>',
             'Target directory for creating extension repository',

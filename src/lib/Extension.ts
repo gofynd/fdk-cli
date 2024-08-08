@@ -39,6 +39,13 @@ export const JAVA_VUE = 'Java + Vue 2 + Redis';
 export const JAVA_REACT = 'Java + React.js + Redis';
 export const EXTENSION_BRANCH = 'update-sub-module'; // update-sub-module
 
+const TEMPLATES = {
+    'node-vue': NODE_VUE,
+    'node-react': NODE_REACT,
+    'java-vue': JAVA_VUE,
+    'java-react': JAVA_REACT
+}
+
 export const PROJECT_REPOS = {
     [NODE_VUE]: 'https://github.com/gofynd/example-extension-javascript.git',
     [NODE_REACT]:
@@ -267,7 +274,7 @@ export default class Extension {
     // check for system dependencies
     static checkDependencies(project_type: string) {
         const missingDependencies: string[] = [];
-        const requiredDependencies: string[] = ['npm'];
+        const requiredDependencies: string[] = ['npm', 'git'];
 
         if (project_type === JAVA_REACT || project_type === JAVA_VUE) {
             requiredDependencies.push('mvn');
@@ -334,10 +341,21 @@ export default class Extension {
                     validate: validateEmpty,
                 }
             ];
+            const template = options.template;
+            if(!!template){
+                if(!Object.keys(TEMPLATES).includes(template)){
+                    throw new CommandError("Invalid template passed.", ErrorCodes.INVALID_INPUT.code);
+                }
+                extensionTypeQuestions.pop();
+            }
 
             let prompt_answers: Object = await inquirer.prompt(
                 extensionTypeQuestions,
             );
+
+            if(template){
+                prompt_answers.project_type = TEMPLATES[template]
+            }
 
             Extension.checkDependencies(prompt_answers.project_type);
 
