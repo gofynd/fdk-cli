@@ -323,10 +323,10 @@ export default class Extension {
                 {
                     type: 'list',
                     choices: [
-                        NODE_VUE,
                         NODE_REACT,
-                        JAVA_VUE,
+                        NODE_VUE,
                         JAVA_REACT,
+                        JAVA_VUE
                     ],
                     default: NODE_VUE,
                     name: 'project_type',
@@ -422,10 +422,10 @@ export default class Extension {
                 {
                     type: 'list',
                     choices: [
-                        NODE_VUE,
                         NODE_REACT,
-                        JAVA_VUE,
+                        NODE_VUE,
                         JAVA_REACT,
+                        JAVA_VUE
                     ],
                     default: NODE_VUE,
                     name: 'project_type',
