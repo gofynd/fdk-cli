@@ -21,6 +21,7 @@ import Logger from './Logger';
 import ExtensionService from './api/services/extension.service';
 import yaml from 'js-yaml';
 import ExtensionTunnel from './ExtensionTunnel';
+import chalk from 'chalk';
 
 interface ServerOptions {
     cwd?: string;
@@ -63,16 +64,16 @@ export default class ExtensionPreviewURL {
                     extension.options.companyId = await getCompanyId("Select the development company you'd like to use to run the extension: ?");
                     extension.updateExtensionContext(extensionContext, CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY, extension.options.companyId);
                     Debug(`Using user selected development company ${extension.options.companyId}`)
-                    extensionDetailsText += `Development Company: ${extension.options.companyId}`;
+                    extensionDetailsText += `${chalk.cyan.bold('Development Company:')} ${extension.options.companyId}`;
                 }
                 else{
                     extension.options.companyId = extensionContext[CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY];
                     Debug(`Using development company ${extension.options.companyId} from extension context file\n`);
-                    extensionDetailsText += `Development Company: ${extension.options.companyId} (from extension context)`;
+                    extensionDetailsText += `${chalk.cyan.bold('Development Company:')} ${extension.options.companyId} (from extension context)`;
                 }
             }
             else{
-                extensionDetailsText += `Development Company: ${extension.options.companyId} (from command flag)`;
+                extensionDetailsText += `${chalk.cyan.bold('Development Company:')} ${extension.options.companyId} (from command flag)`;
             }
 
             let extensionDetails;
@@ -86,20 +87,20 @@ export default class ExtensionPreviewURL {
                     Debug(
                         `Using user selected Extension ${selected.extension.name} with API key ${selected.extension.id}`,
                     );
-                    extensionDetailsText += `\nExtension: ${selected.extension.name} (${extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]})`;
+                    extensionDetailsText += `\n${chalk.cyan.bold('Extension:')} ${selected.extension.name} (${extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]})`;
                 }
                 else{
                     extension.options.apiKey = extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY];
                     extensionDetails = await ExtensionService.getExtensionDataPartners(extension.options.apiKey);
                     let extensionName = extensionDetails.name;
                     Debug(`Using Extension ${extensionName} with API Key ${extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]} from extension context file\n`);
-                    extensionDetailsText += `\nExtension: ${extensionName} (${extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]}) (from extension context)`;
+                    extensionDetailsText += `\n${chalk.cyan.bold('Extension:')} ${extensionName} (${extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]}) (from extension context)`;
                 }
             }
             else{
                 extensionDetails = await ExtensionService.getExtensionDataPartners(extension.options.apiKey);
                 let extensionName = extensionDetails.name;
-                extensionDetailsText += `Extension: ${extensionName} (${extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]}) (from command flag)`;
+                extensionDetailsText += `${chalk.cyan.bold('Extension:')} ${extensionName} (${extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]}) (from command flag)`;
             }
 
             // Get the extension api secret
@@ -125,22 +126,22 @@ export default class ExtensionPreviewURL {
             for(const projectConfig of projectConfigs) {
                 if(projectConfig['roles'].includes('frontend') && projectConfig['port']){
                     frontend_port = projectConfig['port'];
-                    extensionDetailsText += `\nFRONTEND PORT: ${frontend_port} (from config file)`;
+                    extensionDetailsText += `\n${chalk.cyan.bold('FRONTEND PORT:')} ${frontend_port} (from config file)`;
                 }
                 else if(projectConfig['roles'].includes('backend') && projectConfig['port']){
                     backend_port = projectConfig['port'];
-                    extensionDetailsText += `\nBACKEND PORT: ${backend_port} (from config file)`;
+                    extensionDetailsText += `\n${chalk.cyan.bold('BACKEND PORT:')} ${backend_port} (from config file)`;
                 }
             }
             
             // If port is not defined in config files generate random port to start server
             if(!frontend_port){
                 frontend_port = await extension.getRandomFreePort([]);
-                extensionDetailsText += `\nFRONTEND PORT: ${frontend_port} (random free port assigned)`;
+                extensionDetailsText += `\n${chalk.cyan.bold('FRONTEND PORT:')} ${frontend_port} (random free port assigned)`;
             }
             if(!backend_port){
                 backend_port = await extension.getRandomFreePort([frontend_port]);
-                extensionDetailsText += `\nBACKEND PORT: ${backend_port} (random free port assigned)`;
+                extensionDetailsText += `\n${chalk.cyan.bold('BACKEND PORT:')} ${backend_port} (random free port assigned)`;
             }
             extension.options.port = frontend_port;
 
@@ -214,7 +215,7 @@ export default class ExtensionPreviewURL {
                         }
                     }).catch((error) => {
                         Debug(error);
-                        if(['SIGINT', 'SIGUSR1', 'SIGUSR2'].includes(error.signal) || error.code == 0 || error.code == 130){
+                        if(['SIGINT', 'SIGUSR1', 'SIGUSR2'].includes(error.signal) || error.code == 0 || error.code == 130 || error.exitCode == 130){
                             Logger.info(`${projectConfig['roles'].join(' and ')} process exited successfully.`);
                         }
                         else{
@@ -284,7 +285,7 @@ export default class ExtensionPreviewURL {
 
             // Handle process exit
             subprocess.on('exit', (code) => {
-                if(successExitMessage || code == 0 || code == 130){
+                if(successExitMessage && (code == 0 || code == 130)){
                     Logger.info(successExitMessage);
                 }
             });
