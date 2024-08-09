@@ -13,7 +13,6 @@ import Extension, {
 import configStore, { CONFIG_KEYS } from '../lib/Config';
 
 let program;
-const envFileData = `EXTENSION_API_KEY="api_key"\nEXTENSION_API_SECRET="api_secret"\nEXTENSION_BASE_URL="https://abc.com"\nEXTENSION_CLUSTER_URL="https://api.fynd.com"\nBACKEND_PORT=8080\nFRONTEND_PORT=8081`;
 
 jest.mock('configstore', () => {
     const Store =
@@ -73,16 +72,22 @@ describe('Setup extension command', () => {
             'setup',
         ]);
         expect(fs.existsSync('./Test_Extension')).toEqual(true);
-        expect(
-            fs.readFileSync('./Test_Extension/.env', { encoding: 'utf-8' }),
-        ).toBe(envFileData);
+        const extensionContext = fs.readFileSync('./Test_Extension/extension.context.json', { encoding: 'utf-8'});
+        expect(extensionContext['EXTENSION_API_KEY']).not.toBeNull();
+        expect(extensionContext['EXTENSION_API_SECRET']).not.toBeNull();
         const packageJson = JSON.parse(
+            fs.readFileSync('./Test_Extension/package.json', {
+                encoding: 'utf-8',
+            })
+        );
+        expect(packageJson.name).toBe('test_extension');
+
+        const frontendPackageJson = JSON.parse(
             fs.readFileSync('./Test_Extension/frontend/package.json', {
                 encoding: 'utf-8',
             })
         );
-        expect(packageJson.name).toBe('frontend');
-        expect(packageJson.dependencies.vue).toMatch(/\^3\..+/);
+        expect(frontendPackageJson.dependencies.vue).toMatch(/\^3\..+/);
     });
 
     it('should throw directory already exists error', async () => {
@@ -122,9 +127,9 @@ describe('Setup extension command', () => {
         ]);
 
         expect(fs.existsSync('./Test_Extension')).toEqual(true);
-        expect(
-            fs.readFileSync('./Test_Extension/.env', { encoding: 'utf-8' }),
-        ).toBe(envFileData);
+        const extensionContext = fs.readFileSync('./Test_Extension/extension.context.json', { encoding: 'utf-8'});
+        expect(extensionContext['EXTENSION_API_KEY']).not.toBeNull();
+        expect(extensionContext['EXTENSION_API_SECRET']).not.toBeNull();
         const packageJson = fs.readFileSync('./Test_Extension/package.json', {
             encoding: 'utf-8',
         });
@@ -147,7 +152,7 @@ describe('Setup extension command', () => {
 
         expect(fs.existsSync('./Test_Extension')).toEqual(true);
         const packageJson = fs.readFileSync(
-            './Test_Extension/app/package.json',
+            './Test_Extension/frontend/package.json',
             { encoding: 'utf-8' },
         );
         expect(JSON.parse(packageJson).name).toBe('test_extension');
@@ -169,7 +174,7 @@ describe('Setup extension command', () => {
 
         expect(fs.existsSync('./Test_Extension')).toEqual(true);
         const packageJson = fs.readFileSync(
-            './Test_Extension/app/package.json',
+            './Test_Extension/frontend/package.json',
             { encoding: 'utf-8' },
         );
         expect(JSON.parse(packageJson).name).toBe('test_extension');

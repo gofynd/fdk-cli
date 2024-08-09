@@ -32,7 +32,7 @@ export const getDefaultContextData = (): Object => {
     };
 };
 
-export const getCompanyId = async () => {
+export const getCompanyId = async (promptMessage = undefined) => {
     let developmentCompanyData = await ExtensionService.getDevelopmentAccounts(
         1,
         9999,
@@ -65,10 +65,53 @@ export const getCompanyId = async () => {
         );
     }
 
-    return await promptDevelopmentCompany(choices);
+    return await promptDevelopmentCompany(choices, promptMessage);
 };
 
-async function promptDevelopmentCompany(choices): Promise<number> {
+export const selectExtensionFromList = async (prefetchedExtensionList = undefined) => {
+    let extensionList;
+
+    if (prefetchedExtensionList) {
+        extensionList = prefetchedExtensionList;
+    } else {
+        extensionList = await ExtensionService.getExtensionList(
+            1,
+            9999,
+        );
+    }
+    let choices = [];
+    extensionList.items.map((data) => {
+        choices.push({ name: data.name, value: { id: data._id, name: data.name } });
+    });
+
+    if (choices.length === 0) {
+        throw new CommandError(
+            ErrorCodes.NO_EXTENSION_FOUND.message,
+            ErrorCodes.NO_EXTENSION_FOUND.code,
+        );
+    }
+
+    return await promptExtensionList(choices);
+};
+
+async function promptExtensionList(choices): Promise<Object> {
+    try {
+        return await inquirer.prompt([
+            {
+                type: 'list',
+                choices: choices,
+                name: 'extension',
+                message: 'Select the existing extension to use:',
+                pageSize: 6,
+                validate: validateEmpty,
+            },
+        ]);
+    } catch (error) {
+        throw new CommandError(error.message);
+    }
+}
+
+async function promptDevelopmentCompany(choices, promptMessage = undefined): Promise<number> {
     let companyId: number;
     try {
         let answers = await inquirer.prompt([
@@ -76,7 +119,7 @@ async function promptDevelopmentCompany(choices): Promise<number> {
                 type: 'list',
                 choices: choices,
                 name: 'company_id',
-                message: 'Development Company :',
+                message: promptMessage || 'Development Company :',
                 pageSize: 6,
                 validate: validateEmpty,
             },

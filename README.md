@@ -79,8 +79,9 @@ ___
 | Command        | Description           | 
 | ------------- |-------------| 
 | [init](#extension-init)     | Utilize this command to set up a new extension locally, leveraging existing templates of your choice.  |
-| [setup](#extension-setup)     | Configure your extension locally using the existing API Key and API Secret provided for the extension inside the partners panel.
-| [preview-url](#extension-preview-url)   | Create a tunnel and provide a link to tryout extension on development company
+| [setup](#extension-setup)     | Configure your extension locally using the existing API Key and API Secret provided for the extension inside the partners panel. |
+| [preview](#extension-preview-url)   | Start the extension development server and provide a tunnel URL to preview the extension on the development company. |
+| [tunnel](#extension-tunnel) | Create a tunnel on the specified port number to enable remote access for development and testing. |
 | [launch-url](#extension-launch-url)     | Get/set extension's lanuch url |
 
 ### Partner Commands
@@ -352,6 +353,7 @@ fdk extension init [options]
 | Option        | Description           | 
 | ------------- |-------------| 
 | --target-dir    | Target Directory |
+| --template    | Specify the template you want to use to create the extension |
 | --help    | Show help |
 | --verbose | enable debug mode |
 
@@ -359,6 +361,14 @@ fdk extension init [options]
 ```sh
 fdk extension init --target-dir [your-directory]
 ```
+```sh
+fdk extension init --template [template-name]
+```
+You can pass the following values for the template:
+1. node-vue
+2. node-react
+3. java-vue
+4. java-react
 ___
 <div id="extension-setup"></div>
 
@@ -384,48 +394,68 @@ ___
 
 <div id="extension-preview-url"></div>
 
-#### **preview-url**
+#### **preview**
 This command will return the preview URL, which the user can use to launch or install the extension.
 
 #### ****Syntax****
 ```sh
-fdk extension preview-url [options]
+fdk extension preview [options]
 ```
 
 #### **Command Options**
 | Option    | Description   |
 | ----------|---------------|
-| -p, --port    | Port on which Extension is running |
-| --company-id | specify company id |
+| --company-id | Unique identifier of your company |
 | --api-key | Extension API key |
 | --access-token | Partner Access Token |
-| --use-tunnel | Pass which tunneling tool you want to use (Default: `cloudflared`) |
-| --update-authtoken | Pass this to update your ngrok authentication token |
+| --tunnel-url | Specify a manual Tunnel URL to bypass automatic tunnel creation. |
+| --no-auto-update | Disables auto-updating of tunnel URL as extension launch url on partners panel |
+| --reset | Resets the extension's context data, prompting you to re-enter all required details. Useful for a fresh start! |
+| --help    | Show help |
+| --verbose | Enables debug mode, providing detailed logs for troubleshooting. |
+
+#### **Example**
+```sh
+fdk extension preview
+```
+```sh
+fdk extension preview --tunnel-url https://broke-casey-eric-recommendations.trycloudflare.com
+```
+```sh
+fdk extension preview --company-id 999
+```
+
+- **Cloudflared** will be used as the tunneling tool.
+
+- If you pass Tunnel URL, it will not created new tunnel and use the passed url as tunnel url.
+
+___
+
+
+<div id="extension-tunnel"></div>
+
+#### **tunnel**
+This command will start a tunnel using cloudflare by which you can access your local port on public url
+
+#### ****Syntax****
+```sh
+fdk extension tunnel [options]
+```
+
+#### **Command Options**
+| Option    | Description   |
+| ----------|---------------|
+| --port | Port (required) |
 | --help    | Show help |
 | --verbose | enable debug mode |
 
 #### **Example**
 ```sh
-fdk extension preview-url --port 3000
-```
-```sh
-fdk extension preview-url -p 3000
-```
-```sh
-fdk extension preview-url -p 3000 --company-id 999
-```
-
-By default, **cloudflared** will be used as the tunneling tool. To use a different tool, pass the `--use-tunnel` option. Currently, we support **cloudflared** and **ngrok** as tunneling tools. You will be prompted to enter your authentication token if you choose ngrok.
-
-```sh
-fdk extension preview-url -p 3000 --use-tunnel ngrok
-```
-Pass `--update-authtoken` flag to update your ngrok authentication token.
-```sh
-fdk extension preview-url -p 3000 --use-tunnel ngrok --update-authtoken
+fdk extension tunnel --port 8080
 ```
 
 ___
+
 <div id="extension-launch-url"></div>
 
 #### **launch-url**
