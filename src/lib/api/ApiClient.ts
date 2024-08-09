@@ -4,6 +4,7 @@ import axios, {
     AxiosResponse,
     AxiosInstance,
     ResponseType,
+    AxiosRequestHeaders,
 } from 'axios';
 import {
     isNetworkErrorCode,
@@ -19,6 +20,7 @@ import {
 import Curl from '../../helper/curl';
 import Logger from '../Logger';
 import { MAX_RETRY } from '../../helper/constants';
+import https from 'https'
 axios.defaults.withCredentials = true;
 axios.defaults.timeout = 60000; // 1 minute
 
@@ -100,7 +102,7 @@ class ApiEngine {
 
     head(url: string, opt: Options = {}): Promise<AxiosResponse<any>> {
         return this.axiosInstance.head(url, {
-            headers: opt.headers,
+            headers: opt.headers as AxiosRequestHeaders,
             params: opt.params,
             responseType: opt.responseType,
             paramsSerializer: (params) => {
@@ -116,7 +118,7 @@ class ApiEngine {
     ): Promise<AxiosResponse<any>> {
         return this.axiosInstance.get(url, {
             params: opt.params,
-            headers: opt.headers,
+            headers: opt.headers as AxiosRequestHeaders,
             responseType: opt.responseType,
             paramsSerializer: (params) => {
                 return transformRequestOptions(params);
@@ -127,7 +129,7 @@ class ApiEngine {
 
     post(url: string, opt: Options = {}): Promise<AxiosResponse<any>> {
         return this.axiosInstance.post(url, opt.data, {
-            headers: opt.headers,
+            headers: opt.headers as AxiosRequestHeaders,
             params: opt.params,
             responseType: opt.responseType,
         });
@@ -135,7 +137,7 @@ class ApiEngine {
 
     put(url: string, opt: Options = {}): Promise<AxiosResponse<any>> {
         return this.axiosInstance.put(url, opt.data, {
-            headers: opt.headers,
+            headers: opt.headers as AxiosRequestHeaders,
             params: opt.params,
             responseType: opt.responseType,
         });
@@ -143,7 +145,7 @@ class ApiEngine {
 
     patch(url: string, opt: Options = {}): Promise<AxiosResponse<any>> {
         return this.axiosInstance.patch(url, opt.data, {
-            headers: opt.headers,
+            headers: opt.headers as AxiosRequestHeaders,
             params: opt.params,
             responseType: opt.responseType,
         });
@@ -152,7 +154,7 @@ class ApiEngine {
     del(url: string, opt: Options = {}): Promise<AxiosResponse<any>> {
         return this.axiosInstance.delete(url, {
             data: opt.data,
-            headers: opt.headers,
+            headers: opt.headers as AxiosRequestHeaders,
             params: opt.params,
             responseType: opt.responseType,
         });
@@ -161,7 +163,7 @@ class ApiEngine {
     getMisc(url: string, opt: Options = {}): Promise<AxiosResponse<any>> {
         return axiosMisc.get(url, {
             params: opt.params,
-            headers: opt.headers,
+            headers: opt.headers as AxiosRequestHeaders,
             responseType: opt.responseType,
             paramsSerializer: (params) => {
                 return transformRequestOptions(params);
@@ -170,10 +172,18 @@ class ApiEngine {
     }
 
     postMisc(url: string, opt: Options = {}): Promise<AxiosResponse<any>> {
-        return axiosMisc.post(url, opt.data, { headers: opt.headers });
+        return axiosMisc.post(url, opt.data, { headers: opt.headers as AxiosRequestHeaders });
     }
 }
 
 // use uninterceptedApiClient to skip curl print in verbose mode
 export const uninterceptedApiClient = new ApiEngine(uninterceptedAxiosInstance);
+// for backward compatibility of update extensions we need to hit and api and if throws error then need to call backward compatibility api and in that if the first api fails the response Error interceptor was getting triggered so thats why creating a new axios instance for such cases.
+export const withoutErrorResponseInterceptorAxios = axios.create();
+withoutErrorResponseInterceptorAxios.interceptors.request.use(
+    addSignatureFn({}),
+);
+withoutErrorResponseInterceptorAxios.interceptors.response.use(
+    responseInterceptor(),
+);
 export default new ApiEngine(axios);

@@ -7,6 +7,8 @@ import ConfigStore, { CONFIG_KEYS } from '../../Config';
 import { MAX_RETRY } from '../../../helper/constants';
 import { COMMON_LOG_MESSAGES } from '../../../lib/Logger';
 import { transformRequestOptions } from '../../../helper/utils';
+import fs from 'fs-extra';
+import https from 'https'
 
 function getTransformer(config) {
     const { transformRequest } = config;
@@ -87,6 +89,13 @@ function interceptorFn(options) {
                 config.headers['x-fp-date'] = signature['x-fp-date'];
                 config.headers['x-fp-signature'] = signature['x-fp-signature'];
             }
+            if(process.env.FDK_EXTRA_CA_CERTS){
+                // Load the VPN's CA certificate
+                const ca = fs.readFileSync(process.env.FDK_EXTRA_CA_CERTS);
+                // Create an HTTPS agent with the CA certificate
+                const httpsAgent = new https.Agent({ ca });
+                config.httpsAgent = httpsAgent;
+            }
             return config;
         } catch (error) {
             throw error;
@@ -137,11 +146,22 @@ export function responseErrorInterceptor() {
                 error?.response,
             );
         } else if (error.request) {
-            if (error.code == 'ERR_FR_MAX_BODY_LENGTH_EXCEEDED') {
-                throw new CommandError(
-                    `${ErrorCodes.LARGE_PAYLOAD.message}`,
-                    ErrorCodes.LARGE_PAYLOAD.code,
-                );
+            switch (error.code) {
+                case 'ERR_FR_MAX_BODY_LENGTH_EXCEEDED': {
+                    throw new CommandError(
+                        `${ErrorCodes.LARGE_PAYLOAD.message}`,
+                        ErrorCodes.LARGE_PAYLOAD.code,
+                    );
+                }
+                case 'SELF_SIGNED_CERT_IN_CHAIN': {
+                    throw new CommandError(
+                        `${ErrorCodes.VPN_ISSUE.message}`,
+                        ErrorCodes.VPN_ISSUE.code,
+                    );
+                }
+                case 'ENOTFOUND': {
+                    throw new CommandError(error.message, error.code);
+                }
             }
             // Check if axios already tried 3 times and then getting into error interceptor
             // then directly send error network error

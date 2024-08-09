@@ -1,0 +1,88 @@
+{
+    "_id": "60afe92972b7a964de57a1d4",
+    "meta": {
+        "ecomm_platform_used": [
+            ""
+        ],
+        "goals": [
+            ""
+        ]
+    },
+    "is_active": true,
+    "name": "Fynd - Shopsense",
+    "details": "Fynd partner organization",
+    "business": {
+        "emails": [
+            {
+                "email": "brijeshgajjar@gofynd.com",
+                "primary": false,
+                "verified": false
+            }
+        ],
+        "phoneNumbers": [
+            {
+                "phone": "9601074626",
+                "countryCode": 91,
+                "primary": false,
+                "verified": false,
+                "country_code": 91
+            }
+        ],
+        "website": "",
+        "address": {
+            "country": {
+                "country_code": "UAE",
+                "name": "United Arab Emirates",
+                "uid": "656d9e18341f440aa022816f"
+            },
+            "state": {
+                "name": "Maharashtra",
+                "uid": 1832
+            },
+            "city": {
+                "name": "Abu Dhabi",
+                "uid": "656ef51108581b5700bbef5d"
+            },
+            "address_type": "Business",
+            "address": "1ST FLOOR WEWORK VIJAY DIAMOND, ANDHERI EAST",
+            "area": "AJIT NAGAR, KONDIVITA",
+            "landmark": "",
+            "area_code": "400093",
+            "_id": "63e5df4af630afa5538c09f9",
+            "address1": "AJIT NAGAR, KONDIVITA",
+            "address2": "",
+            "country_code": "AE",
+            "latitude": 19.0653252,
+            "longitude": 72.8423802,
+            "sector": "Abu Dhabi Exhibition Centre (ADNEC)",
+            "sector_uid": "656ef51108581b5700bbef5e"
+        },
+        "social_meta": {
+            "facebook": "",
+            "_id": "63e5df4af630af2dec8c09fa"
+        },
+        "pan_card": "AALCA0442L",
+        "gstin": "27AALCA0442L1ZM",
+        "currency": "INR",
+        "phone_numbers": [
+            {
+                "phone": "9601074626",
+                "countryCode": 91,
+                "primary": false,
+                "verified": false,
+                "country_code": 91
+            }
+        ]
+    },
+    "owner": "49e8f2cc6fbbadd6029f639d",
+    "referral_code": "UQIHOS",
+    "created_at": "2023-02-10T06:08:10.115Z",
+    "modified_at": "2024-06-24T07:29:29.659Z",
+    "slug": "Fynd-p91-20",
+    "extension_category": [
+        "general",
+        "saleschannel",
+        "payment",
+        "logistics"
+    ]
+}

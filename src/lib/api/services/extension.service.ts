@@ -1,11 +1,16 @@
 import { URLS } from './url';
 import { getCommonHeaderOptions } from './utils';
-import ApiClient from '../ApiClient';
+import ApiClient, { withoutErrorResponseInterceptorAxios } from '../ApiClient';
 
-type RegisterExtensionPaylaod = {
+export type RegisterExtensionPayloadNew = {
     name: string;
     extention_type: 'private' | 'public';
     base_url: string;
+    scope?: [string];
+    logo?: Object;
+    developed_by_name?: string;
+    contact_email?: string;
+    callbacks: Object;
 };
 
 type UpdateLaunchURLPayload = {
@@ -13,13 +18,14 @@ type UpdateLaunchURLPayload = {
 };
 
 export default {
-    registerExtension: async (
-        partner_access_token: string,
-        data: RegisterExtensionPaylaod,
-    ) => {
+    registerExtensionPartners: async (data: RegisterExtensionPayloadNew) => {
         try {
             let headers = getCommonHeaderOptions().headers;
-            headers['x-partner-token'] = partner_access_token;
+            data.scope = ['company/profile'];
+            data.logo = {
+                small: 'https://res.cloudinary.com/dwzm9bysq/image/upload/v1566539375/production/media/store/logo/jwosxsgh9ufoucdxpm10.png',
+                large: 'https://res.cloudinary.com/dwzm9bysq/image/upload/v1566539375/production/media/store/logo/jwosxsgh9ufoucdxpm10.png',
+            };
 
             let axiosOptions = Object.assign(
                 {},
@@ -31,7 +37,7 @@ export default {
                 },
             );
             const response = await ApiClient.post(
-                URLS.REGISTER_EXTENSION(),
+                URLS.REGISTER_EXTENSION_PARTNER(),
                 axiosOptions,
             );
             return response.data;
@@ -40,41 +46,11 @@ export default {
         }
     },
 
-    getExtensionData: async (
-        extension_api_key: string,
-        extension_api_secret: string,
-        partner_access_token: string,
-    ) => {
-        try {
-            const authorizationToken = Buffer.from(
-                `${extension_api_key}:${extension_api_secret}`,
-                'utf-8',
-            ).toString('base64');
-
-            let headers = getCommonHeaderOptions().headers;
-            headers['Authorization'] = `Bearer ${authorizationToken}`;
-            headers['x-partner-token'] = partner_access_token;
-
-            let response = await ApiClient.get(
-                URLS.GET_EXTENSION_DETAILS(extension_api_key),
-                { headers: headers },
-            );
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    getExtensionDataUsingToken: async (
-        extension_api_key: string,
-        partner_access_token: string,
-    ) => {
+    getExtensionDataPartners: async (extension_api_key: string) => {
         try {
             let headers = getCommonHeaderOptions().headers;
-            headers['x-partner-token'] = partner_access_token;
-
             let response = await ApiClient.get(
-                URLS.GET_EXTENSION_DETAILS(extension_api_key),
+                URLS.GET_EXTENSION_DETAILS_PARTNERS(extension_api_key),
                 { headers: headers },
             );
             return response.data;
@@ -108,23 +84,49 @@ export default {
             );
             return response.data;
         } catch (error) {
+            return error;
+        }
+    },
+
+    updateLaunchURLPartners: async (
+        extension_api_key: string,
+        data: UpdateLaunchURLPayload,
+    ) => {
+        try {
+            let headers = getCommonHeaderOptions().headers;
+
+            let response = await withoutErrorResponseInterceptorAxios.patch(
+                URLS.UPDATE_EXTENSION_DETAILS_PARTNERS(extension_api_key),
+                data,
+                { headers}
+            );
+            return response.data;
+        } catch (error) {
             throw error;
         }
     },
 
-    getOrganizationData: async (partner_access_token: string) => {
+    validateAccessToken: async (partner_access_token: string) => {
         try {
             let headers = getCommonHeaderOptions().headers;
-            headers['x-partner-token'] = partner_access_token;
 
-            let response = await ApiClient.get(
-                URLS.GET_ORGANIZATION_DATA(partner_access_token),
-                { headers: headers },
+            let axiosOptions = Object.assign(
+                {},
+                {
+                    data: { token: partner_access_token },
+                },
+                {
+                    headers: headers,
+                },
+            );
+            let response = await ApiClient.post(
+                URLS.VALIDATE_ACCESS_TOKEN(),
+                axiosOptions,
             );
             response.data.partner_access_token = partner_access_token;
             return response.data;
-        } catch (error) {
-            throw error;
+        } catch (err) {
+            throw err;
         }
     },
 

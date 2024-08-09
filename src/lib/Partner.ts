@@ -25,11 +25,11 @@ export default class Partner {
             let spinner = new Spinner('Verifying Access Token');
             try {
                 spinner.start();
-                organizationInfo = await ExtensionService.getOrganizationData(
+                organizationInfo = await ExtensionService.validateAccessToken(
                     answers.partner_access_token,
                 );
 
-                if (!organizationInfo) {
+                if (!organizationInfo.valid) {
                     throw new CommandError(
                         ErrorCodes.INVALID_PARTNER_TOKEN.message,
                         ErrorCodes.INVALID_PARTNER_TOKEN.code,

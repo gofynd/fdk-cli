@@ -143,4 +143,4 @@ csv/
 # Sentry Auth Token
 .sentryclirc
 
-/temp-theme
+test-theme

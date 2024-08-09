@@ -4,9 +4,9 @@ import ExtensionLaunchURL from '../../lib/ExtensionLaunchURL';
 import ExtensionPreviewURL from '../../lib/ExtensionPreviewURL';
 
 export default function extensionCommandBuilder() {
-    const extension = new Command('extension').description(
-        'Extension Commands',
-    );
+    const extension = new Command('extension')
+        .aliases(['ext'])
+        .description('Extension Commands');
     extension
         .command('init')
         .description('Initialize extension')
@@ -27,14 +27,24 @@ export default function extensionCommandBuilder() {
 
     extension
         .command('preview-url')
+        .aliases(['preview'])
         .description('Get extension preview url to launch the extension')
-        .requiredOption(
+        .option(
             '-p, --port <port>',
-            'port on which extension is running',
+            'Port on which extension is running',
+            '8080',
         )
         .option('--api-key <api-key>', 'Extension API Key')
         .option('--company-id <id>', 'Company ID')
-        .option('--update-authtoken', 'Update Ngrok Authtoken')
+        .option('--access-token <access-token>', 'Partner Access Token')
+        .option(
+            '--use-tunnel <tunnel-tool>',
+            'Pass which tunneling tool you want to use, currently available options are ngrok and cloudflared',
+        )
+        .option(
+            '--update-authtoken',
+            'When --use-tunnel is ngrok, you can pass this option to update ngrok auth token',
+        )
         .asyncAction(ExtensionPreviewURL.previewUrlExtensionHandler);
 
     const launch_url = new Command('launch-url').description(
@@ -51,6 +61,7 @@ export default function extensionCommandBuilder() {
         .description('Set a launch url for extension')
         .requiredOption('--api-key <api-key>', 'Extension API key')
         .requiredOption('--url <launch-url>', 'Launch url')
+        .option('--access-token <access-token>', 'Partner Access Token')
         .asyncAction(ExtensionLaunchURL.setLaunchURLHandler);
 
     extension.addCommand(launch_url);

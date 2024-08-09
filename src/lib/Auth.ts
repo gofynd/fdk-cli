@@ -6,13 +6,16 @@ import open from 'open';
 import express from 'express';
 var cors = require('cors');
 const port = 7071;
-import chalk from 'chalk';
 import ThemeService from './api/services/theme.service';
 import { getLocalBaseUrl } from '../helper/serve.utils';
 import Debug from './Debug';
 import Env from './Env';
 
 const SERVER_TIMER = 1000 * 60 * 2; // 2 min
+import { successBox } from '../helper/formatter';
+import OrganizationService from './api/services/organization.service';
+import { getOrganizationDisplayName } from '../helper/utils';
+import chalk from 'chalk';
 
 async function checkTokenExpired(auth_token) {
     const { expiry_time } = auth_token;
@@ -39,13 +42,21 @@ export const getApp = async () => {
             req.body.auth_token.expiry_time = expiryTimestamp;
             ConfigStore.set(CONFIG_KEYS.AUTH_TOKEN, req.body.auth_token);
             ConfigStore.set(CONFIG_KEYS.ORGANIZATION, req.body.organization);
+            const organization_detail =
+                await OrganizationService.getOrganizationDetails();
+            ConfigStore.set(
+                CONFIG_KEYS.ORGANIZATION_DETAIL,
+                organization_detail.data,
+            );
             Auth.stopSever();
-            if (Auth.wantToChangeOrganization)
-                Logger.info('Organization changed successfully');
-            else Logger.info('User logged in successfully');
+            Logger.info(
+                `Logged in successfully in organization ${getOrganizationDisplayName()}`,
+            );
             res.status(200).json({ message: 'success' });
         } catch (err) {
-            console.log(err);
+            Debug(err);
+            Auth.stopSever();
+            res.status(500).json({ message: 'failed' });
         }
     });
 
@@ -77,6 +88,7 @@ export const startServer = async () => {
 
     // handle errors thrown while start listening
     serverIn.on('error', (error) => {
+        Debug(error);
         if (error.code === 'EADDRINUSE') {
             console.error(chalk.red(`Port ${port} is already in use.`));
         } else {
@@ -125,6 +137,9 @@ export default class Auth {
 
         const isLoggedIn = await Auth.isAlreadyLoggedIn();
         if (isLoggedIn) {
+            Logger.info(
+                `Current logged in organization: ${getOrganizationDisplayName()}`,
+            );
             const questions = [
                 {
                     type: 'list',
@@ -183,13 +198,15 @@ export default class Auth {
                     const currentEnv = ConfigStore.get(
                         CONFIG_KEYS.CURRENT_ENV_VALUE,
                     );
+                    const extras = ConfigStore.get(CONFIG_KEYS.EXTRAS);
                     ConfigStore.clear();
                     ConfigStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, currentEnv);
+                    ConfigStore.set(CONFIG_KEYS.EXTRAS, extras);
                     Logger.info(`User logged out successfully`);
                 }
             });
         } catch (error) {
-            throw new CommandError(error.message);
+            throw new CommandError(error.message, error.code);
         }
     }
     public static getUserInfo() {
@@ -197,15 +214,15 @@ export default class Auth {
             const { current_user: user } = ConfigStore.get(
                 CONFIG_KEYS.AUTH_TOKEN,
             );
-            const organization_id = ConfigStore.get(CONFIG_KEYS.ORGANIZATION);
             const activeEmail =
                 user.emails.find((e) => e.active && e.primary)?.email ||
-                'Not primary email set';
-            Logger.info(`Name: ${user.first_name} ${user.last_name}`);
-            Logger.info(`Email: ${activeEmail}`);
-            Logger.info(`Current organization: ${organization_id}`);
+                'Primary email missing';
+            const text = `Name: ${user.first_name} ${
+                user.last_name
+            }\nEmail: ${activeEmail}\nOrganization: ${getOrganizationDisplayName()}`;
+            Logger.info(successBox({ text }));
         } catch (error) {
-            throw new CommandError(error.message);
+            throw new CommandError(error.message, error.code);
         }
     }
     private static isAlreadyLoggedIn = async () => {

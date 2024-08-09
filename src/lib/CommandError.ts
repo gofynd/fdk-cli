@@ -72,11 +72,30 @@ export const ErrorCodes = {
         message: 'Network issue',
         code: 'FDK-0009',
     },
-
-    //ngrok
-    NGROK_CONNECTION_ISSUE: {
-        message: 'Unable to establish ngrok tunnel',
-        code: 'FDK-0011',
+    NGROK_AUTH_ISSUE: {
+        message:
+            'Invalid ngrok auth token, please check https://dashboard.ngrok.com/get-started/your-authtoken',
+        code: 'FDK-0012',
+    },
+    NGROK_MULTIPLE_SESSION_ISSUE: {
+        message:
+            'Your account is limited to 1 simultaneous ngrok agent sessions, please close existing tunnel ',
+        code: 'FDK-0014',
+    },
+    NGROK_GENERAL_ISSUE: {
+        message:
+            'Something wrong with ngrok tunnel, please pass --debug flag to get more details',
+        code: 'FDK-0015',
+    },
+    ClOUDFLARE_CONNECTION_ISSUE: {
+        message:
+            'Something wrong with cloudflare tunnel, please pass --debug flag to get more details',
+        code: 'FDK-0015',
+    },
+    VPN_ISSUE: {
+        message:
+            'This can be caused due to VPN or Firewall, please contact your network administrator or disable and retry.',
+        code: 'FDK-0013',
     },
 };
 

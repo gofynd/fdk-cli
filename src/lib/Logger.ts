@@ -97,7 +97,7 @@ export const COMMON_LOG_MESSAGES = {
         'Use fdk context-list to set context',
     )}`,
     RequireAuth: `Please login to use this command.\n${chalk.yellow(
-        'Use fdk login --help to know more',
+        `Use fdk login command for login`,
     )}`,
     contextMismatch: `Active Environment and Active Context Environment doesn't match.\n${chalk.yellow(
         'Use `fdk theme context-list` to switch context OR `fdk login -ad <platform-api-domain>` to login with different active environment.',

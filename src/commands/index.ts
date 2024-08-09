@@ -7,6 +7,7 @@ const COMMANDS = [
     require('./populate'),
     require('./extension'),
     require('./partner'),
+    require('./config'),
 ];
 
 export function registerCommands(program: CommanderStatic) {

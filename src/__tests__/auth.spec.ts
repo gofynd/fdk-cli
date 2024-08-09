@@ -5,6 +5,7 @@ import mockFunction from './helper';
 import { setEnv } from './helper';
 import { init } from '../fdk';
 const tokenData = require('./fixtures/partnertoken.json');
+const organizationData = require('./fixtures/organizationData.json');
 const request = require('supertest');
 import { startServer, getApp } from '../lib/Auth';
 import { URLS } from '../lib/api/services/url';
@@ -17,7 +18,7 @@ let program;
 
 jest.mock('configstore', () => {
     const Store =
-        jest.requireActual<typeof import('configstore')>('configstore');
+        jest.requireActual('configstore');
     return class MockConfigstore {
         store = new Store('test-cli', undefined, {
             configPath: './auth-test-cli.json',
@@ -38,7 +39,9 @@ jest.mock('configstore', () => {
         }
     };
 });
-
+jest.mock('open', () => {
+    return () => {}
+})
 export async function login(domain?: string) {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
     const app = await startServer();
@@ -55,8 +58,14 @@ describe('Auth Commands', () => {
         setEnv();
         program = await init('fdk');
         const mock = new MockAdapter(axios);
+        configStore.set(CONFIG_KEYS.ORGANIZATION, organizationData._id);
         mock.onGet(`${URLS.IS_VERSION_COMPATIBLE()}`).reply(200);
-        mock.onGet('https://api.fynd.com/service/application/content/_healthz').reply(200);
+        // mock.onGet('https://api.fynd.com/service/application/content/_healthz').reply(200);
+        mock.onGet(`${URLS.GET_ORGANIZATION_DETAILS()}`).reply(
+            200,
+            organizationData,
+        );
+        configStore.delete(CONFIG_KEYS.ORGANIZATION);
         await login();
     });
 
@@ -97,7 +106,7 @@ describe('Auth Commands', () => {
         consoleWarnSpy = jest.spyOn(Logger, 'info').mockImplementation();
         await program.parseAsync(['ts-node', './src/fdk.ts', 'user']);
         const { current_user: user } = configStore.get(CONFIG_KEYS.AUTH_TOKEN);
-        expect(consoleWarnSpy).toHaveBeenCalledWith('Name: Jinal Virani');
+        expect(consoleWarnSpy.mock.lastCall[0]).toContain('Name: Jinal Virani');
         expect(user.emails[0].email).toMatch('jinalvirani@gofynd.com');
     });
     it('should successfully logout user', async () => {

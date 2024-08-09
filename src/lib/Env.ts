@@ -59,7 +59,7 @@ export default class Env {
                 if (response?.status === 200) {
                     Env.setEnv(finalDomain);
                     Logger.info(
-                        `CLI will start using: ${chalk.bold(finalDomain)}`,
+                        `FDK CLI environment is now set to ${chalk.bold(finalDomain)}.\nAll subsequent commands will be executed in this environment.`,
                     );
                 } else {
                     throw new Error(
