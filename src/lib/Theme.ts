@@ -540,6 +540,7 @@ export default class Theme {
                 throw new CommandError(error.message);
             }
 
+            Logger.info('Building Theme...');
             const stats = await devReactBuild({
                 buildFolder: Theme.BUILD_FOLDER,
                 runOnLocal: true,
