@@ -1,10 +1,8 @@
 import urljoin from 'url-join';
 import execa from 'execa';
 import path from 'path';
-import rimraf from 'rimraf';
 const serverProcesses = [];
 import fs from 'fs';
-import detectPort from 'detect-port'
 import Debug from './Debug';
 import { getPlatformUrls } from './api/services/url';
 import ExtensionLaunchURL from './ExtensionLaunchURL';
@@ -13,6 +11,8 @@ import {
     Object,
     getCompanyId,
     selectExtensionFromList,
+    findAllFilePathFromCurrentDirWithName,
+    getRandomFreePort
 } from '../helper/extension_utils';
 import { displayStickyText, OutputFormatter, successBox } from '../helper/formatter';
 import CommandError, { ErrorCodes } from './CommandError';
@@ -22,6 +22,7 @@ import ExtensionService from './api/services/extension.service';
 import yaml from 'js-yaml';
 import ExtensionTunnel from './ExtensionTunnel';
 import chalk from 'chalk';
+import ExtensionContext from './ExtensionContext';
 
 interface ServerOptions {
     cwd?: string;
@@ -33,7 +34,6 @@ export default class ExtensionPreviewURL {
     publicTunnelURL: string;
     options: Object;
     firstTunnelConnection: boolean = true;
-    private extensionContextFilePath: string = undefined;
 
     // command handler for "extension preview-url"
     public static async previewUrlExtensionHandler(options) {
@@ -47,27 +47,27 @@ export default class ExtensionPreviewURL {
             // Read and validate fdk.ext config files
             const projectConfigs = extension.readAndValidateFDKExtConfigFiles();
 
+            // Read extension context file
+            const extensionContext = new ExtensionContext();
+
             // Delete Extension context file if reset flag is passed
             if(options.reset){
                 Logger.info(`Cleared extension context data`)
-                extension.deleteExtensionContext();
+                extensionContext.deleteAll();
             }
-
-            // Read extension context file
-            const extensionContext = extension.readExtensionContext();
 
             let extensionDetailsText = ``;
 
             // get the companyId
             if (!extension.options.companyId) {
-                if(!extensionContext[CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY]){
+                if(!extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY)){
                     extension.options.companyId = await getCompanyId("Select the development company you'd like to use to run the extension: ?");
-                    extension.updateExtensionContext(extensionContext, CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY, extension.options.companyId);
+                    extensionContext.set(CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY, extension.options.companyId);
                     Debug(`Using user selected development company ${extension.options.companyId}`)
                     extensionDetailsText += `${chalk.cyan.bold('Development Company:')} ${extension.options.companyId}`;
                 }
                 else{
-                    extension.options.companyId = extensionContext[CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY];
+                    extension.options.companyId = extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY);
                     Debug(`Using development company ${extension.options.companyId} from extension context file\n`);
                     extensionDetailsText += `${chalk.cyan.bold('Development Company:')} ${extension.options.companyId} (from extension context)`;
                 }
@@ -80,39 +80,39 @@ export default class ExtensionPreviewURL {
 
             // get the extension api key
             if (!extension.options.apiKey) {
-                if(!extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]){
+                if(!extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY)){
                     let selected = await selectExtensionFromList();
                     extension.options.apiKey = selected.extension.id;
-                    extension.updateExtensionContext(extensionContext, CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY, extension.options.apiKey);
+                    extensionContext.set(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY, extension.options.apiKey);
                     Debug(
                         `Using user selected Extension ${selected.extension.name} with API key ${selected.extension.id}`,
                     );
-                    extensionDetailsText += `\n${chalk.cyan.bold('Extension:')} ${selected.extension.name} (${extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]})`;
+                    extensionDetailsText += `\n${chalk.cyan.bold('Extension:')} ${selected.extension.name} (${extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY)})`;
                 }
                 else{
-                    extension.options.apiKey = extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY];
+                    extension.options.apiKey = extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY);
                     extensionDetails = await ExtensionService.getExtensionDataPartners(extension.options.apiKey);
                     let extensionName = extensionDetails.name;
-                    Debug(`Using Extension ${extensionName} with API Key ${extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]} from extension context file\n`);
-                    extensionDetailsText += `\n${chalk.cyan.bold('Extension:')} ${extensionName} (${extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]}) (from extension context)`;
+                    Debug(`Using Extension ${extensionName} with API Key ${extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY)} from extension context file\n`);
+                    extensionDetailsText += `\n${chalk.cyan.bold('Extension:')} ${extensionName} (${extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY)}) (from extension context)`;
                 }
             }
             else{
                 extensionDetails = await ExtensionService.getExtensionDataPartners(extension.options.apiKey);
                 let extensionName = extensionDetails.name;
-                extensionDetailsText += `${chalk.cyan.bold('Extension:')} ${extensionName} (${extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]}) (from command flag)`;
+                extensionDetailsText += `${chalk.cyan.bold('Extension:')} ${extensionName} (${extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY)}) (from command flag)`;
             }
 
             // Get the extension api secret
-            if(!extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_SECRET]){
+            if(!extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_SECRET)){
                 if(!extensionDetails){
                     extensionDetails = await ExtensionService.getExtensionDataPartners(extension.options.apiKey);
                 }
                 extension.options.apiSecret = extensionDetails.client_data.secret[0];
-                extension.updateExtensionContext(extensionContext, CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_SECRET, extension.options.apiSecret);
+                extensionContext.set(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_SECRET, extension.options.apiSecret);
             }
             else{
-                extension.options.apiSecret = extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_SECRET];
+                extension.options.apiSecret = extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_SECRET);
                 Debug(`Using Extension Secret from extension context file\n`);
             }
 
@@ -136,11 +136,11 @@ export default class ExtensionPreviewURL {
             
             // If port is not defined in config files generate random port to start server
             if(!frontend_port){
-                frontend_port = await extension.getRandomFreePort([]);
+                frontend_port = await getRandomFreePort([]);
                 extensionDetailsText += `\n${chalk.cyan.bold('FRONTEND PORT:')} ${frontend_port} (random free port assigned)`;
             }
             if(!backend_port){
-                backend_port = await extension.getRandomFreePort([frontend_port]);
+                backend_port = await getRandomFreePort([frontend_port]);
                 extensionDetailsText += `\n${chalk.cyan.bold('BACKEND PORT:')} ${backend_port} (random free port assigned)`;
             }
             extension.options.port = frontend_port;
@@ -183,10 +183,10 @@ export default class ExtensionPreviewURL {
             }
 
             // Store tunnel url in extension context file
-            extension.updateExtensionContext(extensionContext, CONSTANTS.EXTENSION_CONTEXT.EXTENSION_BASE_URL, extension.publicTunnelURL)
+            extensionContext.set(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_BASE_URL, extension.publicTunnelURL);
             // Remove tunnel url from extension context on exit
             process.on('exit', ()=>{
-                extension.deleteKeyFromExtensionContext(extensionContext, CONSTANTS.EXTENSION_CONTEXT.EXTENSION_BASE_URL);
+                extensionContext.delete(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_BASE_URL);
             })
             
             // update launch url on partners panel
@@ -249,28 +249,6 @@ export default class ExtensionPreviewURL {
         );
     }
 
-    public findAllFilePathFromCurrentDirWithName(fileName: Array<String>) {
-        const files = [];
-        const dir = process.cwd();
-
-        const search = (dir: string) => {
-            const entries = fs.readdirSync(dir, { withFileTypes: true });
-
-            for (const entry of entries) {
-                const fullPath = path.join(dir, entry.name);
-
-                if (entry.isDirectory()) {
-                    search(fullPath);
-                } else if (fileName.includes(entry.name)) {
-                    files.push(fullPath);
-                }
-            }
-        };
-
-        search(dir);
-        return files;
-    }
-
     async execCommand(command : string, options: ServerOptions = {}, successExitMessage: string = undefined) {
         try {
             const subprocess = execa.command(command, {
@@ -299,24 +277,8 @@ export default class ExtensionPreviewURL {
         }
     }
 
-    public async getRandomFreePort(excluded_port = []) {
-
-        const randomPort = Math.floor(Math.random() * (10000)) + 40000;
-        if (excluded_port.includes(randomPort)) {
-            return await this.getRandomFreePort(excluded_port);
-        }
-        const availablePort = await detectPort(randomPort);
-
-        // If the randomly selected port is free, return it. Otherwise, retry until a free port is found.
-        if (availablePort === randomPort) {
-            return randomPort;
-        } else {
-            return await this.getRandomFreePort([...excluded_port, randomPort]);
-        }
-    }
-
     public readAndValidateFDKExtConfigFiles(){
-        let projectConfigFiles = this.findAllFilePathFromCurrentDirWithName(['fdk.ext.config.json', 'fdk.ext.config.yml']);
+        let projectConfigFiles = findAllFilePathFromCurrentDirWithName(['fdk.ext.config.json', 'fdk.ext.config.yml']);
         const projectConfigs = [];
 
         const validateConfigStructure = (config) => {
@@ -400,40 +362,5 @@ Or you can use fdk extension tunnel --port <port> command to start tunnel\n`)
         }
 
         return projectConfigs;
-    }
-
-    public readExtensionContext(){
-        let extensionContextFiles = this.findAllFilePathFromCurrentDirWithName([CONSTANTS.EXTENSION_CONTEXT_FILE_NAME]);
-
-        if (extensionContextFiles.length > 1) {
-            throw new CommandError(
-                ErrorCodes.MULTIPLE_EXTENSION_CONTEXT_FILE.message,
-                ErrorCodes.MULTIPLE_EXTENSION_CONTEXT_FILE.code
-            )
-        }
-        else if(extensionContextFiles.length == 0){
-            fs.writeFileSync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME, '{}');
-            extensionContextFiles = [path.resolve(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME)];
-        }
-
-        this.extensionContextFilePath = extensionContextFiles[0];
-
-        const extensionContext = require(this.extensionContextFilePath);
-
-        return extensionContext;
-    }
-
-    public updateExtensionContext(extensionContext: Record<string, string|number>, key: string, value: string){
-        extensionContext[key] = value;
-        fs.writeFileSync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME, JSON.stringify(extensionContext, null, 4));
-    }
-
-    public deleteKeyFromExtensionContext(extensionContext: Record<string, string|number>, key: string){
-        delete extensionContext[key];
-        fs.writeFileSync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME, JSON.stringify(extensionContext, null, 4));
-    }
-
-    public deleteExtensionContext(){
-        rimraf.sync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME);
     }
 }

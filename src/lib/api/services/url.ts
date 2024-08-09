@@ -131,6 +131,13 @@ export const URLS = {
     },
 
     // Extension
+    GET_EXTENSION_LIST: (page_no: number, page_size: number): string => {
+        return urlJoin(
+            MIXMASTER_URL('partner'),
+            `/organization/${getOrganizationId()}/extension/?page_size=${page_size}&page_no=${page_no}`,
+        );
+    },
+
     REGISTER_EXTENSION_PARTNER: (): string => {
         return urlJoin(
             MIXMASTER_URL('partner'),
@@ -188,12 +195,6 @@ export const URLS = {
         );
     },
 
-    GET_EXTENSION_LIST: (page_no: number, page_size: number): string => {
-        return urlJoin(
-            MIXMASTER_URL('partner'),
-            `/organization/${getOrganizationId()}/extension/?page_size=${page_size}&page_no=${page_no}`,
-        );
-    },
 
     IS_VERSION_COMPATIBLE: () => {
         return urlJoin(BLITZKRIEG_PANEL_URL(), '/_compatibility');
