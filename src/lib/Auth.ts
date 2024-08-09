@@ -67,8 +67,7 @@ function startTimer(){
     Debug("Server timer starts")
     Auth.timer_id = setTimeout(() => {
         Auth.stopSever(() => {
-            console.log(chalk.red('Server timeout: Please run fdk login command again.'));
-            process.exit(1);
+            console.log(chalk.red(`Timeout: Please run ${chalk.blue('fdk login')} command again.`));
         })
     }, SERVER_TIMER)
 }
@@ -94,7 +93,6 @@ export const startServer = async () => {
         } else {
             console.error(chalk.red('An unexpected error occurred:'), error);
         }
-        process.exit(1);
     });
 
     Auth.server = serverIn.listen(port);
@@ -127,8 +125,8 @@ export default class Auth {
         await checkVersionCompatibility();
         let env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
 
-        if(options.apiDomain){
-            await Env.setNewEnvs(options.apiDomain);
+        if(options.host){
+            await Env.setNewEnvs(options.host);
             env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
         } else {
             env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
@@ -171,12 +169,17 @@ export default class Auth {
                             `${getLocalBaseUrl()}:${port}`,
                         )}`,
                     );
+                    console.log(
+                        `Open link on browser: ${chalk.blue(`${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
+                            `${getLocalBaseUrl()}:${port}`,
+                        )}`)}`,
+                    );
                 }
             } catch (err) {
                 console.log(
-                    `Open link on browser: ${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
+                    `Open link on browser: ${chalk.blue(`${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
                         `${getLocalBaseUrl()}:${port}`,
-                    )}`,
+                    )}`)}`,
                 );
             }
         } catch (error) {

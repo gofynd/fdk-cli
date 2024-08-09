@@ -131,7 +131,7 @@ fdk login [options]
 #### **Command Options**
 | Option        | Description           | 
 | ------------- |-------------| 
-| --api-domain    | API domain |
+| --host    | API host |
 | --help    | Show help |
 | --verbose, -v | enable debug mode |
 
@@ -140,10 +140,10 @@ fdk login [options]
 fdk login
 ```
 ```sh
-fdk login -ad api.fynd.com
+fdk login -h api.fynd.com
 ```
 ```sh
-fdk login --api-domain api.fynd.com
+fdk login --host api.fynd.com
 ```
 
 <div id="user"></div>

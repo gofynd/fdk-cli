@@ -47,9 +47,9 @@ export async function login(domain?: string) {
     const app = await startServer();
     const req = request(app);
     if(domain)
-        await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '-ad', domain]);
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '-h', domain]);
     else
-        await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '-ad', '']);
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '-h', '']);
     return await req.post('/token').send(tokenData);
 }
 
