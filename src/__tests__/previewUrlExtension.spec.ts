@@ -1,16 +1,15 @@
 import axios from 'axios';
 import { withoutErrorResponseInterceptorAxios } from '../lib/api/ApiClient';
 import rimraf from 'rimraf';
-import inquirer from 'inquirer';
 import MockAdapter from 'axios-mock-adapter';
 import { init } from '../fdk';
 import { CommanderStatic } from 'commander';
 import { URLS } from '../lib/api/services/url';
-import { successBox } from '../helper/formatter';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
 import Logger from '../lib/Logger';
 import fs from 'fs';
 import * as CONSTANTS from './../helper/constants'
+import { mockFormatter } from './helper';
 
 // fixtures
 const TOKEN = 'mocktoken';
@@ -30,14 +29,7 @@ const fdkExtConfigBackEnd = require('./fixtures/fdkExtConfigBackEnd.json')
 let program: CommanderStatic;
 let winstonLoggerSpy: jest.SpyInstance<any>;
 
-jest.mock('../helper/formatter', () => ({
-    successBox: ({ text }) => {
-        return text;
-    },
-    displayFixedText: (text) => {
-        return text;
-    },
-}));
+mockFormatter();
 
 jest.mock('configstore', () => {
     const Store =

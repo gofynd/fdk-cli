@@ -8,7 +8,7 @@ import which from 'which';
 
 import { getPlatformUrls } from './api/services/url';
 import Spinner from '../helper/spinner';
-import { successBox } from '../helper/formatter';
+import { OutputFormatter, successBox } from '../helper/formatter';
 import CommandError, { ErrorCodes } from './CommandError';
 import ExtensionService, {
     RegisterExtensionPayloadNew,
@@ -23,7 +23,6 @@ import {
 
 import { createDirectory, writeFile, readFile } from '../helper/file.utils';
 import ConfigStore, { CONFIG_KEYS } from './Config';
-import { getBaseURL } from './api/services/url';
 import {
     installNpmPackages,
     installJavaPackages,
@@ -266,13 +265,13 @@ export default class Extension {
             let text =
                 chalk.green('Success! Created your extension at ') + chalk.bold.blue(targetDir) +
                 chalk.green('\nInside that directory, you can run several commands:\n\n') +
-                `  ${chalk.cyan('fdk extension preview')}\n` +
-                `  ${chalk.cyan('fdk extension launch-url')}\n\n` +
+                `  ${OutputFormatter.command('fdk extension preview')}\n` +
+                `  ${OutputFormatter.command('fdk extension launch-url')}\n\n` +
                 chalk.green('We suggest that you begin by typing:\n\n') +
-                `  ${chalk.cyan('cd')} ${chalk.bold.blue(targetDir)}\n` +
-                `  ${chalk.cyan('fdk extension preview')}\n\n` +
+                `  ${OutputFormatter.command(`cd ${targetDir}`)}\n` +
+                `  ${OutputFormatter.command('fdk extension preview')}\n\n` +
                 chalk.green.bold(
-                    `Check your extension: ${createDevelopmentCompanyFormURL}\n\n`,
+                    `${OutputFormatter.link(createDevelopmentCompanyFormURL, 'Check your extension:')}\n\n`,
                 ) + 'Happy coding!';
 
             Logger.info(
@@ -480,74 +479,5 @@ export default class Extension {
             return true;
         }
         return false;
-    }
-
-    // command handler for "extension setup"
-    public static async setupExtensionHandler(options) {
-        try {
-            let answers: Object;
-
-            let questions = [
-                {
-                    type: 'input',
-                    name: 'extension_api_key',
-                    message: 'Enter Extension API Key :',
-                    validate: validateEmpty,
-                },
-                {
-                    type: 'input',
-                    name: 'extension_api_secret',
-                    message: 'Enter Extension API Secret :',
-                    validate: validateEmpty,
-                },
-                {
-                    type: 'list',
-                    choices: [
-                        NODE_REACT,
-                        NODE_VUE,
-                        JAVA_REACT,
-                        JAVA_VUE
-                    ],
-                    default: NODE_VUE,
-                    name: 'project_type',
-                    message: 'Template :',
-                    validate: validateEmpty,
-                }
-            ];
-
-            answers = { ...answers, ...(await inquirer.prompt(questions)) };
-            answers.project_url = PROJECT_REPOS[answers.project_type];
-
-            Extension.checkDependencies(answers.project_type);
-
-            let extension_data: Object;
-            let spinner = new Spinner('Verifying API Keys');
-            try {
-                spinner.start();
-                extension_data =
-                    await ExtensionService.getExtensionDataPartners(
-                        answers.extension_api_key,
-                    );
-                if (!extension_data) {
-                    throw new Error();
-                }
-                spinner.succeed();
-            } catch (error) {
-                spinner.fail();
-                throw new CommandError(
-                    ErrorCodes.INVALID_KEYS.message,
-                    ErrorCodes.INVALID_KEYS.code,
-                );
-            }
-
-            answers.base_url = extension_data.base_url;
-            answers.name = extension_data.name;
-            answers.targetDir = options['targetDir'] || answers.name;
-            Extension.checkFolderAndGitExists(answers.targetDir, true);
-
-            await Extension.createExtension(answers, false);
-        } catch (error) {
-            throw new CommandError(error.message, error.code);
-        }
     }
 }

@@ -1,11 +1,9 @@
 import { Object, getPartnerAccessToken } from '../helper/extension_utils';
-import { readFile, writeFile } from '../helper/file.utils';
 import chalk from 'chalk';
 import ExtensionService from './api/services/extension.service';
 import CommandError from './CommandError';
 import Spinner from '../helper/spinner';
-import path from 'path';
-import Extension from './Extension';
+import { OutputFormatter } from '../helper/formatter';
 
 export default class ExtensionLaunchURL {
     public static async setLaunchURLHandler(options) {
@@ -115,7 +113,7 @@ export default class ExtensionLaunchURL {
 
                 spinner.succeed();
                 console.log(
-                    chalk.greenBright(`Current launch URL: ${launchURL}`),
+                    chalk.greenBright(`Current launch URL: ${OutputFormatter.link(launchURL)}`),
                 );
             } catch (error) {
                 spinner.fail();

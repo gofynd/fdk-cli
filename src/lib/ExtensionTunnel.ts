@@ -3,7 +3,7 @@ import Spinner from '../helper/spinner';
 import CommandError, { ErrorCodes } from './CommandError';
 import Debug from './Debug';
 import Logger from './Logger';
-import { successBox } from '../helper/formatter';
+import { OutputFormatter, successBox } from '../helper/formatter';
 
 export default class ExtensionTunnel {
     options: {
@@ -22,7 +22,7 @@ export default class ExtensionTunnel {
 
         Logger.info(
             successBox({
-                text: `TUNNEL URL: ${extensionTunnel.publicTunnelURL}`
+                text: `TUNNEL URL: ${OutputFormatter.link(extensionTunnel.publicTunnelURL)}`
             })
         )
     }

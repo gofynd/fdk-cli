@@ -5,7 +5,6 @@ import chalk from 'chalk';
 import axios from 'axios';
 import urljoin from 'url-join';
 import { isValidDomain } from '../helper/utils';
-import Debug from './Debug';
 import { getPlatformUrls } from './api/services/url';
 
 export default class Env {

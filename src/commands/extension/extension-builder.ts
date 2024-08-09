@@ -3,6 +3,7 @@ import Extension from '../../lib/Extension';
 import ExtensionLaunchURL from '../../lib/ExtensionLaunchURL';
 import ExtensionPreviewURL from '../../lib/ExtensionPreviewURL';
 import ExtensionTunnel from '../../lib/ExtensionTunnel';
+import { errorBox, OutputFormatter } from './../../helper/formatter';
 
 export default function extensionCommandBuilder() {
     const extension = new Command('extension')
@@ -25,7 +26,11 @@ export default function extensionCommandBuilder() {
             '--target-dir <path>',
             'Target directory for creating extension repository',
         )
-        .asyncAction(Extension.setupExtensionHandler);
+        .asyncAction(() => {
+            console.log(errorBox({
+                text: `This command is deprecated.\nPlease use ${OutputFormatter.command('fdk extension init')} instead`
+            }));
+        });
 
     extension
         .command('preview-url')

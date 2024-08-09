@@ -14,7 +14,7 @@ import {
     getCompanyId,
     selectExtensionFromList,
 } from '../helper/extension_utils';
-import { displayFixedText, successBox } from '../helper/formatter';
+import { displayStickyText, OutputFormatter, successBox } from '../helper/formatter';
 import CommandError, { ErrorCodes } from './CommandError';
 import * as CONSTANTS from './../helper/constants';
 import Logger from './Logger';
@@ -55,18 +55,27 @@ export default class ExtensionPreviewURL {
             // Read extension context file
             const extensionContext = extension.readExtensionContext();
 
+            let extensionDetailsText = ``;
+
             // get the companyId
             if (!extension.options.companyId) {
                 if(!extensionContext[CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY]){
                     extension.options.companyId = await getCompanyId("Select the development company you'd like to use to run the extension: ?");
                     extension.updateExtensionContext(extensionContext, CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY, extension.options.companyId);
                     Debug(`Using user selected development company ${extension.options.companyId}`)
+                    extensionDetailsText += `Development Company: ${extension.options.companyId}`;
                 }
                 else{
                     extension.options.companyId = extensionContext[CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY];
-                    Logger.info(`Using development company ${extension.options.companyId} from extension context file\n`);
+                    Debug(`Using development company ${extension.options.companyId} from extension context file\n`);
+                    extensionDetailsText += `Development Company: ${extension.options.companyId} (from extension context)`;
                 }
             }
+            else{
+                extensionDetailsText += `Development Company: ${extension.options.companyId} (from command flag)`;
+            }
+
+            let extensionDetails;
 
             // get the extension api key
             if (!extension.options.apiKey) {
@@ -77,24 +86,70 @@ export default class ExtensionPreviewURL {
                     Debug(
                         `Using user selected Extension ${selected.extension.name} with API key ${selected.extension.id}`,
                     );
+                    extensionDetailsText += `\nExtension: ${selected.extension.name} (${extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]})`;
                 }
                 else{
                     extension.options.apiKey = extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY];
-                    Logger.info(`Using Extension API key ${extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]} from extension context file\n`);
+                    extensionDetails = await ExtensionService.getExtensionDataPartners(extension.options.apiKey);
+                    let extensionName = extensionDetails.name;
+                    Debug(`Using Extension ${extensionName} with API Key ${extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]} from extension context file\n`);
+                    extensionDetailsText += `\nExtension: ${extensionName} (${extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]}) (from extension context)`;
                 }
-                
+            }
+            else{
+                extensionDetails = await ExtensionService.getExtensionDataPartners(extension.options.apiKey);
+                let extensionName = extensionDetails.name;
+                extensionDetailsText += `Extension: ${extensionName} (${extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]}) (from command flag)`;
             }
 
             // Get the extension api secret
             if(!extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_SECRET]){
-                const extensionDetails = await ExtensionService.getExtensionDataPartners(extension.options.apiKey);
+                if(!extensionDetails){
+                    extensionDetails = await ExtensionService.getExtensionDataPartners(extension.options.apiKey);
+                }
                 extension.options.apiSecret = extensionDetails.client_data.secret[0];
                 extension.updateExtensionContext(extensionContext, CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_SECRET, extension.options.apiSecret);
             }
             else{
                 extension.options.apiSecret = extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_SECRET];
-                Logger.info(`Using Extension Secret from extension context file\n`);
+                Debug(`Using Extension Secret from extension context file\n`);
             }
+
+            extensionDetailsText += "\n";
+
+            // Get Port to start the extension server
+            let frontend_port : number;
+            let backend_port : number;
+            
+            // Get the port value from project config files if present
+            for(const projectConfig of projectConfigs) {
+                if(projectConfig['roles'].includes('frontend') && projectConfig['port']){
+                    frontend_port = projectConfig['port'];
+                    extensionDetailsText += `\nFRONTEND PORT: ${frontend_port} (from config file)`;
+                }
+                else if(projectConfig['roles'].includes('backend') && projectConfig['port']){
+                    backend_port = projectConfig['port'];
+                    extensionDetailsText += `\nBACKEND PORT: ${backend_port} (from config file)`;
+                }
+            }
+            
+            // If port is not defined in config files generate random port to start server
+            if(!frontend_port){
+                frontend_port = await extension.getRandomFreePort([]);
+                extensionDetailsText += `\nFRONTEND PORT: ${frontend_port} (random free port assigned)`;
+            }
+            if(!backend_port){
+                backend_port = await extension.getRandomFreePort([frontend_port]);
+                extensionDetailsText += `\nBACKEND PORT: ${backend_port} (random free port assigned)`;
+            }
+            extension.options.port = frontend_port;
+
+            // Printing info box
+            Logger.info(
+                successBox({
+                    text: extensionDetailsText
+                })
+            )
 
             // install project dependencies
             for(const projectConfig of projectConfigs){
@@ -110,35 +165,12 @@ export default class ExtensionPreviewURL {
                 }
             }
 
-            // Get Port to start the extension server
-            let frontend_port : number;
-            let backend_port : number;
-            
-            // Get the port value from project config files if present
-            for(const projectConfig of projectConfigs) {
-                if(projectConfig['roles'].includes('frontend')){
-                    frontend_port = projectConfig['port'];
-                }
-                else if(projectConfig['roles'].includes('backend')){
-                    backend_port = projectConfig['port'];
-                }
-            }
-            
-            // If port is not defined in config files generate random port to start server
-            if(!frontend_port){
-                frontend_port = await extension.getRandomFreePort([]);
-            }
-            if(!backend_port){
-                backend_port = await extension.getRandomFreePort([frontend_port]);
-            }
-            extension.options.port = frontend_port;
-
             // Start Tunnel
             // Check if tunnel url is provided in options, use it
             if(extension.options.tunnelUrl){
                 extension.publicTunnelURL = extension.options.tunnelUrl;
                 Logger.info(
-                    `Using tunnel url : ${extension.publicTunnelURL}`
+                    `Using tunnel url ${OutputFormatter.link(extension.publicTunnelURL)} from --tunnel-url flag`
                 );
             }
             else {
@@ -195,18 +227,13 @@ export default class ExtensionPreviewURL {
             // get preview URL
             const previewURL = extension.getPreviewURL();
             Debug(
-                `TUNNEL URL: ${extension.publicTunnelURL
-                }`,
+                `TUNNEL URL: ${extension.publicTunnelURL}`,
             );
             const stickyText = successBox({
-                text: `TUNNEL URL: ${extension.publicTunnelURL
-                    }\nExtension preview URL: ${previewURL}`,
+                text: `${OutputFormatter.link(extension.publicTunnelURL, 'TUNNEL URL:')}\n${OutputFormatter.link(previewURL, 'Extension preview URL: ')}`,
             });
 
-            displayFixedText(stickyText);
-            Logger.info(
-                stickyText
-            );
+            displayStickyText(stickyText, Logger.info);
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
