@@ -117,59 +117,33 @@ fdk login --verbose
 <div id="commands-reference"><div/>
 
 ## Commands Reference
-### Environment Commands
-Before you start using FDK CLI you will have to set an environment
-
-<div id="env-set"></div>
-
-#### **env set**
-This command sets the active environment to the value provided by the user.
-
-#### **Syntax**
-```sh
-fdk env set [options]
-```
-#### **Example**
-```sh
-fdk env set -u api.fynd.com
-```
-#### **Command Options**
-| Option        | Description | Required |
-| ------------- |-------------|----------|
-| --url, -u   | Platform API domain | Yes |
-| --help    | Show help | No |
-| --verbose, -v | enable debug mode | No |
-
-<div id="env-get"></div>
-
-___
-
-#### **env get**
-This command displays the active environment set by the user. Default environment: `api.fynd.com`
-#### **Syntax**
-```sh
-fdk env get
-```
 ___
 ### Authentication Commands
-After setting the environment the user has to login to the cli.
+To use fdk cli command the user has to login to the cli.
 <div id="login"></div>
 
 #### **login**
 This command allows user to login via partner panel.
 #### **Syntax**
 ```sh
-fdk login
+fdk login [options]
 ```
 #### **Command Options**
 | Option        | Description           | 
 | ------------- |-------------| 
+| --host    | API host |
 | --help    | Show help |
 | --verbose, -v | enable debug mode |
 
 #### **Example**
 ```sh
 fdk login
+```
+```sh
+fdk login -h api.fynd.com
+```
+```sh
+fdk login --host api.fynd.com
 ```
 
 <div id="user"></div>
@@ -366,12 +340,6 @@ fdk theme open
 ```
 ### Extension Commands
 Extensions are pluggable snippets of code that can be installed in your applications so improve the feature set of your application. To know more visit - [Fynd Partners](https://partners.fynd.com/)
-
-Set the active environment before running extension commands
-```sh
-fdk env set -u api.fynd.com
-```
-
 
 <div id="extension-init"></div>
 
