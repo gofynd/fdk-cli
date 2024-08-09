@@ -34,6 +34,9 @@ jest.mock('../helper/formatter', () => ({
     successBox: ({ text }) => {
         return text;
     },
+    displayFixedText: ({ text }) => {
+        return text;
+    },
 }));
 
 jest.mock('configstore', () => {
