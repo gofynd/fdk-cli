@@ -17,16 +17,3 @@ export function setEnv() {
     configStore.set(CONFIG_KEYS.CURRENT_ENV, {}); // active_context: {}
     configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'api.fyndx1.de');
 }
-
-export function mockFormatter(){
-    jest.mock('../helper/formatter', () => {
-        const originalFormatter = jest.requireActual('../helper/formatter');
-        originalFormatter.successBox = originalFormatter.warningBox = originalFormatter.errorBox = ({ text }) => {
-            return text;
-        };
-        originalFormatter.displayStickyText = (text, logger = console.log) => {
-            logger(text);
-        };
-        return originalFormatter;
-    });
-}
