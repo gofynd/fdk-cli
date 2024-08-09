@@ -158,6 +158,7 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
                     throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
             }
             if (
+                parent.args.includes('theme') &&
                 THEME_COMMANDS.findIndex((c) => themeCommand.includes(c)) !== -1
             ) {
                 const activeContextEnv = getActiveContext().env;
@@ -256,7 +257,7 @@ export async function init(programName: string) {
     ) {
         console.warn(
             chalk.yellow(
-                `Warning: Reseting active environment to api.fynd.com. Please use \`fdk env set -u <env-api-url>\` to change active environment. Ref: ${
+                `Warning: Reseting active environment to api.fynd.com. Please use \`fdk login -h <platform-host>\` to login with different environment. Ref: ${
                     getPlatformUrls().partners
                 }/help/docs/partners/themes/vuejs/command-reference#environment-commands-1`,
             ),

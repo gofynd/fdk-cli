@@ -6,6 +6,7 @@ export default function context(program: Command) {
     program
         .command('auth')
         .alias('login')
+        .option('-h, --host [platform-host]', 'Platform api domain')
         .description('Login using partner panel')
         .asyncAction(Auth.login);
 
