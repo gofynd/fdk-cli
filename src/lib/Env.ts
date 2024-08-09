@@ -6,7 +6,6 @@ import axios from 'axios';
 import urljoin from 'url-join';
 import { isValidDomain } from '../helper/utils';
 import Debug from './Debug';
-import { getPlatformUrls } from './api/services/url';
 
 export default class Env {
     constructor() {}
@@ -26,34 +25,53 @@ export default class Env {
         Logger.info(`Currently using Platform URL: ${chalk.bold(ctx)}`);
     }
 
-    public static async setNewEnvs(options) {
+    public static async setNewEnvs(domain) {
         try {
-            // todo: remove name warning in future version
-            if (options.name) {
-                console.warn(
-                    chalk.yellow(
-                        `Warning: The -n/--name option is deprecated. Please use -u/--url option instead. Ref: ${
-                            getPlatformUrls().partners
-                        }/help/docs/partners/themes/vuejs/command-reference#environment-commands-1`,
-                    ),
-                );
-                throw new Error('Please use -u/--url option.');
-            }
-            if (!options.url) {
-                throw new Error('Please provide -u/--url option.');
+            Debug(`Setting env: ${domain}`);
+            let finalDomain = domain;
+
+            // remove https:// from domain if present
+            if (domain.includes('https://')) {
+                finalDomain = domain.replace('https://', '');
             }
 
-            if (!isValidDomain(options.url)) {
-                throw new Error('Please provide valid URL.');
+            // validate domain
+            if (!isValidDomain(finalDomain)) {
+                throw new Error(
+                    `Please provide valid domain, Example: api.fynd.com`,
+                );
             }
-            const url = urljoin(
-                'https://',
-                options.url,
-                '/service/application/content/_healthz',
-            );
-            await axios.get(url);
-            Env.setEnv(options.url);
-            Logger.info(`FDK CLI environment is now set to ${chalk.bold(options.url)}.\nAll subsequent commands will be executed in this environment.`);
+
+            // replace parnters to api
+            if (finalDomain.includes('partners')) {
+                finalDomain = finalDomain.replace('partners', 'api');
+            }
+
+            try {
+                // check if healthz route exist or not
+                const url = urljoin(
+                    'https://',
+                    finalDomain,
+                    '/service/application/content/_healthz',
+                );
+                const response = await axios.get(url);
+
+                if (response?.status === 200) {
+                    Env.setEnv(finalDomain);
+                    Logger.info(
+                        `FDK CLI environment is now set to ${chalk.bold(finalDomain)}.\nAll subsequent commands will be executed in this environment.`,
+                    );
+                } else {
+                    throw new Error(
+                        'Provided domain is not valid host.',
+                    );
+                }
+            } catch (err) {
+                Debug(err);
+                throw new Error(
+                    'Provided domain is not valid host.',
+                );
+            }
         } catch (e) {
             throw new CommandError(e.message);
         }
