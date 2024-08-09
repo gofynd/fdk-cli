@@ -1,6 +1,6 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import fs from 'fs';
+import fs from 'fs-extra';
 import path from 'path';
 import execa from 'execa';
 import rimraf from 'rimraf';
@@ -18,6 +18,7 @@ import {
     Object,
     validateEmpty,
     replaceContent,
+    selectExtensionFromList,
 } from '../helper/extension_utils';
 
 import { createDirectory, writeFile, readFile } from '../helper/file.utils';
@@ -26,14 +27,35 @@ import { getBaseURL } from './api/services/url';
 import {
     installNpmPackages,
     installJavaPackages,
+    moveDirContent,
 } from '../helper/utils';
 import Logger from './Logger';
 import urljoin from 'url-join';
+import Debug from './Debug';
+import { TEMP_DIR_NAME, EXTENSION_CONTEXT_FILE_NAME } from '../helper/constants';
 
 export const NODE_VUE = 'Node + Vue 3 + SQLite';
 export const NODE_REACT = 'Node + React.js + SQLite';
 export const JAVA_VUE = 'Java + Vue 2 + Redis';
 export const JAVA_REACT = 'Java + React.js + Redis';
+export const EXTENSION_BRANCH = 'update-sub-module'; // update-sub-module
+
+const TEMPLATES = {
+    'node-vue': NODE_VUE,
+    'node-react': NODE_REACT,
+    'java-vue': JAVA_VUE,
+    'java-react': JAVA_REACT
+}
+
+const INIT_ACTIONS = {
+    create_extension: "create_extension",
+    select_extension: "select_extension"
+}
+
+const INIT_ACTION_LIST = [
+    { name: 'Create new extension', value: INIT_ACTIONS.create_extension },
+    { name: 'Select existing extension', value: INIT_ACTIONS.select_extension }
+]
 
 export const PROJECT_REPOS = {
     [NODE_VUE]: 'https://github.com/gofynd/example-extension-javascript.git',
@@ -49,23 +71,49 @@ export default class Extension {
         targetDirectory: string,
         answers: Object,
     ) {
+        const tempDirectory = targetDirectory + `/${TEMP_DIR_NAME}`;
         try {
             if (!fs.existsSync(targetDirectory)) {
                 createDirectory(targetDirectory);
+                createDirectory(tempDirectory);
             }
-            await execa('git', ['init'], { cwd: targetDirectory });
+            await execa('git', ['init'], { cwd: tempDirectory });
             await execa(
                 'git',
                 ['remote', 'add', 'origin', answers.project_url],
-                { cwd: targetDirectory },
+                { cwd: tempDirectory },
             );
-            await execa('git', ['pull', 'origin', 'main:main'], {
-                cwd: targetDirectory,
+            
+            await execa('git', ['pull', '--recurse-submodules', 'origin', EXTENSION_BRANCH], {
+                cwd: tempDirectory,
             });
-            rimraf.sync(`${targetDirectory}/.git`); // unmark as git repo
+            await execa('git', ['submodule', 'update', '--init', '--recursive'], {
+                cwd: tempDirectory,
+            });
+            Debug("Fetching submodule path")
+            const s = await execa('git', ['config', '--file', '.gitmodules', '--get-regexp', 'path'], {
+                cwd: tempDirectory,
+            }).catch((err) => {
+                Debug("No submodule found")
+                return err;
+            });
+            const submodulePath = s?.stdout?.split?.(" ")?.[1] ?? null;
+            
+            rimraf.sync(`${tempDirectory}/.git`); // unmark as git repo
+            rimraf.sync(`${tempDirectory}/.gitmodules`); // Remove the .gitmodules file
+            
+            const submoduleGitPath = `${tempDirectory}/${submodulePath}/.git`
+            submodulePath && Debug(`Deleting ${submoduleGitPath}`)
+            submodulePath && rimraf.sync(submoduleGitPath); // unmark as git repo from submodules
+            
+            await moveDirContent(tempDirectory, targetDirectory) // move project from temporary directory to extension directory
+            Debug(`All extension files moved successfully.`)
+            
             return true;
         } catch (error) {
             return Promise.reject(error);
+        } finally {
+            fs.removeSync(tempDirectory);
         }
     }
 
@@ -89,8 +137,7 @@ export default class Extension {
                 `${targetDir}/pom.xml`,
                 replaceContent(pomXml, 'groot', answerObject.name),
             );
-
-            targetDir = `${targetDir}/app`;
+            targetDir = `${targetDir}/frontend`;
         }
 
         let packageJson = readFile(`${targetDir}/package.json`);
@@ -99,6 +146,19 @@ export default class Extension {
             `${targetDir}/package.json`,
             replaceContent(packageJson, 'groot', packageName),
         );
+    }
+
+    private static async updateExtensionContextFile(
+        targetDir: string,
+        extension_api_key: string, 
+        extension_api_secret: string
+    ){
+        const extensionContext = {
+            EXTENSION_API_KEY: extension_api_key,
+            EXTENSION_API_SECRET: extension_api_secret
+        };
+
+        fs.writeFileSync(path.join(targetDir, EXTENSION_CONTEXT_FILE_NAME), JSON.stringify(extensionContext, null, 4));
     }
 
     // wrapper function for installing dependencies in extension
@@ -111,7 +171,7 @@ export default class Extension {
             await installNpmPackages(path.join(answers.targetDir, 'frontend'));
         } else if (project_type === JAVA_VUE || project_type === JAVA_REACT) {
             // installing dependencies for java projects
-            // await Extension.installNpmPackages(`${answers.targetDir}/app`);
+            await installNpmPackages(path.join(answers.targetDir, 'frontend'));
             await installJavaPackages(answers.targetDir);
         }
     }
@@ -139,7 +199,7 @@ export default class Extension {
                 const data: RegisterExtensionPayloadNew = {
                     name: answers.name,
                     base_url: 'http://localdev.fynd.com',
-                    // We are just passing this url as temporary when preview url is called it gets updated with the ngrok url
+                    // We are just passing this url as temporary when preview url is called it gets updated with the tunnel url
                     extention_type: answers.type.toLowerCase(),
                     // Adding this for backward compatibility for v1.8.X
                     callbacks: {
@@ -165,7 +225,7 @@ export default class Extension {
                     let extension_data: Object =
                         await ExtensionService.registerExtensionPartners(data);
                     answers.extension_api_key = extension_data.client_id;
-                    answers.extension_api_secret = extension_data.secret;
+                    answers.extension_api_secret = extension_data.secret[0];
                     answers.base_url = extension_data.base_url;
                     spinner.succeed();
                 } catch (error) {
@@ -177,32 +237,11 @@ export default class Extension {
             spinner = new Spinner('Installing Dependencies');
             try {
                 spinner.start();
-                if (
-                    answers.project_type === JAVA_VUE ||
-                    answers.project_type === JAVA_REACT
-                ) {
-                    const ymlData = `\n\next :\n  api_key : "${
-                        answers.extension_api_key
-                    }"\n  api_secret : "${
-                        answers.extension_api_secret
-                    }"\n  scopes : ""\n  base_url : "${
-                        answers.base_url
-                    }"\n  cluster : "${getBaseURL()}"`;
-                    fs.writeFileSync(
-                        `${answers.targetDir}/src/main/resources/application.yml`,
-                        ymlData,
-                        { flag: 'a+' },
-                    );
-                } else {
-                    const envData = `EXTENSION_API_KEY="${
-                        answers.extension_api_key
-                    }"\nEXTENSION_API_SECRET="${
-                        answers.extension_api_secret
-                    }"\nEXTENSION_BASE_URL="${
-                        answers.base_url
-                    }"\nEXTENSION_CLUSTER_URL="${getBaseURL()}"\nBACKEND_PORT=8080\nFRONTEND_PORT=8081`;
-                    fs.writeFileSync(`${answers.targetDir}/.env`, envData);
-                }
+                await Extension.updateExtensionContextFile(
+                    answers.targetDir,
+                    answers.extension_api_key,
+                    answers.extension_api_secret
+                );
                 await Extension.replaceGrootWithExtensionName(
                     answers.targetDir,
                     answers,
@@ -210,6 +249,7 @@ export default class Extension {
                 await Extension.installDependencies(answers);
                 spinner.succeed();
             } catch (error) {
+                Debug(JSON.stringify(error));
                 spinner.fail();
             }
             const organizationId = ConfigStore.get(CONFIG_KEYS.ORGANIZATION);
@@ -224,13 +264,16 @@ export default class Extension {
                   )
                 : getPlatformUrls().partners;
             let text =
-                chalk.green.bold('DONE ') +
-                chalk.green.bold('Project ready\n') +
-                chalk.yellowBright.bold('NOTE: ') +
-                chalk.green.bold(`cd "${targetDir}" to continue...\n`) +
+                chalk.green('Success! Created your extension at ') + chalk.bold.blue(targetDir) +
+                chalk.green('\nInside that directory, you can run several commands:\n\n') +
+                `  ${chalk.cyan('fdk extension preview')}\n` +
+                `  ${chalk.cyan('fdk extension launch-url')}\n\n` +
+                chalk.green('We suggest that you begin by typing:\n\n') +
+                `  ${chalk.cyan('cd')} ${chalk.bold.blue(targetDir)}\n` +
+                `  ${chalk.cyan('fdk extension preview')}\n\n` +
                 chalk.green.bold(
-                    `Check your extension: ${createDevelopmentCompanyFormURL}`,
-                );
+                    `Check your extension: ${createDevelopmentCompanyFormURL}\n\n`,
+                ) + 'Happy coding!';
 
             Logger.info(
                 successBox({
@@ -245,7 +288,7 @@ export default class Extension {
     // check for system dependencies
     static checkDependencies(project_type: string) {
         const missingDependencies: string[] = [];
-        const requiredDependencies: string[] = ['npm'];
+        const requiredDependencies: string[] = ['npm', 'git'];
 
         if (project_type === JAVA_REACT || project_type === JAVA_VUE) {
             requiredDependencies.push('mvn');
@@ -268,54 +311,114 @@ export default class Extension {
         }
     }
 
+    private static async confirmInitAction(){
+        const extensionTypeQuestions = [
+            {
+                type: 'list',
+                choices: INIT_ACTION_LIST,
+                name: 'action',
+                message: 'Do you want to :',
+                validate: validateEmpty,
+            }
+        ];
+        
+        let prompt_answers: Object = await inquirer.prompt(
+            extensionTypeQuestions,
+        );
+
+        return prompt_answers.action
+    }
+
     // command handler for "extension init"
     public static async initExtensionHandler(options: Object) {
         try {
             let answers: Object = {};
+            let selected_ext_type;
 
-            await inquirer
-                .prompt([
-                    {
-                        type: 'input',
-                        name: 'name',
-                        message: 'Enter Extension name :',
-                        validate: validateEmpty,
-                    },
-                ])
-                .then((value) => {
-                    answers.name = value.name;
-                });
+            let action =  INIT_ACTIONS.create_extension;
+            Debug("Checking if extensions exist in developer's organization...")
+            const extensionList = await ExtensionService.getExtensionList(1, 9999);
+
+            if(extensionList.items.length)
+                action = await Extension.confirmInitAction();
+            
+            // if developer wants to select from existing extension
+            if(action === INIT_ACTIONS.select_extension){
+                const selected_extension = await selectExtensionFromList(extensionList);
+                const selected_ext_api_key = selected_extension.extension.id;
+                const extensionDetails = await ExtensionService.getExtensionDataPartners(selected_ext_api_key);
+                selected_ext_type = extensionDetails.extention_type;
+                
+                // set answers for createExtension function, this will be use to set data in extension config
+                answers.name = selected_extension.extension.name;
+                answers.type = selected_ext_type;
+                answers.extension_api_key = selected_ext_api_key;
+                answers.extension_api_secret = extensionDetails.client_data.secret[0];
+            } else {
+                // ask new extension name
+                await inquirer
+                    .prompt([
+                        {
+                            type: 'input',
+                            name: 'name',
+                            message: 'Enter Extension name :',
+                            validate: validateEmpty,
+                        },
+                    ])
+                    .then((value) => {
+                        answers.name = String(value.name).trim();
+                    });
+            }
             answers.targetDir = options['targetDir'] || answers.name;
 
             Extension.checkFolderAndGitExists(answers.targetDir);
 
-            const extensionTypeQuestions = [
-                {
+            const extensionTypeQuestions = [];
+
+            // If user wants to create new extension then ask type else it is already set in above section
+            if (action === INIT_ACTIONS.create_extension) {
+                extensionTypeQuestions.push({
                     type: 'list',
                     choices: ['Private', 'Public'],
                     default: 'Private',
                     name: 'type',
                     message: 'Extension type :',
                     validate: validateEmpty,
-                },
-                {
+                })
+            }
+            const template = options.template;
+            if(!!template){
+                if(!Object.keys(TEMPLATES).includes(template)){
+                    throw new CommandError("Invalid template passed.", ErrorCodes.INVALID_INPUT.code);
+                }
+            } else {
+                extensionTypeQuestions.push({
                     type: 'list',
                     choices: [
-                        NODE_VUE,
                         NODE_REACT,
-                        JAVA_VUE,
+                        NODE_VUE,
                         JAVA_REACT,
+                        JAVA_VUE
                     ],
-                    default: NODE_VUE,
+                    default: NODE_REACT,
                     name: 'project_type',
                     message: 'Template :',
                     validate: validateEmpty,
-                }
-            ];
+                })
+            }
 
-            let prompt_answers: Object = await inquirer.prompt(
-                extensionTypeQuestions,
-            );
+            let prompt_answers: Object = {};
+            if (extensionTypeQuestions.length) {
+                prompt_answers = await inquirer.prompt(
+                    extensionTypeQuestions,
+                );
+            }
+            if(template){
+                prompt_answers.project_type = TEMPLATES[template]
+            }
+            if(action === INIT_ACTIONS.select_extension){
+                prompt_answers.type = selected_ext_type;
+            }
 
             Extension.checkDependencies(prompt_answers.project_type);
 
@@ -325,8 +428,8 @@ export default class Extension {
                 ...answers,
                 ...prompt_answers,
             };
-
-            await Extension.createExtension(answers, true);
+            
+            await Extension.createExtension(answers, action === INIT_ACTIONS.create_extension);
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
@@ -364,7 +467,8 @@ export default class Extension {
                 `EXTENSION_BASE_URL="${launch_url}"\n`,
             );
             writeFile('./.env', envData);
-        } else if (fs.existsSync(java_env_file_path)) {
+        } 
+        if (fs.existsSync(java_env_file_path)) {
             let envData = readFile(java_env_file_path);
             envData = replaceContent(
                 envData,
@@ -399,10 +503,10 @@ export default class Extension {
                 {
                     type: 'list',
                     choices: [
-                        NODE_VUE,
                         NODE_REACT,
-                        JAVA_VUE,
+                        NODE_VUE,
                         JAVA_REACT,
+                        JAVA_VUE
                     ],
                     default: NODE_VUE,
                     name: 'project_type',

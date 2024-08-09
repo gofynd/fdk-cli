@@ -14,7 +14,7 @@ export default class CompanySetup {
         try {
             let request_id, next_step;
             let prompt_message = 'Creating Brand';
-            const companyID = await getCompanyId();
+            const companyID = await getCompanyId("Select the development company you'd like to populate data: ?");
             await CompanySetup.setupComponent(
                 companyID,
                 request_id,
