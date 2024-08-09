@@ -13,6 +13,7 @@ import { mockFormatter } from './helper';
 
 // fixtures
 const TOKEN = 'mocktoken';
+const EXTENSION_NAME = 'mockextensionname'
 const EXTENSION_KEY = 'mockextensionapikey';
 const EXTENSION_SECRET = 'mockextensionsecret';
 const ORGANIZATION_ID = 'mockorganizationid';
@@ -103,6 +104,16 @@ describe('Extension preview-url command', () => {
             .onGet(`${URLS.GET_DEVELOPMENT_ACCOUNTS(1, 9999)}`)
             .reply(200, {
                 items: [{ company: { uid: COMPANY_ID, name: 'cli-test' } }],
+            });
+        
+        mockAxios
+            .onGet(`${URLS.GET_EXTENSION_LIST(1, 9999)}`)
+            .reply(200, {
+                name: EXTENSION_NAME,
+                _id: EXTENSION_KEY,
+                client_data: {
+                    secret: [EXTENSION_SECRET]
+                }
             });
 
         mockAxios

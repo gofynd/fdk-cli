@@ -24,8 +24,8 @@ export function mockFormatter(){
         originalFormatter.successBox = originalFormatter.warningBox = originalFormatter.errorBox = ({ text }) => {
             return text;
         };
-        originalFormatter.displayStickyText = (text) => {
-            return text;
+        originalFormatter.displayStickyText = (text, logger = console.log) => {
+            logger(text);
         };
         return originalFormatter;
     });
