@@ -1,3 +1,4 @@
+import Logger from './Logger';
 import { selectExtensionFromList } from '../helper/extension_utils';
 import * as CONSTANTS from './../helper/constants';
 import extensionService from './api/services/extension.service';
@@ -14,5 +15,7 @@ export default class ExtensionEnv {
             [CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_SECRET]: extension.client_data.secret[0],
             [CONSTANTS.EXTENSION_CONTEXT.EXTENSION_BASE_URL]: extension.base_url
         });
+
+        Logger.info('Successfully Pulled Extension context')
     }
 }

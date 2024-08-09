@@ -43,6 +43,7 @@ export default class ExtensionContext {
 
     setAll(newExtensionContext: Record<string, string|number>){
         this.extensionContext = newExtensionContext;
+        this.updateExtensionContextFile();
     }
 
     delete(key: string){
