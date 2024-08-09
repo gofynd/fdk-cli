@@ -25,7 +25,7 @@ export default class ExtensionContext {
 
         this.extensionContextFilePath = extensionContextFiles[0];
 
-        this.extensionContext = require(this.extensionContextFilePath);
+        this.extensionContext = JSON.parse(fs.readFileSync(this.extensionContextFilePath).toString() || '{}');
     }
 
     get(key: string) {
@@ -41,7 +41,15 @@ export default class ExtensionContext {
         this.updateExtensionContextFile();
     }
 
-    setAll(newExtensionContext: Record<string, string|number>){
+    setAll(extensionContext: Record<string, string|number>){
+        this.extensionContext = {
+            ...this.extensionContext,
+            ...extensionContext
+        };
+        this.updateExtensionContextFile();
+    }
+
+    replace(newExtensionContext: Record<string, string|number>){
         this.extensionContext = newExtensionContext;
         this.updateExtensionContextFile();
     }

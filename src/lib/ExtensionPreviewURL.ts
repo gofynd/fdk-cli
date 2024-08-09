@@ -50,73 +50,78 @@ export default class ExtensionPreviewURL {
             // Read extension context file
             const extensionContext = new ExtensionContext();
 
+            // Extension Details
+            let extensionDetails = undefined;
+            const getExtensionDetails = async () => {
+                if(!extensionDetails){
+                    extensionDetails = await ExtensionService.getExtensionDataPartners(extension.options.apiKey);
+                }
+                return extensionDetails;
+            }
+
             // Delete Extension context file if reset flag is passed
             if(options.reset){
                 Logger.info(`Cleared extension context data`)
                 extensionContext.deleteAll();
             }
 
-            let extensionDetailsText = ``;
+            // Pick data from extension context and show info box
+            let extensionDetailsFromContextText = ``;
+            
+            // Pick development company form context
+            if(!extension.options.companyId && extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY)){
+                extension.options.companyId = extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY);
+                Debug(`Using development company ${extension.options.companyId} from extension context file\n`);
+                extensionDetailsFromContextText += `${chalk.cyan.bold('Development Company:')} ${extension.options.companyId}`;
+            }
 
+            // Pick extension api key from context
+            if(!extension.options.apiKey && extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY)){
+                extension.options.apiKey = extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY);
+                const extensionDetails = await getExtensionDetails();
+                const extensionName = extensionDetails.name;
+                Debug(`Using Extension ${extensionName} with API Key ${extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY)} from extension context file\n`);
+                if(extensionDetailsFromContextText){
+                    extensionDetailsFromContextText += "\n";
+                }
+                extensionDetailsFromContextText += `${chalk.cyan.bold('Extension:')} ${extensionName}`;
+            }
+
+            if(extensionDetailsFromContextText){
+                extensionDetailsFromContextText = `Using below details from extension context\n\n` + extensionDetailsFromContextText;
+                // Printing info box
+                Logger.info(
+                    successBox({
+                        text: extensionDetailsFromContextText
+                    })
+                )
+            }
+            
             // get the companyId
             if (!extension.options.companyId) {
-                if(!extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY)){
-                    extension.options.companyId = await getCompanyId("Select the development company you'd like to use to run the extension: ?");
-                    extensionContext.set(CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY, extension.options.companyId);
-                    Debug(`Using user selected development company ${extension.options.companyId}`)
-                    extensionDetailsText += `${chalk.cyan.bold('Development Company:')} ${extension.options.companyId}`;
-                }
-                else{
-                    extension.options.companyId = extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY);
-                    Debug(`Using development company ${extension.options.companyId} from extension context file\n`);
-                    extensionDetailsText += `${chalk.cyan.bold('Development Company:')} ${extension.options.companyId} (from extension context)`;
-                }
+                extension.options.companyId = await getCompanyId("Select the development company you'd like to use to run the extension: ?");
+                Debug(`Using user selected development company ${extension.options.companyId}`)
             }
-            else{
-                extensionDetailsText += `${chalk.cyan.bold('Development Company:')} ${extension.options.companyId} (from command flag)`;
-            }
-
-            let extensionDetails;
 
             // get the extension api key
             if (!extension.options.apiKey) {
-                if(!extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY)){
-                    let selected = await selectExtensionFromList();
-                    extension.options.apiKey = selected.extension.id;
-                    extensionContext.set(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY, extension.options.apiKey);
-                    Debug(
-                        `Using user selected Extension ${selected.extension.name} with API key ${selected.extension.id}`,
-                    );
-                    extensionDetailsText += `\n${chalk.cyan.bold('Extension:')} ${selected.extension.name} (${extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY)})`;
-                }
-                else{
-                    extension.options.apiKey = extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY);
-                    extensionDetails = await ExtensionService.getExtensionDataPartners(extension.options.apiKey);
-                    let extensionName = extensionDetails.name;
-                    Debug(`Using Extension ${extensionName} with API Key ${extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY)} from extension context file\n`);
-                    extensionDetailsText += `\n${chalk.cyan.bold('Extension:')} ${extensionName} (${extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY)}) (from extension context)`;
-                }
-            }
-            else{
-                extensionDetails = await ExtensionService.getExtensionDataPartners(extension.options.apiKey);
-                let extensionName = extensionDetails.name;
-                extensionDetailsText += `${chalk.cyan.bold('Extension:')} ${extensionName} (${extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY)}) (from command flag)`;
+                let selected = await selectExtensionFromList();
+                extension.options.apiKey = selected.extension.id;
+                Debug(`Using user selected Extension ${selected.extension.name} with API key ${selected.extension.id}`,);
             }
 
             // Get the extension api secret
-            if(!extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_SECRET)){
-                if(!extensionDetails){
-                    extensionDetails = await ExtensionService.getExtensionDataPartners(extension.options.apiKey);
-                }
-                extension.options.apiSecret = extensionDetails.client_data.secret[0];
-                extensionContext.set(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_SECRET, extension.options.apiSecret);
+            if(!extensionDetails){
+                extensionDetails = await getExtensionDetails();
             }
-            else{
-                extension.options.apiSecret = extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_SECRET);
-                Debug(`Using Extension Secret from extension context file\n`);
-            }
-
-            extensionDetailsText += "\n";
+            extension.options.apiSecret = extensionDetails.client_data.secret[0];
+            
+            // Updating data to context file
+            extensionContext.setAll({
+                [CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY] : extension.options.companyId,
+                [CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]: extension.options.apiKey,
+                [CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_SECRET]: extension.options.apiSecret,
+            })
 
             // Get Port to start the extension server
             let frontend_port : number;
@@ -126,31 +131,21 @@ export default class ExtensionPreviewURL {
             for(const projectConfig of projectConfigs) {
                 if(projectConfig['roles'].includes('frontend') && projectConfig['port']){
                     frontend_port = projectConfig['port'];
-                    extensionDetailsText += `\n${chalk.cyan.bold('FRONTEND PORT:')} ${frontend_port} (from config file)`;
                 }
                 else if(projectConfig['roles'].includes('backend') && projectConfig['port']){
                     backend_port = projectConfig['port'];
-                    extensionDetailsText += `\n${chalk.cyan.bold('BACKEND PORT:')} ${backend_port} (from config file)`;
                 }
             }
             
             // If port is not defined in config files generate random port to start server
             if(!frontend_port){
                 frontend_port = await getRandomFreePort([]);
-                extensionDetailsText += `\n${chalk.cyan.bold('FRONTEND PORT:')} ${frontend_port} (random free port assigned)`;
             }
             if(!backend_port){
                 backend_port = await getRandomFreePort([frontend_port]);
-                extensionDetailsText += `\n${chalk.cyan.bold('BACKEND PORT:')} ${backend_port} (random free port assigned)`;
             }
             extension.options.port = frontend_port;
 
-            // Printing info box
-            Logger.info(
-                successBox({
-                    text: extensionDetailsText
-                })
-            )
 
             // install project dependencies
             for(const projectConfig of projectConfigs){
