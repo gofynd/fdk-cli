@@ -63,13 +63,13 @@ export default class Env {
                     );
                 } else {
                     throw new Error(
-                        'Provided domain is not valid api domain.',
+                        'Provided domain is not valid host.',
                     );
                 }
             } catch (err) {
                 Debug(err);
                 throw new Error(
-                    'Provided domain is not valid api domain.',
+                    'Provided domain is not valid host.',
                 );
             }
         } catch (e) {
