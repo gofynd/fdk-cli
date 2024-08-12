@@ -28,6 +28,7 @@ const fdkExtConfigBackEnd = require('./fixtures/fdkExtConfigBackEnd.json')
 
 let program: CommanderStatic;
 let winstonLoggerSpy: jest.SpyInstance<any>;
+let winstonDebugLoggerSpy: jest.SpyInstance<any>;
 
 jest.mock('./../helper/formatter', () => {
     const originalFormatter = jest.requireActual('../helper/formatter');
@@ -92,6 +93,7 @@ describe('Extension preview-url command', () => {
     afterAll(async () => {
         // restore console log mock so it does not affect other test cases
         winstonLoggerSpy.mockRestore();
+        winstonDebugLoggerSpy.mockRestore();
     });
 
     beforeEach(async () => {
@@ -100,6 +102,7 @@ describe('Extension preview-url command', () => {
 
         // mock console.log
         winstonLoggerSpy = jest.spyOn(Logger, 'info');
+        winstonDebugLoggerSpy = jest.spyOn(Logger, 'debug');
 
         // mock axios
         mockAxios = new MockAdapter(axios);
@@ -168,10 +171,11 @@ describe('Extension preview-url command', () => {
             '--api-key',
             EXTENSION_KEY,
             '--company-id',
-            COMPANY_ID
+            COMPANY_ID,
+            '--debug'
         ]);
 
-        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(
+        expect(winstonDebugLoggerSpy.mock.lastCall[0]).toContain(
             CLOUDFLARED_TEST_URL,
         );
         expect(winstonLoggerSpy.mock.lastCall[0]).toContain(
