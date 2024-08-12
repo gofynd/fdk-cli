@@ -130,6 +130,6 @@ export default (ctx, extendedWebpackConfig): Configuration[] => {
         }
         mergedBaseConfig.entry['themeBundle'] = entryPoints;
     }
-    
+
     return [mergedBaseConfig];
 };

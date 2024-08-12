@@ -1,6 +1,6 @@
 {
   "name": "@gofynd/fdk-cli",
-  "version": "5.2.0",
+  "version": "5.2.0-beta.4",
   "main": "index.js",
   "license": "MIT",
   "bin": {
@@ -18,7 +18,9 @@
     "react-template",
     "react-theme-template",
     "extension-section",
-    "extension-section-vue"
+    "extension-section-vue",
+    "sample-upload.js",
+    "sample-upload.jpeg"
   ],
   "scripts": {
     "clean": "rimraf ./dist",

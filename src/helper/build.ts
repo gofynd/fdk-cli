@@ -23,7 +23,7 @@ export const dynamicCDNScript = ({assetNormalizedBasePath,vueJs }) => {
                 if (fynd_platform_cdn) {
                     cdnUrl = fynd_platform_cdn
                 } else {
-                 console.warn('Dynamic CDN path not found!);
+                 console.warn('Dynamic CDN path not found!');
                 }
             } catch (error) {
                 console.error('Could not set dynamic CDN path');
