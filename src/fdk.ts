@@ -183,7 +183,7 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
                     }
                 }
             }
-            // show current env for all commands excpet login command, we are showing updated env when login command runs
+            // Add debug of current env for all commands excpet login command, we are showing updated env when login command runs
             if (args[1].name() !== 'auth') {
                 const env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
                 Debug(`Current env: ${env}`);
