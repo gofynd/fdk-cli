@@ -9,10 +9,10 @@ import configStore, { CONFIG_KEYS } from '../lib/Config';
 import Logger from '../lib/Logger';
 import fs from 'fs';
 import * as CONSTANTS from './../helper/constants'
-import { mockFormatter } from './helper';
 
 // fixtures
 const TOKEN = 'mocktoken';
+const EXTENSION_NAME = 'mockextensionname'
 const EXTENSION_KEY = 'mockextensionapikey';
 const EXTENSION_SECRET = 'mockextensionsecret';
 const ORGANIZATION_ID = 'mockorganizationid';
@@ -29,7 +29,16 @@ const fdkExtConfigBackEnd = require('./fixtures/fdkExtConfigBackEnd.json')
 let program: CommanderStatic;
 let winstonLoggerSpy: jest.SpyInstance<any>;
 
-mockFormatter();
+jest.mock('./../helper/formatter', () => {
+    const originalFormatter = jest.requireActual('../helper/formatter');
+    originalFormatter.successBox = originalFormatter.warningBox = originalFormatter.errorBox = ({ text }) => {
+        return text;
+    };
+    originalFormatter.displayStickyText = (text: string, logger = console.log) => {
+        logger(text);
+    };
+    return originalFormatter;
+});
 
 jest.mock('configstore', () => {
     const Store =
@@ -103,6 +112,16 @@ describe('Extension preview-url command', () => {
             .onGet(`${URLS.GET_DEVELOPMENT_ACCOUNTS(1, 9999)}`)
             .reply(200, {
                 items: [{ company: { uid: COMPANY_ID, name: 'cli-test' } }],
+            });
+        
+        mockAxios
+            .onGet(`${URLS.GET_EXTENSION_LIST(1, 9999)}`)
+            .reply(200, {
+                name: EXTENSION_NAME,
+                _id: EXTENSION_KEY,
+                client_data: {
+                    secret: [EXTENSION_SECRET]
+                }
             });
 
         mockAxios

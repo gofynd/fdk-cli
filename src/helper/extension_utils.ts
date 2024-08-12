@@ -1,14 +1,18 @@
-import { readFile, writeFile } from './file.utils';
 import _ from 'lodash';
 import inquirer from 'inquirer';
-import configStore, { CONFIG_KEYS } from '../lib/Config';
-import ExtensionService from '../lib/api/services/extension.service';
-import { getPlatformUrls } from '../lib/api/services/url';
-import CommandError, { ErrorCodes } from '../lib/CommandError';
-import Logger from '../lib/Logger';
+import fs from 'fs';
+import path from 'path';
 import urljoin from 'url-join';
 import chalk from 'chalk';
+import Logger from '../lib/Logger';
+import detectPort from 'detect-port'
+
+import configStore, { CONFIG_KEYS } from '../lib/Config';
+import CommandError, { ErrorCodes } from '../lib/CommandError';
+import ExtensionService from '../lib/api/services/extension.service';
+import { getPlatformUrls } from '../lib/api/services/url';
 import { getOrganizationDisplayName } from './utils';
+import { readFile, writeFile } from './file.utils';
 
 export interface Object {
     [key: string]: any;
@@ -85,6 +89,21 @@ export const selectExtensionFromList = async (prefetchedExtensionList = undefine
     });
 
     if (choices.length === 0) {
+        const organizationId = configStore.get(CONFIG_KEYS.ORGANIZATION);
+        const createExtensionFormURL = organizationId
+            ? urljoin(
+                  getPlatformUrls().partners,
+                  'organizations',
+                  organizationId,
+                  'extensions',
+              )
+            : getPlatformUrls().partners;
+        Logger.info(
+            chalk.yellowBright(
+                `You don't have any extension under organization ${getOrganizationDisplayName()}, You can create extension from ${createExtensionFormURL} and try again.`,
+            ),
+        );
+
         throw new CommandError(
             ErrorCodes.NO_EXTENSION_FOUND.message,
             ErrorCodes.NO_EXTENSION_FOUND.code,
@@ -101,7 +120,7 @@ async function promptExtensionList(choices): Promise<Object> {
                 type: 'list',
                 choices: choices,
                 name: 'extension',
-                message: 'Select the existing extension to use:',
+                message: 'Select from the existing extension:',
                 pageSize: 6,
                 validate: validateEmpty,
             },
@@ -186,3 +205,42 @@ export const writeContextData = (
     }
     writeFile(targetDir, JSON.stringify(contextData, undefined, 2));
 };
+
+
+export function findAllFilePathFromCurrentDirWithName(fileName: Array<String>) {
+    const files = [];
+    const dir = process.cwd();
+
+    const search = (dir: string) => {
+        const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+        for (const entry of entries) {
+            const fullPath = path.join(dir, entry.name);
+
+            if (entry.isDirectory()) {
+                search(fullPath);
+            } else if (fileName.includes(entry.name)) {
+                files.push(fullPath);
+            }
+        }
+    };
+
+    search(dir);
+    return files;
+}
+
+export async function getRandomFreePort(excluded_port = []) {
+
+    const randomPort = Math.floor(Math.random() * (10000)) + 40000;
+    if (excluded_port.includes(randomPort)) {
+        return await this.getRandomFreePort(excluded_port);
+    }
+    const availablePort = await detectPort(randomPort);
+
+    // If the randomly selected port is free, return it. Otherwise, retry until a free port is found.
+    if (availablePort === randomPort) {
+        return randomPort;
+    } else {
+        return await this.getRandomFreePort([...excluded_port, randomPort]);
+    }
+}

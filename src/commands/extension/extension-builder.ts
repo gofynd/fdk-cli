@@ -3,6 +3,7 @@ import Extension from '../../lib/Extension';
 import ExtensionLaunchURL from '../../lib/ExtensionLaunchURL';
 import ExtensionPreviewURL from '../../lib/ExtensionPreviewURL';
 import ExtensionTunnel from '../../lib/ExtensionTunnel';
+import ExtensionEnv from '../../lib/ExtensionEnv';
 import { errorBox, OutputFormatter } from './../../helper/formatter';
 
 export default function extensionCommandBuilder() {
@@ -68,5 +69,12 @@ export default function extensionCommandBuilder() {
         .asyncAction(ExtensionLaunchURL.setLaunchURLHandler);
 
     extension.addCommand(launch_url);
+
+
+    extension
+        .command('pull-env')
+        .description('Pull environment variable for the extension from partners panel')
+        .asyncAction(ExtensionEnv.extensionEnvPullHandler);
+
     return extension;
 }
