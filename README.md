@@ -35,6 +35,10 @@ To help you get started, there are some basic commands you can use.
 ```sh
 fdk --help
 ```
+To see the current fdk version, enter:
+```sh
+fdk version
+```
 To see the available theme commands, enter:
 ```sh
 fdk theme
