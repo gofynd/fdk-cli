@@ -25,7 +25,7 @@ let program;
 
 jest.mock('configstore', () => {
     const Store =
-        jest.requireActual<typeof import('configstore')>('configstore');
+        jest.requireActual('configstore');
     return class MockConfigstore {
         store = new Store('test-cli', undefined, {
             configPath: './themeCtx-test-cli.json',
@@ -46,6 +46,10 @@ jest.mock('configstore', () => {
         }
     };
 });
+
+jest.mock('open', () => {
+    return () => {}
+})
 
 export async function login() {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification

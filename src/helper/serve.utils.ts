@@ -227,7 +227,7 @@ export async function startServer({ domain, host, isSSR, port }) {
         }
         try {
             // Bundle directly passed on with POST request body.
-            const { data: html } = await axios({
+            const { data: html } : { data : string} = await axios({
                 method: 'POST',
                 url: jetfireUrl.toString(),
                 headers,

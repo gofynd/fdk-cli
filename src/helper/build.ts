@@ -230,7 +230,6 @@ export async function devReactBuild({
                 });
             }
             webpack(baseWebpackConfig, (err, stats) => {
-                console.log(err);
                 console.log(stats.toString());
                 if(!runOnLocal) {
                     fs.unlink(path.resolve((targetDirectory || process.cwd()), CDN_ENTRY_FILE), function (err) {

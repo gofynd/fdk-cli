@@ -4,9 +4,9 @@ import ExtensionLaunchURL from '../../lib/ExtensionLaunchURL';
 import ExtensionPreviewURL from '../../lib/ExtensionPreviewURL';
 
 export default function extensionCommandBuilder() {
-    const extension = new Command('extension').description(
-        'Extension Commands',
-    );
+    const extension = new Command('extension')
+        .aliases(['ext'])
+        .description('Extension Commands');
     extension
         .command('init')
         .description('Initialize extension')
@@ -27,6 +27,7 @@ export default function extensionCommandBuilder() {
 
     extension
         .command('preview-url')
+        .aliases(['preview'])
         .description('Get extension preview url to launch the extension')
         .option(
             '-p, --port <port>',
