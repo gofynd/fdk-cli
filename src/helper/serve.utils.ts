@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import Logger from '../lib/Logger';
 import axios from 'axios';
-import cheerio from 'cheerio';
+import * as cheerio from 'cheerio';
 import express from 'express';
 import _ from 'lodash';
 import { SourceMapConsumer } from 'source-map';

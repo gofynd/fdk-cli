@@ -22,7 +22,7 @@ import Theme from './Theme';
 import configurationService from './api/services/configuration.service';
 import inquirer from 'inquirer';
 import { exec } from 'child_process';
-import cheerio from 'cheerio';
+import * as cheerio from 'cheerio';
 import chokidar from 'chokidar';
 import { v4 as uuidv4 } from 'uuid';
 import themeService from './api/services/theme.service';
