@@ -35,6 +35,10 @@ To help you get started, there are some basic commands you can use.
 ```sh
 fdk --help
 ```
+To see the current fdk version, enter:
+```sh
+fdk version
+```
 To see the available theme commands, enter:
 ```sh
 fdk theme
@@ -97,12 +101,6 @@ ___
 | [set](#config-set-commands)        | Set configuration values.            |
 | [get](#config-get-commands)        | Retrieve current configuration values.|
 | [delete](#config-delete-commands)  (alias: `rm`)    | Delete configuration values.  
-
-### Environment Commands
-| Command        | Description           | 
-| ------------- |-------------| 
-| [env get](#env-get)     | Shows current environment |
-| [env set](#env-set)     | Set active environment to the value provided by the user. Default environment: `fynd`|       |
 
 <div id="debugMode"></div>
 

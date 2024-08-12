@@ -263,7 +263,7 @@ export default class Extension {
                   )
                 : getPlatformUrls().partners;
             let text =
-                chalk.green('Success! Created your extension at ') + chalk.bold.blue(targetDir) +
+                chalk.green(`Success! ${isRegisterExtension ? 'Created' : 'Initiated'} your extension at `) + chalk.bold.blue(targetDir) +
                 chalk.green('\nInside that directory, you can run several commands:\n\n') +
                 `  ${OutputFormatter.command('fdk extension preview')}\n` +
                 `  ${OutputFormatter.command('fdk extension launch-url')}\n\n` +

@@ -29,6 +29,8 @@ import { getPlatformUrls } from './lib/api/services/url';
 import * as Sentry from '@sentry/node';
 const packageJSON = require('../package.json');
 
+const current_version_message = 'Current version: ' + chalk.greenBright.bold(packageJSON.version);
+
 async function checkTokenExpired(auth_token) {
     if (!auth_token) return true;
     const { expiry_time } = auth_token;
@@ -181,6 +183,11 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
                     }
                 }
             }
+            // Add debug of current env for all commands excpet login command, we are showing updated env when login command runs
+            if (args[1].name() !== 'auth') {
+                const env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+                Debug(`Current env: ${env}`);
+            }
             await asyncFn(...args);
         } catch (err) {
             // TODO: Error reporting from user logic can be added here
@@ -226,7 +233,7 @@ export async function init(programName: string) {
     //Setup commander instance
     program
         .name(programName)
-        .version('Current version: ' + packageJSON.version)
+        .version(current_version_message, '-V, --version', 'Display the current fdk version')
         .option(
             '-v, --verbose',
             'Display detailed output for debugging purposes',
@@ -236,6 +243,13 @@ export async function init(programName: string) {
             'Display detailed output for debugging purposes',
         );
 
+    program
+    .command('version')
+    .description('Display the current fdk version')
+    .action(() => {
+        console.log(current_version_message);
+    });
+    
     //register commands with commander instance
     registerCommands(program);
     //set API version

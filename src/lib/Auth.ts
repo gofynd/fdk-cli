@@ -130,7 +130,7 @@ export default class Auth {
             env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
         } else {
             env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
-            Logger.info(chalk.green('Current env: ', env));
+            Debug(`Current env: ${env}`);
         }
 
         const isLoggedIn = await Auth.isAlreadyLoggedIn();
