@@ -97,12 +97,6 @@ ___
 | [get](#config-get-commands)        | Retrieve current configuration values.|
 | [delete](#config-delete-commands)  (alias: `rm`)    | Delete configuration values.  
 
-### Environment Commands
-| Command        | Description           | 
-| ------------- |-------------| 
-| [env get](#env-get)     | Shows current environment |
-| [env set](#env-set)     | Set active environment to the value provided by the user. Default environment: `fynd`|       |
-
 <div id="debugMode"></div>
 
 
