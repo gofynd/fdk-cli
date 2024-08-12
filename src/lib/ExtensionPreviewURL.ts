@@ -20,7 +20,7 @@ import * as CONSTANTS from './../helper/constants';
 import Logger from './Logger';
 import ExtensionService from './api/services/extension.service';
 import yaml from 'js-yaml';
-import ExtensionTunnel from './ExtensionTunnel';
+import Tunnel from './Tunnel';
 import chalk from 'chalk';
 import ExtensionContext from './ExtensionContext';
 
@@ -170,7 +170,7 @@ export default class ExtensionPreviewURL {
                 );
             }
             else {
-                const extensionTunnel = new ExtensionTunnel({port: extension.options.port});
+                const extensionTunnel = new Tunnel({port: extension.options.port});
 
                 await extensionTunnel.startTunnel();
 
@@ -211,7 +211,7 @@ export default class ExtensionPreviewURL {
                     }).catch((error) => {
                         Debug(error);
                         if(['SIGINT', 'SIGUSR1', 'SIGUSR2'].includes(error.signal) || error.code == 0 || error.code == 130 || error.exitCode == 130){
-                            Logger.info(`${projectConfig['roles'].join(' and ')} process exited successfully.`);
+                            Logger.info(`Shuting down ${projectConfig['roles'].join(' and ')} process.`);
                         }
                         else{
                             throw new CommandError(error.shortMessage, error.code);
@@ -223,10 +223,10 @@ export default class ExtensionPreviewURL {
             // get preview URL
             const previewURL = extension.getPreviewURL();
             Debug(
-                `TUNNEL URL: ${extension.publicTunnelURL}`,
+                `${OutputFormatter.link(extension.publicTunnelURL, 'TUNNEL URL:')}`
             );
             const stickyText = successBox({
-                text: `${OutputFormatter.link(extension.publicTunnelURL, 'TUNNEL URL:')}\n${OutputFormatter.link(previewURL, 'Extension preview URL: ')}`,
+                text: `${OutputFormatter.link(previewURL, 'Extension preview URL: ')}`,
             });
 
             displayStickyText(stickyText, Logger.info);

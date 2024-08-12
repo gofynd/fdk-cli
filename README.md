@@ -57,6 +57,7 @@ ___
 | [user](#user)     | Shows user details of logged in user |
 | [logout](#logout)     | Logout user |
 | [populate](#populate)     | Populate sample data into development account to get started with theme and extension development |
+| [tunnel](#tunnel) | Create a tunnel on the specified port number to enable remote access for development and testing. |
 
 
 
@@ -81,7 +82,7 @@ ___
 | [init](#extension-init)     | Utilize this command to set up a new extension locally, leveraging existing templates of your choice.  |
 | [setup](#extension-setup)     | Configure your extension locally using the existing API Key and API Secret provided for the extension inside the partners panel. |
 | [preview](#extension-preview-url)   | Start the extension development server and provide a tunnel URL to preview the extension on the development company. |
-| [tunnel](#extension-tunnel) | Create a tunnel on the specified port number to enable remote access for development and testing. |
+| [pull-env](#extension-pull-env)     | Retrieve extension context values from the partners panel and update current extension context. |
 | [launch-url](#extension-launch-url)     | Get/set extension's lanuch url |
 
 ### Partner Commands
@@ -174,6 +175,31 @@ Using this command populate sample data into development account to get started 
 #### **Syntax**
 ```sh
 fdk populate
+```
+
+___
+
+
+<div id="tunnel"></div>
+
+#### **tunnel**
+This command will start a tunnel using cloudflare by which you can access your local port on public url
+
+#### ****Syntax****
+```sh
+fdk tunnel [options]
+```
+
+#### **Command Options**
+| Option    | Description   |
+| ----------|---------------|
+| --port | Port (required) |
+| --help    | Show help |
+| --verbose | enable debug mode |
+
+#### **Example**
+```sh
+fdk tunnel --port 8080
 ```
 
 ___
@@ -432,26 +458,19 @@ fdk extension preview --company-id 999
 ___
 
 
-<div id="extension-tunnel"></div>
+<div id="extension-pull-env"></div>
 
-#### **tunnel**
-This command will start a tunnel using cloudflare by which you can access your local port on public url
+#### **pull-env**
+This command will fetch extension context details from partners panel and update current extension context.
 
 #### ****Syntax****
 ```sh
-fdk extension tunnel [options]
+fdk extension pull-env
 ```
-
-#### **Command Options**
-| Option    | Description   |
-| ----------|---------------|
-| --port | Port (required) |
-| --help    | Show help |
-| --verbose | enable debug mode |
 
 #### **Example**
 ```sh
-fdk extension tunnel --port 8080
+fdk extension pull-env
 ```
 
 ___

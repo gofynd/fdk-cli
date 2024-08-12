@@ -1,16 +1,37 @@
-import { Object, getPartnerAccessToken } from '../helper/extension_utils';
+import { Object, getPartnerAccessToken, selectExtensionFromList, validateEmpty } from '../helper/extension_utils';
 import chalk from 'chalk';
 import ExtensionService from './api/services/extension.service';
-import CommandError from './CommandError';
+import CommandError, { ErrorCodes } from './CommandError';
 import Spinner from '../helper/spinner';
 import { OutputFormatter } from '../helper/formatter';
+import inquirer from 'inquirer';
+import { response } from 'express';
 
 export default class ExtensionLaunchURL {
     public static async setLaunchURLHandler(options) {
         try {
             let partner_access_token = getPartnerAccessToken();
 
-            ExtensionLaunchURL.updateLaunchURL(
+            if(!options.apiKey){
+                // no apiKey provided, ask user to select extension from list
+                const selected_extension = await selectExtensionFromList();
+                options.apiKey = selected_extension.extension.id;;
+            }
+
+            if(!options.url){
+                // no url provided, ask user to enter one
+                let answers = await inquirer.prompt([
+                    {
+                        type: 'input',
+                        name: 'url',
+                        message: 'Enter Extension launch URL: ',
+                        validate: validateEmpty,
+                    },
+                ]);
+                options.url = answers.url;
+            }
+
+            await ExtensionLaunchURL.updateLaunchURL(
                 options.apiKey,
                 partner_access_token || options.accessToken,
                 options.url,
@@ -70,6 +91,8 @@ export default class ExtensionLaunchURL {
                         throw new CommandError(
                             err?.response?.data?.message ||
                                 'Failed updating Launch Url on Partners Panel',
+                            ErrorCodes.API_ERROR.code,
+                            response
                         );
                     }
                 }
@@ -102,6 +125,11 @@ export default class ExtensionLaunchURL {
 
     public static async getLaunchURLHandler(options: Object) {
         try {
+            if(!options.apiKey){
+                // no apiKey provided, ask user to select extension from list
+                const selected_extension = await selectExtensionFromList();
+                options.apiKey = selected_extension.extension.id;;
+            }
             let spinner = new Spinner('Fetching Launch URL');
             try {
                 spinner.start();

@@ -5,7 +5,7 @@ import Debug from './Debug';
 import Logger from './Logger';
 import { OutputFormatter, successBox } from '../helper/formatter';
 
-export default class ExtensionTunnel {
+export default class Tunnel {
     options: {
         port: string | number;
     };
@@ -16,13 +16,13 @@ export default class ExtensionTunnel {
     }
     
     public static async tunnelHandler(options){
-        const extensionTunnel = new ExtensionTunnel(options);
+        const tunnel = new Tunnel(options);
 
-        await extensionTunnel.startTunnel();
+        await tunnel.startTunnel();
 
         Logger.info(
             successBox({
-                text: `TUNNEL URL: ${OutputFormatter.link(extensionTunnel.publicTunnelURL)}`
+                text: `TUNNEL URL: ${OutputFormatter.link(tunnel.publicTunnelURL)}`
             })
         )
     }

@@ -2,7 +2,6 @@ import { Command } from 'commander';
 import Extension from '../../lib/Extension';
 import ExtensionLaunchURL from '../../lib/ExtensionLaunchURL';
 import ExtensionPreviewURL from '../../lib/ExtensionPreviewURL';
-import ExtensionTunnel from '../../lib/ExtensionTunnel';
 import ExtensionEnv from '../../lib/ExtensionEnv';
 import { errorBox, OutputFormatter } from './../../helper/formatter';
 
@@ -45,26 +44,20 @@ export default function extensionCommandBuilder() {
         .option('--reset', 'Reset extension.context file and start fresh')
         .asyncAction(ExtensionPreviewURL.previewUrlExtensionHandler);
 
-    extension
-        .command('tunnel')
-        .description('Start local tunnel for extension preview')
-        .requiredOption('--port <port>', 'Port number')
-        .asyncAction(ExtensionTunnel.tunnelHandler);
-
     const launch_url = new Command('launch-url').description(
         'launch url commands',
     );
     launch_url
         .command('get')
         .description('Get current launch url for extension')
-        .requiredOption('--api-key <api-key>', 'Extension API key')
+        .option('--api-key <api-key>', 'Extension API key')
         .asyncAction(ExtensionLaunchURL.getLaunchURLHandler);
 
     launch_url
         .command('set')
         .description('Set a launch url for extension')
-        .requiredOption('--api-key <api-key>', 'Extension API key')
-        .requiredOption('--url <launch-url>', 'Launch url')
+        .option('--api-key <api-key>', 'Extension API key')
+        .option('--url <launch-url>', 'Launch url')
         .option('--access-token <access-token>', 'Partner Access Token')
         .asyncAction(ExtensionLaunchURL.setLaunchURLHandler);
 
