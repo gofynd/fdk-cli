@@ -69,7 +69,7 @@
     "axios-retry": "4.4.2",
     "boxen": "5.1.2",
     "chalk": "4.1.2",
-    "cheerio": "^1.0.0-rc.9",
+    "cheerio": "1.0.0-rc.12",
     "chokidar": "3.6.0",
     "cloudflared": "0.5.2",
     "commander": "7.2.0",
