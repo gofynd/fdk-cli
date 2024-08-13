@@ -53,11 +53,6 @@ export const ErrorCodes = {
             `No themes are created, Please create/add a theme under the sales channel. For more details, refer to the documentation link: ${domain}/help/docs/partners/themes/vuejs/overview`,
         code: 'FDK-00011',
     },
-    DOWNGRADE_CLI_VERSION: {
-        message:
-            'Seems like current Fynd Platform version is not compatible with installed CLI version.\n\nIn order to continue with current FP version, Please use previous version of CLI `npm install -g @gofynd/fdk-cli@3.0.4` command.',
-        code: 'FDK-00012',
-    },
     NO_EXTENSION_FOUND: {
         message:
             'Extension not found',

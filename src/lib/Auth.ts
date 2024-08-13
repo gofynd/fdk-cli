@@ -111,10 +111,6 @@ export const startServer = async () => {
     })
 };
 
-async function checkVersionCompatibility() {
-    const response = await ThemeService.checkCompatibleVersion();
-}
-
 export default class Auth {
     static server = null;
     static timer_id;
@@ -122,8 +118,7 @@ export default class Auth {
     constructor() {}
     public static async login(options) {
         // todo: check grafana dashboard and confirm if all env are above 1.8
-        await checkVersionCompatibility();
-        let env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+        let env;
 
         if(options.host){
             await Env.setNewEnvs(options.host);
