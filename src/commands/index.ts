@@ -5,6 +5,7 @@ const COMMANDS = [
     require('./auth'),
     require('./theme'),
     require('./populate'),
+    require('./tunnel'),
     require('./extension'),
     require('./partner'),
     require('./config'),

@@ -8,10 +8,14 @@ var cors = require('cors');
 const port = 7071;
 import ThemeService from './api/services/theme.service';
 import { getLocalBaseUrl } from '../helper/serve.utils';
+import Debug from './Debug';
+import Env from './Env';
+
+const SERVER_TIMER = 1000 * 60 * 2; // 2 min
 import { successBox } from '../helper/formatter';
 import OrganizationService from './api/services/organization.service';
 import { getOrganizationDisplayName } from '../helper/utils';
-import Debug from './Debug';
+import chalk from 'chalk';
 
 async function checkTokenExpired(auth_token) {
     const { expiry_time } = auth_token;
@@ -31,7 +35,7 @@ export const getApp = async () => {
 
     app.post('/token', async (req, res) => {
         try {
-            if (Auth.isOrganizationChange)
+            if (Auth.wantToChangeOrganization)
                 ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
             const expiryTimestamp =
                 Math.floor(Date.now() / 1000) + req.body.auth_token.expires_in;
@@ -59,30 +63,72 @@ export const getApp = async () => {
     return { app };
 };
 
+function startTimer(){
+    Debug("Server timer starts")
+    Auth.timer_id = setTimeout(() => {
+        Auth.stopSever(() => {
+            console.log(chalk.red(`Timeout: Please run ${chalk.blue('fdk login')} command again.`));
+        })
+    }, SERVER_TIMER)
+}
+
+function resetTimer(){
+    if (Auth.timer_id) { 
+        Debug("Server timer stoped")
+        clearTimeout(Auth.timer_id)
+        Auth.timer_id = null;
+    }
+}
 export const startServer = async () => {
     if (Auth.server) return Auth.server;
 
     const { app } = await getApp();
     const serverIn = require('http').createServer(app);
-    Auth.server = serverIn.listen(port, (err) => {
-        if (err) Debug(err);
+
+    // handle errors thrown while start listening
+    serverIn.on('error', (error) => {
+        Debug(error);
+        if (error.code === 'EADDRINUSE') {
+            console.error(chalk.red(`Port ${port} is already in use.`));
+        } else {
+            console.error(chalk.red('An unexpected error occurred:'), error);
+        }
     });
 
-    return Auth.server;
-};
+    Auth.server = serverIn.listen(port);
 
-async function checkVersionCompatibility() {
-    const response = await ThemeService.checkCompatibleVersion();
-}
+    // resolve promise only if server starts listening
+    // we will open partner panel only if server is listening
+    return new Promise(resolve => {
+        serverIn.on('listening', () => {
+            Debug(`Server started listening on ${port}`);
+            resolve(Auth.server);
+        });
+    }).then(server => {
+        // once server start listening, start server timer
+        startTimer();
+        return server
+    })
+};
 
 export default class Auth {
     static server = null;
-    static isOrganizationChange = false;
+    static timer_id;
+    static wantToChangeOrganization = false;
     constructor() {}
-    public static async login() {
-        await checkVersionCompatibility();
+    public static async login(options) {
+        // todo: check grafana dashboard and confirm if all env are above 1.8
+        let env;
+
+        if(options.host){
+            await Env.setNewEnvs(options.host);
+            env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+        } else {
+            env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+            Debug(`Current env: ${env}`);
+        }
+
         const isLoggedIn = await Auth.isAlreadyLoggedIn();
-        await startServer();
         if (isLoggedIn) {
             Logger.info(
                 `Current logged in organization: ${getOrganizationDisplayName()}`,
@@ -98,32 +144,37 @@ export default class Auth {
             ];
             await inquirer.prompt(questions).then(async (answers) => {
                 if (answers.confirmChangeOrg === 'No') {
-                    Auth.isOrganizationChange = false;
-                    await Auth.stopSever();
+                    Auth.wantToChangeOrganization = false;
                     return;
                 } else {
-                    Auth.isOrganizationChange = true;
+                    Auth.wantToChangeOrganization = true;
+                    await startServer();
                 }
             });
-        }
-        const env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+        } else 
+            await startServer();
         try {
             let domain = null;
             let partnerDomain = env.replace('api', 'partners');
             domain = `https://${partnerDomain}`;
             try {
-                if (Auth.isOrganizationChange || !isLoggedIn) {
+                if (Auth.wantToChangeOrganization || !isLoggedIn) {
                     await open(
                         `${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
                             `${getLocalBaseUrl()}:${port}`,
                         )}`,
                     );
+                    console.log(
+                        `Open link on browser: ${chalk.blue(`${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
+                            `${getLocalBaseUrl()}:${port}`,
+                        )}`)}`,
+                    );
                 }
             } catch (err) {
                 console.log(
-                    `Open link on browser: ${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
+                    `Open link on browser: ${chalk.blue(`${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
                         `${getLocalBaseUrl()}:${port}`,
-                    )}`,
+                    )}`)}`,
                 );
             }
         } catch (error) {
@@ -180,7 +231,11 @@ export default class Auth {
             else return false;
         } else return false;
     };
-    static stopSever = async () => {
-        Auth.server.close(() => {});
+    static stopSever = async (cb = null) => {
+        resetTimer();
+        Auth.server?.close?.(() => {
+            Debug("Server closed");
+            cb?.();
+        });
     };
 }

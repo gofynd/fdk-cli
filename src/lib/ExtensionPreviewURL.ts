@@ -1,37 +1,37 @@
-import ngrok from '@ngrok/ngrok';
-import { tunnel as startTunnel } from 'cloudflared';
-import chalk from 'chalk';
 import urljoin from 'url-join';
-import inquirer from 'inquirer';
+import execa from 'execa';
 import path from 'path';
+const serverProcesses = [];
 import fs from 'fs';
 import Debug from './Debug';
 import { getPlatformUrls } from './api/services/url';
-import configStore, { CONFIG_KEYS } from './Config';
 import ExtensionLaunchURL from './ExtensionLaunchURL';
 import {
     getPartnerAccessToken,
     Object,
-    validateEmpty,
     getCompanyId,
+    selectExtensionFromList,
+    findAllFilePathFromCurrentDirWithName,
+    getRandomFreePort
 } from '../helper/extension_utils';
-import { readFile } from '../helper/file.utils';
-import { successBox } from '../helper/formatter';
-import Spinner from '../helper/spinner';
+import { displayStickyText, OutputFormatter, successBox } from '../helper/formatter';
 import CommandError, { ErrorCodes } from './CommandError';
+import * as CONSTANTS from './../helper/constants';
 import Logger from './Logger';
+import ExtensionService from './api/services/extension.service';
+import yaml from 'js-yaml';
+import Tunnel from './Tunnel';
+import chalk from 'chalk';
+import ExtensionContext from './ExtensionContext';
 
-const packageJson = require('./../../package.json');
-const ngrokPackageVersion = packageJson.dependencies['@ngrok/ngrok'];
-
-export let interval;
-
-const SUPPORTED_TOOL = ['ngrok', 'cloudflared'];
+interface ServerOptions {
+    cwd?: string;
+    env?: NodeJS.ProcessEnv;
+}
 
 export default class ExtensionPreviewURL {
     organizationInfo: Object;
     publicTunnelURL: string;
-    publicNgrokURL: string;
     options: Object;
     firstTunnelConnection: boolean = true;
 
@@ -40,127 +40,196 @@ export default class ExtensionPreviewURL {
         try {
             let partner_access_token = getPartnerAccessToken();
 
-            Debug(`Ngrok version: ${ngrokPackageVersion}`);
-            if (
-                !!options.useTunnel &&
-                !SUPPORTED_TOOL.includes(options.useTunnel)
-            ) {
-                throw new CommandError(
-                    'Tunneling tool specified is invalid',
-                    ErrorCodes.INVALID_INPUT.code,
-                );
-            }
-
-            if (options.useTunnel !== 'ngrok' && !!options.updateAuthtoken) {
-                throw new CommandError(
-                    '--update-authtoken option is only allowed when using ngrok as a tunneling tool',
-                    ErrorCodes.INVALID_INPUT.code,
-                );
-            }
-
             // initialize class instance
             const extension = new ExtensionPreviewURL();
             extension.options = options;
 
+            // Read and validate fdk.ext config files
+            const projectConfigs = extension.readAndValidateFDKExtConfigFiles();
+
+            // Read extension context file
+            const extensionContext = new ExtensionContext();
+
+            // Extension Details
+            let extensionDetails = undefined;
+            const getExtensionDetails = async () => {
+                if(!extensionDetails){
+                    extensionDetails = await ExtensionService.getExtensionDataPartners(extension.options.apiKey);
+                }
+                return extensionDetails;
+            }
+
+            // Delete Extension context file if reset flag is passed
+            if(options.reset){
+                Logger.info(`Cleared extension context data`)
+                extensionContext.deleteAll();
+            }
+
+            // Pick data from extension context and show info box
+            let extensionDetailsFromContextText = ``;
+            
+            // Pick development company form context
+            if(!extension.options.companyId && extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY)){
+                extension.options.companyId = extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY);
+                Debug(`Using development company ${extension.options.companyId} from extension context file\n`);
+                extensionDetailsFromContextText += `${chalk.cyan.bold('Development Company:')} ${extension.options.companyId}`;
+            }
+
+            // Pick extension api key from context
+            if(!extension.options.apiKey && extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY)){
+                extension.options.apiKey = extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY);
+                const extensionDetails = await getExtensionDetails();
+                const extensionName = extensionDetails.name;
+                Debug(`Using Extension ${extensionName} with API Key ${extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY)} from extension context file\n`);
+                if(extensionDetailsFromContextText){
+                    extensionDetailsFromContextText += "\n";
+                }
+                extensionDetailsFromContextText += `${chalk.cyan.bold('Extension:')} ${extensionName}`;
+            }
+
+            if(extensionDetailsFromContextText){
+                extensionDetailsFromContextText = `Using below details from extension context\n\n` + extensionDetailsFromContextText;
+                // Printing info box
+                Logger.info(
+                    successBox({
+                        text: extensionDetailsFromContextText
+                    })
+                )
+            }
+            
             // get the companyId
             if (!extension.options.companyId) {
-                extension.options.companyId = await getCompanyId();
+                extension.options.companyId = await getCompanyId("Select the development company you'd like to use to run the extension: ?");
+                Debug(`Using user selected development company ${extension.options.companyId}`)
             }
 
             // get the extension api key
             if (!extension.options.apiKey) {
-                extension.options.apiKey =
-                    await extension.promptExtensionApiKey();
+                let selected = await selectExtensionFromList();
+                extension.options.apiKey = selected.extension.id;
+                Debug(`Using user selected Extension ${selected.extension.name} with API key ${selected.extension.id}`,);
             }
 
-            if (options.useTunnel === 'ngrok') {
-                // start tunnel
-                let authtoken = await extension.getNgrokAuthtoken();
-                let spinner = new Spinner('Starting Ngrok tunnel');
-                try {
-                    spinner.start();
-                    const ngrokListener: ngrok.Listener =
-                        await extension.startNgrokTunnel(authtoken);
-                    extension.publicNgrokURL = ngrokListener.url();
-                    interval = setInterval(() => {}, 10000);
-                    const cleanup = async () => {
-                        Logger.info('Stopping Ngrok tunnel...');
-                        clearInterval(interval);
-                        await ngrok.disconnect();
-                        process.exit(0);
-                    };
-                    for (const signal of [
-                        'SIGINT',
-                        'SIGUSR1',
-                        'SIGUSR2',
-                        'SIGTERM',
-                    ] as const) {
-                        process.on(signal, cleanup);
-                    }
-                    configStore.set(CONFIG_KEYS.NGROK_AUTHTOKEN, authtoken);
-                    spinner.succeed();
-                } catch (error) {
-                    let errorCode = ErrorCodes.NGROK_GENERAL_ISSUE.code;
-                    spinner.fail();
-                    if (error.errorCode == 'ERR_NGROK_105') {
-                        errorCode = ErrorCodes.NGROK_AUTH_ISSUE.code;
-                        throw new CommandError(
-                            error.message ||
-                                ErrorCodes.NGROK_AUTH_ISSUE.message,
-                            errorCode,
-                        );
-                    } else if (error.errorCode == 'ERR_NGROK_108') {
-                        errorCode =
-                            ErrorCodes.NGROK_MULTIPLE_SESSION_ISSUE.code;
-                        throw new CommandError(
-                            error.message ||
-                                ErrorCodes.NGROK_MULTIPLE_SESSION_ISSUE.message,
-                            errorCode,
-                        );
-                    }
-                    Debug(error);
-                    throw new Error(ErrorCodes.NGROK_GENERAL_ISSUE.message);
+            // Get the extension api secret
+            if(!extensionDetails){
+                extensionDetails = await getExtensionDetails();
+            }
+            extension.options.apiSecret = extensionDetails.client_data.secret[0];
+            
+            // Updating data to context file
+            extensionContext.setAll({
+                [CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY] : extension.options.companyId,
+                [CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]: extension.options.apiKey,
+                [CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_SECRET]: extension.options.apiSecret,
+            })
+
+            // Get Port to start the extension server
+            let frontend_port : number;
+            let backend_port : number;
+            
+            // Get the port value from project config files if present
+            for(const projectConfig of projectConfigs) {
+                if(projectConfig['roles'].includes('frontend') && projectConfig['port']){
+                    frontend_port = projectConfig['port'];
                 }
-            } else {
-                // start Cloudflared tunnel
-                let spinner = new Spinner('Starting Cloudflare tunnel');
-                try {
-                    spinner.start();
-                    extension.publicTunnelURL =
-                        await extension.startCloudflareTunnel();
-                    spinner.succeed();
-                } catch (error) {
-                    spinner.fail();
-                    throw new CommandError(
-                        ErrorCodes.ClOUDFLARE_CONNECTION_ISSUE.message,
-                        ErrorCodes.ClOUDFLARE_CONNECTION_ISSUE.code,
-                    );
+                else if(projectConfig['roles'].includes('backend') && projectConfig['port']){
+                    backend_port = projectConfig['port'];
                 }
             }
+            
+            // If port is not defined in config files generate random port to start server
+            if(!frontend_port){
+                frontend_port = await getRandomFreePort([]);
+            }
+            if(!backend_port){
+                backend_port = await getRandomFreePort([frontend_port]);
+            }
+            extension.options.port = frontend_port;
+
+
+            // install project dependencies
+            for(const projectConfig of projectConfigs){
+                if (projectConfig['install']) {
+                    Logger.info(`Installing dependencies for ${projectConfig['roles'].join(' and ')} project`)
+                    try{
+                        await extension.execCommand(projectConfig['install'], {cwd: projectConfig['configFilePath']}, `Successfully Installed dependencies for ${projectConfig['roles'].join(' and ')} project\n\n`)
+                    }
+                    catch(error){
+                        Debug(error);
+                        throw new CommandError(error.shortMessage, error.code);
+                    }
+                }
+            }
+
+            // Start Tunnel
+            // Check if tunnel url is provided in options, use it
+            if(extension.options.tunnelUrl){
+                extension.publicTunnelURL = extension.options.tunnelUrl;
+                Logger.info(
+                    `Using tunnel url ${OutputFormatter.link(extension.publicTunnelURL)} from --tunnel-url flag`
+                );
+            }
+            else {
+                const extensionTunnel = new Tunnel({port: extension.options.port});
+
+                await extensionTunnel.startTunnel();
+
+                extension.publicTunnelURL = extensionTunnel.publicTunnelURL;
+            }
+
+            // Store tunnel url in extension context file
+            extensionContext.set(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_BASE_URL, extension.publicTunnelURL);
+            // Remove tunnel url from extension context on exit
+            process.on('exit', ()=>{
+                extensionContext.delete(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_BASE_URL);
+            })
+            
             // update launch url on partners panel
-            await ExtensionLaunchURL.updateLaunchURL(
-                extension.options.apiKey,
-                partner_access_token || options.accessToken,
-                extension.publicNgrokURL || extension.publicTunnelURL,
-            );
-            const warningMsg = chalk.yellow(
-                'Before preview extension, please restart your extension server',
-            );
+            if(extension.options.autoUpdate){
+                await ExtensionLaunchURL.updateLaunchURL(
+                    extension.options.apiKey,
+                    partner_access_token || options.accessToken,
+                    extension.publicTunnelURL,
+                );
+            }
+            else {
+                Logger.info(`Skipped updating launch URL on partners panel`)
+            }
 
+            // Start Dev servers
+            for(const projectConfig of projectConfigs){
+                if (projectConfig['dev']) {
+                    extension.execCommand(projectConfig['dev'], {
+                        cwd: projectConfig['configFilePath'],
+                        env: {
+                            FRONTEND_PORT: frontend_port.toString(),
+                            BACKEND_PORT: backend_port.toString(),
+                            EXTENSION_API_KEY: extension.options.apiKey,
+                            EXTENSION_API_SECRET: extension.options.apiSecret,
+                            EXTENSION_BASE_URL: extension.publicTunnelURL
+                        }
+                    }).catch((error) => {
+                        Debug(error);
+                        if(['SIGINT', 'SIGUSR1', 'SIGUSR2'].includes(error.signal) || error.code == 0 || error.code == 130 || error.exitCode == 130){
+                            Logger.info(`Shuting down ${projectConfig['roles'].join(' and ')} process.`);
+                        }
+                        else{
+                            throw new CommandError(error.shortMessage, error.code);
+                        }
+                    })
+                }
+            }            
+            
             // get preview URL
             const previewURL = extension.getPreviewURL();
             Debug(
-                `TUNNEL URL: ${
-                    extension.publicTunnelURL || extension.publicNgrokURL
-                }`,
+                `${OutputFormatter.link(extension.publicTunnelURL, 'TUNNEL URL:')}`
             );
-            Logger.info(
-                successBox({
-                    text: `${warningMsg}\n\nTUNNEL URL: ${
-                        extension.publicTunnelURL || extension.publicNgrokURL
-                    }\nExtension preview URL: ${previewURL}`,
-                }),
-            );
+            const stickyText = successBox({
+                text: `${OutputFormatter.link(previewURL, 'Extension preview URL: ')}`,
+            });
+
+            displayStickyText(stickyText, Logger.info);
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
@@ -175,185 +244,118 @@ export default class ExtensionPreviewURL {
         );
     }
 
-    private async startNgrokTunnel(authtoken: string) {
-        Debug(`Starting Ngrok tunnel on port ${this.options.port}`);
-        return await ngrok.connect({
-            proto: 'http',
-            addr: this.options.port,
-            authtoken: authtoken,
-            onStatusChange: async (status) => {
-                if (status === 'connected') {
-                    await this.connectedTunnelHandler();
-                }
-                if (status === 'closed') {
-                    await this.closedTunnelHandler();
-                }
-            },
-        });
-    }
-
-    private async getNgrokAuthtoken() {
-        if (
-            this.options.updateAuthtoken ||
-            !configStore.get(CONFIG_KEYS.NGROK_AUTHTOKEN)
-        ) {
-            let authtoken = await this.promptNgrokAuthtoken();
-            return authtoken;
-        } else {
-            return configStore.get(CONFIG_KEYS.NGROK_AUTHTOKEN);
-        }
-    }
-
-    private async connectedTunnelHandler() {
-        if (this.firstTunnelConnection) {
-            this.firstTunnelConnection = false;
-            return;
-        }
-        Logger.info(chalk.green('Ngrok tunnel Reconnected'));
-    }
-
-    private async closedTunnelHandler() {
-        Logger.error(chalk.red('Ngrok tunnel disconnected'));
-    }
-
-    private async promptNgrokAuthtoken(): Promise<string> {
-        let authtoken: string;
+    async execCommand(command : string, options: ServerOptions = {}, successExitMessage: string = undefined) {
         try {
-            Logger.info(
-                chalk.grey(
-                    `Visit https://dashboard.ngrok.com/get-started/your-authtoken to get Authtoken`,
-                ),
-            );
-            let answers = await inquirer.prompt([
-                {
-                    type: 'input',
-                    name: 'ngrok_authtoken',
-                    message: 'Enter Ngrok Authtoken :',
-                    validate: validateEmpty,
-                },
-            ]);
-            authtoken = answers.ngrok_authtoken;
+            const subprocess = execa.command(command, {
+                cwd: options.cwd || process.cwd(),
+                env: options.env || process.env,
+                shell: true,
+            });
+
+            // Forward stdout and stderr to the main process
+            subprocess.stdout.pipe(process.stdout);
+            subprocess.stderr.pipe(process.stderr);
+
+            // Handle process exit
+            subprocess.on('exit', (code) => {
+                if(successExitMessage && (code == 0 || code == 130)){
+                    Logger.info(successExitMessage);
+                }
+            });
+
+            // Store the subprocess
+            serverProcesses.push(subprocess);
+
+            return subprocess;
         } catch (error) {
-            throw new CommandError(error.message);
-        }
-        return authtoken;
-    }
-
-    isCloudflareTunnelShutdown = false;
-    cloudflareTunnelLogParser(data) {
-        const str = data.toString();
-        const connected_regex = /Registered tunnel connection/;
-        const disconnect_regex = /Unregistered tunnel connection/;
-        const retry_connection_regex = /Retrying connection in up to/;
-        const shutdown_regex =
-            /Initiating graceful shutdown due to signal interrupt/;
-
-        if (this.isCloudflareTunnelShutdown) {
-            return;
-        }
-
-        if (str.match(connected_regex)) {
-            Logger.info('Tunnel connection established');
-        } else if (str.match(disconnect_regex)) {
-            Logger.error('Tunnel disconnected');
-        } else if (str.match(retry_connection_regex)) {
-            Logger.warn(`Retrying to connect tunnel...`);
-        } else if (str.match(shutdown_regex)) {
-            this.isCloudflareTunnelShutdown = true;
+            Logger.error(`Error while executing command "${command}":`, error.message);
         }
     }
 
-    private async startCloudflareTunnel() {
-        Debug(`Starting tunnel on port ${this.options.port}`);
-        // INSTALL CURRENT LATEST VERSION
-        process.env.CLOUDFLARED_VERSION = '2024.6.1';
-        // THIS WILL STOP CLOUDFLARED TO AUTO UPDATE
-        process.env.NO_AUTOUPDATE = 'true';
-        // ALWAYS USE HTTP2 PROTOCOL
-        process.env.TUNNEL_TRANSPORT_PROTOCOL = 'http2';
+    public readAndValidateFDKExtConfigFiles(){
+        let projectConfigFiles = findAllFilePathFromCurrentDirWithName(['fdk.ext.config.json', 'fdk.ext.config.yml']);
+        const projectConfigs = [];
 
-        const { url, connections, child, stop } = startTunnel({
-            '--url': `http://localhost:${this.options.port}`,
-        });
+        const validateConfigStructure = (config) => {
+            if(Object.keys(config).length == 0){
+                throw new CommandError(
+                    ErrorCodes.INVALID_FDK_CONFIG_FILE.message,
+                    ErrorCodes.INVALID_FDK_CONFIG_FILE.code,
+                );
+            }
 
-        const cleanup = async () => {
-            stop();
-        };
+            if(!config.hasOwnProperty('roles') || !Array.isArray(config['roles'])){
+                throw new CommandError(
+                    ErrorCodes.INVALID_FDK_CONFIG_FILE.message + "\nkey `roles` must be an array of string",
+                    ErrorCodes.INVALID_FDK_CONFIG_FILE.code,
+                );
+            }
 
-        for (const signal of ['SIGINT', 'SIGUSR1', 'SIGUSR2'] as const) {
-            process.once(signal, cleanup);
+            if(!config.hasOwnProperty('dev') || typeof config['dev'] !== "string"){
+                throw new CommandError(
+                    ErrorCodes.INVALID_FDK_CONFIG_FILE.message + "\nkey `dev` must be a string",
+                    ErrorCodes.INVALID_FDK_CONFIG_FILE.code,
+                );
+            }
+
+            if(config.hasOwnProperty('install') && typeof config['install'] !== "string"){
+                throw new CommandError(
+                    ErrorCodes.INVALID_FDK_CONFIG_FILE.message + "\nkey `install` must be a string",
+                    ErrorCodes.INVALID_FDK_CONFIG_FILE.code,
+                );
+            }
+
+            if(config.hasOwnProperty('port') && typeof config['port'] !== "number"){
+                throw new CommandError(
+                    ErrorCodes.INVALID_FDK_CONFIG_FILE.message + "\nkey `port` must be a number",
+                    ErrorCodes.INVALID_FDK_CONFIG_FILE.code,
+                );
+            }
+
+            return true;
         }
 
-        child.stdout.on('data', this.cloudflareTunnelLogParser);
-        child.stderr.on('data', this.cloudflareTunnelLogParser);
-
-        if (process.env.DEBUG) {
-            child.stdout.pipe(process.stdout);
-            child.stderr.pipe(process.stderr);
+        const readConfigFile = (configFilePath) => {
+            let projectConfig;
+            if (path.extname(configFilePath) === '.yml') {
+                const fileContents = fs.readFileSync(configFilePath, 'utf8');
+                projectConfig = yaml.load(fileContents);
+            }
+            else{
+                projectConfig = require(configFilePath);
+            }
+            return projectConfig;
         }
 
-        return await url;
-    }
-
-    private async promptExtensionApiKey(): Promise<string> {
-        let extension_api_key: string;
-        const apiKeyFromEnv = this.getExtensionAPIKeyFromENV();
-        if (apiKeyFromEnv) {
-            Logger.info(
-                `Using Extension API key from environment : ${apiKeyFromEnv}`,
+        
+        if (projectConfigFiles.length == 0) {
+            Logger.error(`No fdk.ext.config file found in current directory.
+Seems like you are using old extension structure. Please refer this doc to update your boilerplate structure
+Or you can use fdk extension tunnel --port <port> command to start tunnel\n`)
+            throw new CommandError(
+                ErrorCodes.MISSING_FDK_CONFIG_FILE.message,
+                ErrorCodes.MISSING_FDK_CONFIG_FILE.code,
             );
-            extension_api_key = apiKeyFromEnv;
-        } else {
-            try {
-                let answers = await inquirer.prompt([
-                    {
-                        type: 'input',
-                        name: 'extension_api_key',
-                        message: 'Enter Extension API Key :',
-                        validate: validateEmpty,
-                    },
-                ]);
-                extension_api_key = answers.extension_api_key;
-            } catch (error) {
-                throw new CommandError(error.message);
+        }
+        else{
+            let definedProjectRoles = [];
+            for (let fdkConfigFilePath of projectConfigFiles) {
+                const projectConfig = readConfigFile(fdkConfigFilePath);
+                validateConfigStructure(projectConfig);
+
+                definedProjectRoles = definedProjectRoles.concat(projectConfig.roles);
+                
+                projectConfig['configFilePath'] = path.dirname(fdkConfigFilePath);
+                projectConfigs.push(projectConfig);
+            }
+            if (!definedProjectRoles.includes("frontend") || !definedProjectRoles.includes("backend")){
+                throw new CommandError(
+                    ErrorCodes.INVALID_FDK_CONFIG_FILE.message + "\nConfig files for both `frontend` and `backend` roles should be defined",
+                    ErrorCodes.INVALID_FDK_CONFIG_FILE.code,
+                );
             }
         }
-        return extension_api_key;
-    }
 
-    public getExtensionAPIKeyFromENV() {
-        let java_env_file_path = path.join(
-            'src',
-            'main',
-            'resources',
-            'application.yml',
-        );
-
-        if (fs.existsSync('./.env')) {
-            let envData = readFile('./.env');
-            const keyMatchRegex = new RegExp(
-                `^\\s*EXTENSION_API_KEY\\s*=\\s*(?:'([^']*)'|"([^"]*)"|([^'"\s]+))`,
-                'm',
-            );
-            const match = keyMatchRegex.exec(envData);
-            if (match) {
-                const value = (match[1] || match[2] || match[3]).trim();
-                return value === '' ? null : value;
-            }
-        } else if (fs.existsSync(java_env_file_path)) {
-            let envData = readFile(java_env_file_path);
-            const keyMatchRegex = new RegExp(
-                `^\\s*api_key\\s*:\\s*(?:'([^']*)'|"([^"]*)"|([^'"\s]+))`,
-                'm',
-            );
-            const match = keyMatchRegex.exec(envData);
-            if (match) {
-                const value = (match[1] || match[2] || match[3]).trim();
-                return value === '' ? null : value;
-            }
-        } else {
-            return null;
-        }
-        return null;
+        return projectConfigs;
     }
 }

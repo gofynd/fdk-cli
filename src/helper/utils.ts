@@ -14,6 +14,7 @@ import * as walk from 'acorn-walk';
 import * as escodegen from 'escodegen';
 import { createDirectory } from './file.utils';
 import { DEFAULT_CONTEXT } from '../lib/ThemeContext';
+import glob from 'glob'
 
 const FDK_PATH = () => path.join(process.cwd(), '.fdk');
 const CONTEXT_PATH = () => path.join(FDK_PATH(), 'context.json');
@@ -333,4 +334,20 @@ export function getOrganizationDisplayName() {
         return `${organizationId}`;
     }
     return `${organizationDetail.name}`;
+}
+
+/**
+ * This function will move whole content(including hidden) of one folder to another
+ * @param from path from which you want to move the content
+ * @param to path where you want to move the content
+ */
+export async function moveDirContent(from, to) {
+    const files = glob.sync(path.join(from, '{*,.*}'));
+    for (const file of files) {
+        const fileName = path.basename(file);
+        const destFile = path.join(to, fileName);
+        Debug(`Moving ${fileName}...`)
+        await fs.move(file, destFile);
+        Debug(`Moved: ${fileName}`)
+    }
 }
