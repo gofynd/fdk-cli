@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import Logger from '../lib/Logger';
 import axios from 'axios';
-import cheerio from 'cheerio';
+import * as cheerio from 'cheerio';
 import express from 'express';
 import _ from 'lodash';
 import { SourceMapConsumer } from 'source-map';
@@ -283,7 +283,7 @@ export async function startServer({ domain, host, isSSR, port }) {
                     )}"></link>`,
                 );
             });
-            res.send($.html({ decodeEntities: false }));
+            res.send($.html());
         } catch (e) {
             if (e?.response && e?.response?.status == 504) {
                 res.redirect(req.originalUrl);
@@ -521,7 +521,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 				});
 				</script>
 			`);
-        res.send($.html({ decodeEntities: false }));
+        res.send($.html());
     });
 
     return new Promise((resolve, reject) => {

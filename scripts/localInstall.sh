@@ -4,6 +4,9 @@
 set -e
 trap 'echo "An error occurred."; exit 1' ERR
 
+#Node version
+node -v
+
 # Install all the packages
 npm i
 

@@ -1,6 +1,6 @@
 {
   "name": "@gofynd/fdk-cli",
-  "version": "5.1.6",
+  "version": "5.1.6-alpha.1",
   "main": "index.js",
   "license": "MIT",
   "bin": {
@@ -25,7 +25,8 @@
     "watch": "tsc --watch",
     "test": "jest --runInBand",
     "pretty": "prettier --config ./.prettierrc --write './src/**/*.*'",
-    "localInstall": "sh scripts/localInstall.sh"
+    "localInstall": "sh scripts/localInstall.sh",
+    "debug": "cd /Users/shivrajkoli/Astra && fdk theme serve"
   },
   "devDependencies": {
     "@types/async": "3.2.24",
@@ -70,7 +71,7 @@
     "axios-retry": "4.4.2",
     "boxen": "5.1.2",
     "chalk": "4.1.2",
-    "cheerio": "^1.0.0-rc.9",
+    "cheerio": "^1.0.0",
     "chokidar": "3.6.0",
     "cloudflared": "0.5.2",
     "commander": "7.2.0",
