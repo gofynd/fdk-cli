@@ -315,7 +315,7 @@ export default {
             }))
         }));
         try {
-            const axiosOptions = Object.assign({}, {data: updatedData}, getCommonHeaderOptions());
+            const axiosOptions = Object.assign({}, {data: { test_cases: updatedData }}, getCommonHeaderOptions());
             const response = await ApiClient.post(
                 URLS.UPDATE_BULK_TESTS(extension_id, function_id),
                 axiosOptions

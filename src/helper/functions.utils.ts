@@ -146,6 +146,8 @@ export const CONFIG_FILE = 'config.json';
 export const INDEX_FILE = 'index.js';
 export const TEST_FILE = 'test.json';
 
+export const FOLDER_PATH = () => path.join(process.cwd(), FOLDER_NAME);
+
 export const USER_ACTIONS = {
     PULL: 'pull',
     PUSH: 'push',

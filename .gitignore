@@ -142,3 +142,7 @@ csv/
 
 # Sentry Auth Token
 .sentryclirc
+
+.fdk
+functions
+_functions

@@ -326,7 +326,7 @@ export default class FunctionCommands {
 
             const slugFolderPath = path.join(process.cwd(), FOLDER_NAME, data.slug);
 
-            if(fs.existsSync(path.join(slugFolderPath)) && !options.force){
+            if (fs.existsSync(path.join(slugFolderPath)) && !options.force){
                 throw new CommandError(
                     ErrorCodes.FOLDER_ALREADY_EXISTS.message(data.slug, `Delete folder and Try again or use '-f' to force init`),
                     ErrorCodes.FOLDER_ALREADY_EXISTS.code
