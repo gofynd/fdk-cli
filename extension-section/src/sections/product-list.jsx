@@ -12,7 +12,7 @@ export function Component({ props }) {
   const productItems = products?.data?.items ?? [];
   useEffect(() => {
     if (!productItems.length) {
-      fpi.products.fetchProductListing({});
+      fpi.catalog.getProducts({});
     }
   }, []);
 
@@ -38,7 +38,7 @@ export function Component({ props }) {
   );
 }
 
-Component.serverFetch = ({ fpi }) => fpi.products.fetchProductListing({});
+Component.serverFetch = ({ fpi }) => fpi.catalog.getProducts({});
 
 export const settings = {
   label: "Product List",

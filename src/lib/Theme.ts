@@ -1219,7 +1219,7 @@ export default class Theme {
             Logger.info(chalk.bold.blueBright(`Starting server`));
 
             await startReactServer({
-                domain,
+                domain: 'http://127.0.0.1:80',
                 host,
                 port,
                 isHMREnabled,
