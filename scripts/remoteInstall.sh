@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Use below command to install fdk cli using this script
+# Install from specific branch or tag
+# curl -s https://raw.githubusercontent.com/gofynd/fdk-cli/master/scripts/remoteInstall.sh 2>&1 | sh -s -- <branch_or_tag_name>
+
 # Exit if any command fails and ensure cleanup
 set -e
 trap 'echo "An error occurred."; exit 1' ERR

@@ -60,6 +60,7 @@ export default class Tunnel {
         process.env.TUNNEL_TRANSPORT_PROTOCOL = 'http2';
 
         if (!fs.existsSync(bin)) {
+            Debug(`Cloudflare tunnel binary is not found in bin dir: ${bin}\nDownloading cloudflare...`);
             await install(bin);
         }
 
