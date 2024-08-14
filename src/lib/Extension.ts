@@ -341,6 +341,8 @@ export default class Extension {
             if(extensionList.items.length)
                 action = await Extension.confirmInitAction();
             
+            let isExtensionNameFixed = false;
+
             // if developer wants to select from existing extension
             if(action === INIT_ACTIONS.select_extension){
                 const selected_extension = await selectExtensionFromList(extensionList);
@@ -353,6 +355,7 @@ export default class Extension {
                 answers.type = selected_ext_type;
                 answers.extension_api_key = selected_ext_api_key;
                 answers.extension_api_secret = extensionDetails.client_data.secret[0];
+                isExtensionNameFixed = true;
             } else {
                 // ask new extension name
                 await inquirer
@@ -370,7 +373,7 @@ export default class Extension {
             }
             answers.targetDir = options['targetDir'] || answers.name;
 
-            Extension.checkFolderAndGitExists(answers.targetDir);
+            Extension.checkFolderAndGitExists(answers.targetDir, isExtensionNameFixed);
 
             const extensionTypeQuestions = [];
 
@@ -436,9 +439,12 @@ export default class Extension {
 
     private static checkFolderAndGitExists(folderPath: string, fixedExtensionName = false) {
         if (fs.existsSync(folderPath)) {
-            throw new CommandError(
-                `Directory "${folderPath}" already exists in the current directory. Please ${fixedExtensionName ? '' : 'choose a different name or '}specify a different target directory.`
-            );
+            throw new CommandError(`Directory "${folderPath}" already exists in the current directory.
+
+${chalk.yellow('What you can do:')}${chalk.green(`${fixedExtensionName ? '' : "\n- Specify a different extension name to initialize the extension"}
+- Run the ${OutputFormatter.command('fdk extension init')} command from a different directory
+- Use the ${OutputFormatter.command('--target-dir')} flag to specify a different target directory to initialize the extension`)}
+`);
         }
         if (fs.existsSync(path.join(folderPath, '/.git'))) {
             throw new CommandError(
