@@ -118,15 +118,13 @@ export default class Auth {
     constructor() {}
     public static async login(options) {
         // todo: check grafana dashboard and confirm if all env are above 1.8
-        let env;
-
         if(options.host){
             await Env.setNewEnvs(options.host);
-            env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
         } else {
-            env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
-            Debug(`Current env: ${env}`);
+            await Env.setNewEnvs('api.fynd.com');
         }
+
+        let env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
 
         const isLoggedIn = await Auth.isAlreadyLoggedIn();
         if (isLoggedIn) {
