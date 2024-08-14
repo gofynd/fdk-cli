@@ -334,12 +334,23 @@ export default class Extension {
             let answers: Object = {};
             let selected_ext_type;
 
+            const template = options.template;
+            if(!!template){
+                if(!Object.keys(TEMPLATES).includes(template)){
+                    throw new CommandError(
+                        "Invalid template passed. Available options are: " + Object.keys(TEMPLATES).join(", ")+"",
+                        ErrorCodes.INVALID_INPUT.code
+                    );
+                }
+            } 
+
             let action =  INIT_ACTIONS.create_extension;
             Debug("Checking if extensions exist in developer's organization...")
             const extensionList = await ExtensionService.getExtensionList(1, 9999);
 
-            if(extensionList.items.length)
+            if(extensionList.items.length){
                 action = await Extension.confirmInitAction();
+            }
             
             let isExtensionNameFixed = false;
 
@@ -388,12 +399,7 @@ export default class Extension {
                     validate: validateEmpty,
                 })
             }
-            const template = options.template;
-            if(!!template){
-                if(!Object.keys(TEMPLATES).includes(template)){
-                    throw new CommandError("Invalid template passed.", ErrorCodes.INVALID_INPUT.code);
-                }
-            } else {
+            if(!template){
                 extensionTypeQuestions.push({
                     type: 'list',
                     choices: [
@@ -406,7 +412,7 @@ export default class Extension {
                     name: 'project_type',
                     message: 'Template :',
                     validate: validateEmpty,
-                })
+                }) 
             }
 
             let prompt_answers: Object = {};
