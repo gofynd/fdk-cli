@@ -1,15 +1,19 @@
-import { tunnel as startTunnel } from 'cloudflared';
+import { tunnel as startTunnel, bin, install } from 'cloudflared';
 import Spinner from '../helper/spinner';
 import CommandError, { ErrorCodes } from './CommandError';
 import Debug from './Debug';
 import Logger from './Logger';
 import { OutputFormatter, successBox } from '../helper/formatter';
+import type { ChildProcess } from 'node:child_process';
+import fs from 'fs-extra';
 
 export default class Tunnel {
     options: {
         port: string | number;
     };
     publicTunnelURL: string;
+    tunnelProcess: ChildProcess;
+    stopTunnel: (signal?: NodeJS.Signals | number) => boolean;
 
     constructor(options){
         this.options = options;
@@ -31,8 +35,12 @@ export default class Tunnel {
         let spinner = new Spinner(`Starting Cloudflare tunnel on port ${this.options.port}`);
         try {
             spinner.start();
-            this.publicTunnelURL = await this.startCloudflareTunnel();
+            const { url, child: tunnelProcess, stop } = await this.startCloudflareTunnel();
+            this.publicTunnelURL = url;
+            this.tunnelProcess = tunnelProcess;
+            this.stopTunnel = stop;
             spinner.succeed();
+            return this.publicTunnelURL;
         } catch (error) {
             spinner.fail();
             throw new CommandError(
@@ -51,7 +59,11 @@ export default class Tunnel {
         // ALWAYS USE HTTP2 PROTOCOL
         process.env.TUNNEL_TRANSPORT_PROTOCOL = 'http2';
 
-        const { url, connections, child, stop } = startTunnel({
+        if (!fs.existsSync(bin)) {
+            await install(bin);
+        }
+
+        const { url: urlPromise, connections, child, stop } = startTunnel({
             '--url': `http://localhost:${this.options.port}`,
         });
 
@@ -71,7 +83,9 @@ export default class Tunnel {
             child.stderr.pipe(process.stderr);
         }
 
-        return await url;
+        const url = await urlPromise;
+
+        return {url, child, stop};
     }
 
     isCloudflareTunnelShutdown = false;

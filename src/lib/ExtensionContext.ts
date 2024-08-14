@@ -23,7 +23,7 @@ export default class ExtensionContext {
         }
         catch(error) {
             if(error instanceof SyntaxError){
-                Logger.info(`Invalid extension context file found at ${this.extensionContextFilePath}, resetting extension context`);
+                Logger.info(`Invalid extension context file found, resetting extension context`);
                 this.replace({});
             }
             else{
