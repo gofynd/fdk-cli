@@ -12,7 +12,7 @@ import Debug from './Debug';
 import Env from './Env';
 
 const SERVER_TIMER = 1000 * 60 * 2; // 2 min
-import { successBox } from '../helper/formatter';
+import { OutputFormatter, successBox } from '../helper/formatter';
 import OrganizationService from './api/services/organization.service';
 import { getOrganizationDisplayName } from '../helper/utils';
 import chalk from 'chalk';
@@ -163,16 +163,16 @@ export default class Auth {
                         )}`,
                     );
                     console.log(
-                        `Open link on browser: ${chalk.blue(`${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
+                        `Open link on browser: ${OutputFormatter.link(`${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
                             `${getLocalBaseUrl()}:${port}`,
-                        )}`)}`,
+                            )}`)}`,
                     );
                 }
             } catch (err) {
                 console.log(
-                    `Open link on browser: ${chalk.blue(`${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
+                    `Open link on browser: ${OutputFormatter.link(`${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
                         `${getLocalBaseUrl()}:${port}`,
-                    )}`)}`,
+                        )}`)}`,
                 );
             }
         } catch (error) {
