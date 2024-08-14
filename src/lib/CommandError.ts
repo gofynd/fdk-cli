@@ -1,3 +1,5 @@
+import { MIN_NODE_VERSION } from "../helper/constants";
+
 const ERROR_PREFIX = 'Error: ';
 const ENOENT_PREFIX = 'ENOENT: ';
 export const ErrorCodes = {
@@ -97,6 +99,10 @@ export const ErrorCodes = {
             'This can be caused due to VPN or Firewall, please contact your network administrator or disable and retry.',
         code: 'FDK-0013',
     },
+    INCOMPATIBLE_NODE_VERSION: {
+        message: `Incompatible Node.js version. Kindly upgrade to Node.js >= ${MIN_NODE_VERSION}`,
+        code: 'FDK-0014'
+    }
 };
 
 export default class CommandError extends Error {

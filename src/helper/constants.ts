@@ -30,3 +30,5 @@ export const ALLOWD_ENV = {
     fyndx5: 'https://partners.fyndx5.de',
     fynd: 'https://partners.fynd.com',
 };
+
+export const MIN_NODE_VERSION = '18.0.0';

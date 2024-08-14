@@ -4,6 +4,7 @@ import leven from 'leven';
 import latestVersion from 'latest-version';
 import semver from 'semver';
 import chalk from 'chalk';
+import execa from 'execa';
 import Logger, { COMMON_LOG_MESSAGES } from './lib/Logger';
 import Debug from './lib/Debug';
 import CommandError, { ErrorCodes } from './lib/CommandError';
@@ -24,6 +25,7 @@ import {
     EXTENSION_COMMANDS,
     PARTNER_COMMANDS,
     ALL_THEME_COMMANDS,
+    MIN_NODE_VERSION
 } from './helper/constants';
 import { getPlatformUrls } from './lib/api/services/url';
 import * as Sentry from '@sentry/node';
@@ -40,6 +42,29 @@ async function checkTokenExpired(auth_token) {
     }
 }
 
+function checkNodeVersion() {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const { stdout, stderr } = await execa('node', ['--version'], { cwd: process.cwd() });
+            if(stdout) {
+                const nodeVersion = stdout.trim().split('v')[1];
+                const isValidNodeVersion = semver.gte(nodeVersion, MIN_NODE_VERSION);
+                if(isValidNodeVersion) {
+                    resolve(nodeVersion);
+                } else {
+                    reject(new CommandError(ErrorCodes.INCOMPATIBLE_NODE_VERSION.message, ErrorCodes.INCOMPATIBLE_NODE_VERSION.code));
+                }
+            }
+            
+            if(stderr) {
+                reject(new CommandError(`Error fetching Node.js version. ${stderr.trim()}`));
+            }
+        } catch(err) {
+            reject(new CommandError(`Failed to fetch Node.js version. ${err?.message}`));
+        }
+    })
+}
+
 // asyncAction is a wrapper for all commands/actions to be executed after commander is done
 // parsing the command input
 export type Action = (...args: any[]) => void;
@@ -47,6 +72,9 @@ export type Action = (...args: any[]) => void;
 Command.prototype.asyncAction = async function (asyncFn: Action) {
     return this.action(async (...args: any[]) => {
         try {
+            initializeLogger();
+            await checkNodeVersion();
+
             let parent = args[1].parent;
             while (true) {
                 if (parent.parent) parent = parent.parent;
@@ -63,7 +91,6 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
                 const log_file_path = process.cwd() + '/debug.log';
                 if (fs.existsSync(log_file_path)) fs.removeSync(log_file_path);
             }
-            initializeLogger();
 
             // check in config if user have set certificate
             const CA_FILE = configStore.get(CONFIG_KEYS.CA_FILE);
