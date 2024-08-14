@@ -25,8 +25,7 @@
     "watch": "tsc --watch",
     "test": "jest --runInBand",
     "pretty": "prettier --config ./.prettierrc --write './src/**/*.*'",
-    "localInstall": "sh scripts/localInstall.sh",
-    "debug": "cd /Users/shivrajkoli/Astra && fdk theme serve"
+    "localInstall": "sh scripts/localInstall.sh"
   },
   "devDependencies": {
     "@types/async": "3.2.24",
