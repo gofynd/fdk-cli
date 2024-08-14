@@ -6,7 +6,18 @@
 
 # Exit if any command fails and ensure cleanup
 set -e
-trap 'echo "An error occurred."; exit 1' ERR
+trap cleanup ERR
+
+# Function to cleanup on error or successful completion
+cleanup() {
+    echo "Cleaning up..."
+    # Navigate to the original directory and remove the cloned repo if it exists
+    cd "$ORIGINAL_DIR"
+    [[ -d "$REPO_DIR" ]] && rm -rf "$REPO_DIR"
+    echo "Cleanup completed!"
+    # Exit if called by the trap on error
+    [[ "$1" == "error" ]] && exit 1
+}
 
 # Store the original directory
 ORIGINAL_DIR=$(pwd)
@@ -42,7 +53,5 @@ echo "fdk-cli has been installed globally!"
 fdk --version
 
 # Cleanup
-cd ..
-rm -rf "$REPO_DIR"
 cleanup
 
