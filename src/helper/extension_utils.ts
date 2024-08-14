@@ -175,7 +175,16 @@ export const getActiveContext = (throwError = false) => {
 };
 
 export const validateEmpty = (input: any): boolean => {
-    return input !== '';
+    if(typeof input === 'string'){
+        return input.trim() !== '';
+    }
+    else if(input === null || input === undefined){
+        return false;
+    }
+    else if (typeof input === 'object') {
+        return Object.keys(input).length > 0;
+    }
+    return true;
 };
 
 export const replaceContent = (
