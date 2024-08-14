@@ -1,31 +1,35 @@
 import fs from 'fs';
 import path from 'path';
 
-import { findAllFilePathFromCurrentDirWithName } from "../helper/extension_utils";
 import * as CONSTANTS from './../helper/constants';
-import CommandError, { ErrorCodes } from "./CommandError";
+import Logger from './Logger';
 
 export default class ExtensionContext {
     extensionContextFilePath: string;
     extensionContext: Record<string, string|number>;
     
     constructor(){
-        let extensionContextFiles = findAllFilePathFromCurrentDirWithName([CONSTANTS.EXTENSION_CONTEXT_FILE_NAME]);
+        this.extensionContextFilePath = path.join(process.cwd(), CONSTANTS.EXTENSION_CONTEXT_FILE_NAME);
+        
+        let fileExists = fs.existsSync(this.extensionContextFilePath);
 
-        if (extensionContextFiles.length > 1) {
-            throw new CommandError(
-                ErrorCodes.MULTIPLE_EXTENSION_CONTEXT_FILE.message,
-                ErrorCodes.MULTIPLE_EXTENSION_CONTEXT_FILE.code
-            )
-        }
-        else if(extensionContextFiles.length == 0){
-            fs.writeFileSync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME, '{}');
-            extensionContextFiles = [path.resolve(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME)];
+        if (!fileExists) {
+            // If the file does not exist, create it
+            fs.writeFileSync(this.extensionContextFilePath, '{}');
         }
 
-        this.extensionContextFilePath = extensionContextFiles[0];
-
-        this.extensionContext = JSON.parse(fs.readFileSync(this.extensionContextFilePath).toString() || '{}');
+        try{
+            this.extensionContext = JSON.parse(fs.readFileSync(this.extensionContextFilePath, 'utf-8').toString());
+        }
+        catch(error) {
+            if(error instanceof SyntaxError){
+                Logger.info(`Invalid extension context file found at ${this.extensionContextFilePath}, resetting extension context`);
+                this.replace({});
+            }
+            else{
+                throw error;
+            }
+        }
     }
 
     get(key: string) {

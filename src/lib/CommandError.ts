@@ -68,10 +68,6 @@ export const ErrorCodes = {
             'fdk.ext.config.json or fdk.ext.config.yml file is in invalid format',
         code: 'FDK-0018',
     },
-    MULTIPLE_EXTENSION_CONTEXT_FILE: {
-        message: 'multiple extension context files found, only one extension context file is supported',
-        code: 'FDK-0019'
-    },
 
     // generic
     ECONN_RESET: {
