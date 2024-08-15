@@ -84,7 +84,6 @@ ___
 | Command        | Description           | 
 | ------------- |-------------| 
 | [init](#extension-init)     | Utilize this command to set up a new extension locally, leveraging existing templates of your choice.  |
-| [setup](#extension-setup)     | Configure your extension locally using the existing API Key and API Secret provided for the extension inside the partners panel. |
 | [preview](#extension-preview-url)   | Start the extension development server and provide a tunnel URL to preview the extension on the development company. |
 | [pull-env](#extension-pull-env)     | Retrieve extension context values from the partners panel and update current extension context. |
 | [launch-url](#extension-launch-url)     | Get/set extension's lanuch url |
@@ -369,6 +368,10 @@ Extensions are pluggable snippets of code that can be installed in your applicat
 
 #### **init**
 This command is used to create a extension's initial code with required dependency. It will also register extension for you on your partner account.
+
+##### Prerequisites
+- You must have installed [Git](https://github.com/git-guides/install-git), if you don't already have it.
+
 #### ****Syntax****
 ```sh
 fdk extension init [options]
@@ -394,28 +397,6 @@ You can pass the following values for the template:
 3. java-vue
 4. java-react
 ___
-<div id="extension-setup"></div>
-
-#### **setup**
-This command is used to setup extension's development environment in local machine with required dependencies created on [Fynd Partners](https://partners.fynd.com/) panel.
-#### ****Syntax****
-```sh
-fdk extension setup [options]
-```
-
-#### **Command Options**
-| Option        | Description           | 
-| ------------- |-------------| 
-| --target-dir    | Target Directory |
-| --help    | Show help |
-| --verbose | enable debug mode |
-
-#### **Example**
-```sh
-fdk extension setup --target-dir [your-directory]
-```
-___
-
 <div id="extension-preview-url"></div>
 
 #### **preview**

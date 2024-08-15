@@ -37,7 +37,7 @@ export default class ExtensionLaunchURL {
                 options.url,
             );
         } catch (error) {
-            throw new CommandError(error.message, error.code);
+            throw new CommandError(error.message, error.code, error.response);
         }
     }
 
@@ -116,10 +116,10 @@ export default class ExtensionLaunchURL {
                 // }
             } catch (error) {
                 spinner.fail();
-                throw new CommandError(error.message);
+                throw new CommandError(error.message, error.code, error.response);
             }
         } catch (error) {
-            throw new CommandError(error.message, error.code);
+            throw new CommandError(error.message, error.code, error.response);
         }
     }
 
@@ -145,10 +145,10 @@ export default class ExtensionLaunchURL {
                 );
             } catch (error) {
                 spinner.fail();
-                throw new CommandError(error.message);
+                throw new CommandError(error.message, error.code, error.response);
             }
         } catch (error) {
-            throw new CommandError(error.message, error.code);
+            throw new CommandError(error.message, error.code, error.response);
         }
     }
 }

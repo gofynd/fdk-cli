@@ -13,6 +13,7 @@ import ExtensionService from '../lib/api/services/extension.service';
 import { getPlatformUrls } from '../lib/api/services/url';
 import { getOrganizationDisplayName } from './utils';
 import { readFile, writeFile } from './file.utils';
+import { OutputFormatter } from './formatter';
 
 export interface Object {
     [key: string]: any;
@@ -59,7 +60,7 @@ export const getCompanyId = async (promptMessage = undefined) => {
             : getPlatformUrls().partners;
         Logger.info(
             chalk.yellowBright(
-                `You don't have development account under organization ${getOrganizationDisplayName()}, You can create development account from ${createDevelopmentCompanyFormURL} and try again.`,
+                `You don't have development account under organization "${getOrganizationDisplayName()}", You can create development account from ${OutputFormatter.link(createDevelopmentCompanyFormURL)} and try again.`,
             ),
         );
 
@@ -100,7 +101,7 @@ export const selectExtensionFromList = async (prefetchedExtensionList = undefine
             : getPlatformUrls().partners;
         Logger.info(
             chalk.yellowBright(
-                `You don't have any extension under organization ${getOrganizationDisplayName()}, You can create extension from ${createExtensionFormURL} and try again.`,
+                `You don't have any extension under organization "${getOrganizationDisplayName()}", You can create extension from ${OutputFormatter.link(createExtensionFormURL)} and try again.`,
             ),
         );
 
@@ -174,7 +175,16 @@ export const getActiveContext = (throwError = false) => {
 };
 
 export const validateEmpty = (input: any): boolean => {
-    return input !== '';
+    if(typeof input === 'string'){
+        return input.trim() !== '';
+    }
+    else if(input === null || input === undefined){
+        return false;
+    }
+    else if (typeof input === 'object') {
+        return Object.keys(input).length > 0;
+    }
+    return true;
 };
 
 export const replaceContent = (

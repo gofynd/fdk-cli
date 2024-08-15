@@ -194,9 +194,4 @@ export const URLS = {
             `/organization/${getOrganizationId()}/accounts/access-request?page_size=${page_size}&page_no=${page_no}&request_status=accepted`,
         );
     },
-
-
-    IS_VERSION_COMPATIBLE: () => {
-        return urlJoin(BLITZKRIEG_PANEL_URL(), '/_compatibility');
-    },
 };

@@ -12,7 +12,7 @@ import Debug from './Debug';
 import Env from './Env';
 
 const SERVER_TIMER = 1000 * 60 * 2; // 2 min
-import { successBox } from '../helper/formatter';
+import { OutputFormatter, successBox } from '../helper/formatter';
 import OrganizationService from './api/services/organization.service';
 import { getOrganizationDisplayName } from '../helper/utils';
 import chalk from 'chalk';
@@ -111,10 +111,6 @@ export const startServer = async () => {
     })
 };
 
-async function checkVersionCompatibility() {
-    const response = await ThemeService.checkCompatibleVersion();
-}
-
 export default class Auth {
     static server = null;
     static timer_id;
@@ -122,16 +118,13 @@ export default class Auth {
     constructor() {}
     public static async login(options) {
         // todo: check grafana dashboard and confirm if all env are above 1.8
-        await checkVersionCompatibility();
-        let env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
-
         if(options.host){
             await Env.setNewEnvs(options.host);
-            env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
         } else {
-            env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
-            Debug(`Current env: ${env}`);
+            await Env.setNewEnvs('api.fynd.com');
         }
+
+        let env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
 
         const isLoggedIn = await Auth.isAlreadyLoggedIn();
         if (isLoggedIn) {
@@ -170,16 +163,16 @@ export default class Auth {
                         )}`,
                     );
                     console.log(
-                        `Open link on browser: ${chalk.blue(`${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
+                        `Open link on browser: ${OutputFormatter.link(`${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
                             `${getLocalBaseUrl()}:${port}`,
-                        )}`)}`,
+                            )}`)}`,
                     );
                 }
             } catch (err) {
                 console.log(
-                    `Open link on browser: ${chalk.blue(`${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
+                    `Open link on browser: ${OutputFormatter.link(`${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
                         `${getLocalBaseUrl()}:${port}`,
-                    )}`)}`,
+                        )}`)}`,
                 );
             }
         } catch (error) {

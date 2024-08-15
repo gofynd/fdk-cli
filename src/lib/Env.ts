@@ -25,10 +25,16 @@ export default class Env {
         Logger.info(`Currently using Platform URL: ${chalk.bold(ctx)}`);
     }
 
-    public static async setNewEnvs(domain) {
+    public static async setNewEnvs(domain: string) {
         try {
             Debug(`Setting env: ${domain}`);
             let finalDomain = domain;
+
+            if(typeof finalDomain !== 'string'){
+                throw new Error( `Please provide valid domain, Example: api.fynd.com`);
+            }
+            
+            finalDomain = finalDomain.trim();
 
             // remove https:// from domain if present
             if (domain.includes('https://')) {

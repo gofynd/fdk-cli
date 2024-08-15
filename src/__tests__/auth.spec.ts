@@ -59,7 +59,6 @@ describe('Auth Commands', () => {
         program = await init('fdk');
         const mock = new MockAdapter(axios);
         configStore.set(CONFIG_KEYS.ORGANIZATION, organizationData._id);
-        mock.onGet(`${URLS.IS_VERSION_COMPATIBLE()}`).reply(200);
         mock.onGet('https://api.fynd.com/service/application/content/_healthz').reply(200);
         mock.onGet(`${URLS.GET_ORGANIZATION_DETAILS()}`).reply(
             200,

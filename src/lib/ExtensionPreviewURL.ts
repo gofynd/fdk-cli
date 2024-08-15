@@ -331,7 +331,7 @@ export default class ExtensionPreviewURL {
         if (projectConfigFiles.length == 0) {
             Logger.error(`No fdk.ext.config file found in current directory.
 Seems like you are using old extension structure. Please refer this doc to update your boilerplate structure
-Or you can use fdk extension tunnel --port <port> command to start tunnel\n`)
+Or you can use fdk tunnel --port <port> command to start tunnel\n`)
             throw new CommandError(
                 ErrorCodes.MISSING_FDK_CONFIG_FILE.message,
                 ErrorCodes.MISSING_FDK_CONFIG_FILE.code,
