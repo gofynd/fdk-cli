@@ -22,7 +22,7 @@ import rimraf from 'rimraf';
 import terminalLink from 'terminal-link';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import cheerio from 'cheerio';
+import * as cheerio from 'cheerio';
 import glob from 'glob';
 import _ from 'lodash';
 import React from 'react';
@@ -866,7 +866,6 @@ export default class Theme {
             const imageCdnUrl = await Theme.getImageCdnBaseUrl();
             const assetBasePath = await Theme.getAssetCdnBaseUrl();
 
-            Logger.info('Building Theme for Production...');
             const stats = await devReactBuild({
                 buildFolder: Theme.BUILD_FOLDER,
                 runOnLocal: false,

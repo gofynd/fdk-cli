@@ -161,7 +161,6 @@ export async function devReactBuild({
         );
         return new Promise((resolve, reject) => {
             webpack(baseWebpackConfig, (err, stats) => {
-                console.log(err);
                 console.log(stats.toString());
                 if (err || stats.hasErrors()) {
                     reject();

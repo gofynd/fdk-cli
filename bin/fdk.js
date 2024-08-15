@@ -7,7 +7,7 @@ const chalk = require('chalk');
 const currentNodeVersion = process.versions.node;
 const semver = currentNodeVersion.split('.');
 const major = Number(semver[0]);
-const minCompatibleVersion = 16;
+const minCompatibleVersion = 18;
 
 const bootstrap = async () => {
     const { init, parseCommands } = require('../dist/fdk');
