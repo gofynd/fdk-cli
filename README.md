@@ -138,9 +138,6 @@ fdk login [options]
 fdk login
 ```
 ```sh
-fdk login -h api.fynd.com
-```
-```sh
 fdk login --host api.fynd.com
 ```
 

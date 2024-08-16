@@ -271,7 +271,7 @@ export async function init(programName: string) {
     ) {
         console.warn(
             chalk.yellow(
-                `Warning: Reseting active environment to api.fynd.com. Please use \`fdk login -h <platform-host>\` to login with different environment. Ref: ${
+                `Warning: Resetting active environment to api.fynd.com. Please use \`fdk login --host <platform-host>\` to login with different environment. Ref: ${
                     getPlatformUrls().partners
                 }/help/docs/partners/themes/vuejs/command-reference#environment-commands-1`,
             ),

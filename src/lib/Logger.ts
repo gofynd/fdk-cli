@@ -91,7 +91,7 @@ export default class Logger {
 
 export const COMMON_LOG_MESSAGES = {
     EnvNotSet: `Please set environment to use this command.\n${chalk.yellow(
-        'Use fdk login -h <platform-host> to set environment',
+        'Use fdk login --host <platform-host> to set environment',
     )}`,
     ContextNotSet: `Please set context to use this command.\n${chalk.yellow(
         'Use fdk context-list to set context',
@@ -100,7 +100,7 @@ export const COMMON_LOG_MESSAGES = {
         `Use fdk login command for login`,
     )}`,
     contextMismatch: `Active Environment and Active Context Environment doesn't match.\n${chalk.yellow(
-        'Use `fdk theme context-list` to switch context OR `fdk login -h <platform-host>` to login with different active environment.',
+        'Use `fdk theme context-list` to switch context OR `fdk login --host <platform-host>` to login with different active environment.',
     )}`,
     invalidThemeType: `${chalk.yellow(`Theme Type can be react or vue2 only`)}`,
     ThemeTypeNotAvailableInContext: `${chalk.yellow(
