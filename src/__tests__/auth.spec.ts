@@ -7,7 +7,7 @@ import { init } from '../fdk';
 const tokenData = require('./fixtures/partnertoken.json');
 const organizationData = require('./fixtures/organizationData.json');
 const request = require('supertest');
-import { startServer, getApp } from '../lib/Auth';
+import { startServer } from '../lib/Auth';
 import { URLS } from '../lib/api/services/url';
 import Logger from '../lib/Logger';
 import MockAdapter from 'axios-mock-adapter';
@@ -47,9 +47,9 @@ export async function login(domain?: string) {
     const app = await startServer();
     const req = request(app);
     if(domain)
-        await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '-h', domain]);
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '--host', domain]);
     else
-        await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '-h', '']);
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '--host', '']);
     return await req.post('/token').send(tokenData);
 }
 
