@@ -70,7 +70,6 @@ export default class ExtensionLaunchURL {
                         err?.response?.data?.message === 'not found'
                     ) {
                         if (!partner_access_token) {
-                            spinner.fail();
                             throw new CommandError(
                                 'Please provide partner access token eg --access-token partnerAccessToken',
                             );
@@ -81,13 +80,11 @@ export default class ExtensionLaunchURL {
                             { base_url: launch_url },
                         );
                         if (res.code) {
-                            spinner.fail();
                             throw new CommandError(
                                 'Failed updating Launch Url on Partners Panel',
                             );
                         }
                     } else {
-                        spinner.fail();
                         throw new CommandError(
                             err?.response?.data?.message ||
                                 'Failed updating Launch Url on Partners Panel',
