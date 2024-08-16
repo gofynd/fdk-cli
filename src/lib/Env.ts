@@ -1,5 +1,5 @@
 import configStore, { CONFIG_KEYS } from './Config';
-import CommandError from './CommandError';
+import CommandError, { ErrorCodes } from './CommandError';
 import Logger, { COMMON_LOG_MESSAGES } from './Logger';
 import chalk from 'chalk';
 import axios from 'axios';
@@ -10,13 +10,15 @@ import Debug from './Debug';
 export default class Env {
     constructor() {}
 
-    private static setEnv(ctx: string) {
+    public static setEnv(ctx: string) {
         configStore.set(CONFIG_KEYS.CURRENT_ENV, {}); // active_context: {}
         configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, ctx); // x0: {}
     }
+    
     public static getEnvValue() {
         return configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
     }
+
     public static getEnv() {
         const ctx = Env.getEnvValue();
         if (!ctx) {
@@ -28,58 +30,77 @@ export default class Env {
     public static async setNewEnvs(domain: string) {
         try {
             Debug(`Setting env: ${domain}`);
-            let finalDomain = domain;
+            let finalDomain = await Env.verifyAndSanitizeEnvValue(domain);
 
-            if(typeof finalDomain !== 'string'){
-                throw new Error( `Please provide valid domain, Example: api.fynd.com`);
-            }
-            
-            finalDomain = finalDomain.trim();
-
-            // remove https:// from domain if present
-            if (domain.includes('https://')) {
-                finalDomain = domain.replace('https://', '');
-            }
-
-            // validate domain
-            if (!isValidDomain(finalDomain)) {
-                throw new Error(
-                    `Please provide valid domain, Example: api.fynd.com`,
-                );
-            }
-
-            // replace parnters to api
-            if (finalDomain.includes('partners')) {
-                finalDomain = finalDomain.replace('partners', 'api');
-            }
-
-            try {
-                // check if healthz route exist or not
-                const url = urljoin(
-                    'https://',
-                    finalDomain,
-                    '/service/application/content/_healthz',
-                );
-                const response = await axios.get(url);
-
-                if (response?.status === 200) {
-                    Env.setEnv(finalDomain);
-                    Logger.info(
-                        `FDK CLI environment is now set to ${chalk.bold(finalDomain)}.\nAll subsequent commands will be executed in this environment.`,
-                    );
-                } else {
-                    throw new Error(
-                        'Provided domain is not valid host.',
-                    );
-                }
-            } catch (err) {
-                Debug(err);
-                throw new Error(
-                    'Provided domain is not valid host.',
-                );
-            }
+            Env.setEnv(finalDomain);
+            Logger.info(
+                `FDK CLI environment is now set to ${chalk.bold(finalDomain)}.\nAll subsequent commands will be executed in this environment.`,
+            );
         } catch (e) {
-            throw new CommandError(e.message);
+            throw new CommandError(e.message, e.code, e.response);
         }
+    }
+
+    public static async verifyAndSanitizeEnvValue(domain: string){
+        let finalDomain = domain;
+
+        if(typeof finalDomain !== 'string'){
+            throw new CommandError(
+                 `Invalid host: Please provide a valid Fynd Platform API domain. For example: 'api.fynd.com'.`,
+                 ErrorCodes.INVALID_INPUT.code
+            );
+        }
+
+        finalDomain = finalDomain.trim();
+        
+        // remove https:// from domain if present
+        if (domain.includes('https://')) {
+            finalDomain = domain.replace('https://', '');
+        }
+
+        // validate domain
+        if (!isValidDomain(finalDomain)) {
+            throw new CommandError(
+                `Invalid host: Please provide a valid Fynd Platform API domain. For example: 'api.fynd.com'.`,
+                ErrorCodes.INVALID_INPUT.code
+           );
+        }
+
+        // replace parnters to api
+        if (finalDomain.includes('partners')) {
+            finalDomain = finalDomain.replace('partners', 'api');
+        }
+
+        // validate domain if it is api domain or not
+        if(!(finalDomain.includes('api.') || finalDomain.includes('api-'))){
+            throw new CommandError(
+                `Invalid host: Please provide a valid Fynd Platform API domain. For example: 'api.fynd.com'.`,
+                ErrorCodes.INVALID_INPUT.code
+            );
+        }
+
+        try {
+            // check if healthz route exist or not
+            const url = urljoin(
+                'https://',
+                finalDomain,
+                '/service/application/content/_healthz',
+            );
+            const response = await axios.get(url);
+
+            if (response?.status !== 200) {
+                throw new Error(
+                    `Invalid host: Please provide a valid Fynd Platform API domain. For example: 'api.fynd.com'.`
+                );
+            }
+        } catch (err) {
+            Debug(err);
+            throw new CommandError(
+                `The provided Fynd Platform API domain (${finalDomain}) is not reachable.\nThis could be due to an invalid domain or the Fynd platform for the provided domain being inaccessible.`,
+                ErrorCodes.INVALID_INPUT.code
+            );
+        }
+
+        return finalDomain;
     }
 }

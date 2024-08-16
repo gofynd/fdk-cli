@@ -6,7 +6,6 @@ import open from 'open';
 import express from 'express';
 var cors = require('cors');
 const port = 7071;
-import ThemeService from './api/services/theme.service';
 import { getLocalBaseUrl } from '../helper/serve.utils';
 import Debug from './Debug';
 import Env from './Env';
@@ -40,6 +39,14 @@ export const getApp = async () => {
             const expiryTimestamp =
                 Math.floor(Date.now() / 1000) + req.body.auth_token.expires_in;
             req.body.auth_token.expiry_time = expiryTimestamp;
+            if(Auth.newDomainToUpdate){
+                if(Auth.newDomainToUpdate === 'api.fynd.com'){
+                    Env.setEnv(Auth.newDomainToUpdate);
+                }
+                else{
+                    await Env.setNewEnvs(Auth.newDomainToUpdate);
+                }
+            }
             ConfigStore.set(CONFIG_KEYS.AUTH_TOKEN, req.body.auth_token);
             ConfigStore.set(CONFIG_KEYS.ORGANIZATION, req.body.organization);
             const organization_detail =
@@ -115,17 +122,29 @@ export default class Auth {
     static server = null;
     static timer_id;
     static wantToChangeOrganization = false;
+    static newDomainToUpdate = null;
     constructor() {}
     public static async login(options) {
-        // todo: check grafana dashboard and confirm if all env are above 1.8
+
+        let env: string;
+        
         if(options.host){
-            await Env.setNewEnvs(options.host);
-        } else {
-            await Env.setNewEnvs('api.fynd.com');
+            env = await Env.verifyAndSanitizeEnvValue(options.host);
         }
+        else{
+            env = 'api.fynd.com';
+        }
+        
+        let current_env = Env.getEnvValue();
 
-        let env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
-
+        if(current_env !== env){
+            // update new domain after login
+            Auth.newDomainToUpdate = env;
+            
+            // Logout user from current domain
+            Auth.updateConfigStoreForLogout();
+        }
+        
         const isLoggedIn = await Auth.isAlreadyLoggedIn();
         if (isLoggedIn) {
             Logger.info(
@@ -191,13 +210,7 @@ export default class Auth {
             ];
             await inquirer.prompt(questions).then((answers) => {
                 if (answers.confirmLogout === 'Yes') {
-                    const currentEnv = ConfigStore.get(
-                        CONFIG_KEYS.CURRENT_ENV_VALUE,
-                    );
-                    const extras = ConfigStore.get(CONFIG_KEYS.EXTRAS);
-                    ConfigStore.clear();
-                    ConfigStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, currentEnv);
-                    ConfigStore.set(CONFIG_KEYS.EXTRAS, extras);
+                    Auth.updateConfigStoreForLogout();
                     Logger.info(`User logged out successfully`);
                 }
             });
@@ -205,6 +218,17 @@ export default class Auth {
             throw new CommandError(error.message, error.code);
         }
     }
+
+    private static updateConfigStoreForLogout(){
+        const currentEnv = ConfigStore.get(
+            CONFIG_KEYS.CURRENT_ENV_VALUE,
+        );
+        const extras = ConfigStore.get(CONFIG_KEYS.EXTRAS);
+        ConfigStore.clear();
+        ConfigStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, currentEnv);
+        ConfigStore.set(CONFIG_KEYS.EXTRAS, extras);
+    }
+
     public static getUserInfo() {
         try {
             const { current_user: user } = ConfigStore.get(
