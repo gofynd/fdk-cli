@@ -2231,7 +2231,7 @@ export default class Theme {
             let settingProps;
             const customRoutes = (ctTemplates, parentKey = null) => {
                 for (let key in ctTemplates) {
-                    if (/^[a-zA-Z0-9_-]+$/.test(key)) {
+                    if (/^[\/a-zA-Z0-9_-]+$/.test(key)) {
                         const routerPath =
                             (parentKey && `${parentKey}/${key}`) || `c/${key}`;
                         const value = routerPath.replace(/\//g, ':::');
