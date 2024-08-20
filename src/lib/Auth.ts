@@ -63,22 +63,22 @@ export const getApp = async () => {
     return { app };
 };
 
-function startTimer(){
-    Debug("Server timer starts")
-    Auth.timer_id = setTimeout(() => {
-        Auth.stopSever(() => {
-            console.log(chalk.red(`Timeout: Please run ${chalk.blue('fdk login')} command again.`));
-        })
-    }, SERVER_TIMER)
-}
+// function startTimer(){
+//     Debug("Server timer starts")
+//     Auth.timer_id = setTimeout(() => {
+//         Auth.stopSever(() => {
+//             console.log(chalk.red(`Timeout: Please run ${chalk.blue('fdk login')} command again.`));
+//         })
+//     }, SERVER_TIMER)
+// }
 
-function resetTimer(){
-    if (Auth.timer_id) { 
-        Debug("Server timer stoped")
-        clearTimeout(Auth.timer_id)
-        Auth.timer_id = null;
-    }
-}
+// function resetTimer(){
+//     if (Auth.timer_id) { 
+//         Debug("Server timer stoped")
+//         clearTimeout(Auth.timer_id)
+//         Auth.timer_id = null;
+//     }
+// }
 export const startServer = async () => {
     if (Auth.server) return Auth.server;
 
@@ -106,7 +106,7 @@ export const startServer = async () => {
         });
     }).then(server => {
         // once server start listening, start server timer
-        startTimer();
+        // startTimer();
         return server
     })
 };
@@ -237,7 +237,7 @@ export default class Auth {
         } else return false;
     };
     static stopSever = async (cb = null) => {
-        resetTimer();
+        // resetTimer();
         Auth.server?.close?.(() => {
             Debug("Server closed");
             cb?.();
