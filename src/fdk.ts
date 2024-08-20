@@ -180,6 +180,11 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
                     }
                 }
             }
+            // show current env for all commands excpet login command, we are showing updated env when login command runs
+            if (args[1].name() !== 'auth') {
+                const env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+                Logger.info(chalk.green('Current env: ', env));
+            }
             await asyncFn(...args);
         } catch (err) {
             // TODO: Error reporting from user logic can be added here
@@ -256,7 +261,7 @@ export async function init(programName: string) {
     ) {
         console.warn(
             chalk.yellow(
-                `Warning: Reseting active environment to api.fynd.com. Please use \`fdk env set -u <env-api-url>\` to change active environment. Ref: ${
+                `Warning: Reseting active environment to api.fynd.com. Please use \`fdk login -h <platform-host>\` to login with different environment. Ref: ${
                     getPlatformUrls().partners
                 }/help/docs/partners/themes/vuejs/command-reference#environment-commands-1`,
             ),
