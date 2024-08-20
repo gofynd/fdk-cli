@@ -54,6 +54,14 @@ export async function login(domain?: string) {
 }
 
 describe('Auth Commands', () => {
+    beforeEach(() => {
+        jest.useFakeTimers();
+    })
+
+    afterEach(() => {
+        jest.runOnlyPendingTimers();
+        jest.useRealTimers();
+    });
     beforeAll(async () => {
         setEnv();
         program = await init('fdk');
