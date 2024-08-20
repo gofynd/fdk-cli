@@ -35,8 +35,8 @@ import { TEMP_DIR_NAME, EXTENSION_CONTEXT_FILE_NAME } from '../helper/constants'
 
 export const NODE_VUE = 'Node + Vue 3 + SQLite';
 export const NODE_REACT = 'Node + React.js + SQLite';
-export const JAVA_VUE = 'Java + Vue 2 + Redis';
-export const JAVA_REACT = 'Java + React.js + Redis';
+export const JAVA_VUE = 'Java + Vue 2 + SQLite';
+export const JAVA_REACT = 'Java + React.js + SQLite';
 export const EXTENSION_BRANCH = 'update-sub-module'; // update-sub-module
 
 const TEMPLATES = {
