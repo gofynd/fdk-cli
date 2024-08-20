@@ -23,7 +23,7 @@
     "build": "npm run clean && tsc && npm run copy-files",
     "copy-files": "copyfiles -u 1 src/**/*.html dist/",
     "watch": "tsc --watch",
-    "test": "jest --runInBand",
+    "test": "jest --runInBand --detectOpenHandles",
     "pretty": "prettier --config ./.prettierrc --write './src/**/*.*'",
     "localInstall": "sh scripts/localInstall.sh"
   },
