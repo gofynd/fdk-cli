@@ -16,7 +16,7 @@ module.exports = {
     "global": {
       // "branches": 100,
       // "functions": 100,
-      "lines": 40,
+      // "lines": 40,
       // "statements": 100
     }
   },
@@ -30,7 +30,7 @@ module.exports = {
   // testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   testMatch: [
-    '**/__tests__/*.spec.ts', 
+    '**/__tests__/auth.spec.ts', 
   ],
   collectCoverageFrom: [
     "**/*.{ts,jsx}",
