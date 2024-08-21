@@ -286,7 +286,7 @@ export async function startServer({ domain, host, isSSR, port }) {
                     )}"></link>`,
                 );
             });
-            res.send($.html({ decodeEntities: false }));
+            res.send($.html());
         } catch (e) {
             if (e?.response && e?.response?.status == 504) {
                 res.redirect(req.originalUrl);
@@ -519,7 +519,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 				});
 				</script>
 			`);
-        res.send($.html({ decodeEntities: false }));
+        res.send($.html());
     });
 
     return new Promise((resolve, reject) => {

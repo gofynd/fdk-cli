@@ -1,6 +1,6 @@
 {
   "name": "@gofynd/fdk-cli",
-  "version": "5.2.0-beta.7",
+  "version": "5.2.0-beta.8",
   "main": "index.js",
   "license": "MIT",
   "bin": {
@@ -84,9 +84,9 @@
     "axios-retry": "4.4.2",
     "boxen": "5.1.2",
     "chalk": "4.1.2",
-    "cheerio": "^1.0.0-rc.9",
+    "cheerio": "^1.0.0",
     "chokidar": "3.6.0",
-    "cloudflared": "0.5.2",
+    "cloudflared": "^0.5.3",
     "commander": "7.2.0",
     "configstore": "5.0.1",
     "cors": "2.8.5",

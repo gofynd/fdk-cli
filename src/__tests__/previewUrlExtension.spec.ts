@@ -74,6 +74,8 @@ jest.mock('cloudflared', () => ({
       },
       stop: jest.fn(),
     })),
+    bin: () => {},
+    install: () => {}
   }));
   
   

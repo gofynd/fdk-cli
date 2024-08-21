@@ -1,5 +1,5 @@
 import ngrok from '@ngrok/ngrok';
-import { tunnel as startTunnel } from 'cloudflared';
+import { tunnel as startTunnel, bin, install } from 'cloudflared';
 import chalk from 'chalk';
 import urljoin from 'url-join';
 import inquirer from 'inquirer';
@@ -271,6 +271,11 @@ export default class ExtensionPreviewURL {
         process.env.NO_AUTOUPDATE = 'true';
         // ALWAYS USE HTTP2 PROTOCOL
         process.env.TUNNEL_TRANSPORT_PROTOCOL = 'http2';
+
+        if (!fs.existsSync(bin)) {
+            Debug(`Cloudflare tunnel binary is not found in bin dir: ${bin}\nDownloading cloudflare...`);
+            await install(bin);
+        }
 
         const { url, connections, child, stop } = startTunnel({
             '--url': `http://localhost:${this.options.port}`,
