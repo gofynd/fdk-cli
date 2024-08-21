@@ -161,29 +161,29 @@ describe('Extension preview-url command', () => {
         rimraf.sync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME);
     });
 
-    // it('should successfully return preview url without any prompt', async () => {
-    //     configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);
-    //     configStore.set(CONFIG_KEYS.PARTNER_ACCESS_TOKEN, TOKEN);
+    it('should successfully return preview url without any prompt', async () => {
+        configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);
+        configStore.set(CONFIG_KEYS.PARTNER_ACCESS_TOKEN, TOKEN);
 
-    //     await program.parseAsync([
-    //         'ts-node',
-    //         './src/fdk.ts',
-    //         'extension',
-    //         'preview-url',
-    //         '--api-key',
-    //         EXTENSION_KEY,
-    //         '--company-id',
-    //         COMPANY_ID,
-    //         '--debug'
-    //     ]);
+        await program.parseAsync([
+            'ts-node',
+            './src/fdk.ts',
+            'extension',
+            'preview-url',
+            '--api-key',
+            EXTENSION_KEY,
+            '--company-id',
+            COMPANY_ID,
+            '--debug'
+        ]);
 
-    //     expect(winstonDebugLoggerSpy.mock.lastCall[0]).toContain(
-    //         CLOUDFLARED_TEST_URL,
-    //     );
-    //     expect(winstonLoggerSpy.mock.lastCall[0]).toContain(
-    //         EXPECTED_PREVIEW_URL,
-    //     );  
-    // });
+        expect(winstonDebugLoggerSpy.mock.lastCall[0]).toContain(
+            CLOUDFLARED_TEST_URL,
+        );
+        expect(winstonLoggerSpy.mock.lastCall[0]).toContain(
+            EXPECTED_PREVIEW_URL,
+        );  
+    });
 
     it('Should throw an error for partner access token for lower versions than v1.9.2 to update base url of extension', async () => {
         mockAxios
