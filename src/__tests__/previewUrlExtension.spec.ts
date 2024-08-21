@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { withoutErrorResponseInterceptorAxios } from '../lib/api/ApiClient';
 import rimraf from 'rimraf';
+import path from 'path'
 import MockAdapter from 'axios-mock-adapter';
 import { init } from '../fdk';
 import { CommanderStatic } from 'commander';
@@ -107,15 +108,10 @@ let mockAxios;
 let mockCustomAxios;
 describe('Extension preview-url command', () => {
     beforeAll(async () => {
-        rimraf.sync('./fdk.ext.config.json');
-        rimraf.sync('./frontend');
+        rimraf.sync('fdk.ext.config.json');
+        rimraf.sync(path.join('frontend','fdk.ext.config.json'));
         rimraf.sync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME);
     });
-
-    // afterAll(async () => {
-    //     // restore console log mock so it does not affect other test cases
-        
-    // });
 
     beforeEach(async () => {
         // initializing commander program
@@ -164,19 +160,19 @@ describe('Extension preview-url command', () => {
             .reply(200, {});
 
         fs.writeFileSync('fdk.ext.config.json', JSON.stringify(fdkExtConfigBackEnd, null, 4));
-        fs.mkdirSync('./frontend', {
+        fs.mkdirSync('frontend', {
             recursive: true
         });
-        fs.writeFileSync('./frontend/fdk.ext.config.json', JSON.stringify(fdkExtConfigFrontEnd, null, 4));
+        fs.writeFileSync(path.join('frontend', 'fdk.ext.config.json'), JSON.stringify(fdkExtConfigFrontEnd, null, 4));
         
     });
 
     afterEach(async () => {
         // remove test config store
-        rimraf.sync('./previewUrl-test-cli.json');
+        rimraf.sync('previewUrl-test-cli.json');
 
-        rimraf.sync('./fdk.ext.config.json');
-        rimraf.sync('./frontend/fdk.ext.config.json');
+        rimraf.sync('fdk.ext.config.json');
+        rimraf.sync(path.join('frontend','fdk.ext.config.json'));
         rimraf.sync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME);
 
         winstonLoggerSpy.mockRestore();
