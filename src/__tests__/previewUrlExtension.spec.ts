@@ -206,6 +206,7 @@ describe('Extension preview-url command', () => {
                 EXTENSION_KEY,
                 '--company-id',
                 COMPANY_ID,
+                '--debug'
             ]);
         } catch (err) {
             expect(err.message).toBe(
