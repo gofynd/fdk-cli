@@ -155,4 +155,17 @@ export default {
             throw error;
         }
     },
+    
+    getExtensionList: async (page_no: number, page_size: number) => {
+        try {
+            let axiosOptions = Object.assign({}, getCommonHeaderOptions());
+            let response = await ApiClient.get(
+                URLS.GET_EXTENSION_LIST(page_no, page_size),
+                axiosOptions,
+            );
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
 };

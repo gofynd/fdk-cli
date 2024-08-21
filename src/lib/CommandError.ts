@@ -53,10 +53,20 @@ export const ErrorCodes = {
             `No themes are created, Please create/add a theme under the sales channel. For more details, refer to the documentation link: ${domain}/help/docs/partners/themes/vuejs/overview`,
         code: 'FDK-00011',
     },
-    DOWNGRADE_CLI_VERSION: {
+    NO_EXTENSION_FOUND: {
         message:
-            'Seems like current Fynd Platform version is not compatible with installed CLI version.\n\nIn order to continue with current FP version, Please use previous version of CLI `npm install -g @gofynd/fdk-cli@3.0.4` command.',
-        code: 'FDK-00012',
+            'Extension not found',
+        code: 'FDK-0016',
+    },
+    MISSING_FDK_CONFIG_FILE: {
+        message:
+            'fdk.ext.config.json or fdk.ext.config.yml file not found',
+        code: 'FDK-0017',
+    },
+    INVALID_FDK_CONFIG_FILE: {
+        message:
+            'fdk.ext.config.json or fdk.ext.config.yml file is in invalid format',
+        code: 'FDK-0018',
     },
 
     // generic
@@ -71,21 +81,6 @@ export const ErrorCodes = {
     NETWORK_ERROR: {
         message: 'Network issue',
         code: 'FDK-0009',
-    },
-    NGROK_AUTH_ISSUE: {
-        message:
-            'Invalid ngrok auth token, please check https://dashboard.ngrok.com/get-started/your-authtoken',
-        code: 'FDK-0012',
-    },
-    NGROK_MULTIPLE_SESSION_ISSUE: {
-        message:
-            'Your account is limited to 1 simultaneous ngrok agent sessions, please close existing tunnel ',
-        code: 'FDK-0014',
-    },
-    NGROK_GENERAL_ISSUE: {
-        message:
-            'Something wrong with ngrok tunnel, please pass --debug flag to get more details',
-        code: 'FDK-0015',
     },
     ClOUDFLARE_CONNECTION_ISSUE: {
         message:
