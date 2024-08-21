@@ -157,7 +157,7 @@ describe('Extension preview-url command', () => {
         rimraf.sync('./previewUrl-test-cli.json');
 
         rimraf.sync('./fdk.ext.config.json');
-        rimraf.sync('./frontend');
+        rimraf.sync('./frontend/fdk.ext.config.json');
         rimraf.sync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME);
     });
 
