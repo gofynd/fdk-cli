@@ -37,8 +37,6 @@ export default function bindingCommandBuilder() {
         .option('-id, --extensionId [extensionId]', 'Extension ID')
         .option('-org, --organisationId [organisationId]', 'Organisation ID')
         .option('-n, --name [name]', 'Bundle Name')
-        .option('-p, --port [port]', 'Server Port')
-        .option('-u, --url [url]', 'Tunnel Url')
         .option('-f, --framework [framework]', 'Compatible Framework')
         .asyncAction(ExtensionSection.previewExtension);
 

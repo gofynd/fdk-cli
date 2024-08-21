@@ -6,31 +6,31 @@ class CustomSnippetPlugin {
     constructor(private options) { }
 
     apply(compiler) {
-      compiler.hooks.emit.tapAsync('CustomSnippetPlugin', (compilation, callback) => {
-        // Get the snippet code from options or use a default one
-        const snippetCode = this.options.snippetCode;
+        compiler.hooks.emit.tapAsync('CustomSnippetPlugin', (compilation, callback) => {
+            // Get the snippet code from options or use a default one
+            const snippetCode = this.options.snippetCode;
 
-        // Iterate through each asset in the compilation
-        for (const filename in compilation.assets) {
-          if (filename.endsWith('.js')) { // Only apply to JavaScript files
-            // Get the asset source
-            let source = compilation.assets[filename].source();
+            // Iterate through each asset in the compilation
+            for (const filename in compilation.assets) {
+                if (filename.endsWith('.js')) { // Only apply to JavaScript files
+                    // Get the asset source
+                    let source = compilation.assets[filename].source();
 
-            // Append the custom snippet code
-            source += `\n\n// Custom Snippet Start\n${snippetCode}\n// Custom Snippet End\n`;
+                    // Append the custom snippet code
+                    source += `\n\n// Custom Snippet Start\n${snippetCode}\n// Custom Snippet End\n`;
 
-            // Update the asset with the modified source
-            compilation.assets[filename] = {
-              source: () => source,
-              size: () => source.length
-            };
-          }
-        }
+                    // Update the asset with the modified source
+                    compilation.assets[filename] = {
+                        source: () => source,
+                        size: () => source.length
+                    };
+                }
+            }
 
-        callback();
-      });
+            callback();
+        });
     }
-  }
+}
 
 type ExtensionBuildContext = {
     isLocal: Boolean;
@@ -96,16 +96,68 @@ export function extensionWebpackConfig(env: ExtensionBuildContext): Configuratio
                 },
                 {
                     test: /\.css$/i,
-                    use: [MiniCssExtractPlugin.loader, {
+                    use: [
+                        MiniCssExtractPlugin.loader,
+                        {
+                            loader: "css-loader",
+                            options: {
+                                modules: {
+                                    localIdentName: isLocalBuild
+                                        ? "[path][name]__[local]--[hash:base64:5]"
+                                        : "[hash:base64:5]",
+                                },
+                            },
+                        },
+                    ],
+                    exclude: /\.global\.css$/,
+                },
+                {
+                    test: /\.css$/i,
+                    use: [
+                        MiniCssExtractPlugin.loader,
+                        {
+                            loader: "css-loader",
+                            options: {
+                                modules: false,
+                            },
+                        },
+                    ],
+                    include: /\.global\.css$/,
+                },
+                {
+                    test: /\.less$/i,
+                    use: [
+                      // compiles Less to CSS
+                      MiniCssExtractPlugin.loader,
+                      {
                         loader: "css-loader",
                         options: {
-                            modules: {
-                                localIdentName: isLocalBuild ? "[path][name]__[local]--[hash:base64:5]" : "[hash:base64:5]"
-                            },
-
-                        }
-                    }],
-                },
+                          modules: false,
+                        },
+                      },
+                      "less-loader",
+                    ],
+                    include: /\.global\.less$/,
+                  },
+                  {
+                    test: /\.less$/i,
+                    use: [
+                      // compiles Less to CSS
+                      MiniCssExtractPlugin.loader,
+                      {
+                        loader: "css-loader",
+                        options: {
+                          modules: {
+                            localIdentName: isLocalBuild
+                              ? "[path][name]__[local]--[hash:base64:5]"
+                              : "[hash:base64:5]",
+                          },
+                        },
+                      },
+                      "less-loader",
+                    ],
+                    exclude: /\.global\.less$/,
+                  },
             ],
         },
         externals: {
@@ -132,11 +184,11 @@ export function extensionWebpackConfig(env: ExtensionBuildContext): Configuratio
                 // you must `npm install buffer` to use this.
                 Buffer: ['buffer', 'Buffer']
             }),
-           ...(isLocalBuild ? [
-            new CustomSnippetPlugin({
-                snippetCode: snippet(env.port)
-            }),
-           ] : []),
+            ...(isLocalBuild ? [
+                new CustomSnippetPlugin({
+                    snippetCode: snippet(env.port)
+                }),
+            ] : []),
         ]
     };
 

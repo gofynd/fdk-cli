@@ -4,6 +4,8 @@ import fs from 'node:fs';
 import detect from 'detect-port';
 import fsExtra from 'fs-extra';
 import { promisify } from 'node:util';
+import { tunnel as startCloudflareTunnel, bin, install } from 'cloudflared';
+
 import Logger from './Logger';
 import Spinner from '../helper/spinner';
 import { installNpmPackages } from '../helper/utils';
@@ -16,6 +18,7 @@ import extensionService from './api/services/extension.service';
 import {
     startExtensionServer,
     reload,
+    getPort,
 } from '../helper/serve.utils';
 import chalk from 'chalk';
 import Theme from './Theme';
@@ -256,7 +259,7 @@ export default class ExtensionSection {
             init: [...commonRequiredOptions],
             draft: [...commonRequiredOptions],
             publish: [...commonRequiredOptions],
-            preview: [...commonRequiredOptions, 'port', 'url', 'appliedTheme'],
+            preview: [...commonRequiredOptions, 'appliedTheme'],
         };
         try {
             const requiredOptions = requiredKeys[commandType];
@@ -289,6 +292,34 @@ export default class ExtensionSection {
 
     public static clearContext() {
         Configstore.set('extensionSections', {});
+    }
+
+    static async startTunnel() {
+        try {
+            const port = await getPort(5500);
+
+            if (!fs.existsSync(bin)) {
+                Logger.info(`Cloudflare tunnel binary is not found in bin dir: ${bin}\nDownloading cloudflare...`);
+                await install(bin);
+            }
+
+            Logger.info('Starting local tunnel...')
+            const { url, connections, child, stop } = startCloudflareTunnel({
+                '--url': `http://localhost:${port}`,
+            });
+
+            const tunnelUrl = await url;
+
+            console.log(`
+                Started cloudflare tunnel at ${port}: ${tunnelUrl}`)
+            return {
+                url: tunnelUrl,
+                port,
+            };
+        } catch (error) {
+            Logger.error('Error during starting cloudflare tunnel: ' + error.message);
+            return;
+        }
     }
 
     public static logContext() {
@@ -800,9 +831,9 @@ export default class ExtensionSection {
                         extensionId,
                         organisationId,
                         framework,
-                        url: tunnelUrl,
-                        port,
                     } = context;
+
+                    const { port, url: tunnelUrl } = await ExtensionSection.startTunnel();
 
                     const {
                         companyId,

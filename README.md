@@ -590,8 +590,6 @@ fdk binding preview [options]
 | -f, --framework | (Optional) Runtime framework. Supported values are vue2 and react |
 | -id, --extensionId    | (Optional) Extension Id of the current extension. |
 | -org, --organisationId    | (Optional) Organisation Id of the current extension. |
-| -p, --port    | (Optional) Port number where the local tunnel is proxying to. |
-| -u, --url    | (Optional) Local tunnel URL. |
 
 
 #### **Example**
