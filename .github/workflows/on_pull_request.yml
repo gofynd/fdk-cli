@@ -2,6 +2,7 @@ on:
   pull_request:
     branches:    
       - master
+      - target-test-debug
 
 jobs:
   call-workflow:

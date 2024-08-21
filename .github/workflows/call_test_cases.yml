@@ -13,7 +13,7 @@ jobs:
           macos-latest, 
           windows-latest
           ]
-        node-version: [14.x, 15.x, 16.x]
+        node-version: [18.x, 20.x]
 
     steps:
     - name: Get branch name
@@ -30,7 +30,7 @@ jobs:
 
     - name: Install packages and run test cases
       run: |
-        npm install
+        npm ci
         npm test
 
     - name: Coveralls (Uploading test report)
