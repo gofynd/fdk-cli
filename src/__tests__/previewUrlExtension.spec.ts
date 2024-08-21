@@ -29,7 +29,6 @@ const fdkExtConfigBackEnd = require('./fixtures/fdkExtConfigBackEnd.json')
 
 let program: CommanderStatic;
 let winstonLoggerSpy: jest.SpyInstance<any>;
-let winstonDebugLoggerSpy: jest.SpyInstance<any>;
 
 jest.mock('./../helper/formatter', () => {
     const originalFormatter = jest.requireActual('../helper/formatter');
@@ -119,7 +118,6 @@ describe('Extension preview-url command', () => {
 
         // mock console.log
         winstonLoggerSpy = jest.spyOn(Logger, 'info');
-        winstonDebugLoggerSpy = jest.spyOn(Logger, 'debug');
 
         // mock axios
         mockAxios = new MockAdapter(axios);
@@ -176,7 +174,6 @@ describe('Extension preview-url command', () => {
         rimraf.sync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME);
 
         winstonLoggerSpy.mockRestore();
-        winstonDebugLoggerSpy.mockRestore();
     });
 
     it('should successfully return preview url without any prompt', async () => {
