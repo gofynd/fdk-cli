@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { withoutErrorResponseInterceptorAxios } from '../lib/api/ApiClient';
 import rimraf from 'rimraf';
+import path from 'path'
 import MockAdapter from 'axios-mock-adapter';
 import { init } from '../fdk';
 import { CommanderStatic } from 'commander';
@@ -28,7 +29,6 @@ const fdkExtConfigBackEnd = require('./fixtures/fdkExtConfigBackEnd.json')
 
 let program: CommanderStatic;
 let winstonLoggerSpy: jest.SpyInstance<any>;
-let winstonDebugLoggerSpy: jest.SpyInstance<any>;
 
 jest.mock('./../helper/formatter', () => {
     const originalFormatter = jest.requireActual('../helper/formatter');
@@ -82,20 +82,34 @@ jest.mock('cloudflared', () => ({
   }));
   
   
+  jest.mock('execa', () => {
+    const originalExeca = jest.requireActual('execa');
+    originalExeca.command = jest.fn().mockImplementation((command, options) => {
+        console.log("Running command ", command);
+        console.log("Passed Options ", options);
+
+        return {
+          stdout: { pipe: jest.fn() },
+          stderr: { pipe: jest.fn() },
+          on: jest.fn((event, handler) => {
+            if (event === 'exit') {
+              handler(0);
+            }
+          }),
+        };
+    });
+    
+    return originalExeca;
+})
+
 
 let mockAxios;
 let mockCustomAxios;
 describe('Extension preview-url command', () => {
     beforeAll(async () => {
-        rimraf.sync('./fdk.ext.config.json');
-        rimraf.sync('./frontend');
+        rimraf.sync('fdk.ext.config.json');
+        rimraf.sync(path.join('frontend','fdk.ext.config.json'));
         rimraf.sync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME);
-    });
-
-    afterAll(async () => {
-        // restore console log mock so it does not affect other test cases
-        winstonLoggerSpy.mockRestore();
-        winstonDebugLoggerSpy.mockRestore();
     });
 
     beforeEach(async () => {
@@ -104,7 +118,6 @@ describe('Extension preview-url command', () => {
 
         // mock console.log
         winstonLoggerSpy = jest.spyOn(Logger, 'info');
-        winstonDebugLoggerSpy = jest.spyOn(Logger, 'debug');
 
         // mock axios
         mockAxios = new MockAdapter(axios);
@@ -145,20 +158,22 @@ describe('Extension preview-url command', () => {
             .reply(200, {});
 
         fs.writeFileSync('fdk.ext.config.json', JSON.stringify(fdkExtConfigBackEnd, null, 4));
-        fs.mkdirSync('./frontend', {
+        fs.mkdirSync('frontend', {
             recursive: true
         });
-        fs.writeFileSync('./frontend/fdk.ext.config.json', JSON.stringify(fdkExtConfigFrontEnd, null, 4));
+        fs.writeFileSync(path.join('frontend', 'fdk.ext.config.json'), JSON.stringify(fdkExtConfigFrontEnd, null, 4));
         
     });
 
     afterEach(async () => {
         // remove test config store
-        rimraf.sync('./previewUrl-test-cli.json');
+        rimraf.sync('previewUrl-test-cli.json');
 
-        rimraf.sync('./fdk.ext.config.json');
-        rimraf.sync('./frontend');
+        rimraf.sync('fdk.ext.config.json');
+        rimraf.sync(path.join('frontend','fdk.ext.config.json'));
         rimraf.sync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME);
+
+        winstonLoggerSpy.mockRestore();
     });
 
     it('should successfully return preview url without any prompt', async () => {
@@ -173,13 +188,13 @@ describe('Extension preview-url command', () => {
             '--api-key',
             EXTENSION_KEY,
             '--company-id',
-            COMPANY_ID,
-            '--debug'
+            COMPANY_ID
         ]);
 
-        expect(winstonDebugLoggerSpy.mock.lastCall[0]).toContain(
-            CLOUDFLARED_TEST_URL,
-        );
+        const extensionContext = JSON.parse(fs.readFileSync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME).toString());
+        const baseUrl = extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_BASE_URL];
+        expect(baseUrl).toContain(CLOUDFLARED_TEST_URL);
+        
         expect(winstonLoggerSpy.mock.lastCall[0]).toContain(
             EXPECTED_PREVIEW_URL,
         );  
@@ -205,7 +220,7 @@ describe('Extension preview-url command', () => {
                 '--api-key',
                 EXTENSION_KEY,
                 '--company-id',
-                COMPANY_ID,
+                COMPANY_ID
             ]);
         } catch (err) {
             expect(err.message).toBe(
