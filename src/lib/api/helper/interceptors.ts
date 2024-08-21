@@ -137,6 +137,7 @@ export function responseErrorInterceptor() {
                 error?.response,
             );
         } else if (error.request) {
+            Debug(error);
             switch (error.code) {
                 case 'ERR_FR_MAX_BODY_LENGTH_EXCEEDED': {
                     throw new CommandError(

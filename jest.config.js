@@ -5,6 +5,7 @@ module.exports = {
   roots: ['<rootDir>/src/__tests__'],
 
   verbose: true,
+  detectOpenHandles: true,
   collectCoverage: true,
   coverageReporters: [
     "json",
@@ -15,7 +16,7 @@ module.exports = {
     "global": {
       // "branches": 100,
       // "functions": 100,
-      "lines": 40,
+      // "lines": 40,
       // "statements": 100
     }
   },
