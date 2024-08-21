@@ -49,7 +49,7 @@ export async function login(domain?: string) {
     if(domain)
         await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '--host', domain]);
     else
-        await program.parseAsync(['ts-node', './src/fdk.ts', 'login']);
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '--host', 'api.fyndx1.de']);
     return await req.post('/token').send(tokenData);
 }
 
@@ -59,11 +59,20 @@ describe('Auth Commands', () => {
         program = await init('fdk');
         const mock = new MockAdapter(axios);
         configStore.set(CONFIG_KEYS.ORGANIZATION, organizationData._id);
+        mock.onGet('https://api.fyndx1.de/service/application/content/_healthz').reply(200);
         mock.onGet('https://api.fynd.com/service/application/content/_healthz').reply(200);
         mock.onGet(`${URLS.GET_ORGANIZATION_DETAILS()}`).reply(
             200,
             organizationData,
         );
+        setEnv('api.fynd.com');
+        configStore.set(CONFIG_KEYS.ORGANIZATION, organizationData._id);
+        mock.onGet(`${URLS.GET_ORGANIZATION_DETAILS()}`).reply(
+            200,
+            organizationData,
+        );
+        setEnv();
+        configStore.set(CONFIG_KEYS.ORGANIZATION, organizationData._id);
         configStore.delete(CONFIG_KEYS.ORGANIZATION);
         await login();
     });
