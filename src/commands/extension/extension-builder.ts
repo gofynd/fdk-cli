@@ -3,6 +3,7 @@ import Extension from '../../lib/Extension';
 import ExtensionLaunchURL from '../../lib/ExtensionLaunchURL';
 import ExtensionPreviewURL from '../../lib/ExtensionPreviewURL';
 import ExtensionEnv from '../../lib/ExtensionEnv';
+import { customHelpSectionData } from '../../helper/formate_helper_text';
 
 export default function extensionCommandBuilder() {
     const extension = new Command('extension')
@@ -55,5 +56,7 @@ export default function extensionCommandBuilder() {
         .description('Pull environment variable for the extension from partners panel')
         .asyncAction(ExtensionEnv.extensionEnvPullHandler);
 
+    customHelpSectionData(extension)
+    
     return extension;
 }
