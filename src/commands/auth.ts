@@ -6,7 +6,7 @@ export default function context(program: Command) {
     program
         .command('auth')
         .alias('login')
-        .option('--host [platform-host]', 'Platform api domain')
+        .option('--host [platform-host]', 'Fynd Platform API Domain')
         .description('Login using partner panel')
         .asyncAction(Auth.login);
 
