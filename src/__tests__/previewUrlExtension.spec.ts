@@ -112,11 +112,10 @@ describe('Extension preview-url command', () => {
         rimraf.sync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME);
     });
 
-    afterAll(async () => {
-        // restore console log mock so it does not affect other test cases
-        winstonLoggerSpy.mockRestore();
-        winstonDebugLoggerSpy.mockRestore();
-    });
+    // afterAll(async () => {
+    //     // restore console log mock so it does not affect other test cases
+        
+    // });
 
     beforeEach(async () => {
         // initializing commander program
@@ -179,6 +178,9 @@ describe('Extension preview-url command', () => {
         rimraf.sync('./fdk.ext.config.json');
         rimraf.sync('./frontend/fdk.ext.config.json');
         rimraf.sync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME);
+
+        winstonLoggerSpy.mockRestore();
+        winstonDebugLoggerSpy.mockRestore();
     });
 
     it('should successfully return preview url without any prompt', async () => {
