@@ -194,12 +194,13 @@ describe('Extension preview-url command', () => {
             COMPANY_ID
         ]);
 
-        expect(winstonDebugLoggerSpy.mock.lastCall[0]).toContain(
-            CLOUDFLARED_TEST_URL,
-        );
+        const extensionContext = JSON.parse(fs.readFileSync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME).toString());
+        const baseUrl = extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_BASE_URL];
+        expect(baseUrl).toContain(CLOUDFLARED_TEST_URL);
+
         expect(winstonLoggerSpy.mock.lastCall[0]).toContain(
             EXPECTED_PREVIEW_URL,
-        );  
+        );
     });
 
     it('Should throw an error for partner access token for lower versions than v1.9.2 to update base url of extension', async () => {
