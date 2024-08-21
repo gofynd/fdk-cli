@@ -30,7 +30,7 @@ jobs:
 
     - name: Install packages and run test cases
       run: |
-        npm ci
+        npm install
         npm test
 
     - name: Coveralls (Uploading test report)
