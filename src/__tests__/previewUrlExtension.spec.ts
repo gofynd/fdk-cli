@@ -191,8 +191,7 @@ describe('Extension preview-url command', () => {
             '--api-key',
             EXTENSION_KEY,
             '--company-id',
-            COMPANY_ID,
-            '--debug'
+            COMPANY_ID
         ]);
 
         expect(winstonDebugLoggerSpy.mock.lastCall[0]).toContain(
@@ -223,8 +222,7 @@ describe('Extension preview-url command', () => {
                 '--api-key',
                 EXTENSION_KEY,
                 '--company-id',
-                COMPANY_ID,
-                '--debug'
+                COMPANY_ID
             ]);
         } catch (err) {
             expect(err.message).toBe(
