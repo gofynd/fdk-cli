@@ -79,8 +79,28 @@ jest.mock('cloudflared', () => ({
     })),
     bin: () => {},
     install: () => {}
-  }));
-  
+}));
+
+
+jest.mock('execa', () => {
+    const originalExeca = jest.requireActual('execa');
+    originalExeca.command = jest.fn().mockImplementation((command, options) => {
+        console.log("Running command ", command);
+        console.log("Passed Options ", options);
+
+        return {
+          stdout: { pipe: jest.fn() },
+          stderr: { pipe: jest.fn() },
+          on: jest.fn((event, handler) => {
+            if (event === 'exit') {
+              handler(0);
+            }
+          }),
+        };
+    });
+    
+    return originalExeca;
+})
   
 
 let mockAxios;
