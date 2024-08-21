@@ -49,7 +49,7 @@ export async function login(domain?: string) {
     if(domain)
         await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '--host', domain]);
     else
-        await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '--host', '']);
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'login']);
     return await req.post('/token').send(tokenData);
 }
 
