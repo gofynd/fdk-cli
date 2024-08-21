@@ -1,6 +1,8 @@
 import commander from 'commander';
 import Theme from '../../lib/Theme';
 import ThemeContext from '../../lib/ThemeContext';
+import { customHelpSectionData } from '../../helper/formate_helper_text';
+
 export default function themeCommandBuilder() {
     const theme = new commander.Command('theme').description('Theme Commands');
     theme
@@ -66,5 +68,7 @@ export default function themeCommandBuilder() {
         .description('generate zip file of theme')
         .asyncAction(Theme.generateThemeZip);
 
+    customHelpSectionData(theme)
+        
     return theme;
 }
