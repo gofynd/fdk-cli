@@ -21,10 +21,19 @@ import Curl from '../../helper/curl';
 import Logger from '../Logger';
 import { MAX_RETRY } from '../../helper/constants';
 import https from 'https'
+import crypto from 'crypto';
 axios.defaults.withCredentials = true;
 axios.defaults.timeout = 60000; // 1 minute
 
-let uninterceptedAxiosInstance = axios.create();
+const httpsAgent = new https.Agent({
+    secureOptions: crypto.constants.SSL_OP_LEGACY_SERVER_CONNECT,
+});
+
+axios.defaults.httpAgent = httpsAgent;
+
+let uninterceptedAxiosInstance = axios.create({
+    httpsAgent: httpsAgent,
+});
 
 const axiosRetryConfig = {
     retries: MAX_RETRY,
@@ -78,7 +87,8 @@ axios.interceptors.response.use(
 );
 
 let axiosMisc = axios.create({
-    withCredentials: false,
+    withCredentials: false, 
+    httpsAgent: httpsAgent
 });
 
 // add retry interceptor
@@ -179,7 +189,9 @@ class ApiEngine {
 // use uninterceptedApiClient to skip curl print in verbose mode
 export const uninterceptedApiClient = new ApiEngine(uninterceptedAxiosInstance);
 // for backward compatibility of update extensions we need to hit and api and if throws error then need to call backward compatibility api and in that if the first api fails the response Error interceptor was getting triggered so thats why creating a new axios instance for such cases.
-export const withoutErrorResponseInterceptorAxios = axios.create();
+export const withoutErrorResponseInterceptorAxios = axios.create({
+    httpsAgent: httpsAgent,
+});
 withoutErrorResponseInterceptorAxios.interceptors.request.use(
     addSignatureFn({}),
 );
