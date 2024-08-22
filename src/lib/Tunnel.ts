@@ -42,6 +42,7 @@ export default class Tunnel {
             spinner.succeed();
             return this.publicTunnelURL;
         } catch (error) {
+            Debug(error);
             spinner.fail();
             throw new CommandError(
                 ErrorCodes.ClOUDFLARE_CONNECTION_ISSUE.message,
