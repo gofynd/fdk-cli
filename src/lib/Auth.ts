@@ -34,6 +34,7 @@ export const getApp = async () => {
 
     app.post('/token', async (req, res) => {
         try {
+            Debug(req);
             if (Auth.wantToChangeOrganization)
                 ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
             const expiryTimestamp =
