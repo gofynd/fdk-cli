@@ -156,9 +156,22 @@ export default {
         }
     },
 
-    // Extension Section
+    getExtensionList: async (page_no: number, page_size: number) => {
+        try {
+            let axiosOptions = Object.assign({}, getCommonHeaderOptions());
+            let response = await ApiClient.get(
+                URLS.GET_EXTENSION_LIST(page_no, page_size),
+                axiosOptions,
+            );
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
 
-    publishExtensionBindings: async (
+     // Extension Section
+
+     publishExtensionBindings: async (
         extensionId: string,
         organisationId: string,
         data : any
@@ -267,31 +280,6 @@ export default {
 
             const res = await ApiClient.post(
                 URLS.DRAFT_SECTIONS(extensionId, organisationId),
-                axiosOption,
-            );
-
-            return res.data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    getExtensionList: async () => {
-        try {
-            const axiosOption = Object.assign(
-                {},
-                { },
-                {
-                    headers: {
-                        ...getCommonHeaderOptions().headers,
-                        'x-application-data': '{}',
-                        'x-user-data': '{}',
-                    }
-                },
-            );
-
-            const res = await ApiClient.get(
-                URLS.GET_EXTENSION_LIST(),
                 axiosOption,
             );
 

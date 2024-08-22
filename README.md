@@ -34,6 +34,10 @@ To help you get started, there are some basic commands you can use.
 ```sh
 fdk --help
 ```
+To see the current fdk version, enter:
+```sh
+fdk version
+```
 To see the available theme commands, enter:
 ```sh
 fdk theme
@@ -56,6 +60,7 @@ ___
 | [user](#user)     | Shows user details of logged in user |
 | [logout](#logout)     | Logout user |
 | [populate](#populate)     | Populate sample data into development account to get started with theme and extension development |
+| [tunnel](#tunnel) | Create a tunnel on the specified port number to enable remote access for development and testing. |
 
 
 
@@ -78,8 +83,8 @@ ___
 | Command        | Description           |
 | ------------- |-------------|
 | [init](#extension-init)     | Utilize this command to set up a new extension locally, leveraging existing templates of your choice.  |
-| [setup](#extension-setup)     | Configure your extension locally using the existing API Key and API Secret provided for the extension inside the partners panel.
-| [preview-url](#extension-preview-url)   | Create a tunnel and provide a link to tryout extension on development company
+| [preview](#extension-preview-url)   | Start the extension development server and provide a tunnel URL to preview the extension on the development company. |
+| [pull-env](#extension-pull-env)     | Retrieve extension context values from the partners panel and update current extension context. |
 | [launch-url](#extension-launch-url)     | Get/set extension's lanuch url |
 
 ### Extension Binding Commands
@@ -105,12 +110,6 @@ ___
 | [get](#config-get-commands)        | Retrieve current configuration values.|
 | [delete](#config-delete-commands)  (alias: `rm`)    | Delete configuration values.
 
-### Environment Commands
-| Command        | Description           |
-| ------------- |-------------|
-| [env get](#env-get)     | Shows current environment |
-| [env set](#env-set)     | Set active environment to the value provided by the user. Default environment: `fynd`|       |
-
 <div id="debugMode"></div>
 
 
@@ -125,59 +124,30 @@ fdk login --verbose
 <div id="commands-reference"><div/>
 
 ## Commands Reference
-### Environment Commands
-Before you start using FDK CLI you will have to set an environment
-
-<div id="env-set"></div>
-
-#### **env set**
-This command sets the active environment to the value provided by the user.
-
-#### **Syntax**
-```sh
-fdk env set [options]
-```
-#### **Example**
-```sh
-fdk env set -u api.fynd.com
-```
-#### **Command Options**
-| Option        | Description | Required |
-| ------------- |-------------|----------|
-| --url, -u   | Platform API domain | Yes |
-| --help    | Show help | No |
-| --verbose, -v | enable debug mode | No |
-
-<div id="env-get"></div>
-
-___
-
-#### **env get**
-This command displays the active environment set by the user. Default environment: `api.fynd.com`
-#### **Syntax**
-```sh
-fdk env get
-```
 ___
 ### Authentication Commands
-After setting the environment the user has to login to the cli.
+To use fdk cli command the user has to login to the cli.
 <div id="login"></div>
 
 #### **login**
 This command allows user to login via partner panel.
 #### **Syntax**
 ```sh
-fdk login
+fdk login [options]
 ```
 #### **Command Options**
 | Option        | Description           |
 | ------------- |-------------|
+| --host    | API host |
 | --help    | Show help |
 | --verbose, -v | enable debug mode |
 
 #### **Example**
 ```sh
 fdk login
+```
+```sh
+fdk login --host api.fynd.com
 ```
 
 <div id="user"></div>
@@ -208,6 +178,31 @@ Using this command populate sample data into development account to get started 
 #### **Syntax**
 ```sh
 fdk populate
+```
+
+___
+
+
+<div id="tunnel"></div>
+
+#### **tunnel**
+This command will start a tunnel using cloudflare by which you can access your local port on public url
+
+#### ****Syntax****
+```sh
+fdk tunnel [options]
+```
+
+#### **Command Options**
+| Option    | Description   |
+| ----------|---------------|
+| --port | Port (required) |
+| --help    | Show help |
+| --verbose | enable debug mode |
+
+#### **Example**
+```sh
+fdk tunnel --port 8080
 ```
 
 ___
@@ -375,16 +370,14 @@ fdk theme open
 ### Extension Commands
 Extensions are pluggable snippets of code that can be installed in your applications so improve the feature set of your application. To know more visit - [Fynd Partners](https://partners.fynd.com/)
 
-Set the active environment before running extension commands
-```sh
-fdk env set -u api.fynd.com
-```
-
-
 <div id="extension-init"></div>
 
 #### **init**
 This command is used to create a extension's initial code with required dependency. It will also register extension for you on your partner account.
+
+##### Prerequisites
+- You must have installed [Git](https://github.com/git-guides/install-git), if you don't already have it.
+
 #### ****Syntax****
 ```sh
 fdk extension init [options]
@@ -393,6 +386,7 @@ fdk extension init [options]
 | Option        | Description           |
 | ------------- |-------------|
 | --target-dir    | Target Directory |
+| --template    | Specify the template you want to use to create the extension |
 | --help    | Show help |
 | --verbose | enable debug mode |
 
@@ -400,73 +394,72 @@ fdk extension init [options]
 ```sh
 fdk extension init --target-dir [your-directory]
 ```
-___
-<div id="extension-setup"></div>
-
-#### **setup**
-This command is used to setup extension's development environment in local machine with required dependencies created on [Fynd Partners](https://partners.fynd.com/) panel.
-#### ****Syntax****
 ```sh
-fdk extension setup [options]
+fdk extension init --template [template-name]
 ```
-
-#### **Command Options**
-| Option        | Description           |
-| ------------- |-------------|
-| --target-dir    | Target Directory |
-| --help    | Show help |
-| --verbose | enable debug mode |
-
-#### **Example**
-```sh
-fdk extension setup --target-dir [your-directory]
-```
+You can pass the following values for the template:
+1. node-vue
+2. node-react
+3. java-vue
+4. java-react
 ___
-
 <div id="extension-preview-url"></div>
 
-#### **preview-url**
+#### **preview**
 This command will return the preview URL, which the user can use to launch or install the extension.
 
 #### ****Syntax****
 ```sh
-fdk extension preview-url [options]
+fdk extension preview [options]
 ```
 
 #### **Command Options**
 | Option    | Description   |
 | ----------|---------------|
-| -p, --port    | Port on which Extension is running |
-| --company-id | specify company id |
+| --company-id | Unique identifier of your company |
 | --api-key | Extension API key |
 | --access-token | Partner Access Token |
-| --use-tunnel | Pass which tunneling tool you want to use (Default: `cloudflared`) |
-| --update-authtoken | Pass this to update your ngrok authentication token |
+| --tunnel-url | Specify a manual Tunnel URL to bypass automatic tunnel creation. |
+| --no-auto-update | Disables auto-updating of tunnel URL as extension launch url on partners panel |
+| --reset | Resets the extension's context data, prompting you to re-enter all required details. Useful for a fresh start! |
 | --help    | Show help |
-| --verbose | enable debug mode |
+| --verbose | Enables debug mode, providing detailed logs for troubleshooting. |
 
 #### **Example**
 ```sh
-fdk extension preview-url --port 3000
+fdk extension preview
 ```
 ```sh
-fdk extension preview-url -p 3000
+fdk extension preview --tunnel-url https://broke-casey-eric-recommendations.trycloudflare.com
 ```
 ```sh
-fdk extension preview-url -p 3000 --company-id 999
+fdk extension preview --company-id 999
 ```
 
-By default, **cloudflared** will be used as the tunneling tool. To use a different tool, pass the `--use-tunnel` option. Currently, we support **cloudflared** and **ngrok** as tunneling tools. You will be prompted to enter your authentication token if you choose ngrok.
+- **Cloudflared** will be used as the tunneling tool.
 
+- If you pass Tunnel URL, it will not created new tunnel and use the passed url as tunnel url.
+
+___
+
+
+<div id="extension-pull-env"></div>
+
+#### **pull-env**
+This command will fetch extension context details from partners panel and update current extension context.
+
+#### ****Syntax****
 ```sh
-fdk extension preview-url -p 3000 --use-tunnel ngrok
+fdk extension pull-env
 ```
-Pass `--update-authtoken` flag to update your ngrok authentication token.
+
+#### **Example**
 ```sh
-fdk extension preview-url -p 3000 --use-tunnel ngrok --update-authtoken
+fdk extension pull-env
 ```
 
 ___
+
 <div id="extension-launch-url"></div>
 
 #### **launch-url**

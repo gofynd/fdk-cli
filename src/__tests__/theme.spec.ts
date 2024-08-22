@@ -143,6 +143,7 @@ describe('Theme Commands', () => {
             uninterceptedApiClient.axiosInstance,
         );
         configStore.set(CONFIG_KEYS.ORGANIZATION, organizationData._id)
+        mock.onGet('https://api.fyndx1.de/service/application/content/_healthz').reply(200);
         mock.onGet(
             `${URLS.GET_APPLICATION_DETAILS(
                 appConfig.company_id,
@@ -333,7 +334,7 @@ describe('Theme Commands', () => {
         process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
         const app = await startServer();
         const req = request(app);
-        await program.parseAsync(['ts-node', './src/fdk.ts', 'login']);
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '--host', 'api.fyndx1.de']);
         await req.post('/token').send(tokenData);
     });
 

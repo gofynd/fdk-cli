@@ -7,12 +7,15 @@ import open from 'open';
 import express from 'express';
 var cors = require('cors');
 const port = 7071;
-import ThemeService from './api/services/theme.service';
 import { getLocalBaseUrl } from '../helper/serve.utils';
-import { successBox } from '../helper/formatter';
+import Debug from './Debug';
+import Env from './Env';
+
+const SERVER_TIMER = 1000 * 60 * 2; // 2 min
+import { OutputFormatter, successBox } from '../helper/formatter';
 import OrganizationService from './api/services/organization.service';
 import { getOrganizationDisplayName } from '../helper/utils';
-import Debug from './Debug';
+import chalk from 'chalk';
 
 async function checkTokenExpired(auth_token) {
     const { expiry_time } = auth_token;
@@ -32,11 +35,19 @@ export const getApp = async () => {
 
     app.post('/token', async (req, res) => {
         try {
-            if (Auth.isOrganizationChange)
+            if (Auth.wantToChangeOrganization)
                 ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
             const expiryTimestamp =
                 Math.floor(Date.now() / 1000) + req.body.auth_token.expires_in;
             req.body.auth_token.expiry_time = expiryTimestamp;
+            if(Auth.newDomainToUpdate){
+                if(Auth.newDomainToUpdate === 'api.fynd.com'){
+                    Env.setEnv(Auth.newDomainToUpdate);
+                }
+                else{
+                    await Env.setNewEnvs(Auth.newDomainToUpdate);
+                }
+            }
             ConfigStore.set(CONFIG_KEYS.AUTH_TOKEN, req.body.auth_token);
             ConfigStore.set(CONFIG_KEYS.ORGANIZATION, req.body.organization);
             const organization_detail =
@@ -60,31 +71,82 @@ export const getApp = async () => {
     return { app };
 };
 
+function startTimer(){
+    Debug("Server timer starts")
+    Auth.timer_id = setTimeout(() => {
+        Auth.stopSever(() => {
+            console.log(chalk.red(`Timeout: Please run ${chalk.blue('fdk login')} command again.`));
+        })
+    }, SERVER_TIMER)
+}
+
+function resetTimer(){
+    if (Auth.timer_id) {
+        Debug("Server timer stoped")
+        clearTimeout(Auth.timer_id)
+        Auth.timer_id = null;
+    }
+}
 export const startServer = async () => {
     if (Auth.server) return Auth.server;
 
     const { app } = await getApp();
     const serverIn = require('http').createServer(app);
-    Auth.server = serverIn.listen(port, (err) => {
-        if (err) Debug(err);
+
+    // handle errors thrown while start listening
+    serverIn.on('error', (error) => {
+        Debug(error);
+        if (error.code === 'EADDRINUSE') {
+            console.error(chalk.red(`Port ${port} is already in use.`));
+        } else {
+            console.error(chalk.red('An unexpected error occurred:'), error);
+        }
     });
 
-    return Auth.server;
+    Auth.server = serverIn.listen(port);
+
+    // resolve promise only if server starts listening
+    // we will open partner panel only if server is listening
+    return new Promise(resolve => {
+        serverIn.on('listening', () => {
+            Debug(`Server started listening on ${port}`);
+            resolve(Auth.server);
+        });
+    }).then(server => {
+        // once server start listening, start server timer
+        startTimer();
+        return server
+    })
 };
 
 export default class Auth {
     static server = null;
-    static isOrganizationChange = false;
+    static timer_id;
+    static wantToChangeOrganization = false;
+    static newDomainToUpdate = null;
     constructor() {}
-    public static async login() {
-        Logger.info(
-            chalk.green(
-                'Current env: ',
-                ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE),
-            ),
-        );
+    public static async login(options) {
+
+        let env: string;
+
+        if(options.host){
+            env = await Env.verifyAndSanitizeEnvValue(options.host);
+        }
+        else{
+            env = 'api.fynd.com';
+        }
+
+        let current_env = Env.getEnvValue();
+
+        if(current_env !== env){
+            // update new domain after login
+            Auth.newDomainToUpdate = env;
+
+            // Logout user from current domain
+            Auth.updateConfigStoreForLogout();
+        }
+
         const isLoggedIn = await Auth.isAlreadyLoggedIn();
-        await startServer();
         if (isLoggedIn) {
             Logger.info(
                 `Current logged in organization: ${getOrganizationDisplayName()}`,
@@ -100,32 +162,37 @@ export default class Auth {
             ];
             await inquirer.prompt(questions).then(async (answers) => {
                 if (answers.confirmChangeOrg === 'No') {
-                    Auth.isOrganizationChange = false;
-                    await Auth.stopSever();
+                    Auth.wantToChangeOrganization = false;
                     return;
                 } else {
-                    Auth.isOrganizationChange = true;
+                    Auth.wantToChangeOrganization = true;
+                    await startServer();
                 }
             });
-        }
-        const env = ConfigStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+        } else
+            await startServer();
         try {
             let domain = null;
             let partnerDomain = env.replace('api', 'partners');
             domain = `https://${partnerDomain}`;
             try {
-                if (Auth.isOrganizationChange || !isLoggedIn) {
+                if (Auth.wantToChangeOrganization || !isLoggedIn) {
                     await open(
                         `${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
                             `${getLocalBaseUrl()}:${port}`,
                         )}`,
                     );
+                    console.log(
+                        `Open link on browser: ${OutputFormatter.link(`${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
+                            `${getLocalBaseUrl()}:${port}`,
+                            )}`)}`,
+                    );
                 }
             } catch (err) {
                 console.log(
-                    `Open link on browser: ${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
+                    `Open link on browser: ${OutputFormatter.link(`${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
                         `${getLocalBaseUrl()}:${port}`,
-                    )}`,
+                        )}`)}`,
                 );
             }
         } catch (error) {
@@ -144,13 +211,7 @@ export default class Auth {
             ];
             await inquirer.prompt(questions).then((answers) => {
                 if (answers.confirmLogout === 'Yes') {
-                    const currentEnv = ConfigStore.get(
-                        CONFIG_KEYS.CURRENT_ENV_VALUE,
-                    );
-                    const extras = ConfigStore.get(CONFIG_KEYS.EXTRAS);
-                    ConfigStore.clear();
-                    ConfigStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, currentEnv);
-                    ConfigStore.set(CONFIG_KEYS.EXTRAS, extras);
+                    Auth.updateConfigStoreForLogout();
                     Logger.info(`User logged out successfully`);
                 }
             });
@@ -158,6 +219,17 @@ export default class Auth {
             throw new CommandError(error.message, error.code);
         }
     }
+
+    private static updateConfigStoreForLogout(){
+        const currentEnv = ConfigStore.get(
+            CONFIG_KEYS.CURRENT_ENV_VALUE,
+        );
+        const extras = ConfigStore.get(CONFIG_KEYS.EXTRAS);
+        ConfigStore.clear();
+        ConfigStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, currentEnv);
+        ConfigStore.set(CONFIG_KEYS.EXTRAS, extras);
+    }
+
     public static getUserInfo() {
         try {
             const { current_user: user } = ConfigStore.get(
@@ -182,7 +254,11 @@ export default class Auth {
             else return false;
         } else return false;
     };
-    static stopSever = async () => {
-        Auth.server.close(() => {});
+    static stopSever = async (cb = null) => {
+        resetTimer();
+        Auth.server?.close?.(() => {
+            Debug("Server closed");
+            cb?.();
+        });
     };
 }

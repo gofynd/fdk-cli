@@ -138,17 +138,17 @@ export const URLS = {
     },
 
     // Extension
+    GET_EXTENSION_LIST: (page_no: number, page_size: number): string => {
+        return urlJoin(
+            MIXMASTER_URL('partner'),
+            `/organization/${getOrganizationId()}/extension/?page_size=${page_size}&page_no=${page_no}`,
+        );
+    },
+
     REGISTER_EXTENSION_PARTNER: (): string => {
         return urlJoin(
             MIXMASTER_URL('partner'),
             `organization/${getOrganizationId()}/extension`,
-        );
-    },
-
-    GET_EXTENSION_LIST: () => {
-        return urlJoin(
-            MIXMASTER_URL('partner'),
-            `/organization/${getOrganizationId()}/extension?page_size=500`,
         );
     },
 

@@ -128,7 +128,7 @@ export default class ExtensionSection {
                         let extensionId;
                         try {
                             const extensionsList =
-                                await extensionService.getExtensionList();
+                                await extensionService.getExtensionList(1, 500);
 
                             const extensions = extensionsList?.items.map(
                                 ({ name }) => name,
