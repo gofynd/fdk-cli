@@ -232,7 +232,7 @@ export async function init(programName: string) {
         checkForLatestVersion(),
         new Promise((resolve, reject) => setTimeout(() => {
             version_check_timed_out = true;
-            reject(new Error('Failed to check latest version.'))
+            reject(new Error('Timeout, Failed to check latest version.'))
         }, 2000))
     ]).catch(error => Debug(error));
 
