@@ -30,6 +30,7 @@ import * as Sentry from '@sentry/node';
 const packageJSON = require('../package.json');
 
 const current_version_message = 'Current version: ' + chalk.greenBright.bold(packageJSON.version);
+let version_check_timed_out = false;
 
 async function checkTokenExpired(auth_token) {
     if (!auth_token) return true;
@@ -226,10 +227,15 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
 
 //   return [''].join() + '\n';
 // };
-
 export async function init(programName: string) {
-    await checkForLatestVersion();
-    
+    await Promise.race([
+        checkForLatestVersion(),
+        new Promise((resolve, reject) => setTimeout(() => {
+            version_check_timed_out = true;
+            reject(new Error('Failed to check latest version.'))
+        }, 2000))
+    ]).catch(error => Debug(error));
+
     //Setup commander instance
     program
         .name(programName)
@@ -319,6 +325,9 @@ async function checkForLatestVersion() {
         packageJSON.version,
         latest,
     );
+
+    if(version_check_timed_out) return;
+
     Debug(`Latest version: ${latest} | ${isCurrentLessThanLatest}`);
 
     const versionChange = semver.diff(packageJSON.version, latest);
