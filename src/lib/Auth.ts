@@ -15,7 +15,6 @@ const SERVER_TIMER = 1000 * 60 * 2; // 2 min
 import { OutputFormatter, successBox } from '../helper/formatter';
 import OrganizationService from './api/services/organization.service';
 import { getOrganizationDisplayName } from '../helper/utils';
-import chalk from 'chalk';
 
 async function checkTokenExpired(auth_token) {
     const { expiry_time } = auth_token;

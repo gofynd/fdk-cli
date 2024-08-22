@@ -15,10 +15,10 @@ export default class Tunnel {
     tunnelProcess: ChildProcess;
     stopTunnel: (signal?: NodeJS.Signals | number) => boolean;
 
-    constructor(options){
+    constructor(options: typeof this.options){
         this.options = options;
     }
-    
+
     public static async tunnelHandler(options){
         const tunnel = new Tunnel(options);
 

@@ -30,6 +30,7 @@ import chokidar from 'chokidar';
 import { v4 as uuidv4 } from 'uuid';
 import themeService from './api/services/theme.service';
 import { getPlatformUrls } from './api/services/url';
+import Tunnel from './Tunnel';
 
 const readDirectories = promisify(fs.readdir);
 
@@ -295,20 +296,15 @@ export default class ExtensionSection {
     }
 
     static async startTunnel() {
+
         try {
             const port = await getPort(5500);
 
-            if (!fs.existsSync(bin)) {
-                Logger.info(`Cloudflare tunnel binary is not found in bin dir: ${bin}\nDownloading cloudflare...`);
-                await install(bin);
-            }
+            const tunnelInstance = new Tunnel({
+                port,
+            })
 
-            Logger.info('Starting local tunnel...')
-            const { url, connections, child, stop } = startCloudflareTunnel({
-                '--url': `http://localhost:${port}`,
-            });
-
-            const tunnelUrl = await url;
+            const tunnelUrl = await tunnelInstance.startTunnel();
 
             console.log(`
                 Started cloudflare tunnel at ${port}: ${tunnelUrl}`)
