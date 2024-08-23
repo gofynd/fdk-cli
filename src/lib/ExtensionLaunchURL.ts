@@ -47,12 +47,6 @@ export default class ExtensionLaunchURL {
         launch_url: string,
     ): Promise<void> {
         try {
-            // let java_env_file_path = path.join(
-            //     'src',
-            //     'main',
-            //     'resources',
-            //     'application.yml',
-            // );
             let spinner = new Spinner('Updating Launch URL on Partners Panel');
             try {
                 spinner.start();
@@ -93,24 +87,6 @@ export default class ExtensionLaunchURL {
                         );
                     }
                 }
-
-                // spinner = new Spinner('Updating Launch URL environment variable in extension code');
-                // spinner.start();
-
-                // manualUpdateRequired =
-                //     Extension.updateExtensionEnvValue(launch_url);
-                
-                // if (manualUpdateRequired) {
-                //     spinner.fail();
-                //     console.log(
-                //         chalk.blueBright(
-                //             '\nPlease update extension launch url in your extension code manually.',
-                //         ),
-                //     );
-                // }
-                // else{
-                //     spinner.succeed();
-                // }
             } catch (error) {
                 spinner.fail();
                 throw new CommandError(error.message, error.code, error.response);

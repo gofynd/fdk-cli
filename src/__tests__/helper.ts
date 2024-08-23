@@ -13,7 +13,7 @@ export function generateToken(decodedToken) {
     return new Buffer(`${JSON.stringify(decodedToken)}`).toString('base64');
 }
 
-export function setEnv() {
+export function setEnv(domain = 'api.fyndx1.de') {
     configStore.set(CONFIG_KEYS.CURRENT_ENV, {}); // active_context: {}
-    configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'api.fyndx1.de');
+    configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, domain);
 }
