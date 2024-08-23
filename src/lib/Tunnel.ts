@@ -62,7 +62,12 @@ export default class Tunnel {
 
         if (!fs.existsSync(bin)) {
             Debug(`Cloudflare tunnel binary is not found in bin dir: ${bin}\nDownloading cloudflare...`);
-            await install(bin);
+            try{
+                await install(bin);
+            }
+            catch(error){
+                Logger.error(`Failed to download cloudflare package to start tunnel: ${error}`)
+            }
         }
 
         const { url: urlPromise, connections, child, stop } = startTunnel({
