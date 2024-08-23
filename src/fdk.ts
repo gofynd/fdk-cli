@@ -335,11 +335,12 @@ async function checkForLatestVersion() {
     const major = versionChange === 'major';
 
     const logMessage = `A new version ${latest} is available!.
+Refer Release note here: https://github.com/gofynd/fdk-cli/releases/tag/v${latest}
+
 You have version ${packageJSON.version}.
-Please update to the latest version.
-${
+Please update to the latest version.${
 major
-? `\nNote: You need to update \`${packageJSON.name}\` first inorder to use it.`
+? `\n\nNote: You need to update \`${packageJSON.name}\` first inorder to use it.`
 : ''
 }
 
