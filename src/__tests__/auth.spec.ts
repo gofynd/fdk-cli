@@ -12,6 +12,9 @@ import { URLS } from '../lib/api/services/url';
 import Logger from '../lib/Logger';
 import MockAdapter from 'axios-mock-adapter';
 import axios from 'axios';
+import {
+    getRandomFreePort
+} from '../helper/extension_utils';
 
 jest.mock('inquirer');
 let program;
@@ -44,7 +47,8 @@ jest.mock('open', () => {
 })
 export async function login(domain?: string) {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
-    const app = await startServer();
+    const port =  await getRandomFreePort([]);
+    const app = await startServer(port);
     const req = request(app);
     if(domain)
         await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '--host', domain]);
