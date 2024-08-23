@@ -618,12 +618,24 @@ export default class ExtensionSection {
         try {
             spinner.start();
             const context = process.cwd();
+            let webpackConfigFromBinding = {};
+            const webpackExtendedPath = path.join(
+                context,
+                'webpack.config.js'
+            );
+
+            if (fs.existsSync(webpackExtendedPath)) {
+                ({ default: webpackConfigFromBinding } = await import(
+                    webpackExtendedPath
+                ));
+            }
+
             const webpackConfig = extensionWebpackConfig({
                 isLocal,
                 bundleName,
                 port,
                 context,
-            });
+            }, webpackConfigFromBinding);
 
             return new Promise((resolve, reject) => {
                 webpack(webpackConfig, (err, stats) => {
@@ -680,7 +692,7 @@ export default class ExtensionSection {
         Logger.info('Draft successful!');
     }
 
-    static watchExtensionCodeBuild(
+    static async watchExtensionCodeBuild(
         bundleName: string,
         port: number = 5502,
         callback: Function,
@@ -690,12 +702,25 @@ export default class ExtensionSection {
             spinner.start();
 
             const context = process.cwd();
+
+            let webpackConfigFromBinding = {};
+            const webpackExtendedPath = path.join(
+                context,
+                'webpack.config.js'
+            );
+
+            if (fs.existsSync(webpackExtendedPath)) {
+                ({ default: webpackConfigFromBinding } = await import(
+                    webpackExtendedPath
+                ));
+            }
+
             const webpackConfig = extensionWebpackConfig({
                 isLocal: true,
                 bundleName,
                 port,
                 context,
-            });
+            }, webpackConfigFromBinding);
 
             const compiler = webpack(webpackConfig);
 

@@ -1,6 +1,5 @@
-const path = require("path");
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 import webpack, { Configuration } from 'webpack';
+import { mergeWithRules } from 'webpack-merge';
 
 class CustomSnippetPlugin {
     constructor(private options) { }
@@ -61,105 +60,12 @@ document.head.appendChild(_script);
 }
 `;
 
-export function extensionWebpackConfig(env: ExtensionBuildContext): Configuration[] {
+export function extensionWebpackConfig(env: ExtensionBuildContext, webpackConfigFromBinding): Configuration[] {
     const isLocalBuild = env.isLocal;
-    const context = env.context;
+
+    const extendedWebpackResolved = webpackConfigFromBinding(env);
 
     const baseConfig: Configuration = {
-        mode: 'production',
-        entry: path.resolve(context, "src/index.jsx"),
-        resolve: {
-            extensions: ['', '.js', '.jsx'],
-        },
-        module: {
-            rules: [
-                {
-                    test: /\.(jsx|js)$/,
-                    include: path.resolve(context, "src"),
-                    exclude: /node_modules/,
-                    use: [
-                        {
-                            loader: "babel-loader",
-                            options: {
-                                presets: [
-                                    [
-                                        "@babel/preset-env",
-                                        {
-                                            targets: "defaults",
-                                        },
-                                    ],
-                                    "@babel/preset-react",
-                                ],
-                            },
-                        },
-                    ],
-                },
-                {
-                    test: /\.css$/i,
-                    use: [
-                        MiniCssExtractPlugin.loader,
-                        {
-                            loader: "css-loader",
-                            options: {
-                                modules: {
-                                    localIdentName: isLocalBuild
-                                        ? "[path][name]__[local]--[hash:base64:5]"
-                                        : "[hash:base64:5]",
-                                },
-                            },
-                        },
-                    ],
-                    exclude: /\.global\.css$/,
-                },
-                {
-                    test: /\.css$/i,
-                    use: [
-                        MiniCssExtractPlugin.loader,
-                        {
-                            loader: "css-loader",
-                            options: {
-                                modules: false,
-                            },
-                        },
-                    ],
-                    include: /\.global\.css$/,
-                },
-                {
-                    test: /\.less$/i,
-                    use: [
-                      // compiles Less to CSS
-                      MiniCssExtractPlugin.loader,
-                      {
-                        loader: "css-loader",
-                        options: {
-                          modules: false,
-                        },
-                      },
-                      "less-loader",
-                    ],
-                    include: /\.global\.less$/,
-                  },
-                  {
-                    test: /\.less$/i,
-                    use: [
-                      // compiles Less to CSS
-                      MiniCssExtractPlugin.loader,
-                      {
-                        loader: "css-loader",
-                        options: {
-                          modules: {
-                            localIdentName: isLocalBuild
-                              ? "[path][name]__[local]--[hash:base64:5]"
-                              : "[hash:base64:5]",
-                          },
-                        },
-                      },
-                      "less-loader",
-                    ],
-                    exclude: /\.global\.less$/,
-                  },
-            ],
-        },
         externals: {
             react: 'React',
             'react-router-dom': 'ReactRouterDOM',
@@ -177,13 +83,6 @@ export function extensionWebpackConfig(env: ExtensionBuildContext): Configuratio
             globalObject: 'typeof self !=="undefined" ? self : this',
         },
         plugins: [
-            new MiniCssExtractPlugin({
-                filename: `${env.bundleName}.umd.min.css`,
-            }),
-            new webpack.ProvidePlugin({
-                // you must `npm install buffer` to use this.
-                Buffer: ['buffer', 'Buffer']
-            }),
             ...(isLocalBuild ? [
                 new CustomSnippetPlugin({
                     snippetCode: snippet(env.port)
@@ -195,42 +94,6 @@ export function extensionWebpackConfig(env: ExtensionBuildContext): Configuratio
     const sectionConfig: Configuration = {
         mode: 'production',
         target: 'node',
-        entry: path.resolve(context, "src/index.jsx"),
-        module: {
-            rules: [
-                {
-                    test: /\.(jsx|js)$/,
-                    exclude: /node_modules/,
-                    use: [
-                        {
-                            loader: 'babel-loader',
-                            options: {
-                                presets: [
-                                    [
-                                        '@babel/preset-env',
-                                        {
-                                            targets: 'defaults',
-                                        },
-                                    ],
-                                    '@babel/preset-react',
-                                ],
-                            },
-                        },
-                    ],
-                },
-                {
-                    test: /\.css$/i,
-                    use: ['css-loader'],
-                },
-                {
-                    test: /\.less$/i,
-                    use: ['css-loader'],
-                },
-            ],
-        },
-        resolve: {
-            extensions: ['', '.js', '.jsx'],
-        },
         externals: {
             react: 'fs',
             'fdk-core/components': 'fs',
@@ -250,12 +113,30 @@ export function extensionWebpackConfig(env: ExtensionBuildContext): Configuratio
         plugins: [],
     };
 
+    const mergedBaseConfig: Configuration = mergeWithRules({
+        module: {
+            rules: {
+                test: 'match',
+                use: 'append',
+            },
+        },
+    })(extendedWebpackResolved, baseConfig);
+
+    const mergedSectionConfig: Configuration = mergeWithRules({
+        module: {
+            rules: {
+                test: 'match',
+                use: 'append',
+            },
+        },
+    })(extendedWebpackResolved, sectionConfig);
+
     if (isLocalBuild) {
-        return [baseConfig];
+        return [mergedBaseConfig];
     }
 
     return [
-        baseConfig,
-        sectionConfig,
+        mergedBaseConfig,
+        mergedSectionConfig,
     ]
 }
