@@ -66,10 +66,23 @@ export default class Env {
            );
         }
 
-        // replace parnters to api
-        if (finalDomain.includes('partners')) {
-            finalDomain = finalDomain.replace('partners', 'api');
+
+        function replaceSubdomain(url) {
+            // Split the URL into parts
+            let urlParts = url.split('.');
+            
+            // Check if the first part (subdomain) is 'partners'
+            if (urlParts[0] === 'partners') {
+                // Replace 'partners' with 'api'
+                urlParts[0] = 'api';
+            }
+            
+            // Join the URL back together
+            return urlParts.join('.');
         }
+
+        // replace parnters to api
+        finalDomain = replaceSubdomain(finalDomain);
 
         // validate domain if it is api domain or not
         if(!(finalDomain.includes('api.') || finalDomain.includes('api-'))){
