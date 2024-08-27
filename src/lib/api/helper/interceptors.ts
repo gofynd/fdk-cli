@@ -129,15 +129,6 @@ export function responseErrorInterceptor() {
         ) {
             ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
             throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
-        } else if (
-            error.response &&
-            error.response.status === 404 &&
-            error.response.config.url.includes('/_compatibility')
-        ) {
-            throw new CommandError(
-                ErrorCodes.DOWNGRADE_CLI_VERSION.message,
-                ErrorCodes.DOWNGRADE_CLI_VERSION.code,
-            );
         } else if (error.response) {
             Debug(`Error Response  :  ${JSON.stringify(error.response.data)}`);
             throw new CommandError(
@@ -146,6 +137,7 @@ export function responseErrorInterceptor() {
                 error?.response,
             );
         } else if (error.request) {
+            Debug(error);
             switch (error.code) {
                 case 'ERR_FR_MAX_BODY_LENGTH_EXCEEDED': {
                     throw new CommandError(
