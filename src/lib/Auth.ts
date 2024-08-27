@@ -16,7 +16,7 @@ import OrganizationService from './api/services/organization.service';
 import { getOrganizationDisplayName } from '../helper/utils';
 import chalk from 'chalk';
 
-async function checkTokenExpired(auth_token) {
+function checkTokenExpired(auth_token) {
     const { expiry_time } = auth_token;
     const currentTimestamp = Math.floor(Date.now() / 1000);
     if (currentTimestamp > expiry_time) {
@@ -145,7 +145,7 @@ export default class Auth {
             Auth.updateConfigStoreForLogout();
         }
         
-        const isLoggedIn = await Auth.isAlreadyLoggedIn();
+        const isLoggedIn = Auth.isAlreadyLoggedIn();
         if (isLoggedIn) {
             Logger.info(
                 `Current logged in organization: ${getOrganizationDisplayName()}`,
@@ -198,23 +198,36 @@ export default class Auth {
             throw new CommandError(error.message, error.code);
         }
     }
-    public static async logout() {
+    public static async logout(options) {
         try {
-            const questions = [
-                {
-                    type: 'list',
-                    name: 'confirmLogout',
-                    message: 'Are you sure you want to logout',
-                    choices: ['Yes', 'No'],
-                },
-            ];
-            await inquirer.prompt(questions).then((answers) => {
-                if (answers.confirmLogout === 'Yes') {
-                    Auth.updateConfigStoreForLogout();
-                    Logger.info(`User logged out successfully`);
-                }
-            });
+            if(!Auth.isAlreadyLoggedIn()){
+                Logger.info('No active user found. You are already logged out.');
+                return;
+            }
+
+            let shouldLogout = options.skipConfirm;
+
+            if(!shouldLogout){
+                const questions = [
+                    {
+                        type: 'list',
+                        name: 'confirmLogout',
+                        message: 'Are you sure you want to logout? [Yes/No]',
+                        choices: ['Yes', 'No'],
+                    },
+                ];
+
+                const answer = await inquirer.prompt(questions)
+
+                shouldLogout = answer.confirmLogout === 'Yes';
+            }
+
+            if(shouldLogout){
+                Auth.updateConfigStoreForLogout();
+                Logger.info(`User logged out successfully.`);
+            }
         } catch (error) {
+            Debug(`An error occurred during logout: ${error}`);
             throw new CommandError(error.message, error.code);
         }
     }
@@ -245,10 +258,10 @@ export default class Auth {
             throw new CommandError(error.message, error.code);
         }
     }
-    private static isAlreadyLoggedIn = async () => {
+    private static isAlreadyLoggedIn = () => {
         const auth_token = ConfigStore.get(CONFIG_KEYS.AUTH_TOKEN);
         if (auth_token && auth_token.access_token) {
-            const isTokenExpired = await checkTokenExpired(auth_token);
+            const isTokenExpired = checkTokenExpired(auth_token);
             if (!isTokenExpired) return true;
             else return false;
         } else return false;

@@ -124,4 +124,9 @@ describe('Auth Commands', () => {
         const storeSize = configStore.size;
         expect(storeSize).toBe(0);
     });
+    it('should successfully logout user, without prompt', async () => {
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'logout', '--skip-confirm']);
+        const storeSize = configStore.size;
+        expect(storeSize).toBe(0);
+    });
 });

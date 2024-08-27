@@ -14,6 +14,7 @@ export default function context(program: Command) {
     program
         .command('logout')
         .description('Logout user')
+        .option('-s, --skip-confirm', 'Log out without prompting for confirmation')
         .asyncAction(Auth.logout);
     program
         .command('user')
