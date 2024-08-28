@@ -67,6 +67,14 @@ describe('Auth Commands', () => {
             200,
             organizationData,
         );
+        mock.onGet('https://api.jiomartpartners.com/service/partner/partners/v1.0/organization/60afe92972b7a964de57a1d4').reply(
+            200,
+            organizationData,
+        );
+        mock.onGet('https://api-invoice.sandbox3.fynd.engineering/service/partner/partners/v1.0/organization/60afe92972b7a964de57a1d4').reply(
+            200,
+            organizationData,
+        );
         setEnv('api.fynd.com');
         configStore.set(CONFIG_KEYS.ORGANIZATION, organizationData._id);
         mock.onGet(`${URLS.GET_ORGANIZATION_DETAILS()}`).reply(
