@@ -6,5 +6,6 @@ export default function companySetup(program: CommanderStatic) {
     program
         .command('populate')
         .description('Setup your development account')
+        .option('--company-id <id>', 'Company Id')
         .asyncAction(CompanySetup.setupDevelopmentCompany);
 }
