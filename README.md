@@ -138,7 +138,7 @@ fdk login [options]
 #### **Command Options**
 | Option        | Description           |
 | ------------- |-------------|
-| --host    | API host |
+| --host    | URL of the partners panel host or API host |
 | --help    | Show help |
 | --verbose, -v | enable debug mode |
 
@@ -148,6 +148,9 @@ fdk login
 ```
 ```sh
 fdk login --host api.fynd.com
+```
+```sh
+fdk login --host partners.fynd.com
 ```
 
 <div id="user"></div>
