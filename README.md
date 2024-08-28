@@ -2,7 +2,6 @@
 
 # Fynd Development Kit
 >**Note:** Experimental support for Windows is available, it may not be fully stable.
-<div>
 
 [![NPM Version][npm-image]][npm-url]
 [![NPM Downloads][downloads-image]][downloads-url]
@@ -12,12 +11,12 @@
 
 Fynd development Kit (FDK CLI) is a cli tool developed by Fynd to create and update themes, extensions and various other components of the [Fynd Platform](https://platform.fynd.com/).
 ### Quick Links
-| [Fynd Platform](https://platform.fynd.com/) | [Fynd Partners](https://partners.fynd.com/) | [Partners Documentation](https://partners.fynd.com/help) | [Platform Documentation](https://platform.fynd.com/help) | [Other Projects](#other-fynd-projects) | [Contributing](CONTRIBUTING.md) | 
+| [Fynd Platform](https://platform.fynd.com/) | [Fynd Partners](https://partners.fynd.com/) | [Partners Documentation](https://partners.fynd.com/help) | [Platform Documentation](https://platform.fynd.com/help) | [Other Projects](#other-fynd-projects) | [Contributing](CONTRIBUTING.md) |
 
 # Prerequisites
 
 - You must have created a [partner account](https://partners.fynd.com/)
-- You must have created development account [guide](https://partners.fynd.com/help/docs/partners/testing-extension/development-acc) 
+- You must have created development account [guide](https://partners.fynd.com/help/docs/partners/testing-extension/development-acc)
 - You must have installed [Git](https://github.com/git-guides/install-git), if you don't already have it.
 - You must have installed [Nodejs](https://nodejs.org/en/download/package-manager) version 18.X.X or higher version, if you don't already have it.
 -  Optional Prerequisites
@@ -47,7 +46,7 @@ To see the available extension commands, enter:
 ```sh
 fdk extension
 ```
-See the the [Command reference](#commands-reference) for syntax details and usage examples of the commands. 
+See the the [Command reference](#commands-reference) for syntax details and usage examples of the commands.
 
 
 
@@ -55,8 +54,8 @@ See the the [Command reference](#commands-reference) for syntax details and usag
 ___
 
 ### Global Commands
-| Command        | Description           | 
-| ------------- |-------------| 
+| Command        | Description           |
+| ------------- |-------------|
 | [login](#login)     | Login user |
 | [user](#user)     | Shows user details of logged in user |
 | [logout](#logout)     | Logout user |
@@ -66,8 +65,8 @@ ___
 
 
 ### Theme Commands
-| Command        | Description           | 
-| ------------- |-------------| 
+| Command        | Description           |
+| ------------- |-------------|
 | [new](#theme-new)     | Create new theme |
 | [init](#theme-init)     | Clone or download the code of the live website onto your local machine to set up a local development environment for testing and modifications.  |
 | [serve](#theme-serve)     | Initiate theme development on your local machine. Your changes will automatically reflect in the browser whenever you save |
@@ -81,16 +80,26 @@ ___
 | [active-context](theme-active-context)    | show currently active context |
 
 ### Extension Commands
-| Command        | Description           | 
-| ------------- |-------------| 
+| Command        | Description           |
+| ------------- |-------------|
 | [init](#extension-init)     | Utilize this command to set up a new extension locally, leveraging existing templates of your choice.  |
 | [preview](#extension-preview-url)   | Start the extension development server and provide a tunnel URL to preview the extension on the development company. |
 | [pull-env](#extension-pull-env)     | Retrieve extension context values from the partners panel and update current extension context. |
 | [launch-url](#extension-launch-url)     | Get/set extension's lanuch url |
 
+### Extension Binding Commands
+| Command        | Description           |
+| ------------- |-------------|
+| [init](#binding-init)     | Utilize this command to set up a new extension section binding locally, leveraging existing templates of either Vue 2 or React JS.  |
+| [draft](#binding-draft)     | Create a draft entry of section binding accessible on dev companies.
+| [publish](#binding-publish)     | Publish the bindings across all the companies where extension is installed..
+| [preview](#binding-preview)     | Create a tunnel and provide a link to tryout extension on any company.
+| [show-context](#binding-show-context)     | Show current extension section context.
+| [clear-context](#binding-clear-context)     | Clear current extension section context.
+
 ### Partner Commands
-| Command        | Description           | 
-| ------------- |-------------| 
+| Command        | Description           |
+| ------------- |-------------|
 | [connect](#partner-connect)     | Add partner access token so that you don't need to add it explicitly  |
 
 ### Config Commands
@@ -99,7 +108,7 @@ ___
 |--------------|--------------------------------------|
 | [set](#config-set-commands)        | Set configuration values.            |
 | [get](#config-get-commands)        | Retrieve current configuration values.|
-| [delete](#config-delete-commands)  (alias: `rm`)    | Delete configuration values.  
+| [delete](#config-delete-commands)  (alias: `rm`)    | Delete configuration values.
 
 <div id="debugMode"></div>
 
@@ -127,8 +136,8 @@ This command allows user to login via partner panel.
 fdk login [options]
 ```
 #### **Command Options**
-| Option        | Description           | 
-| ------------- |-------------| 
+| Option        | Description           |
+| ------------- |-------------|
 | --host    | API host |
 | --help    | Show help |
 | --verbose, -v | enable debug mode |
@@ -217,7 +226,7 @@ fdk theme new [options]
 
 #### **Example**
 ```sh
-fdk theme new -n [your-theme-name] 
+fdk theme new -n [your-theme-name]
 ```
 
 ___
@@ -232,8 +241,8 @@ This command is used to initialize an exisiting theme on your local system.
 fdk theme init [options]
 ```
 #### **Command Options**
-| Option        | Description | 
-| ------------- |-------------| 
+| Option        | Description |
+| ------------- |-------------|
 | --help    | Show help |
 | --verbose, -v | enable debug mode |
 
@@ -253,7 +262,7 @@ This command is used to add a new context.
 fdk theme context [options]
 ```
 #### **Command Options**
-| Option        | Description | Required | 
+| Option        | Description | Required |
 | ------------- |-------------| -------- |
 | --name, -n    | Context name | Yes |
 | --help    | Show help | No |
@@ -261,7 +270,7 @@ fdk theme context [options]
 
 #### **Example**
 ```sh
-fdk theme context -n [context-name] 
+fdk theme context -n [context-name]
 ```
 ___
 
@@ -294,8 +303,8 @@ This command is used to run a theme on your local system.
 fdk theme serve [options]
 ```
 #### **Command Options**
-| Option        | Description           | 
-| ------------- |-------------| 
+| Option        | Description           |
+| ------------- |-------------|
 | --ssr    | Enable/disable Server-side rendering |
 | --port   | Pass custom port number to serve theme. `Default: 5001` |
 | --help   | Show help |
@@ -356,7 +365,7 @@ ___
 This command is used to preview the theme on browser.
 #### **Syntax**
 ```sh
-fdk theme open 
+fdk theme open
 ```
 ### Extension Commands
 Extensions are pluggable snippets of code that can be installed in your applications so improve the feature set of your application. To know more visit - [Fynd Partners](https://partners.fynd.com/)
@@ -374,8 +383,8 @@ This command is used to create a extension's initial code with required dependen
 fdk extension init [options]
 ```
 #### **Command Options**
-| Option        | Description           | 
-| ------------- |-------------| 
+| Option        | Description           |
+| ------------- |-------------|
 | --target-dir    | Target Directory |
 | --template    | Specify the template you want to use to create the extension |
 | --help    | Show help |
@@ -460,8 +469,8 @@ This command is used to get or set the launch url of your extension
 fdk extension launch-url get/set [options]
 ```
 #### **Command Options**
-| Option        | Description  | 
-| ------------- |-------------| 
+| Option        | Description  |
+| ------------- |-------------|
 | --url | URL to be set |
 | --api-key    | Extension ID |
 | --help    | Show help |
@@ -477,6 +486,133 @@ fdk extension launch-url set --url [url] --api-key [Extension API Key]
 fdk extension launch-url get --api-key [Extension API Key]
 ```
 ___
+
+### Extension Binding Commands
+Extensions bindings are reusable components which are pluggable through the theme editor to improve the user interface of your application. These can be used just like theme sections.
+
+Set the active environment before running extension commands
+```sh
+fdk env set -u api.fynd.com
+```
+
+
+<div id="binding-init"></div>
+
+#### **init**
+This command is used to create a basic boilerplate code for extension binding with required dependencies.
+#### ****Syntax****
+```sh
+fdk binding init [options]
+```
+#### **Command Options**
+| Option        | Description           |
+| ------------- |-------------|
+| -n, --name    | (Optional) Name of the section binding |
+| -i, --interface    | (Optional) Interface where this binding will be used. Currently, we only support Web Theme. |
+| -f, --framework | (Optional) Runtime framework. Supported values are vue2 and react |
+
+#### **Example**
+```sh
+fdk binding init
+```
+___
+<div id="binding-draft"></div>
+
+#### **draft**
+This command is used to register the binding with your development companies for alpha or beta testing.
+
+#### ****Syntax****
+```sh
+fdk binding draft [options]
+```
+
+#### **Command Options**
+| Option        | Description           |
+| ------------- |-------------|
+| -n, --name    | (Optional) Name of the section binding |
+| -f, --framework | (Optional) Runtime framework. Supported values are vue2 and react |
+| -id, --extensionId    | (Optional) Extension Id of the current extension. |
+| -org, --organisationId    | (Optional) Organisation Id of the current extension. |
+
+
+#### **Example**
+```sh
+fdk binding draft
+```
+___
+
+<div id="binding-publish"></div>
+
+#### **publish**
+This command is used to publish the binding across all live companies.
+
+#### ****Syntax****
+```sh
+fdk binding publish [options]
+```
+
+#### **Command Options**
+| Option        | Description           |
+| ------------- |-------------|
+| -n, --name    | (Optional) Name of the section binding |
+| -f, --framework | (Optional) Runtime framework. Supported values are vue2 and react |
+| -id, --extensionId    | (Optional) Extension Id of the current extension. |
+| -org, --organisationId    | (Optional) Organisation Id of the current extension. |
+
+
+#### **Example**
+```sh
+fdk binding publish
+```
+___
+
+<div id="binding-preview"></div>
+
+#### **preview**
+This command will allow developers to locally serve the extension binding which has been added to a live storefront.
+
+#### ****Syntax****
+```sh
+fdk binding preview [options]
+```
+
+#### **Command Options**
+| Option        | Description           |
+| ------------- |-------------|
+| -n, --name    | (Optional) Name of the section binding |
+| -f, --framework | (Optional) Runtime framework. Supported values are vue2 and react |
+| -id, --extensionId    | (Optional) Extension Id of the current extension. |
+| -org, --organisationId    | (Optional) Organisation Id of the current extension. |
+
+
+#### **Example**
+```sh
+fdk binding preview
+```
+
+___
+
+<div id="binding-show-context"></div>
+
+#### **show-context**
+This command will allow developers to see the current extension section context.
+
+#### ****Syntax****
+```sh
+fdk binding show-context
+```
+___
+
+<div id="binding-clear-context"></div>
+
+#### **clear-context**
+This command will allow developers to clear the current extension section context.
+
+#### ****Syntax****
+```sh
+fdk binding clear-context
+```
+
 ### Partner Commands
 
 <div id="partner-connect"></div>
@@ -488,8 +624,8 @@ This command is used to add your partner access token to update extension detail
 fdk partner connect [options]
 ```
 #### **Command Options**
-| Option        | Description           | 
-| ------------- |-------------| 
+| Option        | Description           |
+| ------------- |-------------|
 | --help    | Show help |
 | --verbose, -v | enable debug mode |
 

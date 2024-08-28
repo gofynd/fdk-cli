@@ -34,7 +34,7 @@ import ThemeService from './api/services/theme.service';
 import UploadService from './api/services/upload.service';
 import ExtensionService from './api/services/extension.service';
 import {
-    THEME_ENTRY_FILE,
+    DEV_VUE_THEME_ENTRY_FILE,
     build,
     devBuild,
     devReactBuild,
@@ -87,6 +87,7 @@ export default class Theme {
         'react-template',
     );
     static BUILD_FOLDER = './.fdk/dist';
+    static SERVE_BUILD_FOLDER = './.fdk/distServed';
     static SRC_FOLDER = path.join('.fdk', 'temp-theme');
     static VUE_CLI_CONFIG_PATH = path.join('.fdk', 'vue.config.js');
     static REACT_CLI_CONFIG_PATH = 'webpack.config.js';
@@ -119,7 +120,6 @@ export default class Theme {
 
         const buildPath = path.join(process.cwd(), Theme.BUILD_FOLDER);
         const outputFilePath = path.resolve(buildPath, outputFileName);
-
         const bundle = Theme.evaluateBundle(outputFilePath);
 
         const parsed = await bundle({
@@ -271,6 +271,7 @@ export default class Theme {
         await inquirer.prompt(accountTypeQuestions).then(async (answers) => {
             try {
                 company_type = answers.accountType;
+                config['accountType'] = answers.accountType;
                 if (answers.accountType === 'development') {
                     companyList = await ExtensionService.getDevelopmentAccounts(
                         1,
@@ -609,7 +610,7 @@ export default class Theme {
                 spaces: 2,
             });
             const currentContext = getActiveContext();
-            await Theme.syncReactTheme(currentContext);
+            await Theme.syncReactTheme(currentContext, targetDirectory);
             var b5 = successBox({
                 text:
                     chalk.green.bold('DONE ') +
@@ -787,10 +788,7 @@ export default class Theme {
                     spaces: 2,
                 },
             );
-            if (
-                !fs.existsSync(path.join(process.cwd(), THEME_ENTRY_FILE)) &&
-                themeData.theme_type === THEME_TYPE.vue2
-            ) {
+            if (!fs.existsSync(path.join(process.cwd(), DEV_VUE_THEME_ENTRY_FILE)) && (themeData.theme_type === THEME_TYPE.vue2)) {
                 Logger.info('Restructuring folder structure');
                 let restructureSpinner = new Spinner(
                     'Restructuring folder structure',
@@ -830,6 +828,7 @@ export default class Theme {
     };
     private static syncReactTheme = async (
         currentContext: ThemeContextInterface,
+        targetDirectory?: string
     ) => {
         try {
             await Theme.ensureThemeTypeInPackageJson();
@@ -872,6 +871,7 @@ export default class Theme {
                 assetBasePath,
                 imageCdnUrl,
                 isHMREnabled: false,
+                targetDirectory
             });
 
             const parsed = await Theme.getThemeBundle(stats);
@@ -1158,7 +1158,7 @@ export default class Theme {
             Logger.info(`Locally building`);
             Theme.createVueConfig();
             await devBuild({
-                buildFolder: Theme.BUILD_FOLDER,
+                buildFolder: Theme.SERVE_BUILD_FOLDER,
                 imageCdnUrl: urlJoin(getFullLocalUrl(port), 'assets/images'),
                 isProd: isSSR,
             });
@@ -1179,7 +1179,7 @@ export default class Theme {
             watcher.on('change', async () => {
                 Logger.info(chalk.bold.green(`building`));
                 await devBuild({
-                    buildFolder: Theme.BUILD_FOLDER,
+                    buildFolder: Theme.SERVE_BUILD_FOLDER,
                     imageCdnUrl: urlJoin(
                         getFullLocalUrl(port),
                         'assets/images',
@@ -1209,7 +1209,7 @@ export default class Theme {
             await Theme.createReactSectionsIndexFile();
 
             await devReactBuild({
-                buildFolder: Theme.BUILD_FOLDER,
+                buildFolder: Theme.SERVE_BUILD_FOLDER,
                 runOnLocal: true,
                 localThemePort: port,
                 isHMREnabled,
@@ -1228,7 +1228,7 @@ export default class Theme {
             Logger.info(chalk.bold.green(`Watching files for changes`));
             devReactWatch(
                 {
-                    buildFolder: Theme.BUILD_FOLDER,
+                    buildFolder: Theme.SERVE_BUILD_FOLDER,
                     runOnLocal: true,
                     localThemePort: port,
                     isHMREnabled,
@@ -1604,6 +1604,7 @@ export default class Theme {
     };
     private static clearPreviousBuild = () => {
         rimraf.sync(Theme.BUILD_FOLDER);
+        rimraf.sync(Theme.SERVE_BUILD_FOLDER);
         rimraf.sync(Theme.SRC_ARCHIVE_FOLDER);
     };
 
@@ -1667,20 +1668,22 @@ export default class Theme {
     };
 
     private static getImageCdnBaseUrl = async () => {
-        let imageCdnUrl = '';
         try {
-            let startData = {
-                file_name: 'test.jpg',
-                content_type: 'image/jpeg',
-                size: '1',
-            };
-            let startAssetData = (
-                await UploadService.startUpload(
-                    startData,
-                    'application-theme-images',
-                )
-            ).data;
-            return (imageCdnUrl = path.dirname(startAssetData.cdn.url));
+            const dummyFile = path.join(
+                __dirname,
+                '..',
+                '..',
+                'sample-upload.jpeg'
+            );
+
+            const response = await UploadService.uploadFile(
+                dummyFile,
+                'application-theme-images',
+                null,
+                'image/jpeg'
+            );
+
+            return path.dirname(response.complete.cdn.url);
         } catch (err) {
             Logger.error(err);
             throw new CommandError(
@@ -1691,20 +1694,23 @@ export default class Theme {
     };
 
     private static getAssetCdnBaseUrl = async () => {
-        let assetCdnUrl = '';
         try {
-            const startData = {
-                file_name: 'test.ttf',
-                content_type: 'font/ttf',
-                size: '10',
-            };
-            const startAssetData = (
-                await UploadService.startUpload(
-                    startData,
-                    'application-theme-assets',
-                )
-            ).data;
-            return (assetCdnUrl = path.dirname(startAssetData.cdn.url));
+            const dummyFile = path.join(
+                __dirname,
+                '..',
+                '..',
+                'sample-upload.js'
+            );
+
+            const response = await UploadService.uploadFile(
+                dummyFile,
+                'application-theme-assets',
+                null,
+                'application/javascript'
+            );
+
+            return path.dirname(response.complete.cdn.url);
+
         } catch (err) {
             throw new CommandError(
                 `Failed in getting assets CDN base url`,
@@ -1871,7 +1877,7 @@ export default class Theme {
                 path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS),
                 'application-theme-assets',
             );
-            const commonJsUrl = commonJsUrlRes.start.cdn.url;
+            const commonJsUrl = commonJsUrlRes.complete.cdn.url;
 
             Logger.info('Uploading umdJS');
             const umdMinAssets = glob.sync(
@@ -1908,9 +1914,9 @@ export default class Theme {
             });
             const cssUrls = await Promise.all(cssPromisesArr);
             return [
-                cssUrls.map((res) => res.start.cdn.url),
+                cssUrls.map((res) => res.complete.cdn.url),
                 commonJsUrl,
-                umdJsUrls.map((res) => res.start.cdn.url),
+                umdJsUrls.map((res) => res.complete.cdn.url),
             ];
         } catch (err) {
             throw new CommandError(
@@ -2225,28 +2231,32 @@ export default class Theme {
             let settingProps;
             const customRoutes = (ctTemplates, parentKey = null) => {
                 for (let key in ctTemplates) {
-                    const routerPath =
-                        (parentKey && `${parentKey}/${key}`) || `c/${key}`;
-                    const value = routerPath.replace(/\//g, ':::');
-                    if (
-                        ctTemplates[key].component &&
-                        ctTemplates[key].component.__settings
-                    ) {
-                        settingProps =
-                            ctTemplates[key].component.__settings.props;
-                    }
-                    customFiles[value] = {
-                        fileSetting: settingProps,
-                        value,
-                        text: pageNameModifier(key),
-                        path: routerPath,
-                    };
+                    if (/^[\/:a-zA-Z0-9_-]+$/.test(key)) {
+                        const routerPath =
+                            (parentKey && `${parentKey}/${key}`) || `c/${key}`;
+                        const value = routerPath.replace(/\//g, ':::');
+                        if (
+                            ctTemplates[key].component &&
+                            ctTemplates[key].component.__settings
+                        ) {
+                            settingProps =
+                                ctTemplates[key].component.__settings.props;
+                        }
+                        customFiles[value] = {
+                            fileSetting: settingProps,
+                            value,
+                            text: pageNameModifier(key),
+                            path: routerPath,
+                        };
 
-                    if (
-                        ctTemplates[key].children &&
-                        Object.keys(ctTemplates[key].children).length
-                    ) {
-                        customRoutes(ctTemplates[key].children, routerPath);
+                        if (
+                            ctTemplates[key].children &&
+                            Object.keys(ctTemplates[key].children).length
+                        ) {
+                            customRoutes(ctTemplates[key].children, routerPath);
+                        }
+                    }else{
+                        throw new Error(`Found an invalid custom page URL: ${key}`);
                     }
                 }
             };
@@ -2515,7 +2525,7 @@ export default class Theme {
                 zipFilePath,
                 'application-theme-src',
             );
-            return res.start.cdn.url;
+            return res.complete.cdn.url;
         } catch (err) {
             throw new CommandError(
                 err.message || `Failed to upload src folder`,
