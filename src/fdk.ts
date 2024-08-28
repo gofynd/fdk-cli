@@ -1,8 +1,8 @@
+import './helper/instrument'
 import program, { Command } from 'commander';
 import leven from 'leven';
 import latestVersion from 'latest-version';
 import semver from 'semver';
-import boxen from 'boxen';
 import chalk from 'chalk';
 import Logger, { COMMON_LOG_MESSAGES } from './lib/Logger';
 import Debug from './lib/Debug';
@@ -12,6 +12,7 @@ import configStore, { CONFIG_KEYS } from './lib/Config';
 import fs from 'fs-extra';
 import { initializeLogger } from './lib/Logger';
 import { isAThemeDirectory } from './helper/utils';
+import { successBox } from './helper/formatter';
 import inquirer from 'inquirer';
 import path from 'path';
 import Env from './lib/Env';
@@ -28,14 +29,7 @@ import { getPlatformUrls } from './lib/api/services/url';
 import * as Sentry from '@sentry/node';
 const packageJSON = require('../package.json');
 
-const sentryFilePath = path.join(__dirname, './sentry.json');
-const sentryDSN = fs.existsSync(sentryFilePath) ? fs.readJsonSync(sentryFilePath)["dsn"] : undefined;
-if(sentryDSN){
-    Sentry.init({
-        dsn: sentryDSN,
-        release: packageJSON.version
-    });
-}
+const current_version_message = 'Current version: ' + chalk.greenBright.bold(packageJSON.version);
 
 async function checkTokenExpired(auth_token) {
     if (!auth_token) return true;
@@ -87,7 +81,6 @@ export type Action = (...args: any[]) => void;
 Command.prototype.asyncAction = async function (asyncFn: Action) {
     return this.action(async (...args: any[]) => {
         try {
-            console.log('Version: ', packageJSON.version);
             let parent = args[1].parent;
             while (true) {
                 if (parent.parent) parent = parent.parent;
@@ -103,49 +96,45 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
                 process.env.DEBUG = 'fdk';
                 const log_file_path = process.cwd() + '/debug.log';
                 if (fs.existsSync(log_file_path)) fs.removeSync(log_file_path);
-            } else {
-                process.env.DEBUG = 'false';
+            }
+            initializeLogger();
+
+            // check in config if user have set certificate
+            const CA_FILE = configStore.get(CONFIG_KEYS.CA_FILE);
+            // if user shared certificate while executing the command
+            const sharedInlineCert = process.env.FDK_EXTRA_CA_CERTS;
+
+            // if shared inline then it should be exist
+            if (sharedInlineCert && !fs.existsSync(sharedInlineCert)) {
+                throw new CommandError('Provided file path does not exist.');
+            }
+            // inline CA will get priority
+            if (!sharedInlineCert && CA_FILE) {
+                process.env.FDK_EXTRA_CA_CERTS = CA_FILE;
             }
 
-            initializeLogger();
-            const latest = await checkCliVersionAsync();
-            const isCurrentLessThanLatest = semver.lt(
-                packageJSON.version,
-                latest,
-            );
-            Debug(`Latest version: ${latest} | ${isCurrentLessThanLatest}`);
-
-            const versionChange = semver.diff(packageJSON.version, latest);
-            const allowed_update_version_types = ['patch', 'minor', 'major'];
-            const major = versionChange === 'major';
-            const color = major ? 'red' : 'green';
-
-            const logMessage = `There is a new version of ${
-                packageJSON.name
-            } available (${latest}).
-You are currently using ${packageJSON.name} ${packageJSON.version}.
-Install fdk-cli globally using the package manager of your choice.
-${
-    major
-        ? `\nNote: You need to update \`${packageJSON.name}\` first inorder to use it.`
-        : ''
-}
-Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
-
-            if (
-                allowed_update_version_types.includes(versionChange) &&
-                isCurrentLessThanLatest
-            ) {
-                console.log(
-                    boxen(
-                        major ? chalk.red(logMessage) : chalk.green(logMessage),
-                        { borderColor: color, padding: 1 },
-                    ),
+            if (process.env.FDK_EXTRA_CA_CERTS) {
+                Logger.info(
+                    `Using CA file from ${process.env.FDK_EXTRA_CA_CERTS}`,
                 );
+            }
 
-                if (major) {
-                    process.exit(1);
-                }
+            const disableSSL = () => {
+                process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+                process.env.FDK_SSL_NO_VERIFY = 'true';
+            };
+
+            const sharedInlineNoSSL = process.env.FDK_SSL_NO_VERIFY;
+            const STRICT_SSL = configStore.get(CONFIG_KEYS.STRICT_SSL);
+            if (sharedInlineNoSSL == 'true') {
+                disableSSL();
+            }
+            if (!sharedInlineNoSSL && STRICT_SSL == 'false') {
+                disableSSL();
+            }
+
+            if (process.env.FDK_SSL_NO_VERIFY == 'true') {
+                Logger.warn(`Bypassing SSL verification`);
             }
 
             // check if user is logged in and context is set
@@ -203,6 +192,7 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
                     throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
             }
             if (
+                parent.args.includes('theme') &&
                 THEME_COMMANDS.findIndex((c) => themeCommand.includes(c)) !== -1
             ) {
                 const activeContextEnv = getActiveContext().env;
@@ -225,6 +215,11 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
                     }
                 }
             }
+            // Add debug of current env for all commands excpet login command, we are showing updated env when login command runs
+            if (args[1].name() !== 'auth') {
+                const env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+                Debug(`Current env: ${env}`);
+            }
             await asyncFn(...args);
         } catch (err) {
             // TODO: Error reporting from user logic can be added here
@@ -233,6 +228,9 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
             if (err instanceof CommandError) {
                 const message = `${err.code} - ${err.message} `;
                 Logger.error(message);
+            } else if (err.code === 'SELF_SIGNED_CERT_IN_CHAIN') {
+                const message = `${ErrorCodes.VPN_ISSUE.code} - ${ErrorCodes.VPN_ISSUE.message} `;
+                Logger.error(message);
             } else {
                 // on report call sentry capture exception
                 Sentry.captureException(err, {
@@ -240,6 +238,15 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
                     extra: extraSentryDetails()
                 });
                 Logger.error(err);
+            }
+            let parent = args[1].parent;
+            while (parent.parent) parent = parent.parent;
+            if (!parent._optionValues.debug && !(err instanceof CommandError)) {
+                Logger.warn(
+                    `Pass ${chalk.yellowBright(
+                        '--debug',
+                    )} flag to get detailed logs, it will generate debug.log file in your current folder`,
+                );
             }
             Debug(err);
             process.exit(1);
@@ -256,10 +263,12 @@ Run \`npm install -g ${packageJSON.name}\` to get the latest version.`;
 // };
 
 export async function init(programName: string) {
+    await checkForLatestVersion();
+    
     //Setup commander instance
     program
         .name(programName)
-        .version(packageJSON.version)
+        .version(current_version_message, '-V, --version', 'Display the current fdk version')
         .option(
             '-v, --verbose',
             'Display detailed output for debugging purposes',
@@ -269,21 +278,35 @@ export async function init(programName: string) {
             'Display detailed output for debugging purposes',
         );
 
+    program
+    .command('version')
+    .description('Display the current fdk version')
+    .action(() => {
+        console.log(current_version_message);
+    });
+    
     //register commands with commander instance
     registerCommands(program);
-    //set API versios
+    //set API version
     configStore.set(CONFIG_KEYS.API_VERSION, '1.0');
     // set default environment
     const current_env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
 
-    if (!current_env || !current_env.includes('api.'))
+    if (
+        !current_env ||
+        (!current_env.includes('api.') && !current_env.includes('api-'))
+    )
         configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'api.fynd.com');
 
     // todo: remove this warning in future version of fdk cli, when everybody get used to set env by url.
-    if (current_env && !current_env.includes('api.')) {
+    if (
+        current_env &&
+        !current_env.includes('api.') &&
+        !current_env.includes('api-')
+    ) {
         console.warn(
             chalk.yellow(
-                `Warning: Reseting active environment to api.fynd.com. Please use \`fdk env set -u <env-api-url>\` to change active environment. Ref: ${
+                `Warning: Resetting active environment to api.fynd.com. Please use \`fdk login --host <platform-host>\` to login with different environment. Ref: ${
                     getPlatformUrls().partners
                 }/help/docs/partners/themes/vuejs/command-reference#environment-commands-1`,
             ),
@@ -323,6 +346,48 @@ export function parseCommands() {
 
 async function checkCliVersionAsync() {
     return await latestVersion(packageJSON.name, { version: '*' });
+}
+
+async function checkForLatestVersion() {
+    const latest = await checkCliVersionAsync();
+    const isCurrentLessThanLatest = semver.lt(
+        packageJSON.version,
+        latest,
+    );
+    Debug(`Latest version: ${latest} | ${isCurrentLessThanLatest}`);
+
+    const versionChange = semver.diff(packageJSON.version, latest);
+    const allowed_update_version_types = ['patch', 'minor', 'major'];
+    const major = versionChange === 'major';
+
+    const logMessage = `A new version ${latest} is available!.
+You have version ${packageJSON.version}.
+Please update to the latest version.
+${
+major
+? `\nNote: You need to update \`${packageJSON.name}\` first inorder to use it.`
+: ''
+}
+
+Run the following command to upgrade:
+\`npm install -g ${packageJSON.name}\``;
+
+    if (
+        allowed_update_version_types.includes(versionChange) &&
+        isCurrentLessThanLatest
+    ) {
+        console.log(
+            successBox({
+                text: major
+                    ? chalk.red(logMessage)
+                    : chalk.green(logMessage),
+            }),
+        );
+
+        if (major) {
+            process.exit(1);
+        }
+    }
 }
 
 async function promptForFDKFolder() {

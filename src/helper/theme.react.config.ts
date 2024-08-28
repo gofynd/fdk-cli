@@ -1,54 +1,23 @@
-import path from 'path';
-import MiniCssExtractPlugin from 'mini-css-extract-plugin';
+import path from "path"
 import TerserPlugin from 'terser-webpack-plugin';
 import webpack, { Configuration } from 'webpack';
-import fs from 'fs';
 import { mergeWithRules, merge } from 'webpack-merge';
 import { getLocalBaseUrl } from './serve.utils';
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
-
+import { CDN_ENTRY_FILE } from './build';
 const context = process.cwd();
-// const themeConfigPath = path.join(context, 'webpack.config.js');
-// const isWebpackExtendedInTheme = fs.existsSync(themeConfigPath);
 
-// const extendedWebpackConfig = isWebpackExtendedInTheme ? require(themeConfigPath) : {};
-
-// Return Array of Configurations
-
-const baseConfig = (ctx) => {
+const baseConfig = (configOptions) => {
     const {
+        isLocal,
+        isHMREnabled,
+        assetNormalizedBasePath,
+        localBasePath,
         buildPath,
-        NODE_ENV,
-        assetBasePath = '',
-        imageCdnUrl = '',
-        context,
-        localThemePort = 5500,
-        isHMREnabled = true,
-    } = ctx;
+    } = configOptions;
 
-    const assetNormalizedBasePath =
-        assetBasePath[assetBasePath.length - 1] === '/'
-            ? assetBasePath
-            : assetBasePath + '/';
-    const imageCDNNormalizedBasePath =
-        imageCdnUrl[imageCdnUrl.length - 1] === '/'
-            ? imageCdnUrl
-            : imageCdnUrl + '/';
-    const isLocal = NODE_ENV === 'development';
-    const localBasePath = `${getLocalBaseUrl()}:${localThemePort}/`;
-    const localImageBasePath = `${getLocalBaseUrl()}:${localThemePort}/assets/images/`;
-    const localFontsBasePath = `${getLocalBaseUrl()}:${localThemePort}/assets/fonts/`;
     return {
         mode: isLocal ? 'development' : 'production',
-        entry: {
-            themeBundle:
-                isLocal && isHMREnabled
-                    ? [
-                          require.resolve('webpack-hot-middleware/client'),
-                          path.resolve(context, 'theme/index.jsx'),
-                      ]
-                    : [path.resolve(context, 'theme/index.jsx')],
-        },
         devtool: isLocal ? 'source-map' : false,
         optimization: {
             minimizer: [
@@ -64,128 +33,6 @@ const baseConfig = (ctx) => {
                     return false;
                 },
             },
-        },
-        resolve: {
-            extensions: ['', '.js', '.jsx'],
-        },
-        module: {
-            rules: [
-                {
-                    test: /\.(jsx|js)$/,
-                    include: path.resolve(context, 'theme'),
-                    exclude: /node_modules/,
-                    use: [
-                        {
-                            loader: 'babel-loader',
-                            options: {
-                                presets: [
-                                    [
-                                        '@babel/preset-env',
-                                        {
-                                            targets: 'defaults',
-                                        },
-                                    ],
-                                    '@babel/preset-react',
-                                ],
-                                plugins: [
-                                    ...(isLocal && isHMREnabled
-                                        ? [
-                                              require.resolve(
-                                                  'react-refresh/babel',
-                                              ),
-                                          ]
-                                        : []),
-                                ],
-                            },
-                        },
-                    ],
-                },
-                {
-                    test: /\.css$/i,
-                    use: [
-                        MiniCssExtractPlugin.loader,
-                        {
-                            loader: 'css-loader',
-                            options: {
-                                modules: {
-                                    localIdentName: isLocal
-                                        ? '[path][name]__[local]--[hash:base64:5]'
-                                        : '[hash:base64:5]',
-                                },
-                            },
-                        },
-                    ],
-                },
-                {
-                    test: /\.less$/i,
-                    use: [
-                        // compiles Less to CSS
-                        MiniCssExtractPlugin.loader,
-                        {
-                            loader: 'css-loader',
-                            options: {
-                                modules: false,
-                            },
-                        },
-                    ],
-                    include: /\.global\.less$/,
-                },
-                {
-                    test: /\.less$/i,
-                    use: [
-                        // compiles Less to CSS
-                        MiniCssExtractPlugin.loader,
-                        {
-                            loader: 'css-loader',
-                            options: {
-                                modules: {
-                                    localIdentName: isLocal
-                                        ? '[path][name]__[local]--[hash:base64:5]'
-                                        : '[hash:base64:5]',
-                                },
-                            },
-                        },
-                    ],
-                    exclude: /\.global\.less$/,
-                },
-                {
-                    test: /\.scss$/i,
-                    use: [
-                        // compiles scss to CSS
-                        MiniCssExtractPlugin.loader,
-                        {
-                            loader: 'css-loader',
-                            options: {
-                                modules: {
-                                    localIdentName: isLocal
-                                        ? '[path][name]__[local]--[hash:base64:5]'
-                                        : '[hash:base64:5]',
-                                },
-                            },
-                        },
-                    ],
-                },
-                {
-                    test: /\.(png|jpg|jpeg)$/i,
-                    type: 'asset/resource',
-                    generator: {
-                        publicPath: isLocal
-                            ? localImageBasePath
-                            : imageCDNNormalizedBasePath,
-                        outputPath: 'assets/images/',
-                    },
-                },
-                {
-                    test: /\.(ttf|otf|woff|woff2)$/i,
-                    type: 'asset/resource',
-                    generator: {
-                        publicPath: isLocal
-                            ? localFontsBasePath
-                            : assetNormalizedBasePath,
-                        outputPath: 'assets/fonts/',
-                    },
-                },
-            ],
         },
         externals: {
             react: 'React',
@@ -214,9 +61,6 @@ const baseConfig = (ctx) => {
             assetModuleFilename: '[contenthash][ext]',
         },
         plugins: [
-            new MiniCssExtractPlugin({
-                filename: isLocal ? '[name].css' : '[name].[contenthash].css',
-            }),
             ...(isLocal && isHMREnabled
                 ? [new webpack.HotModuleReplacementPlugin()]
                 : []),
@@ -234,159 +78,58 @@ const baseConfig = (ctx) => {
         ],
     };
 };
-
-const baseSectionConfig = ({ buildPath, context }) => {
-    return {
-        mode: 'production',
-        target: 'node',
-        entry: path.resolve(context, 'theme/sections/index.js'),
-        module: {
-            rules: [
-                {
-                    test: /\.(jsx|js)$/,
-                    exclude: /node_modules/,
-                    use: [
-                        {
-                            loader: 'babel-loader',
-                            options: {
-                                presets: [
-                                    [
-                                        '@babel/preset-env',
-                                        {
-                                            targets: 'defaults',
-                                        },
-                                    ],
-                                    '@babel/preset-react',
-                                ],
-                            },
-                        },
-                    ],
-                },
-                {
-                    test: /\.css$/i,
-                    use: ['css-loader'],
-                },
-                {
-                    test: /\.less$/i,
-                    use: ['css-loader'],
-                },
-            ],
-        },
-        resolve: {
-            extensions: ['', '.js', '.jsx'],
-        },
-        externals: {
-            react: 'React',
-            'react-router-dom': 'globalThis',
-            'fdk-core/components': 'globalThis',
-            'fdk-core/utils': 'globalThis',
-            'react-helmet-async': 'globalThis',
-            'styled-components': 'globalThis',
-        },
-        output: {
-            filename: 'sections.commonjs.js',
-            path: path.resolve(buildPath, 'sections'),
-            library: {
-                name: 'sections',
-                type: 'commonjs',
-            },
-            globalObject: 'typeof self !== "undefined" ? self : this',
-        },
-        plugins: [],
-    };
-};
-const baseCustomTemplateConfig = ({ buildPath, context }) => {
-    return {
-        mode: 'production',
-        target: 'node',
-        entry: path.resolve(context, 'theme/custom-templates/index.jsx'),
-        module: {
-            rules: [
-                {
-                    test: /\.(jsx|js)$/,
-                    exclude: /node_modules/,
-                    use: [
-                        {
-                            loader: 'babel-loader',
-                            options: {
-                                presets: [
-                                    [
-                                        '@babel/preset-env',
-                                        {
-                                            targets: 'defaults',
-                                        },
-                                    ],
-                                    '@babel/preset-react',
-                                ],
-                            },
-                        },
-                    ],
-                },
-                {
-                    test: /\.css$/i,
-                    use: ['css-loader'],
-                },
-                {
-                    test: /\.less$/i,
-                    use: ['css-loader'],
-                },
-            ],
-        },
-        resolve: {
-            extensions: ['', '.js', '.jsx'],
-        },
-        externals: {
-            react: 'React',
-            'react-router-dom': 'globalThis',
-            'fdk-core/components': 'globalThis',
-            'fdk-core/utils': 'globalThis',
-            'react-helmet-async': 'globalThis',
-            'styled-components': 'globalThis',
-        },
-        output: {
-            filename: 'custom-templates.commonjs.js',
-            path: path.resolve(buildPath, 'custom-templates'),
-            library: {
-                name: 'customTemplates',
-                type: 'commonjs',
-            },
-            globalObject: 'typeof self !== "undefined" ? self : this',
-        },
-        plugins: [],
-    };
-};
-
 export default (ctx, extendedWebpackConfig): Configuration[] => {
-    const baseWebpackConfig = baseConfig(ctx);
-    const sectionBaseConfig = baseSectionConfig(ctx);
-    const customTemplateConfig = baseCustomTemplateConfig(ctx);
+    const {
+        NODE_ENV,
+        assetBasePath = '',
+        imageCdnUrl = '',
+        localThemePort = 5500,
+        isHMREnabled = true,
+        targetDirectory
+    } = ctx;
 
-    const mergedSectionConfig = mergeWithRules({
+    const assetNormalizedBasePath =
+        assetBasePath[assetBasePath.length - 1] === '/'
+            ? assetBasePath
+            : assetBasePath + '/';
+    const imageCDNNormalizedBasePath =
+        imageCdnUrl[imageCdnUrl.length - 1] === '/'
+            ? imageCdnUrl
+            : imageCdnUrl + '/';
+    const isLocal = NODE_ENV === 'development';
+    const localBasePath = `${getLocalBaseUrl()}:${localThemePort}/`;
+    const localImageBasePath = `${getLocalBaseUrl()}:${localThemePort}/assets/images/`;
+    const localFontsBasePath = `${getLocalBaseUrl()}:${localThemePort}/assets/fonts/`;
+
+    const configOptions = {
+        ...ctx,
+        isLocal,
+        localBasePath,
+        localImageBasePath,
+        localFontsBasePath,
+        imageCDNNormalizedBasePath,
+        assetNormalizedBasePath,
+    };
+    const baseWebpackConfig = baseConfig(configOptions);
+    const extendedWebpackResolved = extendedWebpackConfig(configOptions);
+    const mergedBaseConfig: Configuration = mergeWithRules({
         module: {
             rules: {
                 test: 'match',
                 use: 'append',
             },
         },
-    })(sectionBaseConfig, extendedWebpackConfig);
+    })(extendedWebpackResolved, baseWebpackConfig);
 
-    const mergedBaseConfig = mergeWithRules({
-        module: {
-            rules: {
-                test: 'match',
-                use: 'append',
-            },
-        },
-    })(baseWebpackConfig, extendedWebpackConfig);
+    if (mergedBaseConfig.entry.hasOwnProperty('themeBundle')) {
+        let entryPoints = [...mergedBaseConfig.entry['themeBundle']];
+        if (isLocal && isHMREnabled) {
+            entryPoints.unshift(require.resolve('webpack-hot-middleware/client'));
+        } else if (!isLocal) {
+            entryPoints.unshift(path.resolve(targetDirectory || context, CDN_ENTRY_FILE));
+        }
+        mergedBaseConfig.entry['themeBundle'] = entryPoints;
+    }
 
-    const mergedCustomTemplateConfig = mergeWithRules({
-        module: {
-            rules: {
-                test: 'match',
-                use: 'append',
-            },
-        },
-    })(customTemplateConfig, extendedWebpackConfig);
-
-    return [mergedBaseConfig, mergedSectionConfig, mergedCustomTemplateConfig];
+    return [mergedBaseConfig];
 };

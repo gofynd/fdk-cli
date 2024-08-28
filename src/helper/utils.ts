@@ -3,7 +3,7 @@ import fs from 'fs-extra';
 import NativeModule from 'module';
 import vm from 'vm';
 import CommandError, { ErrorCodes } from '../lib/CommandError';
-import { COMMON_LOG_MESSAGES } from '../lib/Logger';
+import Logger, { COMMON_LOG_MESSAGES } from '../lib/Logger';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
 import execa from 'execa';
 import Debug from '../lib/Debug';
@@ -14,6 +14,7 @@ import * as walk from 'acorn-walk';
 import * as escodegen from 'escodegen';
 import { createDirectory } from './file.utils';
 import { DEFAULT_CONTEXT } from '../lib/ThemeContext';
+import glob from 'glob'
 
 const FDK_PATH = () => path.join(process.cwd(), '.fdk');
 const CONTEXT_PATH = () => path.join(FDK_PATH(), 'context.json');
@@ -117,7 +118,7 @@ export function sortString(str) {
 }
 
 export const pageNameModifier = (page) => {
-    let pageArr = page.split('-');
+    let pageArr = (page[0] === ':' ? page.substring(1) : page).split('-');
     let res = '';
     pageArr.forEach((p) => {
         res += p[0]?.toUpperCase() + p.substring(1) + ' ';
@@ -142,42 +143,6 @@ export const evaluateModule = (code) => {
         ? m.exports.default
         : m.exports;
     return res;
-};
-
-export const installPythonDependencies = async (
-    targetDir: string = process.cwd(),
-) => {
-    return new Promise(async (resolve, reject) => {
-        const os_platform = process.platform;
-        let exec;
-        if (os_platform === 'darwin' || os_platform === 'linux') {
-            await execa('python3', ['-m', 'venv', 'venv'], { cwd: targetDir });
-            exec = execa(
-                './venv/bin/pip',
-                ['install', '-r', 'requirements.txt'],
-                { cwd: targetDir },
-            );
-        } else if (os_platform === 'win32') {
-            await execa('python', ['-m', 'venv', 'venv'], { cwd: targetDir });
-            exec = execa(
-                'venv\\Scripts\\pip',
-                ['install', '-r', 'requirements.txt'],
-                { cwd: targetDir },
-            );
-        }
-        exec.stdout.on('data', (data) => {
-            Debug(data);
-        });
-        exec.stderr.on('data', (data) => {
-            Debug(data);
-        });
-        exec.on('exit', (code) => {
-            if (!code) {
-                return resolve(code);
-            }
-            reject({ message: 'Node Modules Installation Failed' });
-        });
-    });
 };
 
 export const installJavaPackages = async (
@@ -296,16 +261,17 @@ export const isValidDomain = (domain) => {
     return domainRegex.test(domain);
 };
 
-export function transformJSXToJS(jsxCode: any) {
+export function transformCodeToJS(code: any) {
     const options = {
-        presets: ['@babel/preset-react'],
+        filename: 'pages.tsx',
+        presets: ['@babel/preset-react', '@babel/preset-typescript'],
     };
 
     try {
-        const result = babel.transformSync(jsxCode, options);
+        const result = babel.transformSync(code, options);
         return result?.code;
     } catch (error) {
-        console.error('Error transforming JSX to JS:', error);
+        Logger.error('Error transforming JSX/TSX to JS:', error);
         return null;
     }
 }
@@ -316,7 +282,7 @@ export function findExportedVariable(
 ): any {
     // Read the JavaScript file content
     const fileContent = fsNode.readFileSync(filePath, 'utf8');
-    const parsedContents = transformJSXToJS(fileContent) || '';
+    const parsedContents = transformCodeToJS(fileContent) || '';
 
     // Parse the JavaScript code into an Abstract Syntax Tree (AST)
     const ast = acorn.parse(parsedContents, {
@@ -354,5 +320,34 @@ export function findExportedVariable(
         return vm.runInNewContext(code);
     } else {
         return null;
+    }
+}
+
+export function getOrganizationDisplayName() {
+    const organizationDetail = configStore.get(CONFIG_KEYS.ORGANIZATION_DETAIL);
+    if (!organizationDetail) {
+        const organizationId = configStore.get(CONFIG_KEYS.ORGANIZATION);
+        if (!organizationId) {
+            Debug('Organization details not found');
+            return null;
+        }
+        return `${organizationId}`;
+    }
+    return `${organizationDetail.name}`;
+}
+
+/**
+ * This function will move whole content(including hidden) of one folder to another
+ * @param from path from which you want to move the content
+ * @param to path where you want to move the content
+ */
+export async function moveDirContent(from, to) {
+    const files = glob.sync(path.join(from, '{*,.*}'));
+    for (const file of files) {
+        const fileName = path.basename(file);
+        const destFile = path.join(to, fileName);
+        Debug(`Moving ${fileName}...`)
+        await fs.move(file, destFile);
+        Debug(`Moved: ${fileName}`)
     }
 }

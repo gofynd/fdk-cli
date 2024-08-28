@@ -33,6 +33,7 @@ const deleteAvailablePage = require('./fixtures/deleteAvailablePage.json');
 const updateAllAvailablePageData = require('./fixtures/updateAllAvailablePage.json');
 const appList = require('./fixtures/applicationList.json');
 const data = require('./fixtures/email-login.json');
+const organizationData = require("./fixtures/organizationData.json")
 import { createDirectory } from '../helper/file.utils';
 import { init } from '../fdk';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
@@ -44,7 +45,7 @@ let program;
 
 jest.mock('configstore', () => {
     const Store =
-        jest.requireActual<typeof import('configstore')>('configstore');
+        jest.requireActual('configstore');
     const path = jest.requireActual<typeof import('path')>('path');
     return class MockConfigstore {
         store = new Store('@gofynd/fdk-cli', undefined, {
@@ -70,6 +71,10 @@ jest.mock('configstore', () => {
         }
     };
 });
+
+jest.mock('open', () => {
+    return () => {}
+})
 
 async function createThemeFromZip() {
     let zipPath = path.join(__dirname, 'fixtures', 'rolex.zip');
@@ -137,7 +142,8 @@ describe('Theme Commands', () => {
         const mockInstance = new MockAdapter(
             uninterceptedApiClient.axiosInstance,
         );
-        mock.onGet(`${URLS.IS_VERSION_COMPATIBLE()}`).reply(200);
+        configStore.set(CONFIG_KEYS.ORGANIZATION, organizationData._id)
+        mock.onGet('https://api.fyndx1.de/service/application/content/_healthz').reply(200);
         mock.onGet(
             `${URLS.GET_APPLICATION_DETAILS(
                 appConfig.company_id,
@@ -318,13 +324,17 @@ describe('Theme Commands', () => {
             )}`,
         ).reply(200, { name: 'Emerge' });
 
+
+        mock.onGet(`${URLS.GET_ORGANIZATION_DETAILS()}`).reply(200, organizationData);
+        configStore.delete(CONFIG_KEYS.ORGANIZATION)
+
         // user login
         configStore.set(CONFIG_KEYS.USER, data.user);
 
         process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
         const app = await startServer();
         const req = request(app);
-        await program.parseAsync(['ts-node', './src/fdk.ts', 'login']);
+        await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '--host', 'api.fyndx1.de']);
         await req.post('/token').send(tokenData);
     });
 

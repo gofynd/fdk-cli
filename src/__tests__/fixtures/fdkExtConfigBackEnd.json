@@ -1,0 +1,5 @@
+{
+    "roles": ["backend"],
+    "install": "echo 'Running backend install command'",
+    "dev": "echo 'Running backend dev command'"
+}

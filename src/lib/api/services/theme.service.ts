@@ -227,23 +227,23 @@ export default {
             throw error;
         }
     },
-    checkCompatibleVersion: async () => {
-        try {
-            let axiosOptions = Object.assign({}, getCommonHeaderOptions());
-            let response = await ApiClient.get(
-                URLS.IS_VERSION_COMPATIBLE(),
-                axiosOptions,
-            );
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
     getDefaultTheme: async (data) => {
         try {
             const axiosOption = Object.assign({}, getCommonHeaderOptions());
             const res = await ApiClient.get(
                 URLS.GET_DEFAULT_THEME(data.company_id, data.application_id),
+                axiosOption,
+            );
+            return res?.data;
+        } catch (err) {
+            throw err;
+        }
+    },
+    getAppliedTheme: async (data) => {
+        try {
+            const axiosOption = Object.assign({}, getCommonHeaderOptions());
+            const res = await ApiClient.get(
+                URLS.GET_APPLIED_THEME(data.company_id, data.application_id),
                 axiosOption,
             );
             return res?.data;

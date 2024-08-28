@@ -53,10 +53,20 @@ export const ErrorCodes = {
             `No themes are created, Please create/add a theme under the sales channel. For more details, refer to the documentation link: ${domain}/help/docs/partners/themes/vuejs/overview`,
         code: 'FDK-00011',
     },
-    DOWNGRADE_CLI_VERSION: {
+    NO_EXTENSION_FOUND: {
         message:
-            'Seems like current Fynd Platform version is not compatible with installed CLI version.\n\nIn order to continue with current FP version, Please use previous version of CLI `npm install -g @gofynd/fdk-cli@3.0.4` command.',
-        code: 'FDK-00012',
+            'Extension not found',
+        code: 'FDK-0016',
+    },
+    MISSING_FDK_CONFIG_FILE: {
+        message:
+            'fdk.ext.config.json or fdk.ext.config.yml file not found',
+        code: 'FDK-0017',
+    },
+    INVALID_FDK_CONFIG_FILE: {
+        message:
+            'fdk.ext.config.json or fdk.ext.config.yml file is in invalid format',
+        code: 'FDK-0018',
     },
 
     // generic
@@ -72,11 +82,15 @@ export const ErrorCodes = {
         message: 'Network issue',
         code: 'FDK-0009',
     },
-
-    //ngrok
-    NGROK_CONNECTION_ISSUE: {
-        message: 'Unable to establish ngrok tunnel',
-        code: 'FDK-0011',
+    ClOUDFLARE_CONNECTION_ISSUE: {
+        message:
+            'Something wrong with cloudflare tunnel, please pass --debug flag to get more details',
+        code: 'FDK-0015',
+    },
+    VPN_ISSUE: {
+        message:
+            'This can be caused due to VPN or Firewall, please contact your network administrator or disable and retry.',
+        code: 'FDK-0013',
     },
 };
 

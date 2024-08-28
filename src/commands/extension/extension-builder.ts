@@ -2,14 +2,16 @@ import { Command } from 'commander';
 import Extension from '../../lib/Extension';
 import ExtensionLaunchURL from '../../lib/ExtensionLaunchURL';
 import ExtensionPreviewURL from '../../lib/ExtensionPreviewURL';
+import ExtensionEnv from '../../lib/ExtensionEnv';
 
 export default function extensionCommandBuilder() {
-    const extension = new Command('extension').description(
-        'Extension Commands',
-    );
+    const extension = new Command('extension')
+        .aliases(['ext'])
+        .description('Extension Commands');
     extension
         .command('init')
         .description('Initialize extension')
+        .option('--template <template-name>', 'Create extension from specific template')
         .option(
             '--target-dir <path>',
             'Target directory for creating extension repository',
@@ -17,24 +19,15 @@ export default function extensionCommandBuilder() {
         .asyncAction(Extension.initExtensionHandler);
 
     extension
-        .command('setup')
-        .description('Setup development environment for extension')
-        .option(
-            '--target-dir <path>',
-            'Target directory for creating extension repository',
-        )
-        .asyncAction(Extension.setupExtensionHandler);
-
-    extension
         .command('preview-url')
+        .aliases(['preview'])
         .description('Get extension preview url to launch the extension')
-        .requiredOption(
-            '-p, --port <port>',
-            'port on which extension is running',
-        )
         .option('--api-key <api-key>', 'Extension API Key')
         .option('--company-id <id>', 'Company ID')
-        .option('--update-authtoken', 'Update Ngrok Authtoken')
+        .option('--tunnel-url <tunnel-url>', 'Tunnel URL')
+        .option('--no-auto-update', 'Auto update tunnel URL as extension launch url on partners panel')
+        .option('--access-token <access-token>', 'Partner Access Token')
+        .option('--reset', 'Reset extension.context file and start fresh')
         .asyncAction(ExtensionPreviewURL.previewUrlExtensionHandler);
 
     const launch_url = new Command('launch-url').description(
@@ -43,16 +36,24 @@ export default function extensionCommandBuilder() {
     launch_url
         .command('get')
         .description('Get current launch url for extension')
-        .requiredOption('--api-key <api-key>', 'Extension API key')
+        .option('--api-key <api-key>', 'Extension API key')
         .asyncAction(ExtensionLaunchURL.getLaunchURLHandler);
 
     launch_url
         .command('set')
         .description('Set a launch url for extension')
-        .requiredOption('--api-key <api-key>', 'Extension API key')
-        .requiredOption('--url <launch-url>', 'Launch url')
+        .option('--api-key <api-key>', 'Extension API key')
+        .option('--url <launch-url>', 'Launch url')
+        .option('--access-token <access-token>', 'Partner Access Token')
         .asyncAction(ExtensionLaunchURL.setLaunchURLHandler);
 
     extension.addCommand(launch_url);
+
+
+    extension
+        .command('pull-env')
+        .description('Pull environment variable for the extension from partners panel')
+        .asyncAction(ExtensionEnv.extensionEnvPullHandler);
+
     return extension;
 }

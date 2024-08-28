@@ -1,24 +1,24 @@
 import configStore, { CONFIG_KEYS } from './Config';
-import CommandError from './CommandError';
+import CommandError, { ErrorCodes } from './CommandError';
 import Logger, { COMMON_LOG_MESSAGES } from './Logger';
 import chalk from 'chalk';
 import axios from 'axios';
 import urljoin from 'url-join';
 import { isValidDomain } from '../helper/utils';
 import Debug from './Debug';
-import { getPlatformUrls } from './api/services/url';
-
 
 export default class Env {
     constructor() {}
 
-    private static setEnv(ctx: string) {
+    public static setEnv(ctx: string) {
         configStore.set(CONFIG_KEYS.CURRENT_ENV, {}); // active_context: {}
         configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, ctx); // x0: {}
     }
+    
     public static getEnvValue() {
         return configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
     }
+
     public static getEnv() {
         const ctx = Env.getEnvValue();
         if (!ctx) {
@@ -27,45 +27,80 @@ export default class Env {
         Logger.info(`Currently using Platform URL: ${chalk.bold(ctx)}`);
     }
 
-    public static async setNewEnvs(options) {
+    public static async setNewEnvs(domain: string) {
         try {
-            // todo: remove name warning in future version
-            if (options.name) {
-                console.warn(chalk.yellow(`Warning: The -n/--name option is deprecated. Please use -u/--url option instead. Ref: ${getPlatformUrls().partners}/help/docs/partners/themes/vuejs/command-reference#environment-commands-1`));
-                throw new Error('Please use -u/--url option.');
-            }
-            if (!options.url) {
-                throw new Error('Please provide -u/--url option.');
-            }
+            Debug(`Setting env: ${domain}`);
+            let finalDomain = await Env.verifyAndSanitizeEnvValue(domain);
 
-            if (!isValidDomain(options.url)) {
-                throw new Error('Please provide valid URL.');
-            }
-            try {
-                const url = urljoin(
-                    'https://',
-                    options.url,
-                    '/service/application/content/_healthz',
-                );
-                const response = await axios.get(url);
-
-                if (response?.status === 200) {
-                    Env.setEnv(options.url);
-                    Logger.info(
-                        `CLI will start using: ${chalk.bold(options.url)}`,
-                    );
-                } else {
-                    throw new Error(
-                        'Provided url is not valid platform URL.',
-                    );
-                }
-            } catch (err) {
-                Debug(err)
-                throw new Error('Provided url is not valid platform URL.');
-            }
-        
+            Env.setEnv(finalDomain);
+            Logger.info(
+                `FDK CLI environment is now set to ${chalk.bold(finalDomain)}.\nAll subsequent commands will be executed in this environment.`,
+            );
         } catch (e) {
-            throw new CommandError(e.message);
+            throw new CommandError(e.message, e.code, e.response);
         }
+    }
+
+    public static async verifyAndSanitizeEnvValue(domain: string){
+        let finalDomain = domain;
+
+        if(typeof finalDomain !== 'string'){
+            throw new CommandError(
+                 `Invalid host: Please provide a valid Fynd Platform API domain. For example: 'api.fynd.com'.`,
+                 ErrorCodes.INVALID_INPUT.code
+            );
+        }
+
+        finalDomain = finalDomain.trim();
+        
+        // remove https:// from domain if present
+        if (domain.includes('https://')) {
+            finalDomain = domain.replace('https://', '');
+        }
+
+        // validate domain
+        if (!isValidDomain(finalDomain)) {
+            throw new CommandError(
+                `Invalid host: Please provide a valid Fynd Platform API domain. For example: 'api.fynd.com'.`,
+                ErrorCodes.INVALID_INPUT.code
+           );
+        }
+
+        // replace parnters to api
+        if (finalDomain.includes('partners')) {
+            finalDomain = finalDomain.replace('partners', 'api');
+        }
+
+        // validate domain if it is api domain or not
+        if(!(finalDomain.includes('api.') || finalDomain.includes('api-'))){
+            throw new CommandError(
+                `Invalid host: Please provide a valid Fynd Platform API domain. For example: 'api.fynd.com'.`,
+                ErrorCodes.INVALID_INPUT.code
+            );
+        }
+
+        try {
+            // check if healthz route exist or not
+            const url = urljoin(
+                'https://',
+                finalDomain,
+                '/service/application/content/_healthz',
+            );
+            const response = await axios.get(url);
+
+            if (response?.status !== 200) {
+                throw new Error(
+                    `Invalid host: Please provide a valid Fynd Platform API domain. For example: 'api.fynd.com'.`
+                );
+            }
+        } catch (err) {
+            Debug(err);
+            throw new CommandError(
+                `The provided Fynd Platform API domain (${finalDomain}) is not reachable.\nThis could be due to an invalid domain or the Fynd platform for the provided domain being inaccessible.`,
+                ErrorCodes.INVALID_INPUT.code
+            );
+        }
+
+        return finalDomain;
     }
 }
