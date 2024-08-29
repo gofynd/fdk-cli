@@ -127,12 +127,17 @@ export default class ExtensionPreviewURL {
             let frontend_port : number;
             let backend_port : number;
             
+            // Get the port from command flag
+            if(extension.options.port){
+                frontend_port = extension.options.port;
+            }
+
             // Get the port value from project config files if present
             for(const projectConfig of projectConfigs) {
-                if(projectConfig['roles'].includes('frontend') && projectConfig['port']){
+                if(!frontend_port && projectConfig['roles'].includes('frontend') && projectConfig['port']){
                     frontend_port = projectConfig['port'];
                 }
-                else if(projectConfig['roles'].includes('backend') && projectConfig['port']){
+                else if(!backend_port && projectConfig['roles'].includes('backend') && projectConfig['port']){
                     backend_port = projectConfig['port'];
                 }
             }
