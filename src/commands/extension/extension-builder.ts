@@ -53,6 +53,7 @@ export default function extensionCommandBuilder() {
     extension
         .command('pull-env')
         .description('Pull environment variable for the extension from partners panel')
+        .option('--api-key <api-key>', 'Extension API key')
         .asyncAction(ExtensionEnv.extensionEnvPullHandler);
 
     return extension;

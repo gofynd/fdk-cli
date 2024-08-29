@@ -1,13 +1,21 @@
 import Logger from './Logger';
-import { selectExtensionFromList } from '../helper/extension_utils';
+import { Object, selectExtensionFromList } from '../helper/extension_utils';
 import * as CONSTANTS from './../helper/constants';
 import extensionService from './api/services/extension.service';
 import ExtensionContext from './ExtensionContext';
 
 export default class ExtensionEnv {
-    public static async extensionEnvPullHandler(){
-        const selected_extension = await selectExtensionFromList();
-        const extension = await extensionService.getExtensionDataPartners(selected_extension.extension.id);
+    public static async extensionEnvPullHandler(options){
+        let extension_id: string;
+        if(options.apiKey){
+            extension_id = options.apiKey;
+        }
+        else{
+            const selected_extension = await selectExtensionFromList();
+            extension_id = selected_extension.extension.id;
+        }
+        
+        const extension = await extensionService.getExtensionDataPartners(extension_id);
         
         const extensionContext = new ExtensionContext();
         extensionContext.setAll({
