@@ -155,7 +155,7 @@ export default {
             throw error;
         }
     },
-    
+
     getExtensionList: async (page_no: number, page_size: number) => {
         try {
             let axiosOptions = Object.assign({}, getCommonHeaderOptions());
@@ -164,6 +164,157 @@ export default {
                 axiosOptions,
             );
             return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+     // Extension Section
+
+     publishExtensionBindings: async (
+        extensionId: string,
+        organisationId: string,
+        data : any
+    ) => {
+        try {
+            const axiosOption = Object.assign(
+                {},
+                { data },
+                {
+                    headers: {
+                        ...getCommonHeaderOptions().headers,
+                        'x-application-data': '{}',
+                        'x-user-data': '{}',
+                    }
+                },
+            );
+
+            const res = await ApiClient.post(
+                URLS.PUBLISH_SECTIONS(extensionId, organisationId),
+                axiosOption,
+            );
+
+            return res.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    previewExtensionBindings: async (
+        extensionId: string,
+        organisationId: string,
+        data : any
+    ) => {
+        try {
+
+            const axiosOption = Object.assign(
+                {},
+                { data },
+                {
+                    headers: {
+                        ...getCommonHeaderOptions().headers,
+                        'x-application-data': '{}',
+                        'x-user-data': '{}',
+                    }
+                },
+            );
+
+            const res = await ApiClient.post(
+                URLS.PREVIEW_SECTIONS(extensionId, organisationId),
+                axiosOption,
+            );
+
+            return res.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    deleteExtensionBindings: async (
+        extensionId: string,
+        organisationId: string,
+        data : any
+    ) => {
+        try {
+
+            const axiosOption = Object.assign(
+                {},
+                { data },
+                {
+                    headers: {
+                        ...getCommonHeaderOptions().headers,
+                        'x-application-data': '{}',
+                        'x-user-data': '{}',
+                    }
+                },
+            );
+
+            const res = await ApiClient.del(
+                URLS.DELETE_SECTIONS(extensionId, organisationId),
+                axiosOption,
+            );
+
+            return res.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    draftExtensionBindings: async (
+        extensionId: string,
+        organisationId: string,
+        data : any
+    ) => {
+        try {
+            const axiosOption = Object.assign(
+                {},
+                { data },
+                {
+                    headers: {
+                        ...getCommonHeaderOptions().headers,
+                        'x-application-data': '{}',
+                        'x-user-data': '{}',
+                    }
+                },
+            );
+
+            const res = await ApiClient.post(
+                URLS.DRAFT_SECTIONS(extensionId, organisationId),
+                axiosOption,
+            );
+
+            return res.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    getExtensionBindings: async (
+        extension_id: string,
+        organization_id: string,
+        binding_name : string,
+        accountType : string,
+        framework: string,
+    ) => {
+        try {
+            const axiosOption = Object.assign(
+                {},
+                { },
+                {
+                    headers: {
+                        ...getCommonHeaderOptions().headers,
+                        'x-application-data': '{}',
+                        'x-user-data': '{}',
+                    }
+                },
+            );
+
+            const res = await ApiClient.get(
+                URLS.GET_EXTENSION_SECTIONS(extension_id, organization_id, binding_name, accountType, framework),
+                axiosOption,
+            );
+
+            return res.data;
         } catch (error) {
             throw error;
         }
