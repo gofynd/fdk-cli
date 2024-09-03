@@ -61,7 +61,17 @@ describe('Auth Commands', () => {
         configStore.set(CONFIG_KEYS.ORGANIZATION, organizationData._id);
         mock.onGet('https://api.fyndx1.de/service/application/content/_healthz').reply(200);
         mock.onGet('https://api.fynd.com/service/application/content/_healthz').reply(200);
+        mock.onGet('https://api.jiomartpartners.com/service/application/content/_healthz').reply(200);
+        mock.onGet('https://api-invoice.sandbox3.fynd.engineering/service/application/content/_healthz').reply(200);
         mock.onGet(`${URLS.GET_ORGANIZATION_DETAILS()}`).reply(
+            200,
+            organizationData,
+        );
+        mock.onGet('https://api.jiomartpartners.com/service/partner/partners/v1.0/organization/60afe92972b7a964de57a1d4').reply(
+            200,
+            organizationData,
+        );
+        mock.onGet('https://api-invoice.sandbox3.fynd.engineering/service/partner/partners/v1.0/organization/60afe92972b7a964de57a1d4').reply(
             200,
             organizationData,
         );
@@ -92,6 +102,21 @@ describe('Auth Commands', () => {
         expect(configStore.get(CONFIG_KEYS.AUTH_TOKEN).access_token).toBe(
             'pr-4fb094006ed3a6d749b69875be0418b83238d078',
         );
+    });
+    it('Passing partners URL should set api host in env', async () => {
+        configStore.delete(CONFIG_KEYS.AUTH_TOKEN);
+        await login('partners.fynd.com');
+        expect(configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)).toBe('api.fynd.com');
+    });
+    it('Passing partners URL with partners in domain should set proper api host in env', async () => {
+        configStore.delete(CONFIG_KEYS.AUTH_TOKEN);
+        await login('partners.jiomartpartners.com');
+        expect(configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)).toBe('api.jiomartpartners.com');
+    });
+    it('Passing partners sandbox URL should set partners api host in env', async () => {
+        configStore.delete(CONFIG_KEYS.AUTH_TOKEN);
+        await login('partners-invoice.sandbox3.fynd.engineering');
+        expect(configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)).toBe('api-invoice.sandbox3.fynd.engineering');
     });
     it('Should exit when user selects no for organization change', async () => {
         const inquirerMock = mockFunction(inquirer.prompt);
