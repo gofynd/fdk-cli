@@ -88,6 +88,7 @@ export default class Theme {
     );
     static BUILD_FOLDER = './.fdk/dist';
     static SERVE_BUILD_FOLDER = './.fdk/distServed';
+    static REACT_SECTIONS_SETTINGS_JSON = path.join(process.cwd(), 'theme', 'sections',"sectionsSettings.json");
     static SRC_FOLDER = path.join('.fdk', 'temp-theme');
     static VUE_CLI_CONFIG_PATH = path.join('.fdk', 'vue.config.js');
     static REACT_CLI_CONFIG_PATH = 'webpack.config.js';
@@ -527,7 +528,9 @@ export default class Theme {
 
             // Create index.js with section file imports
             Logger.info('creating section index file');
+            Theme.validateReactSectionFileNames()
             await Theme.createReactSectionsIndexFile();
+            await Theme.createReactSectionsSettingsJson()
             Logger.info('created section index file');
 
             Logger.info('Installing dependencies');
@@ -842,7 +845,7 @@ export default class Theme {
 
             // Clear previosu builds
             Theme.clearPreviousBuild();
-
+            Theme.validateReactSectionFileNames()
             // Create index.js with section file imports
             await Theme.createReactSectionsIndexFile();
 
@@ -873,6 +876,7 @@ export default class Theme {
                 isHMREnabled: false,
                 targetDirectory
             });
+            await Theme.createReactSectionsSettingsJson()
 
             const parsed = await Theme.getThemeBundle(stats);
             Logger.info('Uploading theme assets/images');
@@ -1205,6 +1209,7 @@ export default class Theme {
 
             // initial build
             Logger.info(`Locally building`);
+            Theme.validateReactSectionFileNames()
             // Create index.js with section file imports
             await Theme.createReactSectionsIndexFile();
 
@@ -1367,17 +1372,33 @@ export default class Theme {
         if (!sections) {
             Logger.error('Error occured');
         }
-
-        const allSections = Object.entries<{ settings: any; Component: any }>(
-            sections,
-        ).map(([name, sectionModule]) => ({
-            name,
-            ...(sectionModule.settings || {}),
-        }));
-
+        const sectionsKeys = Object.keys(sections);
+        const fileContent = fs.readFileSync(Theme.REACT_SECTIONS_SETTINGS_JSON, 'utf-8');
+        const sectionsSettings = JSON.parse(fileContent);
+        const allSections = []
+        sectionsKeys.forEach(section => {
+            allSections.push({ name: section, ...sectionsSettings[section] })
+        })
         return allSections;
     }
+    static validateReactSectionFileNames() {
+        Logger.info('Validating Section File Names')
+        let fileNames = fs
+            .readdirSync(`${process.cwd()}/theme/sections`)
+            .filter((o) => o !== 'index.js' && o !== 'sectionsSettings.json');
 
+        fileNames = fileNames.map(filename => filename.replace(/\.jsx$/, ''))
+
+        // Define the regular expression for disallowed patterns
+        const disallowedPatterns = /[\.,_]|sections|section|\d/;
+        fileNames.forEach(fileName => {
+            // Check if the input string matches any disallowed pattern
+            if (disallowedPatterns.test(fileName.toLowerCase())) {
+                throw new Error('Invalid sectionFileName: The string contains disallowed characters or numbers or section words.');
+            }
+        })
+        return true;
+    }
     static evaluateBundle(path, key = 'themeBundle') {
         const code = fs.readFileSync(path, { encoding: 'utf8' });
         const scope = {
@@ -1520,31 +1541,103 @@ export default class Theme {
         fs.writeFileSync(`${process.cwd()}/theme/sections/index.js`, template);
     }
     private static async createReactSectionsIndexFile() {
+        function transformSectionFileName(fileName) {
+            // Remove the file extension
+            const nameWithoutExtension = fileName.replace(/\.jsx$/, '');
+        
+            // Extract the base name before any `.section` or `.chunk`
+            const sectionKey = nameWithoutExtension
+                .replace(/(\.section|\.chunk|\.section\.chunk)$/, '');
+        
+            // Convert the sectionKey to PascalCase
+            const SectionName = sectionKey
+                .split('-')
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join('') + 'SectionChunk';
+        
+            return [SectionName, sectionKey];
+        }
+        
         let fileNames = fs
             .readdirSync(`${process.cwd()}/theme/sections`)
-            .filter((o) => o != 'index.js');
+            .filter((o) => o !== 'index.js' && o !== 'sectionsSettings.json');
 
         const importingTemplate = fileNames
             .map((fileName) => {
-                const [SectionName] = transformSectionFileName(fileName);
-                return `import * as ${SectionName} from './${fileName}';`;
+                const [SectionName, sectionKey] = transformSectionFileName(fileName);
+                return `const ${SectionName} = loadable(() => import(/* webpackChunkName:"${SectionName}" */ './${fileName}'));\n`;
             })
             .join('\n');
-
+    
+        const getbundleTemplate = `const getbundle = (type) => {
+        switch(type) {
+            ${fileNames.map((fileName) => {
+                const [SectionName, sectionKey] = transformSectionFileName(fileName);
+                return `case '${sectionKey}':\n            return (props) => <${SectionName} {...props}/>;`;
+            }).join('\n        ')}
+            default:
+                return null;
+        }
+    };\n`;
+    
         const exportingTemplate = `export default {
             ${fileNames.map((fileName) => {
-                const [SectionName, sectionKey] =
-                    transformSectionFileName(fileName);
-                return `'${sectionKey}': { ...${SectionName}, },`;
-            }).join(`
-            `)}
-        }`;
-
-        const content = importingTemplate + '\n\n' + exportingTemplate;
-
+                const [SectionName, sectionKey] = transformSectionFileName(fileName);
+                return `'${sectionKey}': { ...${SectionName}, Component: getbundle('${sectionKey}') },`;
+            }).join('\n        ')}
+        };`;
+    
+        const content = `import loadable from '@loadable/component';\nimport React from "react";\n\n` + importingTemplate + `\n\n` + getbundleTemplate + `\n\n` + exportingTemplate;
+    
         rimraf.sync(`${process.cwd()}/theme/sections/index.js`);
         fs.writeFileSync(`${process.cwd()}/theme/sections/index.js`, content);
     }
+    private static async createReactSectionsSettingsJson() {
+        const sectionsPath = path.join(process.cwd(), 'theme', 'sections');
+
+        // Function to extract settings from a JSX file
+        function extractSettings(fileContent) {
+            const settingsMatch = fileContent.match(/export\s+const\s+settings\s+=\s+({[\s\S]*?});/);
+            if (settingsMatch && settingsMatch.length > 1) {
+                try {
+                    // Safely evaluate the object instead of using JSON.parse
+                    return eval('(' + settingsMatch[1] + ')');
+                } catch (error) {
+                    console.error('Failed to parse settings:', error);
+                    return null;
+                }
+            }
+            return null;
+        }
+
+        // Read all files from the sections directory
+        let fileNames = fs
+            .readdirSync(sectionsPath)
+            .filter((fileName) => fileName.endsWith('.jsx'));
+
+        let sectionsSettings = {};
+
+        fileNames.forEach((fileName) => {
+            const filePath = path.join(sectionsPath, fileName);
+            const fileContent = fs.readFileSync(filePath, 'utf-8');
+
+            const sectionKey = fileName.replace(/\.jsx$/, '');
+            const settings = extractSettings(fileContent);
+
+            if (settings) {
+                sectionsSettings[sectionKey] = settings;
+            }
+        });
+
+        // Define the output JSON file path
+        const outputFilePath = Theme.REACT_SECTIONS_SETTINGS_JSON;
+
+        // Write the JSON object to the output file
+        rimraf.sync(outputFilePath); // Remove the existing JSON file if it exists
+        fs.writeFileSync(outputFilePath, JSON.stringify(sectionsSettings, null, 2));
+        Logger.info('Sections settings JSON file created successfully!');
+    }
+    
     private static extractSectionsFromFile(path) {
         let $ = cheerio.load(readFile(path));
         let template = $('template').html();
@@ -1606,6 +1699,7 @@ export default class Theme {
         rimraf.sync(Theme.BUILD_FOLDER);
         rimraf.sync(Theme.SERVE_BUILD_FOLDER);
         rimraf.sync(Theme.SRC_ARCHIVE_FOLDER);
+        rimraf.sync(Theme.REACT_SECTIONS_SETTINGS_JSON)
     };
 
     private static createVueConfig() {
@@ -2352,7 +2446,6 @@ export default class Theme {
                     ) ||
                     [] ||
                     [];
-
                 systemPage.type = 'system';
                 pagesToSave.push(systemPage);
             });
@@ -2683,9 +2776,11 @@ export default class Theme {
             isHMREnabled: false,
         });
 
+        Theme.validateReactSectionFileNames()
         await Theme.createReactSectionsIndexFile();
-        const parsed = await Theme.getThemeBundle(stats);
+        await Theme.createReactSectionsSettingsJson()
 
+        const parsed = await Theme.getThemeBundle(stats);
         let available_sections = await Theme.getAvailableReactSectionsForSync(
             parsed.sections,
         );
