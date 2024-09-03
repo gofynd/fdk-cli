@@ -36,6 +36,7 @@ type ExtensionBuildContext = {
     bundleName: string;
     port: number
     context: string;
+    imageCdnUrl?: string;
 }
 
 const snippet = (port) => `
@@ -61,6 +62,7 @@ document.head.appendChild(_script);
 `;
 
 export function extensionWebpackConfig(env: ExtensionBuildContext, webpackConfigFromBinding): Configuration[] {
+    console.log({env},{webpackConfigFromBinding},'sdwqkjdhk')
     const isLocalBuild = env.isLocal;
 
     const extendedWebpackResolved = webpackConfigFromBinding(env);

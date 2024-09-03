@@ -1641,8 +1641,11 @@ export default class Theme {
         );
     }
 
-    private static assetsImageUploader = async () => {
+    public   static assetsImageUploader = async () => {
         try {
+            console.log("in extension", process.cwd())
+            
+        
             const cwd = path.resolve(
                 process.cwd(),
                 Theme.BUILD_FOLDER,
@@ -1671,7 +1674,7 @@ export default class Theme {
         }
     };
 
-    private static getImageCdnBaseUrl = async () => {
+    public static getImageCdnBaseUrl = async () => {
         try {
             const dummyFile = path.join(
                 __dirname,
@@ -1697,7 +1700,7 @@ export default class Theme {
         }
     };
 
-    private static getAssetCdnBaseUrl = async () => {
+    public static getAssetCdnBaseUrl = async () => {
         try {
             const dummyFile = path.join(
                 __dirname,
@@ -1722,7 +1725,7 @@ export default class Theme {
             );
         }
     };
-    private static assetsFontsUploader = async () => {
+    public static assetsFontsUploader = async () => {
         try {
             if (
                 fs.existsSync(
