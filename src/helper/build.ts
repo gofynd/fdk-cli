@@ -15,10 +15,10 @@ export const DEV_VUE_THEME_ENTRY_FILE = path.join('theme', 'index.js');
 export const CDN_ENTRY_FILE =  path.join('.fdk', 'cdn_index.js');
 
 export const dynamicCDNScript = ({assetNormalizedBasePath,vueJs }) => {
-
+    const cdnBasePath = vueJs ?  `${assetNormalizedBasePath}/` : assetNormalizedBasePath
     const functionSnippet = `
         function getCDNurl() {
-            let cdnUrl = '${assetNormalizedBasePath}';
+            let cdnUrl = '${cdnBasePath}';
             try {
                 if (fynd_platform_cdn) {
                     cdnUrl = fynd_platform_cdn

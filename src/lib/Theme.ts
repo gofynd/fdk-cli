@@ -1510,35 +1510,43 @@ export default class Theme {
     }
     private static async createSectionsIndexFile(available_sections) {
         available_sections = available_sections || [];
+        
         let fileNames = fs
             .readdirSync(`${process.cwd()}/theme/sections`)
-            .filter((o) => o != 'index.js');
+            .filter((o) => o !== 'index.js' && o !== 'sectionsSettings.json');
+        
         let template = `
             ${fileNames
-                .map((f, i) => `import * as component${i} from './${f}';`)
+                .map((f, i) => {
+                    const chunkName = available_sections[i]?.label.replace(/\s+/g, '') + 'SectionChunk';
+                    return `const component${i} = () => import(/* webpackChunkName: "${chunkName}" */ './${f}');`;
+                })
                 .join('\n')}
+            
             function exportComponents(components) {
-            return [
-                ${available_sections
-                    .map((s, i) => {
-                        return JSON.stringify({
-                            name: s.name,
-                            label: s.label,
-                            component: '',
-                        }).replace(
-                            '"component":""',
-                            `"component": components[${i}].default`,
-                        );
-                    })
-                    .join(',\n')}
-            ];
+                return [
+                    ${available_sections
+                        .map((s, i) => {
+                            return JSON.stringify({
+                                name: s.name,
+                                label: s.label,
+                                component: '',
+                            }).replace(
+                                '"component":""',
+                                `"component": components[${i}]`,
+                            );
+                        })
+                        .join(',\n')}
+                ];
             }
+            
             export default exportComponents([${fileNames
                 .map((f, i) => `component${i}`)
-                .join(',')}]);
-            `;
+                .join(', ')}]);
+        `;
+        
         rimraf.sync(`${process.cwd()}/theme/sections/index.js`);
-        fs.writeFileSync(`${process.cwd()}/theme/sections/index.js`, template);
+        fs.writeFileSync(`${process.cwd()}/theme/sections/index.js`, template.trim());
     }
     private static async createReactSectionsIndexFile() {
         function transformSectionFileName(fileName) {
