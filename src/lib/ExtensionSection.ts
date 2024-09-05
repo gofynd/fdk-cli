@@ -294,11 +294,10 @@ export default class ExtensionSection {
         }
     }
 
-    public  static assetsImageUploader = async (destinationPath) => {
+    private  static assetsImageUploader = async (destinationPath) => {
         try {
             console.log("in extension", process.cwd())
-            
-            const currentRoot = process.cwd();
+
 
 
             const cwd = path.resolve(
@@ -326,32 +325,33 @@ export default class ExtensionSection {
             );
         }
     };
-
-    public static getImageCdnBaseUrl = async () => {
+    private static assetsFontsUploader = async (destinationPath) => {
         try {
-            const dummyFile = path.join(
-                __dirname,
-                '..',
-                '..',
-                'sample-upload.jpeg'
-            );
-
-            const response = await uploadService.uploadFile(
-                dummyFile,
-                'application-theme-images',
-                null,
-                'image/jpeg'
-            );
-
-            return path.dirname(response.complete.cdn.url);
+   console.log({destinationPath})
+                const cwd = path.resolve(
+                    destinationPath,
+                    'dist',
+                    'assets',
+                    'fonts',
+                );
+                const fonts = glob.sync('**/**.**', { cwd });
+                await asyncForEach(fonts, async (font) => {
+                    const assetPath = path.join(
+                        cwd,
+                        font,
+                    );
+                    const url = await uploadService.uploadFile(
+                        assetPath,
+                        'application-theme-assets',
+                    );
+                    console.log({url})
+                });
+            
         } catch (err) {
-            Logger.error(err);
-            throw new CommandError(
-                `Failed in getting image CDN base url`,
-                err.code,
-            );
+            throw new CommandError(err.message, err.code);
         }
     };
+
 
     public static clearContext() {
         Configstore.set('extensionSections', {});
@@ -512,12 +512,14 @@ export default class ExtensionSection {
 
                 const imageCdnUrl = await Theme.getImageCdnBaseUrl();
                 console.log({imageCdnUrl})
-                // const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
+                const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
+                console.log({assetCdnUrl})
             
 
                 const sectionData = await ExtensionSection.buildAndExtractSections(
                     context,
                     imageCdnUrl,
+                    assetCdnUrl,
                 );
                 sectionData.status = 'published';
 
@@ -565,42 +567,7 @@ export default class ExtensionSection {
     //         );
     //     }
     // };
-    private static assetsFontsUploader = async () => {
-        try {
-            if (
-                fs.existsSync(
-                    path.join(
-                        process.cwd(),
-                        Theme.BUILD_FOLDER,
-                        'assets',
-                        'fonts',
-                    ),
-                )
-            ) {
-                const cwd = path.join(
-                    process.cwd(),
-                    Theme.BUILD_FOLDER,
-                    'assets',
-                    'fonts',
-                );
-                const fonts = glob.sync('**/**.**', { cwd });
-                await asyncForEach(fonts, async (font) => {
-                    const assetPath = path.join(
-                        Theme.BUILD_FOLDER,
-                        'assets',
-                        'fonts',
-                        font,
-                    );
-                    await uploadService.uploadFile(
-                        assetPath,
-                        'application-theme-assets',
-                    );
-                });
-            }
-        } catch (err) {
-            throw new CommandError(err.message, err.code);
-        }
-    };
+
 
 
     static async buildExtensionCodeVue({ bundleName }) {
@@ -669,7 +636,8 @@ export default class ExtensionSection {
 
     static async buildAndExtractSections(
         context: SyncExtensionBindingsOptions,
-        imageCdnUrl:string
+        imageCdnUrl: string,
+        assetCdnUrl: string
     ): Promise<any> {
         const { name: bundleName, framework } = context;
         const isReact = framework === 'react';
@@ -682,11 +650,12 @@ export default class ExtensionSection {
         )
         Logger.info('Uploading theme assets/images');
         await ExtensionSection.assetsImageUploader(destinationPath);
+        await ExtensionSection.assetsFontsUploader(destinationPath);
         process.chdir(destinationPath);
         
         console.log({destinationPath})
         if (isReact) {
-            await ExtensionSection.buildExtensionCode({ bundleName,imageCdnUrl }).catch(
+            await ExtensionSection.buildExtensionCode({ bundleName,imageCdnUrl,assetCdnUrl }).catch(
                 console.error,
             );
         } else {
@@ -746,7 +715,8 @@ export default class ExtensionSection {
 
     static async buildExtensionCode({
         bundleName,
-        imageCdnUrl,
+        imageCdnUrl = "",
+        assetCdnUrl = "",
         isLocal = false,
         port = 5502,
     }): Promise<{ jsFile: string; cssFile: string }> {
@@ -769,13 +739,14 @@ export default class ExtensionSection {
                     webpackExtendedPath
                 ));
             }
-            console.log({webpackConfigFromBinding})
+            console.log({ webpackConfigFromBinding })
 
             const webpackConfig = extensionWebpackConfig({
                 isLocal,
                 bundleName,
                 port,
-                imageCdnUrl:imageCdnUrl + '/' ,
+                imageCdnUrl: imageCdnUrl + '/',
+                assetCdnUrl: assetCdnUrl + '/',
                 context,
             }, webpackConfigFromBinding);
 
@@ -810,10 +781,15 @@ export default class ExtensionSection {
         if (bindingInterface === 'Web Theme') {
             if (framework === 'react' || framework === 'vue2') {
                 Logger.info(`Creating drafts for Extension Bindings`);
+                const imageCdnUrl = await Theme.getImageCdnBaseUrl();
+                console.log({imageCdnUrl})
+                const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
+                console.log({assetCdnUrl})
 
                 const sectionData = await ExtensionSection.buildAndExtractSections(
                     context,
-                    ""
+                    imageCdnUrl,
+                    assetCdnUrl,
                 );
                 sectionData.status = 'draft';
 
@@ -859,10 +835,16 @@ export default class ExtensionSection {
                 ));
             }
 
+            const localImageBasePath = `http://127.0.0.1:${port}/assets/images/`;
+
+            const localFontsBasePath = `http://127.0.0.1:${port}/assets/fonts/`;
+
             const webpackConfig = extensionWebpackConfig({
                 isLocal: true,
                 bundleName,
                 port,
+                localImageBasePath,
+                localFontsBasePath,
                 context,
             }, webpackConfigFromBinding);
 
@@ -1040,7 +1022,8 @@ export default class ExtensionSection {
                                 bundleName,
                                 port,
                                 isLocal: true,
-                                imageCdnUrl:"dummy.com",
+                                imageCdnUrl: "dummy.com",
+                                assetCdnUrl:""
                             });
                         ExtensionSection.watchExtensionCodeBuild(
                             bundleName,
