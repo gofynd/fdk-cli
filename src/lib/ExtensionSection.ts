@@ -38,8 +38,6 @@ type BindingInterface = 'Web Theme' | 'Platform';
 
 export type SupportedFrameworks = 'react' | 'vue2';
 import glob from 'glob';
-import Extension from './Extension';
-import { log } from 'async';
 
 type AppliedThemeData = {
     applicationId: string;
@@ -296,17 +294,12 @@ export default class ExtensionSection {
 
     private  static assetsImageUploader = async (destinationPath) => {
         try {
-            console.log("in extension", process.cwd())
-
-
-
             const cwd = path.resolve(
                 destinationPath,
                 'dist',
                 'assets',
                 'images',
             );
-            console.log({cwd})
             const images = glob.sync(path.join('**', '**.**'), { cwd });
             await asyncForEach(images, async (img) => {
                 const assetPath = path.join(
@@ -327,7 +320,6 @@ export default class ExtensionSection {
     };
     private static assetsFontsUploader = async (destinationPath) => {
         try {
-   console.log({destinationPath})
                 const cwd = path.resolve(
                     destinationPath,
                     'dist',
@@ -344,7 +336,6 @@ export default class ExtensionSection {
                         assetPath,
                         'application-theme-assets',
                     );
-                    console.log({url})
                 });
             
         } catch (err) {
@@ -511,15 +502,13 @@ export default class ExtensionSection {
                 Logger.info(`Publishing Extension Bindings`);
 
                 const imageCdnUrl = await Theme.getImageCdnBaseUrl();
-                console.log({imageCdnUrl})
-                const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
-                console.log({assetCdnUrl})
+                const fontCdnUrl = await Theme.getAssetCdnBaseUrl();
             
 
                 const sectionData = await ExtensionSection.buildAndExtractSections(
                     context,
                     imageCdnUrl,
-                    assetCdnUrl,
+                    fontCdnUrl,
                 );
                 sectionData.status = 'published';
 
@@ -541,34 +530,6 @@ export default class ExtensionSection {
 
         Logger.info('Code published ...');
     }
-
-    // private static getAssetCdnBaseUrl = async () => {
-    //     try {
-    //         const dummyFile = path.join(
-    //             __dirname,
-    //             '..',
-    //             '..',
-    //             'sample-upload.js'
-    //         );
-
-    //         const response = await UploadService.uploadFile(
-    //             dummyFile,
-    //             'application-theme-assets',
-    //             null,
-    //             'application/javascript'
-    //         );
-
-    //         return path.dirname(response.complete.cdn.url);
-
-    //     } catch (err) {
-    //         throw new CommandError(
-    //             `Failed in getting assets CDN base url`,
-    //             err.code,
-    //         );
-    //     }
-    // };
-
-
 
     static async buildExtensionCodeVue({ bundleName }) {
         const VUE_CLI_PATH = path.join(
@@ -637,7 +598,7 @@ export default class ExtensionSection {
     static async buildAndExtractSections(
         context: SyncExtensionBindingsOptions,
         imageCdnUrl: string,
-        assetCdnUrl: string
+        fontCdnUrl: string
     ): Promise<any> {
         const { name: bundleName, framework } = context;
         const isReact = framework === 'react';
@@ -653,9 +614,8 @@ export default class ExtensionSection {
         await ExtensionSection.assetsFontsUploader(destinationPath);
         process.chdir(destinationPath);
         
-        console.log({destinationPath})
         if (isReact) {
-            await ExtensionSection.buildExtensionCode({ bundleName,imageCdnUrl,assetCdnUrl }).catch(
+            await ExtensionSection.buildExtensionCode({ bundleName,imageCdnUrl,fontCdnUrl }).catch(
                 console.error,
             );
         } else {
@@ -716,11 +676,10 @@ export default class ExtensionSection {
     static async buildExtensionCode({
         bundleName,
         imageCdnUrl = "",
-        assetCdnUrl = "",
+        fontCdnUrl = "",
         isLocal = false,
         port = 5502,
     }): Promise<{ jsFile: string; cssFile: string }> {
-        console.log({imageCdnUrl},"buildExtensionCode")
         let spinner = new Spinner('Building Extension Code');
         try {
             spinner.start();
@@ -730,23 +689,19 @@ export default class ExtensionSection {
                 context,
                 'webpack.config.js'
             );
-            console.log({webpackExtendedPath});
-            
-
             
             if (fs.existsSync(webpackExtendedPath)) {
                 ({ default: webpackConfigFromBinding } = await import(
                     webpackExtendedPath
                 ));
             }
-            console.log({ webpackConfigFromBinding })
 
             const webpackConfig = extensionWebpackConfig({
                 isLocal,
                 bundleName,
                 port,
                 imageCdnUrl: imageCdnUrl + '/',
-                assetCdnUrl: assetCdnUrl + '/',
+                fontCdnUrl: fontCdnUrl + '/',
                 context,
             }, webpackConfigFromBinding);
 
@@ -765,7 +720,6 @@ export default class ExtensionSection {
                 });
             });
         } catch (error) {
-            console.log("bdwejhdbj")
             spinner.fail();
             throw new CommandError(error.message);
         }
@@ -782,14 +736,12 @@ export default class ExtensionSection {
             if (framework === 'react' || framework === 'vue2') {
                 Logger.info(`Creating drafts for Extension Bindings`);
                 const imageCdnUrl = await Theme.getImageCdnBaseUrl();
-                console.log({imageCdnUrl})
-                const assetCdnUrl = await Theme.getAssetCdnBaseUrl();
-                console.log({assetCdnUrl})
+                const fontCdnUrl = await Theme.getAssetCdnBaseUrl();
 
                 const sectionData = await ExtensionSection.buildAndExtractSections(
                     context,
                     imageCdnUrl,
-                    assetCdnUrl,
+                    fontCdnUrl,
                 );
                 sectionData.status = 'draft';
 
@@ -1022,8 +974,6 @@ export default class ExtensionSection {
                                 bundleName,
                                 port,
                                 isLocal: true,
-                                imageCdnUrl: "dummy.com",
-                                assetCdnUrl:""
                             });
                         ExtensionSection.watchExtensionCodeBuild(
                             bundleName,

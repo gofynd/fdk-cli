@@ -353,9 +353,6 @@ export default class Theme {
             });
         config['application_id'] = selectedApplication;
         config['company_id'] = selectedCompany;
-        // config['application_id'] = "6672cdcc9399006687477a5c";
-        // config['company_id'] = 63;
-        console.log({config});
         
         return config;
     }
@@ -1641,7 +1638,7 @@ export default class Theme {
         );
     }
 
-    public   static assetsImageUploader = async () => {
+     private static assetsImageUploader = async () => {
         try {
             console.log("in extension", process.cwd())
             
@@ -1725,7 +1722,7 @@ export default class Theme {
             );
         }
     };
-    public static assetsFontsUploader = async () => {
+    private static assetsFontsUploader = async () => {
         try {
             if (
                 fs.existsSync(

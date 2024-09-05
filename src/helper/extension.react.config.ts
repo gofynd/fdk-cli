@@ -37,7 +37,7 @@ type ExtensionBuildContext = {
     port: number
     context: string;
     imageCdnUrl?: string;
-    assetCdnUrl?: string;
+    fontCdnUrl?: string;
     localImageBasePath?: string,
     localFontsBasePath?: string,
 }
