@@ -1640,9 +1640,6 @@ export default class Theme {
 
      private static assetsImageUploader = async () => {
         try {
-            console.log("in extension", process.cwd())
-            
-        
             const cwd = path.resolve(
                 process.cwd(),
                 Theme.BUILD_FOLDER,
