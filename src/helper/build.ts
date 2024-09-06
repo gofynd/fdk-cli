@@ -26,7 +26,7 @@ export const dynamicCDNScript = ({assetNormalizedBasePath,vueJs }) => {
                  console.warn('Dynamic CDN path not found!');
                 }
             } catch (error) {
-                console.error('Could not set dynamic CDN path');
+                console.warn('Could not set dynamic CDN path');
             }
 
             return cdnUrl;
