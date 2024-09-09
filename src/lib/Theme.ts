@@ -1492,7 +1492,7 @@ export default class Theme {
         
         let fileNames = fs
             .readdirSync(`${process.cwd()}/theme/sections`)
-            .filter((o) => o !== 'index.js' && o !== 'sectionsSettings.json');
+            .filter((o) => o !== 'index.js');
         
         let template = `
             ${fileNames
