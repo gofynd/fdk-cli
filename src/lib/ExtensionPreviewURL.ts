@@ -23,6 +23,7 @@ import yaml from 'js-yaml';
 import Tunnel from './Tunnel';
 import chalk from 'chalk';
 import ExtensionContext from './ExtensionContext';
+import Env from './Env';
 
 interface ServerOptions {
     cwd?: string;
@@ -34,6 +35,10 @@ export default class ExtensionPreviewURL {
     publicTunnelURL: string;
     options: Object;
     firstTunnelConnection: boolean = true;
+    fp_api_domain: string = urljoin(
+        'https://',
+        Env.getEnvValue()
+    );
 
     // command handler for "extension preview-url"
     public static async previewUrlExtensionHandler(options) {
@@ -206,7 +211,8 @@ export default class ExtensionPreviewURL {
                             BACKEND_PORT: backend_port.toString(),
                             EXTENSION_API_KEY: extension.options.apiKey,
                             EXTENSION_API_SECRET: extension.options.apiSecret,
-                            EXTENSION_BASE_URL: extension.publicTunnelURL
+                            EXTENSION_BASE_URL: extension.publicTunnelURL,
+                            FP_API_DOMAIN: extension.fp_api_domain
                         }
                     }).catch((error) => {
                         Debug(error);
