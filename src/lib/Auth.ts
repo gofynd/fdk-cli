@@ -1,5 +1,6 @@
 import CommandError from './CommandError';
 import Logger from './Logger';
+import chalk from 'chalk';
 import inquirer from 'inquirer';
 import ConfigStore, { CONFIG_KEYS } from './Config';
 import open from 'open';
@@ -14,7 +15,6 @@ const SERVER_TIMER = 1000 * 60 * 2; // 2 min
 import { OutputFormatter, successBox } from '../helper/formatter';
 import OrganizationService from './api/services/organization.service';
 import { getOrganizationDisplayName } from '../helper/utils';
-import chalk from 'chalk';
 
 async function checkTokenExpired(auth_token) {
     const { expiry_time } = auth_token;
@@ -81,7 +81,7 @@ function startTimer(){
 }
 
 function resetTimer(){
-    if (Auth.timer_id) { 
+    if (Auth.timer_id) {
         Debug("Server timer stoped")
         clearTimeout(Auth.timer_id)
         Auth.timer_id = null;
@@ -128,24 +128,24 @@ export default class Auth {
     public static async login(options) {
 
         let env: string;
-        
+
         if(options.host){
             env = await Env.verifyAndSanitizeEnvValue(options.host);
         }
         else{
             env = 'api.fynd.com';
         }
-        
+
         let current_env = Env.getEnvValue();
 
         if(current_env !== env){
             // update new domain after login
             Auth.newDomainToUpdate = env;
-            
+
             // Logout user from current domain
             Auth.updateConfigStoreForLogout();
         }
-        
+
         const isLoggedIn = await Auth.isAlreadyLoggedIn();
         if (isLoggedIn) {
             Logger.info(
@@ -169,7 +169,7 @@ export default class Auth {
                     await startServer();
                 }
             });
-        } else 
+        } else
             await startServer();
         try {
             let domain = null;

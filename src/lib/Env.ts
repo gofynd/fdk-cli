@@ -66,13 +66,23 @@ export default class Env {
            );
         }
 
-        // replace parnters to api
-        if (finalDomain.includes('partners')) {
-            finalDomain = finalDomain.replace('partners', 'api');
+
+        function replaceSubdomain(url: string) {
+            let finalUrl = url;
+            if(url.startsWith("partners.")){
+                finalUrl = "api." + url.split(".").slice(1).join(".");
+            } else 
+            if(url.startsWith("partners-")){
+                finalUrl = "api-" + url.split("-").slice(1).join("-");
+            }
+            return finalUrl;
         }
 
+        // replace parnters to api
+        finalDomain = replaceSubdomain(finalDomain);
+
         // validate domain if it is api domain or not
-        if(!(finalDomain.includes('api.') || finalDomain.includes('api-'))){
+        if(!(finalDomain.startsWith('api.') || finalDomain.startsWith('api-'))){
             throw new CommandError(
                 `Invalid host: Please provide a valid Fynd Platform API domain. For example: 'api.fynd.com'.`,
                 ErrorCodes.INVALID_INPUT.code
