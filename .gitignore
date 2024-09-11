@@ -136,6 +136,9 @@ artifacts/
 csv.zip
 csv/
 
+# NPM package lock
+package-lock.json
+
 #python virtual environment
 *env/*
 *venv/*

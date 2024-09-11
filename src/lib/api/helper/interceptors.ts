@@ -123,6 +123,7 @@ function getErrorMessage(error) {
 export function responseErrorInterceptor() {
     return (error) => {
         // Request made and server responded
+        Debug(error);
         if (
             error.response &&
             (error.response.status === 401 || error.response.status === 403)
