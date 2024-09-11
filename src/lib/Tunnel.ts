@@ -15,10 +15,10 @@ export default class Tunnel {
     tunnelProcess: ChildProcess;
     stopTunnel: (signal?: NodeJS.Signals | number) => boolean;
 
-    constructor(options){
+    constructor(options: typeof this.options){
         this.options = options;
     }
-    
+
     public static async tunnelHandler(options){
         const tunnel = new Tunnel(options);
 
@@ -42,6 +42,7 @@ export default class Tunnel {
             spinner.succeed();
             return this.publicTunnelURL;
         } catch (error) {
+            Debug(error);
             spinner.fail();
             throw new CommandError(
                 ErrorCodes.ClOUDFLARE_CONNECTION_ISSUE.message,
@@ -61,7 +62,12 @@ export default class Tunnel {
 
         if (!fs.existsSync(bin)) {
             Debug(`Cloudflare tunnel binary is not found in bin dir: ${bin}\nDownloading cloudflare...`);
-            await install(bin);
+            try{
+                await install(bin);
+            }
+            catch(error){
+                Logger.error(`Failed to download cloudflare package to start tunnel: ${error}`)
+            }
         }
 
         const { url: urlPromise, connections, child, stop } = startTunnel({

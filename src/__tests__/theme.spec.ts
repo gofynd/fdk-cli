@@ -327,7 +327,7 @@ describe('Theme Commands', () => {
             )}`,
         ).reply(200, { name: 'Emerge' });
 
-        
+
         mock.onGet(`${URLS.GET_ORGANIZATION_DETAILS()}`).reply(200, organizationData);
         configStore.delete(CONFIG_KEYS.ORGANIZATION)
 

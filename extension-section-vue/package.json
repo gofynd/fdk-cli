@@ -1,0 +1,24 @@
+{
+    "name": "extention",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "type": "module",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "node index.js",
+        "serve": "vue-cli-service serve",
+        "build": "vue-cli-service build --target lib src/index.js --name extension"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "less-loader": "^12.2.0",
+        "vue": "^2.6.11"
+    },
+    "devDependencies": {
+        "@vue/cli-plugin-babel": "^5.0.7",
+        "@vue/cli-service": "^5.0.7",
+        "@vue/test-utils": "1.1.0"
+    }
+}
