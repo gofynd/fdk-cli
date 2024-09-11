@@ -6,7 +6,9 @@ import ConfigStore, { CONFIG_KEYS } from './Config';
 import open from 'open';
 import express from 'express';
 var cors = require('cors');
-const port = 7071;
+import {
+    getRandomFreePort
+} from '../helper/extension_utils';
 import { getLocalBaseUrl } from '../helper/serve.utils';
 import Debug from './Debug';
 import Env from './Env';
@@ -34,6 +36,7 @@ export const getApp = async () => {
 
     app.post('/token', async (req, res) => {
         try {
+            Debug(req);
             if (Auth.wantToChangeOrganization)
                 ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
             const expiryTimestamp =
@@ -86,7 +89,7 @@ function resetTimer(){
         Auth.timer_id = null;
     }
 }
-export const startServer = async () => {
+export const startServer = async (port:number) => {
     if (Auth.server) return Auth.server;
 
     const { app } = await getApp();
@@ -127,7 +130,7 @@ export default class Auth {
     public static async login(options) {
 
         let env: string;
-
+        const port =  await getRandomFreePort([]);
         if(options.host){
             env = await Env.verifyAndSanitizeEnvValue(options.host);
         }
@@ -165,11 +168,11 @@ export default class Auth {
                     return;
                 } else {
                     Auth.wantToChangeOrganization = true;
-                    await startServer();
+                    await startServer(port);
                 }
             });
-        } else
-            await startServer();
+        } else 
+            await startServer(port);
         try {
             let domain = null;
             let partnerDomain = env.replace('api', 'partners');

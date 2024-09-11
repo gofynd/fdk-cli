@@ -349,7 +349,16 @@ async function checkCliVersionAsync() {
 }
 
 async function checkForLatestVersion() {
-    const latest = await checkCliVersionAsync();
+
+    const latest : string|void = await Promise.race([
+        checkCliVersionAsync(),
+        new Promise<string>((resolve, reject) => setTimeout(() => {
+            reject(new Error('Timeout, Failed to check latest version.'))
+        }, 2000))
+    ]).catch(error => Debug(error));
+
+    if(!latest) return;
+
     const isCurrentLessThanLatest = semver.lt(
         packageJSON.version,
         latest,
@@ -361,11 +370,12 @@ async function checkForLatestVersion() {
     const major = versionChange === 'major';
 
     const logMessage = `A new version ${latest} is available!.
+Refer Release note here: https://github.com/gofynd/fdk-cli/releases/tag/v${latest}
+
 You have version ${packageJSON.version}.
-Please update to the latest version.
-${
+Please update to the latest version.${
 major
-? `\nNote: You need to update \`${packageJSON.name}\` first inorder to use it.`
+? `\n\nNote: You need to update \`${packageJSON.name}\` first inorder to use it.`
 : ''
 }
 
