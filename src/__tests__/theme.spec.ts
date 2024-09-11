@@ -39,6 +39,9 @@ import { init } from '../fdk';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
 import { startServer, getApp } from '../lib/Auth';
 const request = require('supertest');
+import {
+    getRandomFreePort
+} from '../helper/extension_utils';
 
 jest.mock('inquirer');
 let program;
@@ -332,7 +335,8 @@ describe('Theme Commands', () => {
         configStore.set(CONFIG_KEYS.USER, data.user);
 
         process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
-        const app = await startServer();
+        const port =  await getRandomFreePort([]);
+        const app = await startServer(port);
         const req = request(app);
         await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '--host', 'api.fyndx1.de']);
         await req.post('/token').send(tokenData);
