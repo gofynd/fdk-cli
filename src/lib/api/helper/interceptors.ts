@@ -129,7 +129,7 @@ export function responseErrorInterceptor() {
             (error.response.status === 401 || error.response.status === 403)
         ) {
             ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
-            throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
+            throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth, error.response.status);
         } else if (error.response) {
             Debug(`Error Response  :  ${JSON.stringify(error.response.data)}`);
             throw new CommandError(

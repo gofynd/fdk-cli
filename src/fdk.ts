@@ -42,6 +42,38 @@ async function checkTokenExpired(auth_token) {
     }
 }
 
+const extraSentryDetails = () => {
+    const auth_token = configStore.get(CONFIG_KEYS.AUTH_TOKEN);
+    const organization = configStore.get(CONFIG_KEYS.ORGANIZATION);
+    const user = {};
+    if (auth_token?.current_user) {
+        const activeEmail = auth_token.current_user?.emails?.find?.((e) => e.active && e.primary)?.email ?? 'Not primary email set';
+        const name = `${auth_token.current_user?.first_name} ${auth_token.current_user?.last_name}`;
+        user['name'] = name;
+        user['email'] = activeEmail;
+    }
+    return {
+        command: `fdk ${process?.argv?.slice?.(2)?.join(" ")}`,
+        env: configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE),
+        user,
+        organization,
+    }
+}
+
+// catch unhandled error
+process.on('uncaughtException', (err: any) => {
+    Logger.error(err);
+    Debug(err.stack);
+    if(err.code == 403 || err.code == 401){
+        // if user is not authenticated, we won't send sentry
+    } else{
+        Sentry?.captureException?.(err, {
+            extra: extraSentryDetails()
+        });
+    }
+    process.exit(1);
+});
+
 // asyncAction is a wrapper for all commands/actions to be executed after commander is done
 // parsing the command input
 export type Action = (...args: any[]) => void;
@@ -201,7 +233,10 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
                 Logger.error(message);
             } else {
                 // on report call sentry capture exception
-                Sentry.captureException(err);
+                Sentry.captureException(err, {
+                    // add extra details in sentry
+                    extra: extraSentryDetails()
+                });
                 Logger.error(err);
             }
             let parent = args[1].parent;
