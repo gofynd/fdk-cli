@@ -19,6 +19,9 @@ import { readFile } from '../helper/file.utils';
 import CommandError from '../lib/CommandError';
 import { startServer, getApp } from '../lib/Auth';
 const request = require('supertest');
+import {
+    getRandomFreePort
+} from '../helper/extension_utils';
 
 jest.mock('inquirer');
 let program;
@@ -53,7 +56,8 @@ jest.mock('open', () => {
 
 export async function login() {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
-    const app = await startServer();
+    const port =  await getRandomFreePort([]);
+    const app = await startServer(port);
     const req = request(app);
     await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '--host', 'api.fyndx1.de']);
     return await req.post('/token').send(tokenData);

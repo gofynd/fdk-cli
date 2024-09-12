@@ -136,15 +136,18 @@ This command allows user to login via partner panel.
 fdk login [options]
 ```
 #### **Command Options**
-| Option        | Description           |
-| ------------- |-------------|
-| --host    | API host |
+| Option        | Description           | 
+| ------------- |-------------| 
+| --host    | URL of the partners panel host or API host |
 | --help    | Show help |
 | --verbose, -v | enable debug mode |
 
 #### **Example**
 ```sh
 fdk login
+```
+```sh
+fdk login --host partners.fynd.com
 ```
 ```sh
 fdk login --host api.fynd.com
@@ -718,6 +721,19 @@ ___
 
 <div id="OtherProjects"></div>
 
+## Known Issues
+
+### Cloudflare Tunnel Startup Issue on Apple Silicon Machines
+
+When attempting to start a Cloudflare tunnel using the `fdk tunnel` or `fdk ext preview` commands, users on Apple Silicon machines may encounter difficulties due to the Cloudflare binary's compatibility requirements.
+
+**Solution:** Install Rosetta, which allows you to run applications that contain x86_64 instructions on Apple Silicon. You can do this by executing the following command in your terminal:
+
+```shell
+softwareupdate --install-rosetta
+```
+
+This command prompts your system to install Rosetta, resolving the compatibility issue and allowing the Cloudflare tunnel to run smoothly on your machine.
 
 ## Other Fynd projects
 | Project |Link |
