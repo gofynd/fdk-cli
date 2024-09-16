@@ -2068,7 +2068,6 @@ export default class Theme {
             // All available Custom page
             const customPagesDB = allPages.filter((x) => x.type == 'custom');
             const pagesToSave = [];
-
             // extract system page level settings schema
             let systemPagesLocally = fs
                 .readdirSync(
@@ -2518,8 +2517,17 @@ export default class Theme {
             spinner.succeed();
             return { pagesToSave, allowedDefaultProps };
         } catch (err) {
-            spinner.fail();
-            throw new CommandError(err.message, err.code);
+            let errorMessage
+            if(err?.message.split(':')[0]==='Invalid system page'){
+                let fs=`${path.join(process.cwd(), 'theme', 'templates', 'pages')}/${err.message.split(':')[1].trim()}.vue`
+                errorMessage=`Invalid system page : ${fs}`
+                spinner.fail();
+                throw new CommandError(errorMessage, err.code);
+            }
+            else{
+                spinner.fail();
+                throw new CommandError(err.message, err.code);
+            }
         }
     };
     private static uploadThemeSrcZip = async () => {
