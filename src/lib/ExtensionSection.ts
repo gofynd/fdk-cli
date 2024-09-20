@@ -292,13 +292,12 @@ export default class ExtensionSection {
         }
     }
 
-    private  static assetsImageUploader = async (destinationPath) => {
+    private  static assetsUploader = async (destinationPath) => {
         try {
             const cwd = path.resolve(
                 destinationPath,
                 'dist',
                 'assets',
-                'images',
             );
             const images = glob.sync(path.join('**', '**.**'), { cwd });
             await asyncForEach(images, async (img) => {
@@ -318,31 +317,33 @@ export default class ExtensionSection {
             );
         }
     };
-    private static assetsFontsUploader = async (destinationPath) => {
+     
+    private static getAssetCdnUrl = async () => {
         try {
-                const cwd = path.resolve(
-                    destinationPath,
-                    'dist',
-                    'assets',
-                    'fonts',
-                );
-                const fonts = glob.sync('**/**.**', { cwd });
-                await asyncForEach(fonts, async (font) => {
-                    const assetPath = path.join(
-                        cwd,
-                        font,
-                    );
-                    const url = await uploadService.uploadFile(
-                        assetPath,
-                        'application-theme-assets',
-                    );
-                });
-            
-        } catch (err) {
-            throw new CommandError(err.message, err.code);
-        }
-    };
+            const dummyFile = path.join(
+                __dirname,
+                '..',
+                '..',
+                'sample-upload.jpeg'
+            );
 
+            const response = await uploadService.uploadFile(
+                dummyFile,
+                'application-theme-assets',
+                null,
+                'application/javascript'
+            );
+            
+
+            return path.dirname(response.complete.cdn.url);
+        } catch (err) {
+            Logger.error(err);
+            throw new CommandError(
+                `Failed in getting image CDN base url`,
+                err.code,
+            );
+        }
+    }
 
     public static clearContext() {
         Configstore.set('extensionSections', {});
@@ -501,14 +502,11 @@ export default class ExtensionSection {
             if (framework === 'react' || framework === 'vue2') {
                 Logger.info(`Publishing Extension Bindings`);
 
-                const imageCdnUrl = await Theme.getImageCdnBaseUrl();
-                const fontCdnUrl = await Theme.getAssetCdnBaseUrl();
-            
+                const assetCdnUrl = await ExtensionSection.getAssetCdnUrl();
 
                 const sectionData = await ExtensionSection.buildAndExtractSections(
                     context,
-                    imageCdnUrl,
-                    fontCdnUrl,
+                    assetCdnUrl
                 );
                 sectionData.status = 'published';
 
@@ -597,8 +595,7 @@ export default class ExtensionSection {
 
     static async buildAndExtractSections(
         context: SyncExtensionBindingsOptions,
-        imageCdnUrl: string,
-        fontCdnUrl: string
+        assetCdnUrl:string
     ): Promise<any> {
         const { name: bundleName, framework } = context;
         const isReact = framework === 'react';
@@ -609,13 +606,12 @@ export default class ExtensionSection {
             isReact ? ExtensionSection.BINDINGS_DIR_REACT : ExtensionSection.BINDINGS_DIR_VUE,
             bundleName,
         )
-        Logger.info('Uploading theme assets/images');
-        await ExtensionSection.assetsImageUploader(destinationPath);
-        await ExtensionSection.assetsFontsUploader(destinationPath);
+        Logger.info('Uploading extension assets');
+        await ExtensionSection.assetsUploader(destinationPath);
         process.chdir(destinationPath);
         
         if (isReact) {
-            await ExtensionSection.buildExtensionCode({ bundleName,imageCdnUrl,fontCdnUrl }).catch(
+            await ExtensionSection.buildExtensionCode({ bundleName,assetCdnUrl }).catch(
                 console.error,
             );
         } else {
@@ -675,8 +671,7 @@ export default class ExtensionSection {
 
     static async buildExtensionCode({
         bundleName,
-        imageCdnUrl = "",
-        fontCdnUrl = "",
+        assetCdnUrl='',
         isLocal = false,
         port = 5502,
     }): Promise<{ jsFile: string; cssFile: string }> {
@@ -700,8 +695,7 @@ export default class ExtensionSection {
                 isLocal,
                 bundleName,
                 port,
-                imageCdnUrl: imageCdnUrl + '/',
-                fontCdnUrl: fontCdnUrl + '/',
+                assetCdnUrl: assetCdnUrl + '/',
                 context,
             }, webpackConfigFromBinding);
 
@@ -735,13 +729,10 @@ export default class ExtensionSection {
         if (bindingInterface === 'Web Theme') {
             if (framework === 'react' || framework === 'vue2') {
                 Logger.info(`Creating drafts for Extension Bindings`);
-                const imageCdnUrl = await Theme.getImageCdnBaseUrl();
-                const fontCdnUrl = await Theme.getAssetCdnBaseUrl();
-
+                const assetCdnUrl = await ExtensionSection.getAssetCdnUrl();
                 const sectionData = await ExtensionSection.buildAndExtractSections(
                     context,
-                    imageCdnUrl,
-                    fontCdnUrl,
+                    assetCdnUrl
                 );
                 sectionData.status = 'draft';
 
@@ -787,16 +778,13 @@ export default class ExtensionSection {
                 ));
             }
 
-            const localImageBasePath = `http://127.0.0.1:${port}/assets/images/`;
-
-            const localFontsBasePath = `http://127.0.0.1:${port}/assets/fonts/`;
+            const localAssetBasePath = `http://127.0.0.1:${port}/assets/`;
 
             const webpackConfig = extensionWebpackConfig({
                 isLocal: true,
                 bundleName,
                 port,
-                localImageBasePath,
-                localFontsBasePath,
+                localAssetBasePath,
                 context,
             }, webpackConfigFromBinding);
 

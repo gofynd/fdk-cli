@@ -36,10 +36,8 @@ type ExtensionBuildContext = {
     bundleName: string;
     port: number
     context: string;
-    imageCdnUrl?: string;
-    fontCdnUrl?: string;
-    localImageBasePath?: string,
-    localFontsBasePath?: string,
+    assetCdnUrl?: string;
+    localAssetBasePath?: string,
 }
 
 const snippet = (port) => `
