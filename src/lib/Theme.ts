@@ -1513,7 +1513,7 @@ export default class Theme {
         
         let fileNames = fs
             .readdirSync(`${process.cwd()}/theme/sections`)
-            .filter((o) => o !== 'index.js' && o !== 'sectionsSettings.json');
+            .filter((o) => o !== 'index.js');
         
         let template = `
             ${fileNames
@@ -3188,7 +3188,7 @@ export default class Theme {
         const themeName = defaultTheme.name;
         let url;
         if (themeType === 'react') {
-            url = `https://github.com/gofynd/flow.git`;
+            url = `https://github.com/gofynd/Luxe.git`;
         } else {
             url = `https://github.com/gofynd/${themeName}.git`;
         }
@@ -3196,7 +3196,7 @@ export default class Theme {
             spinner.start();
             const git = simpleGit();
             if (themeType === 'react') {
-                await git.clone(url, targetDirectory, ['--branch', 'master']);
+                await git.clone(url, targetDirectory, ['--branch', 'main']);
             } else {
                 await git.clone(url, targetDirectory);
             }

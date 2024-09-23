@@ -2,6 +2,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import NativeModule from 'module';
 import vm from 'vm';
+import which from 'which';
 import CommandError, { ErrorCodes } from '../lib/CommandError';
 import Logger, { COMMON_LOG_MESSAGES } from '../lib/Logger';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
@@ -349,5 +350,30 @@ export async function moveDirContent(from, to) {
         Debug(`Moving ${fileName}...`)
         await fs.move(file, destFile);
         Debug(`Moved: ${fileName}`)
+    }
+}
+
+export type RequiredDependency = {
+    name: string;
+    errorMessage: string;
+}
+
+// check for system dependencies
+export function checkRequiredDependencies(requiredDependencies: Array<RequiredDependency>) {
+    const missingDependencies: Array<RequiredDependency> = []; 
+
+    for (const dependency of requiredDependencies) {
+        try {
+            which.sync(dependency.name);
+        } catch (error) {
+            missingDependencies.push(dependency);
+        }
+    }
+
+    if (missingDependencies.length > 0) {
+        throw new CommandError(
+            `Missing Dependencies: Install the required dependencies on your system before creating an extension.\n` + 
+            ` - ${missingDependencies.map(dependency => dependency.errorMessage).join('\n - ')}`
+        );
     }
 }
