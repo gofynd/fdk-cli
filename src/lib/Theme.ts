@@ -351,8 +351,8 @@ export default class Theme {
                     throw new CommandError(error.message, error.code);
                 }
             });
-        config['application_id'] = "66ee8adbccab14a04875168f";
-        config['company_id'] = 35750;
+            config['application_id'] = selectedApplication;
+            config['company_id'] = selectedCompany;
         
         return config;
     }
