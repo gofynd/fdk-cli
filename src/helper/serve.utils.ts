@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import Logger from '../lib/Logger';
+import Logger, { COMMON_LOG_MESSAGES } from '../lib/Logger';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import express from 'express';
@@ -23,6 +23,7 @@ import webpackDevMiddleware from 'webpack-dev-middleware';
 import webpackHotMiddleware from 'webpack-hot-middleware';
 import webpack from 'webpack';
 import createBaseWebpackConfig from '../helper/theme.react.config';
+import CommandError from '../lib/CommandError';
 import Debug from '../lib/Debug';
 import { SupportedFrameworks } from '../lib/ExtensionSection';
 import https from 'https';
@@ -215,6 +216,13 @@ export async function startServer({ domain, host, isSSR, port }) {
                 '/.fdk/distServed/themeBundle.common.js',
             );
             const User = Configstore.get(CONFIG_KEYS.AUTH_TOKEN);
+            // If AUTH_TOKEN not available then this command won't execute
+            // but sometime it may happen that development is going on and auth token gets expired
+            // in that case API will give 401 error and AUTH_TOKEN from config will be removed
+            // if before code exits, if any request comes here then we need to check if it is exist or not
+            if(!User){
+                throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth, "401");
+            }
             themeUrl = (
                 await UploadService.uploadFile(
                     BUNDLE_PATH,
