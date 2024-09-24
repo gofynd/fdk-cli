@@ -99,23 +99,15 @@ module.exports = (env) => {
                     exclude: /\.global\.less$/,
                 },
                 {
-                    test: /\.(png|jpg|jpeg)$/i,
-                    type: "asset/resource",
-                    generator: {
-                      publicPath: isLocalBuild
-                        ? env.localAssetsPath
-                        : env.assetCdnUrl,
-                      outputPath: "assets/",
-                    },
+                  test: /\.(png|jpg|jpeg|ttf|otf|woff|woff2)$/i,
+                  type: "asset/resource",
+                  generator: {
+                    publicPath: isLocalBuild
+                      ? env.localAssetBasePath
+                      : env.assetCdnUrl,
+                    outputPath: "assets/",
                   },
-                  {
-                    test: /\.(ttf|otf|woff|woff2)$/i,
-                    type: "asset/resource",
-                    generator: {
-                      publicPath: isLocalBuild ? env.localAssetsPath : env.assetCdnUrl,
-                      outputPath: "assets/",
-                    },
-                  },
+              },
             ],
         },
         plugins: [
