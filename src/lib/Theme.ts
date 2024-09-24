@@ -351,8 +351,8 @@ export default class Theme {
                     throw new CommandError(error.message, error.code);
                 }
             });
-        config['application_id'] = selectedApplication;
-        config['company_id'] = selectedCompany;
+        config['application_id'] = "66ee8adbccab14a04875168f";
+        config['company_id'] = 35750;
         
         return config;
     }
@@ -1219,7 +1219,6 @@ export default class Theme {
             // start dev server
             Logger.info(chalk.bold.blueBright(`Starting server`));
             await startReactServer({
-                // domain : 'http://127.0.0.1',
                 domain,
                 host,
                 port,
