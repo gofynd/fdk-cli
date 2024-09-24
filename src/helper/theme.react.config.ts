@@ -98,14 +98,15 @@ export default (ctx, extendedWebpackConfig): Configuration[] => {
             : imageCdnUrl + '/';
     const isLocal = NODE_ENV === 'development';
     const localBasePath = `${getLocalBaseUrl()}:${localThemePort}/`;
-    const localAssetsPath = `${getLocalBaseUrl()}:${localThemePort}/assets/`;
-
+    const localImageBasePath = `${getLocalBaseUrl()}:${localThemePort}/assets/images/`;
+    const localFontsBasePath = `${getLocalBaseUrl()}:${localThemePort}/assets/fonts/`;
 
     const configOptions = {
         ...ctx,
         isLocal,
         localBasePath,
-        localAssetsPath,
+        localImageBasePath,
+        localFontsBasePath,
         imageCDNNormalizedBasePath,
         assetNormalizedBasePath,
     };
