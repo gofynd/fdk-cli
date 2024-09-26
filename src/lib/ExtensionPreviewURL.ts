@@ -50,9 +50,10 @@ export default class ExtensionPreviewURL {
 
             // Read extension context file
             const extensionContext = new ExtensionContext();
+            
             // Validate environment before extension preview
-            const contextEnv = extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.CURRENT_ENV) || 'api.fynd.com';
             const currentEnv = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+            const contextEnv = extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.CURRENT_ENV) || currentEnv;
             
             if(currentEnv != contextEnv)
                 extensionContext.deleteAll();
@@ -130,7 +131,7 @@ export default class ExtensionPreviewURL {
                 [CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY] : extension.options.companyId,
                 [CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]: extension.options.apiKey,
                 [CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_SECRET]: extension.options.apiSecret,
-                [CONSTANTS.EXTENSION_CONTEXT.CURRENT_ENV]: extension.options.currentEnv || 'api.fynd.com',
+                [CONSTANTS.EXTENSION_CONTEXT.CURRENT_ENV]: extension.options.currentEnv,
             })
 
             // Get Port to start the extension server
