@@ -679,7 +679,7 @@ export default class ExtensionSection {
 
     static async buildExtensionCode({
         bundleName,
-        assetCdnUrl='',
+        assetCdnUrl = '',
         isLocal = false,
         port = 5502,
     }): Promise<{ jsFile: string; cssFile: string }> {
