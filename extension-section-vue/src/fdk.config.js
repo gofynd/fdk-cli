@@ -26,7 +26,7 @@ module.exports = {
       .loader('file-loader')
       .options({
         name: '[name].[contenthash].[ext]',
-        esModule: false, // Ensure CommonJS module syntax
+        esModule: false,
         publicPath: process.env.ASSET_CDN_URL,
         outputPath: 'assets/',
       });
