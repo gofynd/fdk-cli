@@ -539,7 +539,7 @@ export default class ExtensionSection {
             'bin',
             'vue-cli-service.js',
         );
-        let assetHash=  nanoid();;
+        let assetHash = nanoid();
         Theme.createVueConfig();
         const spinner = new Spinner('Building sections using vue-cli-service');
         return new Promise(async (resolve, reject) => {
