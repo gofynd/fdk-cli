@@ -1616,7 +1616,7 @@ export default class Theme {
         rimraf.sync(Theme.SRC_ARCHIVE_FOLDER);
     };
 
-    private static createVueConfig() {
+    public static createVueConfig() {
         const oldVueConfigPath = path.join(process.cwd(), 'vue.config.js');
         const fdkConfigPath = path.join(process.cwd(), 'fdk.config.js');
         if (fs.existsSync(oldVueConfigPath)) {
@@ -1645,7 +1645,7 @@ export default class Theme {
         );
     }
 
-     private static assetsImageUploader = async () => {
+     public static assetsImageUploader = async () => {
         try {
             const cwd = path.resolve(
                 process.cwd(),
@@ -1674,7 +1674,6 @@ export default class Theme {
             );
         }
     };
-
     public static getImageCdnBaseUrl = async () => {
         try {
             const dummyFile = path.join(
@@ -1726,7 +1725,7 @@ export default class Theme {
             );
         }
     };
-    private static assetsFontsUploader = async () => {
+    public static assetsFontsUploader = async () => {
         try {
             if (
                 fs.existsSync(

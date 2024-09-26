@@ -38,6 +38,7 @@ type BindingInterface = 'Web Theme' | 'Platform';
 
 export type SupportedFrameworks = 'react' | 'vue2';
 import glob from 'glob';
+import { nanoid } from 'nanoid';
 
 type AppliedThemeData = {
     applicationId: string;
@@ -292,7 +293,7 @@ export default class ExtensionSection {
         }
     }
 
-    private  static assetsUploader = async (destinationPath) => {
+    public  static assetsUploader = async (destinationPath) => {
         try {
             const cwd = path.resolve(
                 destinationPath,
@@ -305,10 +306,10 @@ export default class ExtensionSection {
                     cwd,
                     img,
                 );
-                await uploadService.uploadFile(
+             await uploadService.uploadFile(
                     assetPath,
                     'application-theme-images',
-                );
+               );
             });
         } catch (err) {
             throw new CommandError(
@@ -318,7 +319,7 @@ export default class ExtensionSection {
         }
     };
      
-    private static getAssetCdnUrl = async () => {
+    public static getAssetCdnUrl = async () => {
         try {
             const dummyFile = path.join(
                 __dirname,
@@ -529,7 +530,7 @@ export default class ExtensionSection {
         Logger.info('Code published ...');
     }
 
-    static async buildExtensionCodeVue({ bundleName }) {
+    static async buildExtensionCodeVue({ bundleName, assetCdnUrl }) {
         const VUE_CLI_PATH = path.join(
             '.',
             'node_modules',
@@ -538,9 +539,12 @@ export default class ExtensionSection {
             'bin',
             'vue-cli-service.js',
         );
+        let assetHash=  nanoid();;
+        Theme.createVueConfig();
         const spinner = new Spinner('Building sections using vue-cli-service');
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             spinner.start();
+
             const isNodeVersionIsGreaterThan18 =
                 +process.version.split('.')[0].slice(1) >= 18;
             let b = exec(
@@ -550,6 +554,8 @@ export default class ExtensionSection {
                     env: {
                         ...process.env,
                         NODE_ENV: 'production',
+                        ASSET_CDN_URL: assetCdnUrl,
+                        ASSET_HASH: assetHash,
                         VUE_CLI_SERVICE_CONFIG_PATH: path.join(
                             process.cwd(),
                             Theme.VUE_CLI_CONFIG_PATH,
@@ -606,19 +612,21 @@ export default class ExtensionSection {
             isReact ? ExtensionSection.BINDINGS_DIR_REACT : ExtensionSection.BINDINGS_DIR_VUE,
             bundleName,
         )
-        Logger.info('Uploading extension assets');
-        await ExtensionSection.assetsUploader(destinationPath);
         process.chdir(destinationPath);
         
         if (isReact) {
-            await ExtensionSection.buildExtensionCode({ bundleName,assetCdnUrl }).catch(
+            await ExtensionSection.buildExtensionCode({ bundleName, assetCdnUrl }).catch(
                 console.error,
             );
         } else {
             await ExtensionSection.buildExtensionCodeVue({
                 bundleName: context.name,
+                assetCdnUrl
             }).catch(console.error);
         }
+
+        Logger.info('Uploading extension assets');
+        await ExtensionSection.assetsUploader(destinationPath);
 
         const uploadURLs = await ExtensionSection.uploadSectionFiles(bundleName);
 
@@ -992,6 +1000,7 @@ export default class ExtensionSection {
                     } else {
                         const res = await ExtensionSection.buildExtensionCodeVue({
                             bundleName,
+                            assetCdnUrl:`http://127.0.0.1:${port}/assets/`
                         });
 
                         let watcher = chokidar.watch(path.resolve(process.cwd(), 'src'), {
@@ -1001,6 +1010,7 @@ export default class ExtensionSection {
                             Logger.info(chalk.bold.green(`building`));
                             await ExtensionSection.buildExtensionCodeVue({
                                 bundleName,
+                                assetCdnUrl:`http://127.0.0.1:${port}/assets/`
                             });
                         });
 
