@@ -530,7 +530,7 @@ export default class ExtensionSection {
         Logger.info('Code published ...');
     }
 
-    static async buildExtensionCodeVue({ bundleName, assetCdnUrl }) {
+    static async buildExtensionCodeVue({ bundleName, assetCdnUrl, assetHash = '' }) {
         const VUE_CLI_PATH = path.join(
             '.',
             'node_modules',
@@ -539,11 +539,7 @@ export default class ExtensionSection {
             'bin',
             'vue-cli-service.js',
         );
-        const nanoid = customAlphabet(
-            '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
-            9,
-        );
-        let assetHash = nanoid();
+    
         Theme.createVueConfig();
         const spinner = new Spinner('Building sections using vue-cli-service');
         return new Promise(async (resolve, reject) => {
@@ -617,6 +613,11 @@ export default class ExtensionSection {
             bundleName,
         )
         process.chdir(destinationPath);
+        const nanoid = customAlphabet(
+            '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            9,
+        );
+        let assetHash = nanoid();
         
         if (isReact) {
             await ExtensionSection.buildExtensionCode({ bundleName, assetCdnUrl }).catch(
@@ -625,14 +626,15 @@ export default class ExtensionSection {
         } else {
             await ExtensionSection.buildExtensionCodeVue({
                 bundleName: context.name,
-                assetCdnUrl
+                assetCdnUrl,
+                assetHash
             }).catch(console.error);
         }
 
         Logger.info('Uploading extension assets');
         await ExtensionSection.assetsUploader(destinationPath);
 
-        const uploadURLs = await ExtensionSection.uploadSectionFiles(bundleName);
+        const uploadURLs = await ExtensionSection.uploadSectionFiles(bundleName,assetHash);
 
         let sections = [];
 
@@ -834,7 +836,7 @@ export default class ExtensionSection {
         }
     }
 
-    static async uploadSectionFiles(sectionName: string) {
+    static async uploadSectionFiles(sectionName: string, assetHash?:string) {
         const BUNDLE_DIR = path.join(process.cwd(), path.join('dist'));
         const User = Configstore.get(CONFIG_KEYS.AUTH_TOKEN);
 
@@ -844,8 +846,8 @@ export default class ExtensionSection {
         let files;
         if (!isReact) {
             files = [
-                ['js', `${sectionName}.umd.min.js`],
-                ['css', `${sectionName}.css`],
+                ['js', `${assetHash}_${sectionName}.umd.min.js`],
+                ['css', `${assetHash}_${sectionName}.css`],
             ];
         } else {
             files = [
