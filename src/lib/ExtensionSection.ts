@@ -38,7 +38,7 @@ type BindingInterface = 'Web Theme' | 'Platform';
 
 export type SupportedFrameworks = 'react' | 'vue2';
 import glob from 'glob';
-import { nanoid } from 'nanoid';
+import { customAlphabet } from 'nanoid';
 
 type AppliedThemeData = {
     applicationId: string;
@@ -539,6 +539,10 @@ export default class ExtensionSection {
             'bin',
             'vue-cli-service.js',
         );
+        const nanoid = customAlphabet(
+            '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            9,
+        );
         let assetHash = nanoid();
         Theme.createVueConfig();
         const spinner = new Spinner('Building sections using vue-cli-service');
@@ -548,7 +552,7 @@ export default class ExtensionSection {
             const isNodeVersionIsGreaterThan18 =
                 +process.version.split('.')[0].slice(1) >= 18;
             let b = exec(
-                `node ${VUE_CLI_PATH} build --target lib src/index.js --name ${bundleName}`,
+                `node ${VUE_CLI_PATH} build --target lib src/index.js --name ${bundleName} --filename ${assetHash}_${bundleName}`,
                 {
                     cwd: process.cwd(),
                     env: {
