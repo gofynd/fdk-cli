@@ -4,7 +4,6 @@ import fs from 'fs-extra';
 import path from 'path';
 import execa from 'execa';
 import rimraf from 'rimraf';
-import which from 'which';
 
 import { getPlatformUrls } from './api/services/url';
 import Spinner from '../helper/spinner';
@@ -27,6 +26,7 @@ import {
     installNpmPackages,
     installJavaPackages,
     moveDirContent,
+    checkRequiredDependencies,
 } from '../helper/utils';
 import Logger from './Logger';
 import urljoin from 'url-join';
@@ -284,31 +284,6 @@ export default class Extension {
         }
     }
 
-    // check for system dependencies
-    static checkDependencies(project_type: string) {
-        const missingDependencies: string[] = [];
-        const requiredDependencies: string[] = ['npm', 'git'];
-
-        if (project_type === JAVA_REACT || project_type === JAVA_VUE) {
-            requiredDependencies.push('mvn');
-        }
-
-        for (const dependency of requiredDependencies) {
-            try {
-                which.sync(dependency);
-            } catch (error) {
-                missingDependencies.push(dependency);
-            }
-        }
-
-        if (missingDependencies.length > 0) {
-            throw new CommandError(
-                `Missing Dependencies: ${missingDependencies.join(
-                    ', ',
-                )} \nInstall the required dependencies on your system before creating an extension.`,
-            );
-        }
-    }
 
     private static async confirmInitAction(){
         const extensionTypeQuestions = [
@@ -333,6 +308,18 @@ export default class Extension {
         try {
             let answers: Object = {};
             let selected_ext_type;
+
+            // Checking required dependency
+            checkRequiredDependencies([
+                {
+                    name: 'git',
+                    errorMessage: 'Please Install Git to run this command. Refer https://git-scm.com/downloads to install Git'
+                },
+                {
+                    name: 'npm',
+                    errorMessage: 'Please Install NPM to create Node.js based extension. Refer https://docs.npmjs.com/downloading-and-installing-node-js-and-npm to install Node.js'
+                }
+            ])
 
             const template = options.template;
             if(!!template){
@@ -428,7 +415,14 @@ export default class Extension {
                 prompt_answers.type = selected_ext_type;
             }
 
-            Extension.checkDependencies(prompt_answers.project_type);
+            if (prompt_answers.project_type === JAVA_REACT || prompt_answers.project_type === JAVA_VUE) {
+                checkRequiredDependencies([
+                    {
+                        name: 'mvn',
+                        errorMessage: 'Please Install Maven to create Java based extension. Refer https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html to install Maven'
+                    }
+                ])   
+            }
 
             answers.launch_url = 'http://localdev.fyndx0.de';
             answers.project_url = PROJECT_REPOS[prompt_answers.project_type];
