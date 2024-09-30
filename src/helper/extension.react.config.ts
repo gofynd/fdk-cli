@@ -36,6 +36,8 @@ type ExtensionBuildContext = {
     bundleName: string;
     port: number
     context: string;
+    assetCdnUrl?: string;
+    localAssetBasePath?: string,
 }
 
 const snippet = (port) => `
@@ -64,6 +66,7 @@ export function extensionWebpackConfig(env: ExtensionBuildContext, webpackConfig
     const isLocalBuild = env.isLocal;
 
     const extendedWebpackResolved = webpackConfigFromBinding(env);
+
 
     const baseConfig: Configuration = {
         externals: {

@@ -97,7 +97,17 @@ module.exports = (env) => {
                       "less-loader",
                     ],
                     exclude: /\.global\.less$/,
+                },
+                {
+                  test: /\.(png|jpg|jpeg|ttf|otf|woff|woff2)$/i,
+                  type: "asset/resource",
+                  generator: {
+                    publicPath: isLocalBuild
+                      ? env.localAssetBasePath
+                      : env.assetCdnUrl,
+                    outputPath: "assets/",
                   },
+              },
             ],
         },
         plugins: [

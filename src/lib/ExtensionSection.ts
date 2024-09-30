@@ -8,7 +8,7 @@ import { tunnel as startCloudflareTunnel, bin, install } from 'cloudflared';
 
 import Logger from './Logger';
 import Spinner from '../helper/spinner';
-import { installNpmPackages } from '../helper/utils';
+import { asyncForEach, installNpmPackages } from '../helper/utils';
 import { readFile } from '../helper/file.utils';
 import { extensionWebpackConfig } from '../helper/extension.react.config';
 import { webpack } from 'webpack';
@@ -37,6 +37,8 @@ const readDirectories = promisify(fs.readdir);
 type BindingInterface = 'Web Theme' | 'Platform';
 
 export type SupportedFrameworks = 'react' | 'vue2';
+import glob from 'glob';
+import { customAlphabet } from 'nanoid';
 
 type AppliedThemeData = {
     applicationId: string;
@@ -291,6 +293,59 @@ export default class ExtensionSection {
         }
     }
 
+    public  static assetsUploader = async (destinationPath) => {
+        try {
+            const cwd = path.resolve(
+                destinationPath,
+                'dist',
+                'assets',
+            );
+            const images = glob.sync(path.join('**', '**.**'), { cwd });
+            await asyncForEach(images, async (img) => {
+                const assetPath = path.join(
+                    cwd,
+                    img,
+                );
+             await uploadService.uploadFile(
+                    assetPath,
+                    'application-theme-images',
+               );
+            });
+        } catch (err) {
+            throw new CommandError(
+                err.message || `Failed to upload assets/images`,
+                err.code,
+            );
+        }
+    };
+     
+    public static getAssetCdnUrl = async () => {
+        try {
+            const dummyFile = path.join(
+                __dirname,
+                '..',
+                '..',
+                'sample-upload.jpeg'
+            );
+
+            const response = await uploadService.uploadFile(
+                dummyFile,
+                'application-theme-assets',
+                null,
+                'application/javascript'
+            );
+            
+
+            return path.dirname(response.complete.cdn.url);
+        } catch (err) {
+            Logger.error(err);
+            throw new CommandError(
+                `Failed in getting image CDN base url`,
+                err.code,
+            );
+        }
+    }
+
     public static clearContext() {
         Configstore.set('extensionSections', {});
     }
@@ -441,14 +496,18 @@ export default class ExtensionSection {
             options,
             'publish',
         );
+    
         const { interface: bindingInterface, framework, name } = context;
 
         if (bindingInterface === 'Web Theme') {
             if (framework === 'react' || framework === 'vue2') {
                 Logger.info(`Publishing Extension Bindings`);
 
+                const assetCdnUrl = await ExtensionSection.getAssetCdnUrl();
+
                 const sectionData = await ExtensionSection.buildAndExtractSections(
                     context,
+                    assetCdnUrl
                 );
                 sectionData.status = 'published';
 
@@ -471,7 +530,7 @@ export default class ExtensionSection {
         Logger.info('Code published ...');
     }
 
-    static async buildExtensionCodeVue({ bundleName }) {
+    static async buildExtensionCodeVue({ bundleName, assetCdnUrl, assetHash = '' }) {
         const VUE_CLI_PATH = path.join(
             '.',
             'node_modules',
@@ -480,18 +539,23 @@ export default class ExtensionSection {
             'bin',
             'vue-cli-service.js',
         );
+    
+        Theme.createVueConfig();
         const spinner = new Spinner('Building sections using vue-cli-service');
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             spinner.start();
+
             const isNodeVersionIsGreaterThan18 =
                 +process.version.split('.')[0].slice(1) >= 18;
             let b = exec(
-                `node ${VUE_CLI_PATH} build --target lib src/index.js --name ${bundleName}`,
+                `node ${VUE_CLI_PATH} build --target lib src/index.js --name ${bundleName} --filename ${assetHash}_${bundleName}`,
                 {
                     cwd: process.cwd(),
                     env: {
                         ...process.env,
                         NODE_ENV: 'production',
+                        ASSET_CDN_URL: assetCdnUrl,
+                        ASSET_HASH: assetHash,
                         VUE_CLI_SERVICE_CONFIG_PATH: path.join(
                             process.cwd(),
                             Theme.VUE_CLI_CONFIG_PATH,
@@ -537,6 +601,7 @@ export default class ExtensionSection {
 
     static async buildAndExtractSections(
         context: SyncExtensionBindingsOptions,
+        assetCdnUrl:string
     ): Promise<any> {
         const { name: bundleName, framework } = context;
         const isReact = framework === 'react';
@@ -547,20 +612,29 @@ export default class ExtensionSection {
             isReact ? ExtensionSection.BINDINGS_DIR_REACT : ExtensionSection.BINDINGS_DIR_VUE,
             bundleName,
         )
-
         process.chdir(destinationPath);
-
+        const nanoid = customAlphabet(
+            '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            9,
+        );
+        let assetHash = nanoid();
+        
         if (isReact) {
-            await ExtensionSection.buildExtensionCode({ bundleName }).catch(
+            await ExtensionSection.buildExtensionCode({ bundleName, assetCdnUrl }).catch(
                 console.error,
             );
         } else {
             await ExtensionSection.buildExtensionCodeVue({
                 bundleName: context.name,
+                assetCdnUrl,
+                assetHash
             }).catch(console.error);
         }
 
-        const uploadURLs = await ExtensionSection.uploadSectionFiles(bundleName);
+        Logger.info('Uploading extension assets');
+        await ExtensionSection.assetsUploader(destinationPath);
+
+        const uploadURLs = await ExtensionSection.uploadSectionFiles(bundleName,assetHash);
 
         let sections = [];
 
@@ -611,6 +685,7 @@ export default class ExtensionSection {
 
     static async buildExtensionCode({
         bundleName,
+        assetCdnUrl = '',
         isLocal = false,
         port = 5502,
     }): Promise<{ jsFile: string; cssFile: string }> {
@@ -623,7 +698,7 @@ export default class ExtensionSection {
                 context,
                 'webpack.config.js'
             );
-
+            
             if (fs.existsSync(webpackExtendedPath)) {
                 ({ default: webpackConfigFromBinding } = await import(
                     webpackExtendedPath
@@ -634,6 +709,7 @@ export default class ExtensionSection {
                 isLocal,
                 bundleName,
                 port,
+                assetCdnUrl: assetCdnUrl + '/',
                 context,
             }, webpackConfigFromBinding);
 
@@ -667,9 +743,10 @@ export default class ExtensionSection {
         if (bindingInterface === 'Web Theme') {
             if (framework === 'react' || framework === 'vue2') {
                 Logger.info(`Creating drafts for Extension Bindings`);
-
+                const assetCdnUrl = await ExtensionSection.getAssetCdnUrl();
                 const sectionData = await ExtensionSection.buildAndExtractSections(
                     context,
+                    assetCdnUrl
                 );
                 sectionData.status = 'draft';
 
@@ -715,10 +792,13 @@ export default class ExtensionSection {
                 ));
             }
 
+            const localAssetBasePath = `http://127.0.0.1:${port}/assets/`;
+
             const webpackConfig = extensionWebpackConfig({
                 isLocal: true,
                 bundleName,
                 port,
+                localAssetBasePath,
                 context,
             }, webpackConfigFromBinding);
 
@@ -756,7 +836,7 @@ export default class ExtensionSection {
         }
     }
 
-    static async uploadSectionFiles(sectionName: string) {
+    static async uploadSectionFiles(sectionName: string, assetHash?:string) {
         const BUNDLE_DIR = path.join(process.cwd(), path.join('dist'));
         const User = Configstore.get(CONFIG_KEYS.AUTH_TOKEN);
 
@@ -766,8 +846,8 @@ export default class ExtensionSection {
         let files;
         if (!isReact) {
             files = [
-                ['js', `${sectionName}.umd.min.js`],
-                ['css', `${sectionName}.css`],
+                ['js', `${assetHash}_${sectionName}.umd.min.js`],
+                ['css', `${assetHash}_${sectionName}.css`],
             ];
         } else {
             files = [
@@ -926,6 +1006,7 @@ export default class ExtensionSection {
                     } else {
                         const res = await ExtensionSection.buildExtensionCodeVue({
                             bundleName,
+                            assetCdnUrl:`http://127.0.0.1:${port}/assets/`
                         });
 
                         let watcher = chokidar.watch(path.resolve(process.cwd(), 'src'), {
@@ -935,6 +1016,7 @@ export default class ExtensionSection {
                             Logger.info(chalk.bold.green(`building`));
                             await ExtensionSection.buildExtensionCodeVue({
                                 bundleName,
+                                assetCdnUrl:`http://127.0.0.1:${port}/assets/`
                             });
                         });
 

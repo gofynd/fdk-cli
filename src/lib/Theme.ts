@@ -351,8 +351,9 @@ export default class Theme {
                     throw new CommandError(error.message, error.code);
                 }
             });
-        config['application_id'] = selectedApplication;
-        config['company_id'] = selectedCompany;
+            config['application_id'] = selectedApplication;
+            config['company_id'] = selectedCompany;
+        
         return config;
     }
 
@@ -1217,7 +1218,6 @@ export default class Theme {
 
             // start dev server
             Logger.info(chalk.bold.blueBright(`Starting server`));
-
             await startReactServer({
                 domain,
                 host,
@@ -1616,7 +1616,7 @@ export default class Theme {
         rimraf.sync(Theme.SRC_ARCHIVE_FOLDER);
     };
 
-    private static createVueConfig() {
+    public static createVueConfig() {
         const oldVueConfigPath = path.join(process.cwd(), 'vue.config.js');
         const fdkConfigPath = path.join(process.cwd(), 'fdk.config.js');
         if (fs.existsSync(oldVueConfigPath)) {
@@ -1645,7 +1645,7 @@ export default class Theme {
         );
     }
 
-    private static assetsImageUploader = async () => {
+     public static assetsImageUploader = async () => {
         try {
             const cwd = path.resolve(
                 process.cwd(),
@@ -1674,8 +1674,7 @@ export default class Theme {
             );
         }
     };
-
-    private static getImageCdnBaseUrl = async () => {
+    public static getImageCdnBaseUrl = async () => {
         try {
             const dummyFile = path.join(
                 __dirname,
@@ -1701,7 +1700,7 @@ export default class Theme {
         }
     };
 
-    private static getAssetCdnBaseUrl = async () => {
+    public static getAssetCdnBaseUrl = async () => {
         try {
             const dummyFile = path.join(
                 __dirname,
@@ -1726,7 +1725,7 @@ export default class Theme {
             );
         }
     };
-    private static assetsFontsUploader = async () => {
+    public static assetsFontsUploader = async () => {
         try {
             if (
                 fs.existsSync(
