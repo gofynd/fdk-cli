@@ -88,7 +88,7 @@ export default class Theme {
     );
     static BUILD_FOLDER = './.fdk/dist';
     static SERVE_BUILD_FOLDER = './.fdk/distServed';
-    static REACT_SECTIONS_SETTINGS_JSON = path.join(process.cwd(), 'theme', 'sections',"sectionsSettings.json");
+    static REACT_SECTIONS_SETTINGS_JSON = path.join(process.cwd(), 'theme', 'sections', "sectionsSettings.json");
     static SRC_FOLDER = path.join('.fdk', 'temp-theme');
     static VUE_CLI_CONFIG_PATH = path.join('.fdk', 'vue.config.js');
     static REACT_CLI_CONFIG_PATH = 'webpack.config.js';
@@ -525,12 +525,17 @@ export default class Theme {
             process.chdir(path.join('.', options.name));
 
             Logger.info('Installing dependencies');
-
             // Create index.js with section file imports
             Logger.info('creating section index file');
-            Theme.validateReactSectionFileNames()
-            await Theme.createReactSectionsIndexFile();
-            await Theme.createReactSectionsSettingsJson()
+            const sectionChunkingEnabled = await Theme.isSectionChunkingEnabled()
+            if (sectionChunkingEnabled) {
+                Theme.validateReactSectionFileNames()
+                await Theme.createReactSectionsChunksIndexFile();
+                await Theme.createReactSectionsSettingsJson()
+            }
+            else {
+                await Theme.createReactSectionsBundleIndexFile()
+            }
             Logger.info('created section index file');
 
             Logger.info('Installing dependencies');
@@ -553,7 +558,7 @@ export default class Theme {
 
             const parsed = await Theme.getThemeBundle(stats);
             const available_sections =
-                await Theme.getAvailableReactSectionsForSync(parsed.sections);
+                await Theme.getAvailableReactSectionsForSync(parsed.sections, sectionChunkingEnabled);
             let settings_schema = await fs.readJSON(
                 path.join(
                     process.cwd(),
@@ -845,9 +850,14 @@ export default class Theme {
 
             // Clear previosu builds
             Theme.clearPreviousBuild();
-            Theme.validateReactSectionFileNames()
-            // Create index.js with section file imports
-            await Theme.createReactSectionsIndexFile();
+            const sectionChunkingEnabled = await Theme.isSectionChunkingEnabled()
+            if (sectionChunkingEnabled) {
+                Theme.validateReactSectionFileNames()
+                await Theme.createReactSectionsChunksIndexFile();
+            }
+            else {
+                await Theme.createReactSectionsBundleIndexFile()
+            }
 
             const buildPath = path.join(process.cwd(), Theme.BUILD_FOLDER);
 
@@ -876,7 +886,10 @@ export default class Theme {
                 isHMREnabled: false,
                 targetDirectory
             });
-            await Theme.createReactSectionsSettingsJson()
+
+            if (sectionChunkingEnabled) {
+                await Theme.createReactSectionsSettingsJson()
+            }
 
             const parsed = await Theme.getThemeBundle(stats);
             Logger.info('Uploading theme assets/images');
@@ -886,7 +899,7 @@ export default class Theme {
             await Theme.assetsFontsUploader();
 
             let available_sections =
-                await Theme.getAvailableReactSectionsForSync(parsed.sections);
+                await Theme.getAvailableReactSectionsForSync(parsed.sections, sectionChunkingEnabled);
 
             await Theme.validateAvailableSections(available_sections);
 
@@ -937,12 +950,9 @@ export default class Theme {
                     chalk.green(
                         terminalLink(
                             '',
-                            `${getPlatformUrls().platform}/company/${
-                                currentContext.company_id
-                            }/application/${
-                                currentContext.application_id
-                            }/themes/${
-                                currentContext.theme_id
+                            `${getPlatformUrls().platform}/company/${currentContext.company_id
+                            }/application/${currentContext.application_id
+                            }/themes/${currentContext.theme_id
                             }/edit?preview=true`,
                         ),
                     ),
@@ -1082,12 +1092,9 @@ export default class Theme {
                     chalk.green(
                         terminalLink(
                             '',
-                            `${getPlatformUrls().platform}/company/${
-                                currentContext.company_id
-                            }/application/${
-                                currentContext.application_id
-                            }/themes/${
-                                currentContext.theme_id
+                            `${getPlatformUrls().platform}/company/${currentContext.company_id
+                            }/application/${currentContext.application_id
+                            }/themes/${currentContext.theme_id
                             }/edit?preview=true`,
                         ),
                     ),
@@ -1123,8 +1130,8 @@ export default class Theme {
             typeof options['port'] === 'string'
                 ? parseInt(options['port'])
                 : typeof options['port'] === 'number'
-                ? options['port']
-                : DEFAULT_PORT;
+                    ? options['port']
+                    : DEFAULT_PORT;
         const port = await getPort(serverPort);
         if (port !== serverPort)
             Logger.warn(
@@ -1154,8 +1161,8 @@ export default class Theme {
                 typeof options['ssr'] === 'boolean'
                     ? options['ssr']
                     : options['ssr'] == 'true'
-                    ? true
-                    : false;
+                        ? true
+                        : false;
             !isSSR ? Logger.warn('Disabling SSR') : null;
 
             // initial build
@@ -1204,14 +1211,20 @@ export default class Theme {
                 typeof options['hmr'] === 'boolean'
                     ? options['hmr']
                     : options['hmr'] == 'true'
-                    ? true
-                    : false;
+                        ? true
+                        : false;
 
             // initial build
             Logger.info(`Locally building`);
-            Theme.validateReactSectionFileNames()
-            // Create index.js with section file imports
-            await Theme.createReactSectionsIndexFile();
+            const sectionChunkingEnabled = await Theme.isSectionChunkingEnabled()
+            if (sectionChunkingEnabled) {
+                Theme.validateReactSectionFileNames()
+                await Theme.createReactSectionsChunksIndexFile();
+                await Theme.createReactSectionsSettingsJson()
+            }
+            else {
+                await Theme.createReactSectionsBundleIndexFile()
+            }
 
             await devReactBuild({
                 buildFolder: Theme.SERVE_BUILD_FOLDER,
@@ -1349,7 +1362,7 @@ export default class Theme {
             sectionsFiles = fs
                 .readdirSync(path.join(Theme.TEMPLATE_DIRECTORY, '/sections'))
                 .filter((o) => o != 'index.js');
-        } catch (err) {}
+        } catch (err) { }
         let settings = sectionsFiles.map((f) => {
             return Theme.extractSettingsFromFile(
                 `${Theme.TEMPLATE_DIRECTORY}/theme/sections/${f}`,
@@ -1368,18 +1381,30 @@ export default class Theme {
         });
         return settings;
     }
-    private static async getAvailableReactSectionsForSync(sections) {
+    private static async getAvailableReactSectionsForSync(sections, sectionChunkingEnabled) {
         if (!sections) {
             Logger.error('Error occured');
         }
-        const sectionsKeys = Object.keys(sections);
-        const fileContent = fs.readFileSync(Theme.REACT_SECTIONS_SETTINGS_JSON, 'utf-8');
-        const sectionsSettings = JSON.parse(fileContent);
-        const allSections = []
-        sectionsKeys.forEach(section => {
-            allSections.push({ name: section, ...sectionsSettings[section] })
-        })
-        return allSections;
+        if (sectionChunkingEnabled) {
+            const sectionsKeys = Object.keys(sections);
+            const fileContent = fs.readFileSync(Theme.REACT_SECTIONS_SETTINGS_JSON, 'utf-8');
+            const sectionsSettings = JSON.parse(fileContent);
+            const allSections = []
+            sectionsKeys.forEach(section => {
+                allSections.push({ name: section, ...sectionsSettings[section] })
+            })
+            return allSections;
+        } else {
+            const allSections = Object.entries<{ settings: any; Component: any }>(
+                sections,
+            ).map(([name, sectionModule]) => ({
+                name,
+                ...(sectionModule.settings || {}),
+            }));
+
+            return allSections;
+        }
+
     }
     static validateReactSectionFileNames() {
         Logger.info('Validating Section File Names')
@@ -1510,11 +1535,11 @@ export default class Theme {
     }
     private static async createSectionsIndexFile(available_sections) {
         available_sections = available_sections || [];
-        
+
         let fileNames = fs
             .readdirSync(`${process.cwd()}/theme/sections`)
             .filter((o) => o !== 'index.js');
-        
+
         let template = `
             ${fileNames
                 .map((f, i) => {
@@ -1526,17 +1551,17 @@ export default class Theme {
             function exportComponents(components) {
                 return [
                     ${available_sections
-                        .map((s, i) => {
-                            return JSON.stringify({
-                                name: s.name,
-                                label: s.label,
-                                component: '',
-                            }).replace(
-                                '"component":""',
-                                `"component": components[${i}]`,
-                            );
-                        })
-                        .join(',\n')}
+                .map((s, i) => {
+                    return JSON.stringify({
+                        name: s.name,
+                        label: s.label,
+                        component: '',
+                    }).replace(
+                        '"component":""',
+                        `"component": components[${i}]`,
+                    );
+                })
+                .join(',\n')}
                 ];
             }
             
@@ -1544,28 +1569,28 @@ export default class Theme {
                 .map((f, i) => `component${i}`)
                 .join(', ')}]);
         `;
-        
+
         rimraf.sync(`${process.cwd()}/theme/sections/index.js`);
         fs.writeFileSync(`${process.cwd()}/theme/sections/index.js`, template.trim());
     }
-    private static async createReactSectionsIndexFile() {
+    private static async createReactSectionsChunksIndexFile() {
         function transformSectionFileName(fileName) {
             // Remove the file extension
             const nameWithoutExtension = fileName.replace(/\.jsx$/, '');
-        
+
             // Extract the base name before any `.section` or `.chunk`
             const sectionKey = nameWithoutExtension
                 .replace(/(\.section|\.chunk|\.section\.chunk)$/, '');
-        
+
             // Convert the sectionKey to PascalCase
             const SectionName = sectionKey
                 .split('-')
                 .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                 .join('') + 'SectionChunk';
-        
+
             return [SectionName, sectionKey];
         }
-        
+
         let fileNames = fs
             .readdirSync(`${process.cwd()}/theme/sections`)
             .filter((o) => o !== 'index.js' && o !== 'sectionsSettings.json');
@@ -1576,29 +1601,89 @@ export default class Theme {
                 return `const ${SectionName} = loadable(() => import(/* webpackChunkName:"${SectionName}" */ './${fileName}'));\n`;
             })
             .join('\n');
-    
+
         const getbundleTemplate = `const getbundle = (type) => {
         switch(type) {
             ${fileNames.map((fileName) => {
-                const [SectionName, sectionKey] = transformSectionFileName(fileName);
-                return `case '${sectionKey}':\n            return (props) => <${SectionName} {...props}/>;`;
-            }).join('\n        ')}
+            const [SectionName, sectionKey] = transformSectionFileName(fileName);
+            return `case '${sectionKey}':\n            return (props) => <${SectionName} {...props}/>;`;
+        }).join('\n        ')}
             default:
                 return null;
         }
     };\n`;
-    
+
         const exportingTemplate = `export default {
             ${fileNames.map((fileName) => {
-                const [SectionName, sectionKey] = transformSectionFileName(fileName);
-                return `'${sectionKey}': { ...${SectionName}, Component: getbundle('${sectionKey}') },`;
-            }).join('\n        ')}
+            const [SectionName, sectionKey] = transformSectionFileName(fileName);
+            return `'${sectionKey}': { ...${SectionName}, Component: getbundle('${sectionKey}') },`;
+        }).join('\n        ')}
         };`;
-    
+
         const content = `import loadable from '@loadable/component';\nimport React from "react";\n\n` + importingTemplate + `\n\n` + getbundleTemplate + `\n\n` + exportingTemplate;
-    
+
         rimraf.sync(`${process.cwd()}/theme/sections/index.js`);
         fs.writeFileSync(`${process.cwd()}/theme/sections/index.js`, content);
+    }
+    private static async isSectionChunkingEnabled() {
+        // Read the package.json file
+        const packageJsonPath = path.join(process.cwd(), 'package.json');
+
+        try {
+            const data = fs.readFileSync(packageJsonPath, 'utf-8');
+            const packageJson = JSON.parse(data);
+
+            // Check if the "section_chunking" feature is set to true
+            if (packageJson.fdk_feature && packageJson.fdk_feature?.section_chunking === true) {
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error("Error reading or parsing package.json:", error);
+            return false;
+        }
+    }
+    private static async createReactSectionsBundleIndexFile() {
+        Theme.deleteReactSectionsSettingsJson()
+        let fileNames = fs
+            .readdirSync(`${process.cwd()}/theme/sections`)
+            .filter((o) => o != 'index.js');
+
+        const importingTemplate = fileNames
+            .map((fileName) => {
+                const [SectionName] = transformSectionFileName(fileName);
+                return `import * as ${SectionName} from './${fileName}';`;
+            })
+            .join('\n');
+
+        const exportingTemplate = `export default {
+            ${fileNames.map((fileName) => {
+            const [SectionName, sectionKey] =
+                transformSectionFileName(fileName);
+            return `'${sectionKey}': { ...${SectionName}, },`;
+        }).join(`
+            `)}
+        }`;
+
+        const content = importingTemplate + '\n\n' + exportingTemplate;
+
+        rimraf.sync(`${process.cwd()}/theme/sections/index.js`);
+        fs.writeFileSync(`${process.cwd()}/theme/sections/index.js`, content);
+    }
+    private static deleteReactSectionsSettingsJson() {
+        const outputFilePath = Theme.REACT_SECTIONS_SETTINGS_JSON;
+        try {
+            // Check if the file exists
+            if (fs.existsSync(outputFilePath)) {
+                // Delete the file using rimraf (for recursive file deletion)
+                rimraf.sync(outputFilePath);
+                Logger.info(`File ${outputFilePath} has been deleted successfully.`);
+            } else {
+                Logger.info(`File ${outputFilePath} does not exist.`);
+            }
+        } catch (error) {
+            Logger.error(`Error while deleting the file: ${error}`);
+        }
     }
     private static async createReactSectionsSettingsJson() {
         const sectionsPath = path.join(process.cwd(), 'theme', 'sections');
@@ -1641,11 +1726,11 @@ export default class Theme {
         const outputFilePath = Theme.REACT_SECTIONS_SETTINGS_JSON;
 
         // Write the JSON object to the output file
-        rimraf.sync(outputFilePath); // Remove the existing JSON file if it exists
+        Theme.deleteReactSectionsSettingsJson() // Remove the existing JSON file if it exists
         fs.writeFileSync(outputFilePath, JSON.stringify(sectionsSettings, null, 2));
         Logger.info('Sections settings JSON file created successfully!');
     }
-    
+
     private static extractSectionsFromFile(path) {
         let $ = cheerio.load(readFile(path));
         let template = $('template').html();
@@ -2299,9 +2384,9 @@ export default class Theme {
                                     ) {
                                         if (
                                             prop.id ===
-                                                defaultPage.props[i].id &&
+                                            defaultPage.props[i].id &&
                                             prop.type ===
-                                                defaultPage.props[i].type
+                                            defaultPage.props[i].type
                                         )
                                             return prop.id;
                                     }
@@ -2357,7 +2442,7 @@ export default class Theme {
                         ) {
                             customRoutes(ctTemplates[key].children, routerPath);
                         }
-                    }else{
+                    } else {
                         throw new Error(`Found an invalid custom page URL: ${key}`);
                     }
                 }
@@ -2510,9 +2595,9 @@ export default class Theme {
                                     ) {
                                         if (
                                             prop.id ===
-                                                defaultPage.props[i].id &&
+                                            defaultPage.props[i].id &&
                                             prop.type ===
-                                                defaultPage.props[i].type
+                                            defaultPage.props[i].type
                                         )
                                             return prop.id;
                                     }
@@ -2784,13 +2869,19 @@ export default class Theme {
             isHMREnabled: false,
         });
 
-        Theme.validateReactSectionFileNames()
-        await Theme.createReactSectionsIndexFile();
-        await Theme.createReactSectionsSettingsJson()
-
+        const sectionChunkingEnabled = await Theme.isSectionChunkingEnabled()
+            if (sectionChunkingEnabled) {
+                Theme.validateReactSectionFileNames()
+                await Theme.createReactSectionsChunksIndexFile();
+                await Theme.createReactSectionsSettingsJson()
+            }
+            else {
+                await Theme.createReactSectionsBundleIndexFile()
+            }
         const parsed = await Theme.getThemeBundle(stats);
         let available_sections = await Theme.getAvailableReactSectionsForSync(
             parsed.sections,
+            sectionChunkingEnabled
         );
         await Theme.validateAvailableSections(available_sections);
 
