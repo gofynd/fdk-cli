@@ -30,6 +30,7 @@ async function checkTokenExpired(auth_token) {
 
 export const getApp = async () => {
     const app = express();
+    let isLoading = false;
 
     app.use(cors());
     app.use(express.json());
@@ -37,6 +38,10 @@ export const getApp = async () => {
     app.post('/token', async (req, res) => {
         try {
             Debug(req);
+            if (isLoading){
+                return res.status(429).json({ message: 'Another request is in progress. Please try again later.' });
+            }
+            isLoading = true; 
             if (Auth.wantToChangeOrganization)
                 ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
             const expiryTimestamp =
@@ -67,6 +72,9 @@ export const getApp = async () => {
             Debug(err);
             Auth.stopSever();
             res.status(500).json({ message: 'failed' });
+        }
+        finally{
+            isLoading=false;
         }
     });
 
