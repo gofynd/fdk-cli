@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import Auth from '../lib/Auth';
+import { customHelpSectionData } from '../helper/formate_helper_text';
 
 export default function context(program: Command) {
     // List available context
@@ -19,4 +20,6 @@ export default function context(program: Command) {
         .command('user')
         .description('Prints logged in user information')
         .asyncAction(Auth.getUserInfo);
+    
+    customHelpSectionData(program)
 }
