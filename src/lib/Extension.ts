@@ -37,7 +37,7 @@ export const NODE_VUE = 'Node + Vue 3 + SQLite';
 export const NODE_REACT = 'Node + React.js + SQLite';
 export const JAVA_VUE = 'Java + Vue 2 + SQLite';
 export const JAVA_REACT = 'Java + React.js + SQLite';
-export const EXTENSION_BRANCH = 'main';
+export const EXTENSION_BRANCH = 'added-dynamic-cluster-support-from-env-FPCO-39926';
 
 const TEMPLATES = {
     'node-vue': NODE_VUE,
