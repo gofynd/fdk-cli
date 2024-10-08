@@ -58,6 +58,11 @@ export default class Env {
             finalDomain = domain.replace('https://', '');
         }
 
+        // remove http:// from domain if present
+        if (domain.includes('http://')) {
+            finalDomain = domain.replace('http://', '');
+        }
+
         // validate domain
         if (!isValidDomain(finalDomain)) {
             throw new CommandError(
