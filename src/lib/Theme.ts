@@ -353,9 +353,6 @@ export default class Theme {
             });
         config['application_id'] = selectedApplication;
         config['company_id'] = selectedCompany;
-        // config['application_id'] = "6672cdcc9399006687477a5c";
-        // config['company_id'] = 63;
-        console.log({config});
         
         return config;
     }
@@ -369,28 +366,25 @@ export default class Theme {
                 shouldDelete = false;
                 throw new CommandError(`Folder ${options.name} already exists`);
             }
-            const themeType = await Theme.selectThemeType();
-            if (themeType !== 'vue2' && themeType !== 'react') {
-                throw new CommandError(COMMON_LOG_MESSAGES.invalidThemeType);
-            }
+
             const configObj = await Theme.selectCompanyAndStore();
             const { data: appConfig } =
                 await ConfigurationService.getApplicationDetails(configObj);
 
-            if (themeType === 'vue2') {
+            if (options['type'] == 'vue2') {
                 await Theme.createVueTheme(
                     options,
                     appConfig,
                     configObj,
                     targetDirectory,
                 );
-            } else if (themeType === 'react') {
+            } else {
                 await Theme.createReactTheme(
                     options,
                     appConfig,
                     configObj,
                     targetDirectory,
-                    themeType,
+                    'react',
                 );
             }
         } catch (error) {
@@ -2306,8 +2300,6 @@ export default class Theme {
                 customPage.type = 'custom';
                 pagesToSave.push(customPage);
             }
-            // Logger.info('Updating theme');
-            // await ThemeService.updateTheme(theme);
             await ThemeService.updateAllAvailablePages({ pages: pagesToSave });
             spinner.succeed();
             return { pagesToSave, allowedDefaultProps };
