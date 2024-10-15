@@ -3111,25 +3111,6 @@ export default class Theme {
         }
     };
 
-    private static selectThemeType = async () => {
-        try {
-            const questions = [
-                {
-                    type: 'list',
-                    name: 'themeType',
-                    message:
-                        'Select the framework for which you want to create theme',
-                    choices: ['vue2', 'react'],
-                },
-            ];
-            return await inquirer.prompt(questions).then((answers) => {
-                return answers.themeType;
-            });
-        } catch (error) {
-            throw new CommandError(error.message);
-        }
-    };
-
     private static ensureThemeTypeInPackageJson = async () => {
         try {
             const packageJsonPath = path.resolve(
