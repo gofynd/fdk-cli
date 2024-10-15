@@ -210,30 +210,30 @@ export async function startServer({ domain, host, isSSR, port }) {
         const jetfireUrl = new URL(urlJoin(domain, req.originalUrl));
         jetfireUrl.searchParams.set('themeId', currentContext.theme_id);
         let themeUrl = '';
-        if (isSSR) {
-            const BUNDLE_PATH = path.join(
-                process.cwd(),
-                '/.fdk/distServed/themeBundle.common.js',
-            );
-            const User = Configstore.get(CONFIG_KEYS.AUTH_TOKEN);
-            // If AUTH_TOKEN not available then this command won't execute
-            // but sometime it may happen that development is going on and auth token gets expired
-            // in that case API will give 401 error and AUTH_TOKEN from config will be removed
-            // if before code exits, if any request comes here then we need to check if it is exist or not
-            if(!User){
-                throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth, "401");
-            }
-            themeUrl = (
-                await UploadService.uploadFile(
-                    BUNDLE_PATH,
-                    'fdk-cli-dev-files',
-                    User.current_user._id,
-                )
-            ).complete.cdn.url;
-        } else {
-            jetfireUrl.searchParams.set('__csr', 'true');
-        }
         try {
+            if (isSSR) {
+                const BUNDLE_PATH = path.join(
+                    process.cwd(),
+                    '/.fdk/distServed/themeBundle.common.js',
+                );
+                const User = Configstore.get(CONFIG_KEYS.AUTH_TOKEN);
+                // If AUTH_TOKEN not available then this command won't execute
+                // but sometime it may happen that development is going on and auth token gets expired
+                // in that case API will give 401 error and AUTH_TOKEN from config will be removed
+                // if before code exits, if any request comes here then we need to check if it is exist or not
+                if(!User){
+                    throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth, "401");
+                }
+                themeUrl = (
+                    await UploadService.uploadFile(
+                        BUNDLE_PATH,
+                        'fdk-cli-dev-files',
+                        User.current_user._id,
+                    )
+                ).complete.cdn.url;
+            } else {
+                jetfireUrl.searchParams.set('__csr', 'true');
+            }
             // Bundle directly passed on with POST request body.
             const { data: html } : { data : string} = await axios({
                 method: 'POST',
@@ -422,91 +422,92 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
     const uploadedFiles = {};
 
     app.get('/*', async (req, res) => {
-        // If browser is not requesting for html page (it can be file, API call, etc...), then fetch and send requested data directly from source
-        const acceptHeader = req.get('Accept');
-        if (
-            (acceptHeader && !acceptHeader.includes('text/html')) ||
-            req.path.includes('/public')
-        ) {
-            // while text/html is a commonly included type, it's not a strict requirement for all browsers to include it in their Accept headers for HTML page requests.
-            return await requestToOriginalSource(
-                req,
-                res,
-                domain,
-                currentContext.theme_id,
-            );
-        }
-        const BUNDLE_DIR = path.join(process.cwd(), path.join('.fdk', 'distServed'));
-        if (req.originalUrl == '/favicon.ico' || req.originalUrl == '/.webp') {
-            return res.status(404).send('Not found');
-        }
-        // While build is not complete
-        if (!fs.existsSync(path.join(BUNDLE_DIR, 'themeBundle.umd.js'))) {
-            return res.sendFile(
-                path.join(__dirname, '../../', '/dist/helper', '/loader.html'),
-            );
-        }
-        const skyfireUrl = new URL(urlJoin(domain, req.originalUrl));
-        const reqChunkUrl = new URL(urlJoin(domain, '__required_chunks'));
-        skyfireUrl.searchParams.set('themeId', currentContext.theme_id);
-        reqChunkUrl.searchParams.set('themeId', currentContext.theme_id);
-        reqChunkUrl.searchParams.set('url', req.originalUrl);
-        const response = await axios.get(reqChunkUrl.toString());
-        const requiredFiles = ['themeBundle', ...(response.data || [])];
-
-        const User = Configstore.get(CONFIG_KEYS.AUTH_TOKEN);
-        const buildFiles = fs.readdirSync(BUNDLE_DIR);
-
-        const promises = [];
-        const themeURLs: any = {};
-        for (let fileName of buildFiles) {
-            const { extension, componentName } = parseBundleFilename(fileName);
+        try {
+            // If browser is not requesting for html page (it can be file, API call, etc...), then fetch and send requested data directly from source
+            const acceptHeader = req.get('Accept');
             if (
-                ['js', 'css'].includes(extension) &&
-                requiredFiles.indexOf(componentName) !== -1 &&
-                fileName.indexOf('hot-update') === -1
+                (acceptHeader && !acceptHeader.includes('text/html')) ||
+                req.path.includes('/public')
             ) {
-                const promise = UploadService.uploadFile(
-                    path.join(BUNDLE_DIR, fileName),
-                    'fdk-cli-dev-files',
-                    User.current_user._id,
-                ).then((response) => {
-                    const url = response.complete.cdn.url;
-                    themeURLs[componentName] = themeURLs[componentName] || {};
-                    themeURLs[componentName][extension] = url;
-                });
-                promises.push(promise);
+                // while text/html is a commonly included type, it's not a strict requirement for all browsers to include it in their Accept headers for HTML page requests.
+                return await requestToOriginalSource(
+                    req,
+                    res,
+                    domain,
+                    currentContext.theme_id,
+                );
             }
-        }
+            const BUNDLE_DIR = path.join(process.cwd(), path.join('.fdk', 'distServed'));
+            if (req.originalUrl == '/favicon.ico' || req.originalUrl == '/.webp') {
+                return res.status(404).send('Not found');
+            }
+            // While build is not complete
+            if (!fs.existsSync(path.join(BUNDLE_DIR, 'themeBundle.umd.js'))) {
+                return res.sendFile(
+                    path.join(__dirname, '../../', '/dist/helper', '/loader.html'),
+                );
+            }
+            const skyfireUrl = new URL(urlJoin(domain, req.originalUrl));
+            const reqChunkUrl = new URL(urlJoin(domain, '__required_chunks'));
+            skyfireUrl.searchParams.set('themeId', currentContext.theme_id);
+            reqChunkUrl.searchParams.set('themeId', currentContext.theme_id);
+            reqChunkUrl.searchParams.set('url', req.originalUrl);
+            const response = await axios.get(reqChunkUrl.toString());
+            const requiredFiles = ['themeBundle', ...(response.data || [])];
 
-        await Promise.all(promises);
+            const User = Configstore.get(CONFIG_KEYS.AUTH_TOKEN);
+            const buildFiles = fs.readdirSync(BUNDLE_DIR);
 
-        const { data: html } = await axios
-            .post(
-                skyfireUrl.toString(),
-                {
-                    themeURLs,
-                    cliMeta: {
-                        port,
-                        domain: getFullLocalUrl(port),
+            const promises = [];
+            const themeURLs: any = {};
+            for (let fileName of buildFiles) {
+                const { extension, componentName } = parseBundleFilename(fileName);
+                if (
+                    ['js', 'css'].includes(extension) &&
+                    requiredFiles.indexOf(componentName) !== -1 &&
+                    fileName.indexOf('hot-update') === -1
+                ) {
+                    const promise = UploadService.uploadFile(
+                        path.join(BUNDLE_DIR, fileName),
+                        'fdk-cli-dev-files',
+                        User.current_user._id,
+                    ).then((response) => {
+                        const url = response.complete.cdn.url;
+                        themeURLs[componentName] = themeURLs[componentName] || {};
+                        themeURLs[componentName][extension] = url;
+                    });
+                    promises.push(promise);
+                }
+            }
+
+            await Promise.all(promises);
+
+            const { data: html } = await axios
+                .post(
+                    skyfireUrl.toString(),
+                    {
+                        themeURLs,
+                        cliMeta: {
+                            port,
+                            domain: getFullLocalUrl(port),
+                        },
                     },
-                },
-                {
-                    headers,
-                },
-            )
-            .catch((error) => {
-                console.log(error);
-                return { data: error };
-            });
-        let $ = cheerio.load(html);
-        $('head').prepend(`
+                    {
+                        headers,
+                    },
+                )
+                .catch((error) => {
+                    console.log(error);
+                    return { data: error };
+                });
+            let $ = cheerio.load(html);
+            $('head').prepend(`
 				<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
 				<script>
 				var socket = io();
 				socket.on('reload',function(){
 					${isHMREnabled
-                ? `
+                    ? `
 						try {
 							window.APP_DATA.themeBundleUMDURL = '/themeBundle.umd.js';
 							window.APP_DATA.isServerRendered = false;
@@ -519,15 +520,19 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 							window.loadApp().catch(console.log);
 						} catch(e) { console.log( e );}
 					`
-                : `
+                    : `
 						window.location.reload();
 					`
-            }
+                }
 
 				});
 				</script>
 			`);
-        res.send($.html());
+            res.send($.html());
+        } catch (error) { 
+            Logger.debug(error);
+            return { data: error };
+        }
     });
 
     return new Promise((resolve, reject) => {
