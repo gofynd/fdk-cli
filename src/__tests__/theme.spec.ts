@@ -128,7 +128,10 @@ async function createTheme() {
         'new',
         '-n',
         'rolex',
+        "--type",
+        "vue2"
     ]);
+    // fdk theme -n rolex --type vue2
     process.chdir(`../`);
 }
 const imageS3Url = startUpload.upload.url;
