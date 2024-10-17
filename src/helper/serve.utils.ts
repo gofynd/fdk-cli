@@ -496,38 +496,56 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
                 },
             )
             .catch((error) => {
-                console.log(error);
-                return { data: error };
+                // console.log('error: ');
+                return { data : error.message }
+               
             });
-        let $ = cheerio.load(html);
-        $('head').prepend(`
-				<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
-				<script>
-				var socket = io();
-				socket.on('reload',function(){
-					${isHMREnabled
-                ? `
-						try {
-							window.APP_DATA.themeBundleUMDURL = '/themeBundle.umd.js';
-							window.APP_DATA.isServerRendered = false;
-							window.APP_DATA.forceRender = true;
-							window.webpackChunkthemeBundle = [];
-							// document.getElementById('app').innerHTML='';
-							if (window.fpi) {
-								window.APP_DATA.reduxData = window.fpi.store.getState();
-							}
-							window.loadApp().catch(console.log);
-						} catch(e) { console.log( e );}
-					`
-                : `
-						window.location.reload();
-					`
-            }
-
-				});
-				</script>
-			`);
-        res.send($.html());
+        try {
+            // require('node:fs').writeFileSync(
+            //     require('node:path').resolve(
+            //         process.cwd(),
+            //         'html.html'
+            //     ),
+            //     html
+            // )
+            // console.log('Logging html into cheerio: ', html.length)
+            let $ = cheerio.load(html);
+            $('head').prepend(`
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+                    <script>
+                    var socket = io();
+                    socket.on('reload',function(){
+                        ${isHMREnabled
+                    ? `
+                            try {
+                                window.APP_DATA.themeBundleUMDURL = '/themeBundle.umd.js';
+                                window.APP_DATA.isServerRendered = false;
+                                window.APP_DATA.forceRender = true;
+                                window.webpackChunkthemeBundle = [];
+                                // document.getElementById('app').innerHTML='';
+                                if (window.fpi) {
+                                    window.APP_DATA.reduxData = window.fpi.store.getState();
+                                }
+                                window.loadApp().catch(console.log);
+                            } catch(e) { console.log( e );}
+                        `
+                    : `
+                            window.location.reload();
+                        `
+                }
+    
+                    });
+                    </script>
+                `);
+            
+            const finalHTML = $.html()
+            // console.log('final html : ', finalHTML.length)
+            res.send(finalHTML);
+        } catch (error) {
+            // console.log('error 2')
+            res.send(error)
+        }
+      
     });
 
     return new Promise((resolve, reject) => {
