@@ -496,19 +496,10 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
                 },
             )
             .catch((error) => {
-                // console.log('error: ');
                 return { data : error.message }
                
             });
         try {
-            // require('node:fs').writeFileSync(
-            //     require('node:path').resolve(
-            //         process.cwd(),
-            //         'html.html'
-            //     ),
-            //     html
-            // )
-            // console.log('Logging html into cheerio: ', html.length)
             let $ = cheerio.load(html);
             $('head').prepend(`
                     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
@@ -539,10 +530,8 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
                 `);
             
             const finalHTML = $.html()
-            // console.log('final html : ', finalHTML.length)
             res.send(finalHTML);
         } catch (error) {
-            // console.log('error 2')
             res.send(error)
         }
       
