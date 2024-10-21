@@ -88,7 +88,7 @@ export default class Theme {
     );
     static BUILD_FOLDER = './.fdk/dist';
     static SERVE_BUILD_FOLDER = './.fdk/distServed';
-    static REACT_SECTIONS_SETTINGS_JSON = path.join(process.cwd(), 'theme', 'sections', "sectionsSettings.json");
+    static REACT_SECTIONS_SETTINGS_JSON = path.join('.fdk', "sectionsSettings.json");
     static SRC_FOLDER = path.join('.fdk', 'temp-theme');
     static VUE_CLI_CONFIG_PATH = path.join('.fdk', 'vue.config.js');
     static REACT_CLI_CONFIG_PATH = 'webpack.config.js';
@@ -854,6 +854,7 @@ export default class Theme {
             }
             else {
                 Theme.validateReactSectionFileNames()
+                await Theme.createReactSectionsSettingsJson()
                 await Theme.createReactSectionsChunksIndexFile();
             }
 
@@ -884,10 +885,9 @@ export default class Theme {
                 isHMREnabled: false,
                 targetDirectory
             });
-
-            if (!sectionChunkingDisabled) {
-                await Theme.createReactSectionsSettingsJson()
-            }
+            // if (!sectionChunkingDisabled) {
+            //     await Theme.createReactSectionsSettingsJson()
+            // }
 
             const parsed = await Theme.getThemeBundle(stats);
             Logger.info('Uploading theme assets/images');
@@ -1408,16 +1408,16 @@ export default class Theme {
         Logger.info('Validating Section File Names')
         let fileNames = fs
             .readdirSync(`${process.cwd()}/theme/sections`)
-            .filter((o) => o !== 'index.js' && o !== 'sectionsSettings.json');
+            .filter((o) => o !== 'index.js');
 
         fileNames = fileNames.map(filename => filename.replace(/\.jsx$/, ''))
 
         // Define the regular expression for disallowed patterns
-        const disallowedPatterns = /[\.,_]|sections|section|\d/;
+        const disallowedPatterns = /[\.,_]|sections|section|\d|[^a-zA-Z0-9-]/;
         fileNames.forEach(fileName => {
             // Check if the input string matches any disallowed pattern
             if (disallowedPatterns.test(fileName.toLowerCase())) {
-                throw new Error('Invalid sectionFileName: The string contains disallowed characters or numbers or section words.');
+                throw new Error(`Invalid sectionFileName: The '${fileName}' contains disallowed characters or numbers or section words.`);
             }
         })
         return true;
@@ -1574,7 +1574,7 @@ export default class Theme {
     private static async createReactSectionsChunksIndexFile() {
         function transformSectionFileName(fileName) {
             // Remove the file extension
-            const nameWithoutExtension = fileName.replace(/\.jsx$/, '');
+            const nameWithoutExtension = fileName.replace(/\.(jsx|tsx)$/, '');
 
             // Extract the base name before any `.section` or `.chunk`
             const sectionKey = nameWithoutExtension
@@ -1591,7 +1591,7 @@ export default class Theme {
 
         let fileNames = fs
             .readdirSync(`${process.cwd()}/theme/sections`)
-            .filter((o) => o !== 'index.js' && o !== 'sectionsSettings.json');
+            .filter((o) => o !== 'index.js');
 
         const importingTemplate = fileNames
             .map((fileName) => {
@@ -2865,14 +2865,14 @@ export default class Theme {
         });
 
         const sectionChunkingDisabled = await Theme.isSectionChunkingDisabled()
-            if (sectionChunkingDisabled) {
-                await Theme.createReactSectionsBundleIndexFile()
-            }
-            else {
-                Theme.validateReactSectionFileNames()
-                await Theme.createReactSectionsChunksIndexFile();
-                await Theme.createReactSectionsSettingsJson()
-            }
+        if (sectionChunkingDisabled) {
+            await Theme.createReactSectionsBundleIndexFile()
+        }
+        else {
+            Theme.validateReactSectionFileNames()
+            await Theme.createReactSectionsChunksIndexFile();
+            await Theme.createReactSectionsSettingsJson()
+        }
         const parsed = await Theme.getThemeBundle(stats);
         let available_sections = await Theme.getAvailableReactSectionsForSync(
             parsed.sections,
