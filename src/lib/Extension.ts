@@ -35,6 +35,7 @@ import { TEMP_DIR_NAME, EXTENSION_CONTEXT_FILE_NAME } from '../helper/constants'
 
 export const NODE_VUE = 'Node + Vue 3 + SQLite';
 export const NODE_REACT = 'Node + React.js + SQLite';
+export const NODE_NEXT = 'Node + Next.js + SQLite';
 export const JAVA_VUE = 'Java + Vue 2 + SQLite';
 export const JAVA_REACT = 'Java + React.js + SQLite';
 export const EXTENSION_BRANCH = 'main';
@@ -42,6 +43,7 @@ export const EXTENSION_BRANCH = 'main';
 const TEMPLATES = {
     'node-vue': NODE_VUE,
     'node-react': NODE_REACT,
+    'node-next': NODE_NEXT,
     'java-vue': JAVA_VUE,
     'java-react': JAVA_REACT
 }
@@ -60,6 +62,8 @@ export const PROJECT_REPOS = {
     [NODE_VUE]: 'https://github.com/gofynd/example-extension-javascript.git',
     [NODE_REACT]:
         'https://github.com/gofynd/example-extension-javascript-react.git',
+    [NODE_NEXT]:
+        'https://github.com/gofynd/example-extension-nextjs.git',
     [JAVA_VUE]: 'https://github.com/gofynd/example-extension-java-vue.git',
     [JAVA_REACT]: 'https://github.com/gofynd/example-extension-java-react.git',
 };
@@ -392,6 +396,7 @@ export default class Extension {
                     choices: [
                         NODE_REACT,
                         NODE_VUE,
+                        NODE_NEXT,
                         JAVA_REACT,
                         JAVA_VUE
                     ],
