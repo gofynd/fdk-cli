@@ -8,6 +8,7 @@ export default function themeCommandBuilder() {
         .alias('add')
         .description('Create Theme')
         .requiredOption('-n, --name [name]', 'Theme name')
+        .option('-t, --type [type]', 'Theme type', 'react')
         .asyncAction(Theme.createTheme);
 
     theme
