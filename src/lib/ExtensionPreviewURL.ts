@@ -23,6 +23,12 @@ import yaml from 'js-yaml';
 import Tunnel from './Tunnel';
 import chalk from 'chalk';
 import ExtensionContext from './ExtensionContext';
+import configStore, { CONFIG_KEYS } from './Config';
+let attempts: number = 0;
+const maxAttempts: number = 5;
+const interval: number = 1000;
+let timer: NodeJS.Timeout | undefined;
+import os from 'os';
 
 interface ServerOptions {
     cwd?: string;
@@ -49,6 +55,15 @@ export default class ExtensionPreviewURL {
 
             // Read extension context file
             const extensionContext = new ExtensionContext();
+            
+            // Validate environment before extension preview
+            const currentEnv = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+            const contextEnv = extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.CURRENT_ENV) || currentEnv;
+            
+            if(currentEnv != contextEnv)
+                extensionContext.deleteAll();
+            
+            extension.options.currentEnv = currentEnv;
 
             // Extension Details
             let extensionDetails = undefined;
@@ -121,6 +136,7 @@ export default class ExtensionPreviewURL {
                 [CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY] : extension.options.companyId,
                 [CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]: extension.options.apiKey,
                 [CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_SECRET]: extension.options.apiSecret,
+                [CONSTANTS.EXTENSION_CONTEXT.CURRENT_ENV]: extension.options.currentEnv,
             })
 
             // Get Port to start the extension server
@@ -195,6 +211,23 @@ export default class ExtensionPreviewURL {
             else {
                 Logger.info(`Skipped updating launch URL on partners panel`)
             }
+            
+            timer = setInterval(async () => {
+                const ports = extension.getServicePorts(projectConfigs, backend_port.toString(), frontend_port.toString())
+                await extension.checkPorts(ports, function () {
+                    // get preview URL
+                    const previewURL = extension.getPreviewURL();
+    
+                    Debug(
+                        `${OutputFormatter.link(extension.publicTunnelURL, 'TUNNEL URL:')}`
+                    );
+                    const stickyText = successBox({
+                        text: `${previewURL} Extension preview URL`,
+                    });
+        
+                    displayStickyText(stickyText, Logger.info);
+                });
+            }, interval);
 
             // Start Dev servers
             for(const projectConfig of projectConfigs){
@@ -220,16 +253,6 @@ export default class ExtensionPreviewURL {
                 }
             }            
             
-            // get preview URL
-            const previewURL = extension.getPreviewURL();
-            Debug(
-                `${OutputFormatter.link(extension.publicTunnelURL, 'TUNNEL URL:')}`
-            );
-            const stickyText = successBox({
-                text: `${OutputFormatter.link(previewURL, 'Extension preview URL: ')}`,
-            });
-
-            displayStickyText(stickyText, Logger.info);
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
@@ -243,6 +266,65 @@ export default class ExtensionPreviewURL {
             `/extensions/${this.options.apiKey}`,
         );
     }
+    public getServicePorts(projectConfigs, backendPort:string, frontendPort:string) {
+        let ports = [];
+        for(const projectConfig of projectConfigs) {
+            if(projectConfig['roles'].includes('frontend'))
+                ports.push(frontendPort);
+            else if(projectConfig['roles'].includes('backend'))
+                ports.push(backendPort);
+            else if(projectConfig['roles'].includes('backend') && projectConfig['roles'].includes('frontend'))
+                ports.push(frontendPort);
+        }
+        return ports;
+    }
+    
+    public isPortRunning = async (port: string): Promise<boolean> => {
+        const platform = os.platform();
+      
+        try {
+          let stdout: string;
+      
+          if (platform === 'win32') {
+            // Windows: Use netstat to check for LISTEN state
+            const result = await execa('netstat', ['-an']);
+            stdout = result.stdout;
+            return stdout.includes(`:${port}`) && stdout.includes('LISTEN');
+          } else {
+            // macOS/Linux: Use lsof to check if the port is in use
+            const result = await execa('lsof', ['-i', `:${port}`]);
+            stdout = result.stdout;
+            return stdout.includes(`:${port}`);
+          }
+        } catch (err) {
+          // If the command fails (e.g., port not in use), return false
+          return false;
+        }
+    };
+      
+    public checkPorts = async (ports: string[], callback: () => void) => {
+        const result = [];
+        
+        for (const port of ports) {
+          const isRunning = await this.isPortRunning(port);
+          result.push(isRunning);          
+        }
+        
+        const isNotRunning = result.some(value => value === false);
+        if(isNotRunning){
+            attempts++;
+          
+            if (attempts >= maxAttempts) {
+                clearInterval(timer); // Stop after max attempts
+            }
+        }
+        else{
+            callback();
+            if (timer) {
+                clearInterval(timer); // Stop the timer if all ports are running
+            }
+        }
+      };
 
     async execCommand(command : string, options: ServerOptions = {}, successExitMessage: string = undefined) {
         try {
