@@ -497,8 +497,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
                     },
                 )
                 .catch((error) => {
-                    console.log(error);
-                    return { data: error };
+                    return { data: error.message };
                 });
             let $ = cheerio.load(html);
             $('head').prepend(`
@@ -528,10 +527,11 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 				});
 				</script>
 			`);
-            res.send($.html());
+            const finalHTML = $.html()
+            res.send(finalHTML);
         } catch (error) { 
             Logger.debug(error);
-            return { data: error };
+            res.send(error)
         }
     });
 

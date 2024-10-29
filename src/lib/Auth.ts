@@ -17,6 +17,7 @@ const SERVER_TIMER = 1000 * 60 * 2; // 2 min
 import { OutputFormatter, successBox } from '../helper/formatter';
 import OrganizationService from './api/services/organization.service';
 import { getOrganizationDisplayName } from '../helper/utils';
+import ExtensionContext from './ExtensionContext';
 
 async function checkTokenExpired(auth_token) {
     const { expiry_time } = auth_token;
@@ -30,6 +31,7 @@ async function checkTokenExpired(auth_token) {
 
 export const getApp = async () => {
     const app = express();
+    let isLoading = false;
 
     app.use(cors());
     app.use(express.json());
@@ -37,8 +39,15 @@ export const getApp = async () => {
     app.post('/token', async (req, res) => {
         try {
             Debug(req);
-            if (Auth.wantToChangeOrganization)
+            if (isLoading){
+                return res.status(429).json({ message: 'Another request is in progress. Please try again later.' });
+            }
+            isLoading = true; 
+            
+            if (Auth.wantToChangeOrganization){
                 ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
+                clearExtensionContext();
+            }
             const expiryTimestamp =
                 Math.floor(Date.now() / 1000) + req.body.auth_token.expires_in;
             req.body.auth_token.expiry_time = expiryTimestamp;
@@ -68,6 +77,9 @@ export const getApp = async () => {
             Auth.stopSever();
             res.status(500).json({ message: 'failed' });
         }
+        finally{
+            isLoading=false;
+        }
     });
 
     return { app };
@@ -89,6 +101,12 @@ function resetTimer(){
         Auth.timer_id = null;
     }
 }
+
+function clearExtensionContext(){
+    const extensionContext = new ExtensionContext();
+    extensionContext.deleteAll();
+}
+
 export const startServer = async (port:number) => {
     if (Auth.server) return Auth.server;
 

@@ -128,6 +128,8 @@ async function createTheme() {
         'new',
         '-n',
         'rolex',
+        "-t",
+        "vue2"
     ]);
     process.chdir(`../`);
 }
