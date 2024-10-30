@@ -45,6 +45,9 @@ npm run build
 PACKAGE_FILE=$(npm pack)
 echo "Package $PACKAGE_FILE created!"
 
+# Uninstall the fdk-cli if it is already installed globally
+npm uninstall -g @gofynd/fdk-cli || true
+
 # Install the package globally
 npm install -g "$PACKAGE_FILE"
 echo "fdk-cli has been installed globally!"
