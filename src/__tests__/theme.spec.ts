@@ -333,6 +333,8 @@ describe('Theme Commands', () => {
         mock.onGet(`${URLS.GET_ORGANIZATION_DETAILS()}`).reply(200, organizationData);
         configStore.delete(CONFIG_KEYS.ORGANIZATION)
 
+        mock.onGet('https://github.com/gofynd/Emerge/archive/refs/heads/main.zip').passThrough()
+
         // user login
         configStore.set(CONFIG_KEYS.USER, data.user);
 
