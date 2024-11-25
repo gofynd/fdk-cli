@@ -263,7 +263,7 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
 // };
 
 export async function init(programName: string) {
-    await checkForLatestVersion();
+    // await checkForLatestVersion();
     
     //Setup commander instance
     program
