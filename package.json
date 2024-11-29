@@ -29,8 +29,7 @@
     "watch": "tsc --watch",
     "test": "jest --runInBand",
     "pretty": "prettier --config ./.prettierrc --write './src/**/*.*'",
-    "localInstall": "sh scripts/localInstall.sh",
-    "debug": "cd /Users/shivrajkoli/Documents/fynd/themes/jio/netmeds && fdk theme sync"
+    "localInstall": "sh scripts/localInstall.sh"
   },
   "devDependencies": {
     "@types/async": "^3.2.24",
