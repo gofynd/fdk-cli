@@ -24,7 +24,9 @@ import https from 'https'
 axios.defaults.withCredentials = true;
 axios.defaults.timeout = 60000; // 1 minute
 
-let uninterceptedAxiosInstance = axios.create();
+let uninterceptedAxiosInstance = axios.create({
+    maxBodyLength: 15 * 1024 * 1024
+});
 
 const axiosRetryConfig = {
     retries: MAX_RETRY,
@@ -41,6 +43,8 @@ const axiosRetryConfig = {
         return 2000;
     },
 };
+
+
 
 uninterceptedAxiosInstance.interceptors.request.use(addSignatureFn({}));
 uninterceptedAxiosInstance.interceptors.response.use((response) => {
