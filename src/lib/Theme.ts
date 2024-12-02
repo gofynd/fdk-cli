@@ -157,7 +157,7 @@ export default class Theme {
                 `theme/config/settings_data.json written succesfully.!!!`,
             );
         } catch (err) {
-            Logger.info(err);
+            Logger.error(err);
             throw new CommandError(`Error writing ${path} file.!!!`);
         }
     }
@@ -521,8 +521,6 @@ export default class Theme {
             shouldDelete = true;
             process.chdir(path.join('.', options.name));
 
-            Logger.info('Installing dependencies');
-
             // Create index.js with section file imports
             Logger.debug('creating section index file');
             await Theme.createReactSectionsIndexFile();
@@ -608,7 +606,7 @@ export default class Theme {
                 spaces: 2,
             });
             const currentContext = getActiveContext();
-            await Theme.syncReactTheme(currentContext, targetDirectory);
+            await Theme.syncReactTheme(currentContext, targetDirectory, true);
             var b5 = successBox({
                 text:
                     chalk.green.bold('DONE ') +
@@ -826,7 +824,8 @@ export default class Theme {
     };
     private static syncReactTheme = async (
         currentContext: ThemeContextInterface,
-        targetDirectory?: string
+        targetDirectory?: string,
+        isNew = false,
     ) => {
         try {
             await Theme.ensureThemeTypeInPackageJson();
@@ -836,7 +835,7 @@ export default class Theme {
             let { data: theme } =
                 await ThemeService.getThemeById(currentContext);
 
-            await Theme.matchWithLatestPlatformConfig(theme, false);
+            await Theme.matchWithLatestPlatformConfig(theme, isNew);
 
             // Clear previosu builds
             Theme.clearPreviousBuild();
@@ -2055,7 +2054,7 @@ export default class Theme {
     };
     // Remove extra param "newTheme"
     private static updateAvailablePages = async ({ assetHash }) => {
-        const spinner = new Spinner('Adding/updating available pages');
+        const spinner = new Spinner('Adding/updating theme pages');
         try {
             spinner.start();
             // Get all available pages before syncing
@@ -2309,7 +2308,7 @@ export default class Theme {
         }
     };
     private static updateAvailablePagesForReact = async (customTemplates) => {
-        const spinner = new Spinner('Adding/updating available pages');
+        const spinner = new Spinner('Adding/updating theme pages');
         try {
             spinner.start();
             const allPages = (await ThemeService.getAllAvailablePage()).data
@@ -2735,7 +2734,7 @@ export default class Theme {
             await asyncForEach(systemPages, async (fileName) => {
                 let pageName = fileName.replace('.vue', '');
                 // SYSTEM Pages
-                Logger.info('Creating System Page: ', pageName);
+                Logger.debug('Creating System Page: ', pageName);
                 const pageData = {
                     value: pageName,
                     props: [],
@@ -2851,8 +2850,7 @@ export default class Theme {
 
             await asyncForEach(systemPages, async (fileName) => {
                 let pageName = fileName.replace('.jsx', '');
-
-                Logger.info('Creating System Page: ', pageName);
+                Logger.debug('Creating System Page: ', pageName);
                 const pageData = {
                     value: pageName,
                     props: [],
