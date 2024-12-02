@@ -405,7 +405,7 @@ async function promptForFDKFolder() {
         {
             type: 'confirm',
             name: 'showCreateFolder',
-            message: '.fdk folder is missing. Do you wish to create it?',
+            message: 'This folder doesn’t seem to be set up as a theme yet. Want to turn it into one?',
         },
     ];
     const answers = await inquirer.prompt(questions);

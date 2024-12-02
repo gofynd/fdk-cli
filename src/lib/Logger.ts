@@ -85,7 +85,9 @@ export default class Logger {
         logger.log('info', args.join(''));
     }
     public static debug(...args: any[]) {
-        logger.log('debug', args.join(''));
+        if(process.env.DEBUG == 'fdk') {
+            logger.log('debug', args.join(''));
+        }
     }
 }
 
