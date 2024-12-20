@@ -61,7 +61,7 @@ import {
     themeVueConfigTemplate,
     settingLoader,
 } from '../helper/theme.vue.config';
-import { simpleGit } from 'simple-git';
+import { cloneGitRepository } from './../helper/clone_git_repository';
 import { THEME_TYPE } from '../helper/constants';
 import { MultiStats } from 'webpack';
 
@@ -1328,7 +1328,6 @@ export default class Theme {
             if (isReactTheme) {
                 await fs.copy(templateDirectory, targetDirectory);
             }
-            await execa('git', ['init'], { cwd: targetDirectory });
             writeFile(targetDirectory + '/.gitignore', `.fdk\nnode_modules`);
             return true;
         } catch (error) {
@@ -3087,18 +3086,13 @@ export default class Theme {
         const themeName = defaultTheme.name;
         let url;
         if (themeType === 'react') {
-            url = `https://github.com/gofynd/Luxe.git`;
+            url = `https://github.com/gofynd/Luxe`;
         } else {
-            url = `https://github.com/gofynd/${themeName}.git`;
+            url = `https://github.com/gofynd/${themeName}`;
         }
         try {
             spinner.start();
-            const git = simpleGit();
-            if (themeType === 'react') {
-                await git.clone(url, targetDirectory, ['--branch', 'main']);
-            } else {
-                await git.clone(url, targetDirectory);
-            }
+            await cloneGitRepository(url, targetDirectory, 'main');
             spinner.succeed();
         } catch (err) {
             spinner.fail();
