@@ -10,14 +10,17 @@ import Spinner from '../../../helper/spinner';
 export default {
 
     uploadFile: async (filepath, namespace, file_name = null, mimeType = null) => {
-        let spinner = new Spinner();
+        let spinner
+        if(process.env.DEBUG == 'fdk') {
+            spinner = new Spinner();
+        }
         let textMessage;
         try {
             let stats = fs.statSync(filepath);
             textMessage = `Uploading file ${path.basename(
                 filepath,
             )}  [${Math.round(stats.size / 1024)} KB]`;
-            spinner.start(textMessage);
+            spinner && spinner.start(textMessage);
             let contentType = mimeType || mime.getType(path.extname(filepath));
 
             if (contentType === 'image/jpg') {
@@ -67,17 +70,17 @@ export default {
                 axiosOption,
             );
             let completeResponse = res3 ? res3.data : res3;
-            spinner.succeed(textMessage);
+            spinner && spinner.succeed(textMessage);
             return {
                 start: startResponse,
                 upload: uploadResponse,
                 complete: completeResponse,
             };
         } catch (error) {
-            spinner.fail(textMessage);
+            spinner && spinner.fail(textMessage);
             throw error;
         } finally {
-            spinner.stop();
+            spinner && spinner.stop();
         }
     },
 };
