@@ -1373,7 +1373,7 @@ export default class Theme {
             }
             if (!sectionModule.Component) {
                 throw new Error(
-                    `The "${name}" section must be defined with a"Component" name to proceed.`,
+                    `The "${name}" section must be defined with a "Component" name to proceed.`,
                 );
             }
             return {
