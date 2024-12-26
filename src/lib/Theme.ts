@@ -2506,8 +2506,7 @@ export default class Theme {
                     ).data;
                 }
                 customPage.props = customPageConfig.fileSetting || [];
-                customPage.sections_meta =
-                customPageConfig.sections || [] ;
+                customPage.sections_meta = customPageConfig.sections || [];
                 customPage.type = 'custom';
                 pagesToSave.push(customPage);
             }
