@@ -2444,6 +2444,7 @@ export default class Theme {
                         handle = {},
                         children,
                         index,
+                        sections = []
                     } = customPage.props;
 
                     let path = _path;
@@ -2470,6 +2471,7 @@ export default class Theme {
                     customFiles[value] = {
                         fileSetting: settingProps,
                         value,
+                        sections,
                         text: pageNameModifier(path),
                         path: routerPath,
                     };
@@ -2504,7 +2506,7 @@ export default class Theme {
                     ).data;
                 }
                 customPage.props = customPageConfig.fileSetting || [];
-                customPage.sections_meta = [{}];
+                customPage.sections_meta = customPageConfig.sections || [];
                 customPage.type = 'custom';
                 pagesToSave.push(customPage);
             }
