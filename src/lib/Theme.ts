@@ -1363,13 +1363,20 @@ export default class Theme {
         if (!sections) {
             Logger.error('Error occured');
         }
-
-        const allSections = Object.entries<{ settings: any; Component: any }>(
-            sections,
-        ).map(([name, sectionModule]) => ({
-            name,
-            ...(sectionModule.settings || {}),
-        }));
+        const allSections = Object.entries<{ settings?: any; Component?: any }>(sections).map(
+            ([name, sectionModule]) => {
+                if (!sectionModule.settings) {
+                    Logger.warn(`The "${name}" section does not contain any settings.`)
+                }
+                if (!sectionModule.Component) {
+                    throw new Error(`The "${name}" section must be defined with a"Component" name to proceed.`)
+                }
+              return {
+                name,
+                ...(sectionModule.settings || {}),
+              };
+            }
+          );
 
         return allSections;
     }
