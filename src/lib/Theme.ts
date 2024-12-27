@@ -1367,13 +1367,13 @@ export default class Theme {
             sections,
         ).map(([name, sectionModule]) => {
             if (!sectionModule.settings) {
-                Logger.warn(
+                throw new Error(
                     `The "${name}" section does not contain any settings.`,
                 );
             }
             if (!sectionModule.Component) {
                 throw new Error(
-                    `The "${name}" section must be defined with a "Component" name to proceed.`,
+                    `The "${name}" section must be defined with a "Component" name.`,
                 );
             }
             return {
