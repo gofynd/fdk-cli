@@ -3,7 +3,7 @@ import {
     createContext,
     decodeBase64,
     evaluateModule,
-    getActiveContext,
+    getActiveContext,   
     pageNameModifier,
     isAThemeDirectory,
     installNpmPackages,
@@ -27,6 +27,7 @@ import glob from 'glob';
 import _ from 'lodash';
 import React from 'react';
 import * as ReactRouterDOM from 'react-router-dom';
+import { syncLocales } from '../helper/locales'
 
 import { createDirectory, writeFile, readFile } from '../helper/file.utils';
 import { customAlphabet } from 'nanoid';
@@ -711,10 +712,7 @@ export default class Theme {
                 Logger.error({ error });
             }
 
-            await Theme.writeSettingJson(
-                Theme.getSettingsSchemaPath(),
-                _.get(themeData, 'config.global_schema', { props: [] }),
-            );
+            await Theme.syncRemoteToLocal();
             fs.writeJson(
                 path.join(targetDirectory, 'config.json'),
                 {
@@ -860,6 +858,8 @@ export default class Theme {
 
             const buildPath = path.join(process.cwd(), Theme.BUILD_FOLDER);
 
+            await syncLocales();
+            
             Logger.info('Creating theme source code zip file');
             // Remove temp source folder
             rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
@@ -1272,6 +1272,7 @@ export default class Theme {
             spinner.start();
             rimraf.sync(path.resolve(process.cwd(), './theme'));
             createDirectory('theme');
+            await syncLocales();
             const { data: themeData } = await ThemeService.getThemeById(null);
             const theme = _.cloneDeep({ ...themeData });
             rimraf.sync(path.resolve(process.cwd(), './.fdk/archive'));
@@ -1303,6 +1304,8 @@ export default class Theme {
                 Theme.getSettingsSchemaPath(),
                 _.get(theme, 'config.global_schema', { props: [] }),
             );
+            await Theme.syncRemoteToLocal(theme);
+            
             const packageJSON = await fs.readJSON(
                 process.cwd() + '/package.json',
             );
@@ -1316,21 +1319,43 @@ export default class Theme {
             throw new CommandError(error.message, error.code);
         }
     };
-    public static pullThemeConfig = async () => {
+
+    public static syncRemoteToLocal = async (theme) => {
         try {
-            const { data: theme } = await ThemeService.getThemeById(null);
-            const { config } = theme;
-            const newConfig: any = {};
-            if (config) {
-                newConfig.list = config.list;
-                newConfig.current = config.current;
-                newConfig.preset = config.preset;
-            }
+            const newConfig = Theme.getSettingsData(theme);
             await Theme.writeSettingJson(
                 Theme.getSettingsDataPath(),
                 newConfig,
             );
-            Theme.createVueConfig();
+            Logger.info('Config updated successfully');
+        } catch (error) {
+            throw new CommandError(error.message, error.code);
+        }
+    }
+
+    public static syncLocalToRemote = async (theme) => {
+        try {
+            const { data: theme } = await ThemeService.getThemeById(null);
+            Logger.info('Config updated successfully');
+        } catch (error) {
+            throw new CommandError(error.message, error.code);
+        }
+    }
+    
+    public static isAnyDeltaBetweenLocalAndRemote = async (theme, isNew) => {
+        const newConfig = Theme.getSettingsData(theme);
+        const oldConfig = await Theme.readSettingsJson(
+                Theme.getSettingsDataPath(),
+        );
+
+        return !isNew && !_.isEqual(newConfig, oldConfig);
+    }
+
+    public static pullThemeConfig = async () => {
+        try {
+            const { data: theme } = await ThemeService.getThemeById(null);
+            await Theme.isAnyDeltaBetweenLocalAndRemote(theme);
+            await Theme.syncRemoteToLocal();
             Logger.info('Config updated successfully');
         } catch (error) {
             throw new CommandError(error.message, error.code);
@@ -2717,10 +2742,6 @@ export default class Theme {
 
     private static matchWithLatestPlatformConfig = async (theme, isNew) => {
         try {
-            const newConfig = Theme.getSettingsData(theme);
-            const oldConfig = await Theme.readSettingsJson(
-                Theme.getSettingsDataPath(),
-            );
             const questions = [
                 {
                     type: 'confirm',
@@ -2728,15 +2749,13 @@ export default class Theme {
                     message: 'Do you wish to pull config from remote?',
                 },
             ];
-            if (!isNew && !_.isEqual(newConfig, oldConfig)) {
+            if (await Theme.isAnyDeltaBetweenLocalAndRemote(theme, isNew)) {
                 await inquirer.prompt(questions).then(async (answers) => {
                     if (answers.pullConfig) {
-                        await Theme.writeSettingJson(
-                            Theme.getSettingsDataPath(),
-                            newConfig,
-                        );
+                        await Theme.syncRemoteToLocal(theme);
                         Logger.info('Config updated successfully');
                     } else {
+                        await Theme.syncLocalToRemote(theme);
                         Logger.warn('Using local config to sync');
                     }
                 });
