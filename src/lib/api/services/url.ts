@@ -26,7 +26,7 @@ const CONFIGURATION_URL = () =>
     getBaseURL() + '/service/partner/partners/v' + apiVersion;
 const MIXMASTER_URL = (serverType: string) =>
     getBaseURL() + `/service/${serverType}/partners/v` + apiVersion;
-const ASSET_URL = () => getBaseURL() + '/service/partner/assets/v' + apiVersion;
+const ASSET_URL = () => getBaseURL() + '/service/partner/assets/v2.0';
 
 export const URLS = {
     // AUTHENTICATION
