@@ -28,9 +28,10 @@ export const warningBox = ({ text }) => {
 
 export function displayStickyText(text: string, logger: any = console.log): void {
     logger(text);
-
-    const escapeSeq = '\x1B[2K' + '\x1B[1F\x1B[2K'.repeat(text.match(/\n/g).length);
-
+    const terminalSize = process.stdout.columns;
+    const escapeSeq = terminalSize <=80 
+        ? '\x1B[1F\x1B[2K'.repeat(11)
+        :  '\x1B[2K' + '\x1B[1F\x1B[2K'.repeat(text.match(/\n/g).length);
     overrideOutputsToKeepTextStickyToBottom(text, escapeSeq);
 }
 

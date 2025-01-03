@@ -17,7 +17,6 @@ Fynd development Kit (FDK CLI) is a cli tool developed by Fynd to create and upd
 
 - You must have created a [partner account](https://partners.fynd.com/)
 - You must have created development account [guide](https://partners.fynd.com/help/docs/partners/testing-extension/development-acc)
-- You must have installed [Git](https://github.com/git-guides/install-git), if you don't already have it.
 - You must have installed [Nodejs](https://nodejs.org/en/download/package-manager) version 18.X.X or higher version, if you don't already have it.
 -  Optional Prerequisites
 	- Maven (To use `fdk extension init` for java extension initialization)
@@ -377,9 +376,6 @@ Extensions are pluggable snippets of code that can be installed in your applicat
 
 #### **init**
 This command is used to create a extension's initial code with required dependency. It will also register extension for you on your partner account.
-
-##### Prerequisites
-- You must have installed [Git](https://github.com/git-guides/install-git), if you don't already have it.
 
 #### ****Syntax****
 ```sh

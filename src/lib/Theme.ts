@@ -61,7 +61,7 @@ import {
     themeVueConfigTemplate,
     settingLoader,
 } from '../helper/theme.vue.config';
-import { simpleGit } from 'simple-git';
+import { cloneGitRepository } from './../helper/clone_git_repository';
 import { THEME_TYPE } from '../helper/constants';
 import { MultiStats } from 'webpack';
 
@@ -154,11 +154,11 @@ export default class Theme {
             await fs.writeJSON(path, jsonObject, {
                 spaces: 2,
             });
-            Logger.info(
+            Logger.debug(
                 `theme/config/settings_data.json written succesfully.!!!`,
             );
         } catch (err) {
-            Logger.info(err);
+            Logger.error(err);
             throw new CommandError(`Error writing ${path} file.!!!`);
         }
     }
@@ -166,7 +166,7 @@ export default class Theme {
     public static async readSettingsJson(path) {
         try {
             const settingsJson = await fs.readJSON(path);
-            Logger.info(
+            Logger.debug(
                 `theme/config/settings_data.json read successfully.!!!`,
             );
             return settingsJson;
@@ -402,7 +402,7 @@ export default class Theme {
     ) {
         let shouldDelete = false;
         try {
-            Logger.info('Cloning template files');
+            Logger.debug('Cloning template files');
             await Theme.cloneTemplate(options, targetDirectory, appConfig, '');
             shouldDelete = true;
             process.chdir(path.join('.', options.name));
@@ -512,7 +512,7 @@ export default class Theme {
     ) {
         let shouldDelete = false;
         try {
-            Logger.info('Cloning template files');
+            Logger.debug('Cloning template files');
             await Theme.cloneTemplate(
                 options,
                 targetDirectory,
@@ -522,9 +522,8 @@ export default class Theme {
             shouldDelete = true;
             process.chdir(path.join('.', options.name));
 
-            Logger.info('Installing dependencies');
             // Create index.js with section file imports
-            Logger.info('creating section index file');
+            Logger.debug('creating section index file');
             const sectionChunkingDisabled = await Theme.isSectionChunkingDisabled()
             if (sectionChunkingDisabled) {
                 await Theme.createReactSectionsBundleIndexFile()
@@ -534,7 +533,7 @@ export default class Theme {
                 await Theme.createReactSectionsChunksIndexFile();
                 await Theme.createReactSectionsSettingsJson()
             }
-            Logger.info('created section index file');
+            Logger.debug('created section index file');
 
             Logger.info('Installing dependencies');
             let spinner = new Spinner('Installing npm packages');
@@ -604,7 +603,7 @@ export default class Theme {
                 theme_type: 'react',
             };
 
-            Logger.info('Saving context');
+            Logger.debug('Saving context');
             await createContext(context);
             await Theme.ensureThemeTypeInPackageJson();
 
@@ -616,7 +615,7 @@ export default class Theme {
                 spaces: 2,
             });
             const currentContext = getActiveContext();
-            await Theme.syncReactTheme(currentContext, targetDirectory);
+            await Theme.syncReactTheme(currentContext, targetDirectory, true);
             var b5 = successBox({
                 text:
                     chalk.green.bold('DONE ') +
@@ -644,7 +643,7 @@ export default class Theme {
             const { data: appConfig } =
                 await ConfigurationService.getApplicationDetails(configObj);
 
-            Logger.info('Fetching Template Files');
+            Logger.debug('Fetching Template Files');
             const { data: themeData } =
                 await ThemeService.getThemeById(configObj);
             const themeName = themeData?.name || 'default';
@@ -655,7 +654,7 @@ export default class Theme {
                 throw new CommandError(`Folder ${themeName}  already exists`);
             }
 
-            Logger.info('Copying template config files');
+            Logger.debug('Copying template config files');
             shouldDelete = true;
             if (themeData.theme_type === THEME_TYPE.react) {
                 await Theme.copyTemplateFiles(
@@ -688,10 +687,10 @@ export default class Theme {
                 'archive.zip',
             );
 
-            Logger.info('Downloading bundle file');
+            Logger.debug('Downloading bundle file');
             await downloadFile(themeData.src, zipPath);
 
-            Logger.info('Extracting bundle archive');
+            Logger.debug('Extracting bundle archive');
             await extractArchive({
                 zipPath,
                 destFolderPath: path.resolve(process.cwd()),
@@ -729,7 +728,7 @@ export default class Theme {
                 },
             );
 
-            Logger.info('Saving context');
+            Logger.debug('Saving context');
             await createContext(context);
             await Theme.ensureThemeTypeInPackageJson();
 
@@ -834,7 +833,8 @@ export default class Theme {
     };
     private static syncReactTheme = async (
         currentContext: ThemeContextInterface,
-        targetDirectory?: string
+        targetDirectory?: string,
+        isNew = false,
     ) => {
         try {
             await Theme.ensureThemeTypeInPackageJson();
@@ -844,7 +844,7 @@ export default class Theme {
             let { data: theme } =
                 await ThemeService.getThemeById(currentContext);
 
-            await Theme.matchWithLatestPlatformConfig(theme, false);
+            await Theme.matchWithLatestPlatformConfig(theme, isNew);
 
             // Clear previosu builds
             Theme.clearPreviousBuild();
@@ -860,7 +860,7 @@ export default class Theme {
 
             const buildPath = path.join(process.cwd(), Theme.BUILD_FOLDER);
 
-            Logger.info('Creating theme source code zip file');
+            Logger.debug('Creating theme source code zip file');
             // Remove temp source folder
             rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
             await Theme.copyFolders(path.join(process.cwd()), Theme.SRC_FOLDER);
@@ -871,7 +871,7 @@ export default class Theme {
             });
             // await Theme.copyReactThemeSourceToFdkFolder();
 
-            Logger.info('Uploading theme source code zip file');
+            Logger.debug('Uploading theme source code zip file');
             let srcCdnUrl = await Theme.uploadThemeSrcZip();
 
             const imageCdnUrl = await Theme.getImageCdnBaseUrl();
@@ -890,10 +890,10 @@ export default class Theme {
             // }
 
             const parsed = await Theme.getThemeBundle(stats);
-            Logger.info('Uploading theme assets/images');
+            Logger.debug('Uploading theme assets/images');
             await Theme.assetsImageUploader();
 
-            Logger.info('Uploading theme assets/fonts');
+            Logger.debug('Uploading theme assets/fonts');
             await Theme.assetsFontsUploader();
 
             let available_sections =
@@ -906,11 +906,11 @@ export default class Theme {
                 available_sections,
             );
 
-            Logger.info('Uploading bundle files');
+            Logger.debug('Uploading bundle files');
             let pArr = await Theme.uploadReactThemeBundle({ buildPath });
             let [cssUrls, umdJsUrls] = await Promise.all(pArr);
 
-            Logger.info('Updating Available pages');
+            Logger.debug('Updating Available pages');
             const { allowedDefaultProps } =
                 await Theme.updateAvailablePagesForReact(
                     parsed.customTemplates,
@@ -927,10 +927,10 @@ export default class Theme {
                 allowedDefaultProps,
             );
 
-            Logger.info('Updating theme');
+            Logger.debug('Updating theme');
             await ThemeService.updateTheme(newTheme);
 
-            Logger.info('Theme syncing DONE');
+            Logger.debug('Theme syncing DONE');
             var b5 = successBox({
                 text:
                     chalk.green.bold('Your Theme was pushed successfully\n') +
@@ -955,7 +955,7 @@ export default class Theme {
                         ),
                     ),
             });
-            Logger.info(b5.toString());
+            Logger.debug(b5.toString());
         } catch (error) {
             Logger.error(error);
             throw new CommandError(error.message, error.code);
@@ -1028,15 +1028,15 @@ export default class Theme {
                 throw new Error('Build Failed');
             }
 
-            Logger.info('Uploading theme assets/images');
+            Logger.debug('Uploading theme assets/images');
             await Theme.assetsImageUploader();
 
-            Logger.info('Uploading theme assets/fonts');
+            Logger.debug('Uploading theme assets/fonts');
             await Theme.assetsFontsUploader();
 
             // Remove temp source folder
             rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
-            Logger.info('Creating theme source code zip file');
+            Logger.debug('Creating theme source code zip file');
             await Theme.copyFolders(path.join(process.cwd()), Theme.SRC_FOLDER);
             await archiveFolder({
                 srcFolder: Theme.SRC_FOLDER,
@@ -1044,15 +1044,15 @@ export default class Theme {
                 zipFileName: Theme.ZIP_FILE_NAME,
             });
 
-            Logger.info('Uploading theme source code zip file');
+            Logger.debug('Uploading theme source code zip file');
             let srcCdnUrl = await Theme.uploadThemeSrcZip();
 
-            Logger.info('Uploading bundle files');
+            Logger.debug('Uploading bundle files');
             let pArr = await Theme.uploadThemeBundle({ assetHash });
             let [cssUrls, commonJsUrl, umdJsUrls] = await Promise.all(pArr);
 
             // extract page level settings schema
-            Logger.info('Updating Available pages');
+            Logger.debug('Updating Available pages');
             const { pagesToSave, allowedDefaultProps } =
                 await Theme.updateAvailablePages({
                     assetHash,
@@ -1069,10 +1069,10 @@ export default class Theme {
                 allowedDefaultProps,
             );
 
-            Logger.info('Updating theme');
+            Logger.debug('Updating theme');
             await ThemeService.updateTheme(newTheme);
 
-            Logger.info('Theme syncing DONE');
+            Logger.debug('Theme syncing DONE');
             var b5 = successBox({
                 text:
                     chalk.green.bold('Your Theme was pushed successfully\n') +
@@ -1097,7 +1097,7 @@ export default class Theme {
                         ),
                     ),
             });
-            Logger.info(b5.toString());
+            Logger.debug(b5.toString());
         } catch (error) {
             throw new CommandError(error.message, error.code);
         } finally {
@@ -1347,7 +1347,6 @@ export default class Theme {
             if (isReactTheme) {
                 await fs.copy(templateDirectory, targetDirectory);
             }
-            await execa('git', ['init'], { cwd: targetDirectory });
             writeFile(targetDirectory + '/.gitignore', `.fdk\nnode_modules`);
             return true;
         } catch (error) {
@@ -1803,7 +1802,7 @@ export default class Theme {
                 );
             } else {
                 fs.renameSync(oldVueConfigPath, fdkConfigPath);
-                Logger.info('Renamed file from vue.config.js to fdk.config.js');
+                Logger.debug('Renamed file from vue.config.js to fdk.config.js');
             }
         }
         rimraf.sync(path.join(process.cwd(), Theme.VUE_CLI_CONFIG_PATH));
@@ -2003,7 +2002,7 @@ export default class Theme {
 
     private static validateAvailableSections = async (available_sections) => {
         try {
-            Logger.info('Validating Files');
+            Logger.debug('Validating Files');
             available_sections =
                 await Theme.validateSections(available_sections);
         } catch (err) {
@@ -2055,7 +2054,7 @@ export default class Theme {
     };
     private static uploadThemeBundle = async ({ assetHash }) => {
         try {
-            Logger.info('Uploading commonJS');
+            Logger.debug('Uploading commonJS');
             const commonJS = `${assetHash}_themeBundle.common.js`;
             const commonJsUrlRes = await UploadService.uploadFile(
                 path.join(process.cwd(), Theme.BUILD_FOLDER, commonJS),
@@ -2063,7 +2062,7 @@ export default class Theme {
             );
             const commonJsUrl = commonJsUrlRes.complete.cdn.url;
 
-            Logger.info('Uploading umdJS');
+            Logger.debug('Uploading umdJS');
             const umdMinAssets = glob.sync(
                 path.join(
                     process.cwd(),
@@ -2086,7 +2085,7 @@ export default class Theme {
                 );
             });
             const umdJsUrls = await Promise.all(umdJSPromisesArr);
-            Logger.info('Uploading css');
+            Logger.debug('Uploading css');
             let cssAssests = glob.sync(
                 path.join(process.cwd(), Theme.BUILD_FOLDER, '**.css'),
             );
@@ -2233,7 +2232,7 @@ export default class Theme {
     };
     // Remove extra param "newTheme"
     private static updateAvailablePages = async ({ assetHash }) => {
-        const spinner = new Spinner('Adding/updating available pages');
+        const spinner = new Spinner('Adding/updating theme pages');
         try {
             spinner.start();
             // Get all available pages before syncing
@@ -2287,7 +2286,7 @@ export default class Theme {
 
                 // If this system page was not available previously
                 if (!systemPage) {
-                    Logger.info('Creating System Page: ', pageName);
+                    Logger.info('Creating New System Page: ', pageName);
                     const pageData = {
                         value: pageName,
                         props: [],
@@ -2459,7 +2458,7 @@ export default class Theme {
                 const customPageConfig = customFiles[key];
                 let customPage = customPagesDB.find((p) => p.value == key);
                 if (!customPage) {
-                    Logger.log('Creating Custom Page: ', key);
+                    Logger.log('Creating New Custom Page: ', key);
                     const pageData = {
                         value: customPageConfig.value,
                         text: customPageConfig.text,
@@ -2487,7 +2486,7 @@ export default class Theme {
         }
     };
     private static updateAvailablePagesForReact = async (customTemplates) => {
-        const spinner = new Spinner('Adding/updating available pages');
+        const spinner = new Spinner('Adding/updating theme pages');
         try {
             spinner.start();
             const allPages = (await ThemeService.getAllAvailablePage()).data
@@ -2623,6 +2622,7 @@ export default class Theme {
                         handle = {},
                         children,
                         index,
+                        sections = []
                     } = customPage.props;
 
                     let path = _path;
@@ -2649,6 +2649,7 @@ export default class Theme {
                     customFiles[value] = {
                         fileSetting: settingProps,
                         value,
+                        sections,
                         text: pageNameModifier(path),
                         path: routerPath,
                     };
@@ -2683,7 +2684,7 @@ export default class Theme {
                     ).data;
                 }
                 customPage.props = customPageConfig.fileSetting || [];
-                customPage.sections_meta = [{}];
+                customPage.sections_meta = customPageConfig.sections || [];
                 customPage.type = 'custom';
                 pagesToSave.push(customPage);
             }
@@ -2920,7 +2921,7 @@ export default class Theme {
             await asyncForEach(systemPages, async (fileName) => {
                 let pageName = fileName.replace('.vue', '');
                 // SYSTEM Pages
-                Logger.info('Creating System Page: ', pageName);
+                Logger.debug('Creating System Page: ', pageName);
                 const pageData = {
                     value: pageName,
                     props: [],
@@ -3036,8 +3037,7 @@ export default class Theme {
 
             await asyncForEach(systemPages, async (fileName) => {
                 let pageName = fileName.replace('.jsx', '');
-
-                Logger.info('Creating System Page: ', pageName);
+                Logger.debug('Creating System Page: ', pageName);
                 const pageData = {
                     value: pageName,
                     props: [],
@@ -3173,7 +3173,7 @@ export default class Theme {
             fs.renameSync(sourcePath, destinationPath);
             moved_files.push(fileOrFolder);
         });
-        Logger.info(
+        Logger.debug(
             `\n✔ ${moved_files.join(', ')} files are moved to theme folder`,
         );
 
@@ -3183,7 +3183,7 @@ export default class Theme {
                 path.join(Theme.TEMPLATE_DIRECTORY, 'babel.config.js'),
             );
             fs.writeFileSync(babelFilePath, babelContent);
-            Logger.info('✔ babel.config.js added');
+            Logger.debug('✔ babel.config.js added');
         }
 
         // Check if fdk config exist
@@ -3192,7 +3192,7 @@ export default class Theme {
                 path.join(Theme.TEMPLATE_DIRECTORY, 'vue.config.js'),
             );
             fs.writeFileSync(fdkConfigFilePath, fdkConfigContent);
-            Logger.info('✔ fdk.config.js added');
+            Logger.debug('✔ fdk.config.js added');
         }
     };
 
@@ -3274,18 +3274,13 @@ export default class Theme {
         const themeName = defaultTheme.name;
         let url;
         if (themeType === 'react') {
-            url = `https://github.com/gofynd/Luxe.git`;
+            url = `https://github.com/gofynd/Luxe`;
         } else {
-            url = `https://github.com/gofynd/${themeName}.git`;
+            url = `https://github.com/gofynd/${themeName}`;
         }
         try {
             spinner.start();
-            const git = simpleGit();
-            if (themeType === 'react') {
-                await git.clone(url, targetDirectory, ['--branch', 'main']);
-            } else {
-                await git.clone(url, targetDirectory);
-            }
+            await cloneGitRepository(url, targetDirectory, 'main');
             spinner.succeed();
         } catch (err) {
             spinner.fail();
