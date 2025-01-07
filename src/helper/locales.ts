@@ -1,7 +1,19 @@
 import axios, { AxiosResponse } from 'axios';
+import { getActiveContext } from '../helper/utils';
 import { promises as fs } from 'fs';
 import * as path from 'path';
+import LocalesService from '../lib/api/services/locales.service';
 
+/**
+ * Defines the synchronization mode for locale operations
+ * @enum {string}
+ */
+export enum SyncMode {
+    /** Pull changes from remote to local */
+    PULL = 'pull',
+    /** Push changes from local to remote */
+    PUSH = 'push'
+}
 
 interface ApiConfig {
     baseUrl: string;
@@ -13,27 +25,94 @@ interface LocaleResource {
     resource: Record<string, any>;
 }
 
-const apiConfig: ApiConfig = {
-    baseUrl: 'http://localhost:7071/v1.0/organization/2323232/company/6/application/671b70ecfde3892821bd4f5d/static-resources',
-    headers: {
-        'x-user-data': '{"debug":{"source":"grimlock","platform":"000000000000000000000001"},"gender":"male","accountType":"user","active":true,"profilePicUrl":"https://d2co8r51m5ca2d.cloudfront.net/inapp_banners/default_profile_img.png","hasOldPasswordHash":false,"_id":"5e199e6998cfe1776f1385dc","firstName":"Fynd","lastName":"App","username":"app@fynd.com","phoneNumbers":[{"active":true,"primary":true,"verified":true,"phone":"9999632145","countryCode":91}]}',
-        'authorization': 'Bearer oa-cbfdf63cd52092d314ba7b377d767255942e68fe',
-        'Content-Type': 'application/json'
+export const hasAnyDeltaBetweenLocalAndRemote = async (): Promise<boolean> => {
+    let comparedFiles = 0; // Track the number of files compared
+    try {
+        console.log('Starting comparison between local and remote data');
+
+        // Fetch remote data from the API
+        const response: AxiosResponse = await LocalesService.getLocalesByThemeId(null);
+
+        console.log('Response received from API:', response.status);
+
+        if (response.status === 200) {
+            const data = response.data; // Extract the data from the API response
+            console.log('Remote data retrieved:', data);
+
+            // Ensure the local locales folder exists
+            const localesFolder: string = path.resolve(process.cwd(), 'theme/locales');
+            await fs.mkdir(localesFolder, { recursive: true });
+            console.log('Locales folder ensured at:', localesFolder);
+
+            // Read all files in the local locales folder
+            const localFiles = await fs.readdir(localesFolder);
+            console.log('Local files found:', localFiles);
+
+            // Compare each local file with the corresponding remote resource
+            for (const file of localFiles) {
+                const locale = path.basename(file, '.json'); // Extract the locale name from the file name
+                console.log('Processing local file:', file);
+
+                const localData = JSON.parse(await fs.readFile(path.join(localesFolder, file), 'utf-8')); // Read and parse the local file
+                const matchingItem = data.items.find((item: LocaleResource) => item.locale === locale); // Find the corresponding remote item
+
+                if (!matchingItem) { // If no matching remote item exists
+                    console.log('No matching remote item found for locale:', locale);
+                    return true; // Changes detected
+                }
+
+                if (JSON.stringify(localData) !== JSON.stringify(matchingItem.resource)) { // Compare the local and remote data
+                    console.log('Data mismatch found for locale:', locale);
+                    return true; // Changes detected
+                }
+
+                comparedFiles++; // Increment compared file count
+            }
+
+            // Compare each remote resource with the corresponding local file
+            for (const item of data.items) {
+                const localeFile = path.join(localesFolder, `${item.locale}.json`); // Construct the local file path
+                console.log('Processing remote item for locale file:', localeFile);
+
+                const localeData = item.resource; // Extract the remote resource data
+                let currentData = {};
+
+                try {
+                    // Attempt to read and parse the local file
+                    currentData = JSON.parse(await fs.readFile(localeFile, 'utf-8'));
+                } catch (error) {
+                    console.log('Error reading local file or file not found for locale:', item.locale, error);
+                    currentData = {}; // Default to an empty object if the file is missing or invalid
+                }
+
+                if (JSON.stringify(currentData) !== JSON.stringify(localeData)) { // Compare the local and remote data
+                    console.log('Data mismatch found for remote locale:', item.locale);
+                    return true; // Changes detected
+                }
+
+                comparedFiles++; // Increment compared file count
+            }
+        } else {
+            console.error(`Unexpected status code: ${response.status}.`); // Handle unexpected response status codes
+            return false;
+        }
+    } catch (error) {
+        console.error('Error checking for changes:', error); // Log errors during the comparison process
+        return false;
     }
+
+    console.log(`Comparison completed. Total files compared: ${comparedFiles}`); // Log the summary of comparisons
+    console.log('No changes detected between local and remote data'); // Log when no changes are detected
+    return false; // Return false if no changes were found
 };
 
-export const syncLocales = async (): Promise<void> => {
-    const localFirst: boolean = process.env.LOCAL_FIRST?.toLowerCase() === 'true';
-    console.log(`Starting fetchData with LOCAL_FIRST=${localFirst}`);
+export const syncLocales = async (syncMode: SyncMode): Promise<void> => {
+
+    console.log(`Starting fetchData with SyncMode=${syncMode}`);
 
     try {
-        const response: AxiosResponse = await axios.get(
-            `${apiConfig.baseUrl}?template_theme_id=674d7532cf6c66c4b308af58&page_size=500`,
-            {
-                headers: apiConfig.headers,
-                timeout: 10000,
-            }
-        );
+        const response: AxiosResponse = await LocalesService.getLocalesByThemeId(null);
+
         console.log('API response received');
 
         if (response.status === 200) {
@@ -76,12 +155,12 @@ export const syncLocales = async (): Promise<void> => {
                 if (!matchingItem) {
                     console.log(`No matching item found for locale: ${locale}`);
                     unmatchedLocales.push({ locale, resource: localData });
-                    if (localFirst) {
+                    if (syncMode === SyncMode.PUSH) {
                         console.log(`Creating new resource in API for locale: ${locale}`);
                         await createLocaleInAPI(localData, locale, 'locale');
                     }
                 } else {
-                    if (localFirst) {
+                    if (syncMode === SyncMode.PUSH) {
                         if (JSON.stringify(localData) !== JSON.stringify(matchingItem.resource)) {
                             console.log(`Updating API resource for locale: ${locale}`);
                             await updateLocaleInAPI(localData, matchingItem._id);
@@ -100,20 +179,10 @@ export const syncLocales = async (): Promise<void> => {
             }
 
             if (unmatchedLocales.length > 0) {
-                const unmatchedFilePath: string = path.join(localesFolder, 'unmatched_locales.log');
-                try {
-                    await fs.writeFile(
-                        unmatchedFilePath,
-                        unmatchedLocales.map(locale => JSON.stringify(locale)).join('\n'),
-                        'utf-8'
-                    );
-                    console.log(`Unmatched locales written to file: ${unmatchedFilePath}`);
-                } catch (err) {
-                    console.error(`Error writing unmatched locales to file: ${(err as Error).message}`);
-                }
+                console.log('Unmatched locales:', unmatchedLocales);
             }
 
-            if (!localFirst) {
+            if (syncMode === SyncMode.PULL) {
                 for (const item of data.items) {
                     const locale: string = item.locale;
                     const localeFile: string = path.join(localesFolder, `${locale}.json`);
@@ -161,19 +230,17 @@ export const syncLocales = async (): Promise<void> => {
 const createLocaleInAPI = async (data: Record<string, any>, locale: string, type: string): Promise<void> => {
     try {
         console.log(`Creating resource in API for locale: ${locale}`);
-        const response: AxiosResponse = await axios.post(
-            apiConfig.baseUrl,
-            {
-                template_theme_id: '674d7532cf6c66c4b308af58',
-                locale: locale,
-                resource: data,
-                type: type,
-                is_template: false,
-            },
-            { headers: apiConfig.headers }
-        );
+        const activeContext = getActiveContext();
+        const response: AxiosResponse = await LocalesService.createLocale(null, {
+            theme_id: activeContext.theme_id,
+            locale: locale,
+            resource: data,
+            type: type,
+            template: false,
+        })
         console.log('Locale created in API:', response.data);
     } catch (error) {
+        console.log(error);
         console.error('Error creating locale in API:', (error as Error).message);
     }
 };
@@ -181,13 +248,12 @@ const createLocaleInAPI = async (data: Record<string, any>, locale: string, type
 const updateLocaleInAPI = async (data: Record<string, any>, id: string): Promise<void> => {
     try {
         console.log(`Updating resource in API for ID: ${id}`);
-        const response: AxiosResponse = await axios.put(
-            `${apiConfig.baseUrl}/${id}`,
-            { resource: data },
-            { headers: apiConfig.headers }
-        );
+
+        const response: AxiosResponse = await LocalesService.updateLocale(null, id, { resource: data });
+
         console.log('Locale updated in API:', response.data);
     } catch (error) {
+        console.log(error);
         console.error('Error updating locale in API:', (error as Error).message);
     }
 };
@@ -196,7 +262,6 @@ const updateLocaleFile = async (filePath: string, data: Record<string, any>, id:
     try {
         await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8');
         console.log(`Locale file updated: ${filePath}`);
-        await updateLocaleInAPI(data, id);
     } catch (err) {
         console.error(`Error writing to file ${filePath}: ${(err as Error).message}`);
     }
