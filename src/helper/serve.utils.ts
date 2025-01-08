@@ -466,7 +466,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
             }
         });
         
-        res.json(localesArray);
+        res.json({"items":localesArray});
     });
 
     app.get('/*', async (req, res) => {
@@ -541,7 +541,10 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
                     },
                 },
                 {
-                    headers,
+                    headers: {
+                        ...headers,
+                        cookie: req.headers.cookie,
+                    },
                 },
             )
             .catch((error) => {
