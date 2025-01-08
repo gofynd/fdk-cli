@@ -1,6 +1,7 @@
 import axios, { AxiosResponse } from 'axios';
 import { getActiveContext } from '../helper/utils';
 import { promises as fs } from 'fs';
+import fs_sync from 'fs';
 import * as path from 'path';
 import LocalesService from '../lib/api/services/locales.service';
 
@@ -25,10 +26,18 @@ interface LocaleResource {
     resource: Record<string, any>;
 }
 
-export const hasAnyDeltaBetweenLocalAndRemote = async (): Promise<boolean> => {
+export const hasAnyDeltaBetweenLocalAndRemoteLocales = async (): Promise<boolean> => {
     let comparedFiles = 0; // Track the number of files compared
     try {
         console.log('Starting comparison between local and remote data');
+
+        const localesFolder: string = path.resolve(process.cwd(), 'theme/locales');
+        
+        if (!fs_sync.existsSync(localesFolder)) {
+            console.log('Locales folder does not exist');
+            return false;
+        }
+        
 
         // Fetch remote data from the API
         const response: AxiosResponse = await LocalesService.getLocalesByThemeId(null);
@@ -39,8 +48,7 @@ export const hasAnyDeltaBetweenLocalAndRemote = async (): Promise<boolean> => {
             const data = response.data; // Extract the data from the API response
             console.log('Remote data retrieved:', data);
 
-            // Ensure the local locales folder exists
-            const localesFolder: string = path.resolve(process.cwd(), 'theme/locales');
+            // Ensure the locales folder exists
             await fs.mkdir(localesFolder, { recursive: true });
             console.log('Locales folder ensured at:', localesFolder);
 

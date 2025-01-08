@@ -27,7 +27,7 @@ import glob from 'glob';
 import _ from 'lodash';
 import React from 'react';
 import * as ReactRouterDOM from 'react-router-dom';
-import { syncLocales, hasAnyDeltaBetweenLocalAndRemote, SyncMode } from '../helper/locales'
+import { syncLocales, hasAnyDeltaBetweenLocalAndRemoteLocales, SyncMode } from '../helper/locales'
 
 import { createDirectory, writeFile, readFile } from '../helper/file.utils';
 import { customAlphabet } from 'nanoid';
@@ -1351,8 +1351,11 @@ export default class Theme {
         const oldConfig = await Theme.readSettingsJson(
                 Theme.getSettingsDataPath(),
         );
-        const isLocalAndRemoteChanged = await hasAnyDeltaBetweenLocalAndRemote();
-        return (!isNew && !_.isEqual(newConfig, oldConfig)) || isLocalAndRemoteChanged;
+        const isLocalAndRemoteLocalesChanged = await hasAnyDeltaBetweenLocalAndRemoteLocales();
+        console.log('Locales changed: ', isLocalAndRemoteLocalesChanged);
+        const themeConfigChanged = (!isNew && !_.isEqual(newConfig, oldConfig));
+        console.log('Theme config changed: ', themeConfigChanged);
+        return  themeConfigChanged || isLocalAndRemoteLocalesChanged;
     }
 
     public static pullThemeConfig = async () => {
