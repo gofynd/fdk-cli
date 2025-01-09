@@ -224,6 +224,7 @@ export default class Extension {
                       'extensions',
                       'overview',
                       answers.extension_api_key,
+                      '?created=true'
                   )
                 : getPlatformUrls().partners;
             let text =
