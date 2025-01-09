@@ -352,9 +352,15 @@ async function checkForLatestVersion() {
 
     const latest : string|void = await Promise.race([
         checkCliVersionAsync(),
-        new Promise<string>((resolve, reject) => setTimeout(() => {
-            reject(new Error('Timeout, Failed to check latest version.'))
-        }, 2000))
+        new Promise<string>((resolve, reject) => {
+            const timer = setTimeout(() => {
+                reject(new Error('Timeout, Failed to check latest version.'));
+            }, 2000);
+    
+            // Clear the timeout when the promise is resolved/rejected
+            resolve('')
+            clearTimeout(timer);
+        }),
     ]).catch(error => Debug(error));
 
     if(!latest) return;
