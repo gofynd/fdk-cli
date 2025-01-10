@@ -243,7 +243,7 @@ export async function getRandomFreePort(excluded_port = []) {
 
     const randomPort = Math.floor(Math.random() * (10000)) + 40000;
     if (excluded_port.includes(randomPort)) {
-        return await this.getRandomFreePort(excluded_port);
+        return await getRandomFreePort(excluded_port);
     }
     const availablePort = await detectPort(randomPort);
 
@@ -251,6 +251,6 @@ export async function getRandomFreePort(excluded_port = []) {
     if (availablePort === randomPort) {
         return randomPort;
     } else {
-        return await this.getRandomFreePort([...excluded_port, randomPort]);
+        return await getRandomFreePort([...excluded_port, randomPort]);
     }
 }

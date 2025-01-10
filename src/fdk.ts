@@ -350,12 +350,18 @@ async function checkCliVersionAsync() {
 
 async function checkForLatestVersion() {
 
+    let timer;
     const latest : string|void = await Promise.race([
         checkCliVersionAsync(),
-        new Promise<string>((resolve, reject) => setTimeout(() => {
-            reject(new Error('Timeout, Failed to check latest version.'))
-        }, 2000))
-    ]).catch(error => Debug(error));
+        new Promise<string>((resolve, reject) => {
+            // Wait till 2 seconds to check the npm version else reject the promise and end the npm versioncheck
+             timer = setTimeout(() => {
+                reject(new Error('Timeout, Failed to check latest version.'));           
+            }, 2000);
+        }),
+    ]).catch(error => Debug(error)).finally(() => {
+        clearTimeout(timer);
+    });
 
     if(!latest) return;
 
