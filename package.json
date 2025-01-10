@@ -1,6 +1,6 @@
 {
   "name": "@gofynd/fdk-cli",
-  "version": "6.2.4",
+  "version": "6.2.6",
   "main": "index.js",
   "license": "MIT",
   "bin": {
@@ -89,6 +89,7 @@
     "fs-extra": "^11.2.0",
     "glob": "^7.2.3",
     "http-proxy-middleware": "^2.0.6",
+    "ini": "^5.0.0",
     "inquirer": "^7.3.3",
     "inquirer-search-list": "^1.2.6",
     "js-yaml": "^4.1.0",
@@ -107,7 +108,6 @@
     "react-router-dom": "^6.25.1",
     "rimraf": "^3.0.2",
     "semver": "^7.6.3",
-    "simple-git": "^3.25.0",
     "socket.io": "^2.5.1",
     "source-map": "^0.7.4",
     "stacktrace-parser": "^0.1.10",

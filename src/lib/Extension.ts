@@ -2,8 +2,6 @@ import inquirer from 'inquirer';
 import chalk from 'chalk';
 import fs from 'fs-extra';
 import path from 'path';
-import execa from 'execa';
-import rimraf from 'rimraf';
 
 import { getPlatformUrls } from './api/services/url';
 import Spinner from '../helper/spinner';
@@ -25,13 +23,13 @@ import ConfigStore, { CONFIG_KEYS } from './Config';
 import {
     installNpmPackages,
     installJavaPackages,
-    moveDirContent,
     checkRequiredDependencies,
 } from '../helper/utils';
 import Logger from './Logger';
 import urljoin from 'url-join';
 import Debug from './Debug';
 import { TEMP_DIR_NAME, EXTENSION_CONTEXT_FILE_NAME } from '../helper/constants';
+import { cloneGitRepository } from '../helper/clone_git_repository';
 
 export const NODE_VUE = 'Node + Vue 3 + SQLite';
 export const NODE_REACT = 'Node + React.js + SQLite';
@@ -59,66 +57,28 @@ const INIT_ACTION_LIST = [
 ]
 
 export const PROJECT_REPOS = {
-    [NODE_VUE]: 'https://github.com/gofynd/example-extension-javascript.git',
-    [NODE_REACT]:
-        'https://github.com/gofynd/example-extension-javascript-react.git',
-    [NODE_NEXT]:
-        'https://github.com/gofynd/example-extension-nextjs.git',
-    [JAVA_VUE]: 'https://github.com/gofynd/example-extension-java-vue.git',
-    [JAVA_REACT]: 'https://github.com/gofynd/example-extension-java-react.git',
-};
+    [NODE_VUE]: 'https://github.com/gofynd/example-extension-javascript',
+    [NODE_REACT]:'https://github.com/gofynd/example-extension-javascript-react',
+    [NODE_NEXT]: 'https://github.com/gofynd/example-extension-nextjs',
+    [JAVA_VUE]: 'https://github.com/gofynd/example-extension-java-vue',
+    [JAVA_REACT]: 'https://github.com/gofynd/example-extension-java-react',
+  };
 export default class Extension {
 
     // clone extension boilerplate from github
     private static async copyTemplateFiles(
         targetDirectory: string,
         answers: Object,
-    ) {
-        const tempDirectory = targetDirectory + `/${TEMP_DIR_NAME}`;
+      ) {
         try {
-            if (!fs.existsSync(targetDirectory)) {
-                createDirectory(targetDirectory);
-                createDirectory(tempDirectory);
-            }
-            await execa('git', ['init'], { cwd: tempDirectory });
-            await execa(
-                'git',
-                ['remote', 'add', 'origin', answers.project_url],
-                { cwd: tempDirectory },
-            );
-            
-            await execa('git', ['pull', '--recurse-submodules', 'origin', EXTENSION_BRANCH], {
-                cwd: tempDirectory,
-            });
-            await execa('git', ['submodule', 'update', '--init', '--recursive'], {
-                cwd: tempDirectory,
-            });
-            Debug("Fetching submodule path")
-            const s = await execa('git', ['config', '--file', '.gitmodules', '--get-regexp', 'path'], {
-                cwd: tempDirectory,
-            }).catch((err) => {
-                Debug("No submodule found")
-                return err;
-            });
-            const submodulePath = s?.stdout?.split?.(" ")?.[1] ?? null;
-            
-            rimraf.sync(`${tempDirectory}/.git`); // unmark as git repo
-            rimraf.sync(`${tempDirectory}/.gitmodules`); // Remove the .gitmodules file
-            
-            const submoduleGitPath = `${tempDirectory}/${submodulePath}/.git`
-            submodulePath && Debug(`Deleting ${submoduleGitPath}`)
-            submodulePath && rimraf.sync(submoduleGitPath); // unmark as git repo from submodules
-            
-            await moveDirContent(tempDirectory, targetDirectory) // move project from temporary directory to extension directory
-            Debug(`All extension files moved successfully.`)
-            
-            return true;
+          // Use the cloneGitRepository utility function with EXTENSION_BRANCH
+          await cloneGitRepository(answers.project_url, targetDirectory, EXTENSION_BRANCH);
+          Debug(`All extension files moved successfully.`);
+          return true;
         } catch (error) {
-            return Promise.reject(error);
-        } finally {
-            fs.removeSync(tempDirectory);
+          return Promise.reject(error);
         }
-    }
+      }
 
     // replaces package name
     private static async replaceGrootWithExtensionName(
@@ -264,6 +224,7 @@ export default class Extension {
                       'extensions',
                       'overview',
                       answers.extension_api_key,
+                      '?created=true'
                   )
                 : getPlatformUrls().partners;
             let text =
@@ -315,10 +276,6 @@ export default class Extension {
 
             // Checking required dependency
             checkRequiredDependencies([
-                {
-                    name: 'git',
-                    errorMessage: 'Please Install Git to run this command. Refer https://git-scm.com/downloads to install Git'
-                },
                 {
                     name: 'npm',
                     errorMessage: 'Please Install NPM to create Node.js based extension. Refer https://docs.npmjs.com/downloading-and-installing-node-js-and-npm to install Node.js'
