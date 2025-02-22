@@ -22,7 +22,6 @@ import {
     AUTHENTICATION_COMMANDS,
     ENVIRONMENT_COMMANDS,
     EXTENSION_COMMANDS,
-    PARTNER_COMMANDS,
     ALL_THEME_COMMANDS,
 } from './helper/constants';
 import { getPlatformUrls } from './lib/api/services/url';
@@ -168,11 +167,6 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
                 !(
                     EXTENSION_COMMANDS.findIndex((c) =>
                         extensionCommand.includes(c),
-                    ) !== -1
-                ) &&
-                !(
-                    PARTNER_COMMANDS.findIndex((c) =>
-                        partnerCommand.includes(c),
                     ) !== -1
                 ) &&
                 !configStore.get(CONFIG_KEYS.AUTH_TOKEN)
