@@ -96,11 +96,6 @@ ___
 | [show-context](#binding-show-context)     | Show current extension section context.
 | [clear-context](#binding-clear-context)     | Clear current extension section context.
 
-### Partner Commands
-| Command        | Description           |
-| ------------- |-------------|
-| [connect](#partner-connect)     | Add partner access token so that you don't need to add it explicitly  |
-
 ### Config Commands
 
 | Command Type | Description                          |
@@ -610,27 +605,6 @@ This command will allow developers to clear the current extension section contex
 #### ****Syntax****
 ```sh
 fdk binding clear-context
-```
-
-### Partner Commands
-
-<div id="partner-connect"></div>
-
-#### connect
-This command is used to add your partner access token to update extension details on partners panel.
-#### **Syntax**
-```sh
-fdk partner connect [options]
-```
-#### **Command Options**
-| Option        | Description           |
-| ------------- |-------------|
-| --help    | Show help |
-| --verbose, -v | enable debug mode |
-
-#### **Example**
-```sh
-fdk partner connect
 ```
 ___
 ### Config Commands
