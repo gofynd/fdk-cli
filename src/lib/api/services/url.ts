@@ -241,9 +241,13 @@ export const URLS = {
         company_id: number,
         theme_id: string,
     ) => {
+        console.log(urlJoin(
+            LOCALES_URL(),
+            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/translate-ui-labels?theme_id=${theme_id}&page_size=500`,
+        ))
         return urlJoin(
             LOCALES_URL(),
-            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/static-resources?theme_id=${theme_id}&page_size=500`,
+            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/translate-ui-labels?theme_id=${theme_id}&page_size=500`,
         );
     },
     CREATE_LOCALE: (
@@ -252,7 +256,7 @@ export const URLS = {
     ) => {
         return urlJoin(
             LOCALES_URL(),
-            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/static-resources`,
+            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/translate-ui-labels`,
         );
     },
     UPDATE_LOCALE: (
@@ -262,7 +266,7 @@ export const URLS = {
     ) => {
         return urlJoin(
             LOCALES_URL(),
-            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/static-resources/${resource_id}`,
+            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/translate-ui-labels/${resource_id}`,
         );
     }
 };
