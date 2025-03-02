@@ -421,6 +421,30 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 
     const uploadedFiles = {};
 
+    app.get('/getAllStaticResources', (req, res) => {
+        const locale = req.query.locale || 'en';
+        console.log(locale);
+        const localesFolder: string = path.resolve(process.cwd(), 'theme/locales');
+        const locales = fs.readdirSync(localesFolder).filter(file => file.split('.')[0] === locale);
+        const localesArray = [];
+
+        // Read content of each locale file
+        locales.forEach(locale => {
+            const filePath = path.join(localesFolder, locale);
+            try {
+                const content = fs.readFileSync(filePath, 'utf8');
+                localesArray.push({
+                    "locale":locale.replace('.json', ''),
+                    "resource":JSON.parse(content)
+                });
+            } catch (error) {
+                Logger.error(`Error reading locale file ${locale}: ${error.message}`);
+            }
+        });
+        
+        res.json({"items":localesArray});
+    });
+
     app.get('/*', async (req, res) => {
         try {
             // If browser is not requesting for html page (it can be file, API call, etc...), then fetch and send requested data directly from source

@@ -27,6 +27,7 @@ import glob from 'glob';
 import _ from 'lodash';
 import React from 'react';
 import * as ReactRouterDOM from 'react-router-dom';
+import { syncLocales, hasAnyDeltaBetweenLocalAndRemoteLocales, SyncMode } from '../helper/locales'
 
 import { createDirectory, writeFile, readFile } from '../helper/file.utils';
 import { customAlphabet } from 'nanoid';
@@ -1297,6 +1298,43 @@ export default class Theme {
             throw new CommandError(error.message, error.code);
         }
     };
+
+    public static syncRemoteToLocal = async (theme) => {
+        try {
+            const newConfig = Theme.getSettingsData(theme);
+            await Theme.writeSettingJson(
+                Theme.getSettingsDataPath(),
+                newConfig,
+            );
+            await syncLocales(SyncMode.PULL);
+            Logger.info('Remote to Local: Config updated successfully');
+        } catch (error) {
+            throw new CommandError(error.message, error.code);
+        }
+    }
+
+    public static syncLocalToRemote = async (theme) => {
+        try {
+            const { data: theme } = await ThemeService.getThemeById(null);
+            await syncLocales(SyncMode.PUSH);
+            Logger.info('Locale to Remote: Config updated successfully');
+        } catch (error) {
+            throw new CommandError(error.message, error.code);
+        }
+    }
+    
+    public static isAnyDeltaBetweenLocalAndRemote = async (theme, isNew) => {
+        const newConfig = Theme.getSettingsData(theme);
+        const oldConfig = await Theme.readSettingsJson(
+                Theme.getSettingsDataPath(),
+        );
+        const isLocalAndRemoteLocalesChanged = await hasAnyDeltaBetweenLocalAndRemoteLocales();
+        console.log('Locales changed: ', isLocalAndRemoteLocalesChanged);
+        const themeConfigChanged = (!isNew && !_.isEqual(newConfig, oldConfig));
+        console.log('Theme config changed: ', themeConfigChanged);
+        return  themeConfigChanged || isLocalAndRemoteLocalesChanged;
+    }
+
     public static pullThemeConfig = async () => {
         try {
             const { data: theme } = await ThemeService.getThemeById(null);
@@ -1307,6 +1345,7 @@ export default class Theme {
                 newConfig.current = config.current;
                 newConfig.preset = config.preset;
             }
+	        await Theme.syncRemoteToLocal(theme);
             await Theme.writeSettingJson(
                 Theme.getSettingsDataPath(),
                 newConfig,
@@ -1485,11 +1524,11 @@ export default class Theme {
     }
     private static async createSectionsIndexFile(available_sections) {
         available_sections = available_sections || [];
-        
+
         let fileNames = fs
             .readdirSync(`${process.cwd()}/theme/sections`)
             .filter((o) => o !== 'index.js');
-        
+
         let template = `
             ${fileNames
                 .map((f, i) => {
@@ -2561,6 +2600,15 @@ export default class Theme {
                         Logger.info('Config updated successfully');
                     } else {
                         Logger.warn('Using local config to sync');
+                    }
+                });
+            }
+	    if (await Theme.isAnyDeltaBetweenLocalAndRemote(theme, isNew)) {
+                await inquirer.prompt(questions).then(async (answers) => {
+                    if (answers.pullConfig) {
+                        await Theme.syncRemoteToLocal(theme);
+                    } else {
+                        await Theme.syncLocalToRemote(theme);
                     }
                 });
             }
