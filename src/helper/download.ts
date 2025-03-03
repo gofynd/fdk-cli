@@ -10,7 +10,7 @@ export async function downloadFile(url: string, filePath: string) {
 
     response.data.pipe(writer);
 
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
         writer.on('finish', resolve);
         writer.on('error', reject);
     });
