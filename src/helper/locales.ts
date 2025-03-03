@@ -59,11 +59,12 @@ export const hasAnyDeltaBetweenLocalAndRemoteLocales = async (): Promise<boolean
 
             // Compare each local file with the corresponding remote resource
             for (const file of localFiles) {
-                const locale = path.basename(file, '.json'); // Extract the locale name from the file name
+                let locale = path.basename(file, '.json'); // Extract the locale name from the file name
                 console.log('Processing local file:', file);
-
+                const localeType = locale.includes('schema') ? 'locale_schema' : 'locale';
+                locale = locale.includes('schema') ? locale.replace('.schema', '') : locale;
                 const localData = JSON.parse(await fs.readFile(path.join(localesFolder, file), 'utf-8')); // Read and parse the local file
-                const matchingItem = data.items.find((item: LocaleResource) => item.locale === locale); // Find the corresponding remote item
+                const matchingItem = data.items.find((item: LocaleResource) => item.locale === locale && item.type === localeType); // Find the corresponding remote item
 
                 if (!matchingItem) { // If no matching remote item exists
                     console.log('No matching remote item found for locale:', locale);
@@ -71,7 +72,7 @@ export const hasAnyDeltaBetweenLocalAndRemoteLocales = async (): Promise<boolean
                 }
 
                 if (JSON.stringify(localData) !== JSON.stringify(matchingItem.resource)) { // Compare the local and remote data
-                    console.log('Data mismatch found for locale:', locale);
+                    console.log(`Data mismatch found for locale: ${locale}, Type: ${localeType}`);
                     return true; // Changes detected
                 }
 
@@ -80,7 +81,7 @@ export const hasAnyDeltaBetweenLocalAndRemoteLocales = async (): Promise<boolean
 
             // Compare each remote resource with the corresponding local file
             for (const item of data.items) {
-                const localeFile = path.join(localesFolder, `${item.locale}.json`); // Construct the local file path
+                const localeFile = path.join(localesFolder, `${item.locale}${item.type === 'locale_schema' ? '.schema' : ''}.json`);; // Construct the local file path
                 console.log('Processing remote item for locale file:', localeFile);
 
                 const localeData = item.resource; // Extract the remote resource data
@@ -95,7 +96,7 @@ export const hasAnyDeltaBetweenLocalAndRemoteLocales = async (): Promise<boolean
                 }
 
                 if (JSON.stringify(currentData) !== JSON.stringify(localeData)) { // Compare the local and remote data
-                    console.log('Data mismatch found for remote locale:', item.locale);
+                    console.log(`Data mismatch found for remote locale: ${item.locale}, Type: ${item?.type}`);
                     return true; // Changes detected
                 }
 
