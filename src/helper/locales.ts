@@ -24,6 +24,7 @@ interface ApiConfig {
 interface LocaleResource {
     locale: string;
     resource: Record<string, any>;
+    type: string;
 }
 
 export const hasAnyDeltaBetweenLocalAndRemoteLocales = async (): Promise<boolean> => {
@@ -149,8 +150,10 @@ export const syncLocales = async (syncMode: SyncMode): Promise<void> => {
             }
 
             for (const file of localFiles) {
-                const locale: string = path.basename(file, '.json');
+                let locale: string = path.basename(file, '.json');
                 console.log(`Processing local file: ${locale}`);
+                const localeType = locale.includes('schema') ? 'locale_schema' : 'locale';
+                locale = locale.includes('schema') ? locale.replace('.schema', '') : locale;
                 let localData: Record<string, any>;
                 try {
                     localData = JSON.parse(await fs.readFile(path.join(localesFolder, file), 'utf-8'));
@@ -158,14 +161,13 @@ export const syncLocales = async (syncMode: SyncMode): Promise<void> => {
                     console.error(`Error reading file ${file}: ${(err as Error).message}`);
                     continue;
                 }
-
-                const matchingItem = data.items.find((item: LocaleResource) => item.locale === locale);
+                const matchingItem = data.items.find((item: LocaleResource) => item.locale === locale && item.type === localeType);
                 if (!matchingItem) {
                     console.log(`No matching item found for locale: ${locale}`);
-                    unmatchedLocales.push({ locale, resource: localData });
+                    unmatchedLocales.push({ locale, resource: localData, type: localeType });
                     if (syncMode === SyncMode.PUSH) {
                         console.log(`Creating new resource in API for locale: ${locale}`);
-                        await createLocaleInAPI(localData, locale, 'locale');
+                        await createLocaleInAPI(localData, locale, localeType);
                     }
                 } else {
                     if (syncMode === SyncMode.PUSH) {
@@ -193,9 +195,8 @@ export const syncLocales = async (syncMode: SyncMode): Promise<void> => {
             if (syncMode === SyncMode.PULL) {
                 for (const item of data.items) {
                     const locale: string = item.locale;
-                    const localeFile: string = path.join(localesFolder, `${locale}.json`);
+                    const localeFile = path.join(localesFolder, `${item.locale}${item.type === 'locale_schema' ? '.schema' : ''}.json`);
                     const localeData: Record<string, any> = item.resource;
-
                     if (!localeData) {
                         console.log(`Skipping empty resource for locale: ${locale}`);
                         continue;
@@ -235,7 +236,7 @@ export const syncLocales = async (syncMode: SyncMode): Promise<void> => {
     }
 };
 
-const createLocaleInAPI = async (data: Record<string, any>, locale: string, type: string): Promise<void> => {
+const createLocaleInAPI = async (data: Record<string, any>, locale: string, localeType: string): Promise<void> => {
     try {
         console.log(`Creating resource in API for locale: ${locale}`);
         const activeContext = getActiveContext();
@@ -243,7 +244,7 @@ const createLocaleInAPI = async (data: Record<string, any>, locale: string, type
             theme_id: activeContext.theme_id,
             locale: locale,
             resource: data,
-            type: type,
+            type: localeType,
             template: false,
         })
         console.log('Locale created in API:', response.data);
