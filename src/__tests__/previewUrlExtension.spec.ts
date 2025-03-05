@@ -122,9 +122,6 @@ describe('Extension preview-url command', () => {
         // mock axios
         mockAxios = new MockAdapter(axios);
         mockCustomAxios = new MockAdapter(withoutErrorResponseInterceptorAxios);
-        mockAxios
-            .onPost(`${URLS.VALIDATE_ACCESS_TOKEN()}`)
-            .reply(200, { id: ORGANIZATION_ID });
 
         mockAxios
             .onGet(`${URLS.GET_DEVELOPMENT_ACCOUNTS(1, 9999)}`)

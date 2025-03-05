@@ -6,7 +6,6 @@ const COMMANDS = [
     require('./populate'),
     require('./tunnel'),
     require('./extension'),
-    require('./partner'),
     require('./binding'),
     require('./config'),
 ];
