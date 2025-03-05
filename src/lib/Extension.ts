@@ -224,6 +224,7 @@ export default class Extension {
                       'extensions',
                       'overview',
                       answers.extension_api_key,
+                      '?created=true'
                   )
                 : getPlatformUrls().partners;
             let text =
@@ -351,10 +352,7 @@ export default class Extension {
                     type: 'list',
                     choices: [
                         NODE_REACT,
-                        NODE_VUE,
-                        NODE_NEXT,
-                        JAVA_REACT,
-                        JAVA_VUE
+                        NODE_VUE
                     ],
                     default: NODE_REACT,
                     name: 'project_type',

@@ -106,30 +106,6 @@ export default {
         }
     },
 
-    validateAccessToken: async (partner_access_token: string) => {
-        try {
-            let headers = getCommonHeaderOptions().headers;
-
-            let axiosOptions = Object.assign(
-                {},
-                {
-                    data: { token: partner_access_token },
-                },
-                {
-                    headers: headers,
-                },
-            );
-            let response = await ApiClient.post(
-                URLS.VALIDATE_ACCESS_TOKEN(),
-                axiosOptions,
-            );
-            response.data.partner_access_token = partner_access_token;
-            return response.data;
-        } catch (err) {
-            throw err;
-        }
-    },
-
     // Preview URL
     getDevelopmentAccounts: async (page_no: number, page_size: number) => {
         try {

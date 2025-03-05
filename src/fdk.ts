@@ -22,7 +22,6 @@ import {
     AUTHENTICATION_COMMANDS,
     ENVIRONMENT_COMMANDS,
     EXTENSION_COMMANDS,
-    PARTNER_COMMANDS,
     ALL_THEME_COMMANDS,
 } from './helper/constants';
 import { getPlatformUrls } from './lib/api/services/url';
@@ -168,11 +167,6 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
                 !(
                     EXTENSION_COMMANDS.findIndex((c) =>
                         extensionCommand.includes(c),
-                    ) !== -1
-                ) &&
-                !(
-                    PARTNER_COMMANDS.findIndex((c) =>
-                        partnerCommand.includes(c),
                     ) !== -1
                 ) &&
                 !configStore.get(CONFIG_KEYS.AUTH_TOKEN)
@@ -350,12 +344,18 @@ async function checkCliVersionAsync() {
 
 async function checkForLatestVersion() {
 
+    let timer;
     const latest : string|void = await Promise.race([
         checkCliVersionAsync(),
-        new Promise<string>((resolve, reject) => setTimeout(() => {
-            reject(new Error('Timeout, Failed to check latest version.'))
-        }, 2000))
-    ]).catch(error => Debug(error));
+        new Promise<string>((resolve, reject) => {
+            // Wait till 2 seconds to check the npm version else reject the promise and end the npm versioncheck
+             timer = setTimeout(() => {
+                reject(new Error('Timeout, Failed to check latest version.'));           
+            }, 2000);
+        }),
+    ]).catch(error => Debug(error)).finally(() => {
+        clearTimeout(timer);
+    });
 
     if(!latest) return;
 
