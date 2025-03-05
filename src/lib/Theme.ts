@@ -1454,7 +1454,7 @@ export default class Theme {
             const data = findExportedVariable(path, 'sections');
             try {
                 const settings = JSON.parse(data);
-                return settings || {};
+                return settings || [];
             } catch (error) {
                 Logger.error(error);
                 throw new Error(
@@ -1485,11 +1485,11 @@ export default class Theme {
     }
     private static async createSectionsIndexFile(available_sections) {
         available_sections = available_sections || [];
-        
+
         let fileNames = fs
             .readdirSync(`${process.cwd()}/theme/sections`)
             .filter((o) => o !== 'index.js');
-        
+
         let template = `
             ${fileNames
                 .map((f, i) => {
@@ -1497,7 +1497,7 @@ export default class Theme {
                     return `const component${i} = () => import(/* webpackChunkName: "${chunkName}" */ './${f}');`;
                 })
                 .join('\n')}
-            
+
             function exportComponents(components) {
                 return [
                     ${available_sections
@@ -1514,12 +1514,12 @@ export default class Theme {
                         .join(',\n')}
                 ];
             }
-            
+
             export default exportComponents([${fileNames
                 .map((f, i) => `component${i}`)
                 .join(', ')}]);
         `;
-        
+
         rimraf.sync(`${process.cwd()}/theme/sections/index.js`);
         fs.writeFileSync(`${process.cwd()}/theme/sections/index.js`, template.trim());
     }
