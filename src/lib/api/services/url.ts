@@ -173,13 +173,6 @@ export const URLS = {
         );
     },
 
-    VALIDATE_ACCESS_TOKEN: (): string => {
-        return urlJoin(
-            MIXMASTER_URL('partner'),
-            `organization/${getOrganizationId()}/accesstoken/validate`,
-        );
-    },
-
     // Extension Section
     PUBLISH_SECTIONS: (extension_id: string, organization_id) => {
         return urlJoin(

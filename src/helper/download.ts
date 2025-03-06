@@ -17,7 +17,7 @@ export async function downloadFile(url: string, filePath: string): Promise<void>
     response.data.pipe(writer);
 
     // Return a promise that resolves when the download is finished or rejects if an error occurs
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
         writer.on('finish', () => resolve()); // Ensure resolve is called without any arguments
         writer.on('error', error => reject(error)); // Directly pass the error to the reject function
     });
