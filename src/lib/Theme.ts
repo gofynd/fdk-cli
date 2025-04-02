@@ -64,6 +64,7 @@ import {
 import { cloneGitRepository } from './../helper/clone_git_repository';
 import { THEME_TYPE } from '../helper/constants';
 import { MultiStats } from 'webpack';
+import { syncLocales, hasAnyDeltaBetweenLocalAndRemoteLocales, SyncMode } from '../helper/locales'
 
 const nanoid = customAlphabet(
     '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
@@ -1316,22 +1317,44 @@ export default class Theme {
             throw new CommandError(error.message, error.code);
         }
     };
-    public static pullThemeConfig = async () => {
+    public static syncRemoteToLocal = async (theme) => {
         try {
-            const { data: theme } = await ThemeService.getThemeById(null);
-            const { config } = theme;
-            const newConfig: any = {};
-            if (config) {
-                newConfig.list = config.list;
-                newConfig.current = config.current;
-                newConfig.preset = config.preset;
-            }
+            const newConfig = Theme.getSettingsData(theme);
             await Theme.writeSettingJson(
                 Theme.getSettingsDataPath(),
                 newConfig,
             );
-            Theme.createVueConfig();
-            Logger.info('Config updated successfully');
+            await syncLocales(SyncMode.PULL);
+            Logger.info('Remote to Local: Config updated successfully');
+        } catch (error) {
+            throw new CommandError(error.message, error.code);
+        }
+    }
+
+    public static syncLocalToRemote = async (theme) => {
+        try {
+            const { data: theme } = await ThemeService.getThemeById(null);
+            await syncLocales(SyncMode.PUSH);
+            Logger.info('Locale to Remote: Config updated successfully');
+        } catch (error) {
+            throw new CommandError(error.message, error.code);
+        }
+    }
+
+    public static isAnyDeltaBetweenLocalAndRemote = async (theme, isNew) => {
+        const newConfig = Theme.getSettingsData(theme);
+        const oldConfig = await Theme.readSettingsJson(
+                Theme.getSettingsDataPath(),
+        );
+        const isLocalAndRemoteLocalesChanged = await hasAnyDeltaBetweenLocalAndRemoteLocales();
+        const themeConfigChanged = (!isNew && !_.isEqual(newConfig, oldConfig));
+        return  themeConfigChanged || isLocalAndRemoteLocalesChanged;
+    }
+
+    public static pullThemeConfig = async () => {
+        try {
+            const { data: theme } = await ThemeService.getThemeById(null);
+            await Theme.syncRemoteToLocal(theme);
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
@@ -2718,10 +2741,6 @@ export default class Theme {
 
     private static matchWithLatestPlatformConfig = async (theme, isNew) => {
         try {
-            const newConfig = Theme.getSettingsData(theme);
-            const oldConfig = await Theme.readSettingsJson(
-                Theme.getSettingsDataPath(),
-            );
             const questions = [
                 {
                     type: 'confirm',
@@ -2729,16 +2748,12 @@ export default class Theme {
                     message: 'Do you wish to pull config from remote?',
                 },
             ];
-            if (!isNew && !_.isEqual(newConfig, oldConfig)) {
+            if (await Theme.isAnyDeltaBetweenLocalAndRemote(theme, isNew)) {
                 await inquirer.prompt(questions).then(async (answers) => {
                     if (answers.pullConfig) {
-                        await Theme.writeSettingJson(
-                            Theme.getSettingsDataPath(),
-                            newConfig,
-                        );
-                        Logger.info('Config updated successfully');
+                        await Theme.syncRemoteToLocal(theme);
                     } else {
-                        Logger.warn('Using local config to sync');
+                        await Theme.syncLocalToRemote(theme);
                     }
                 });
             }
