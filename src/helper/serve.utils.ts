@@ -362,7 +362,6 @@ export async function startServer({ domain, host, isSSR, port }) {
 }
 
 async function startTunnel(port: number) {
- 
     try {
         const tunnelInstance = new Tunnel({
             port,
@@ -370,7 +369,7 @@ async function startTunnel(port: number) {
 
         const tunnelUrl = await tunnelInstance.startTunnel();
 
-        console.info(`
+        Logger.info(`
             Started cloudflare tunnel at ${port}: ${tunnelUrl}`)
         return {
             url: tunnelUrl,
