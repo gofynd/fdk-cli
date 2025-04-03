@@ -1381,39 +1381,26 @@ export default class Theme {
         });
         return settings;
     }
-    private static async getAvailableReactSectionsForSync(sections, sectionChunkingEnabled) {
-        if (!sections) {
-            Logger.error('Error occured');
-        }
-        if (sectionChunkingEnabled) {
-            const allSections = Object.entries<{ settings: any; Component: any }>(
-                sections,
-            ).map(([name, sectionModule]) => ({
-                name,
-                ...(sectionModule.settings || {}),
-            }));
-
-            return allSections;
-        } else {
-        const sectionsKeys = Object.keys(sections);
-
-        // Check if the settings file exists before reading
-        if (fs.existsSync(Theme.REACT_SECTIONS_SETTINGS_JSON)) {
-            const fileContent = fs.readFileSync(Theme.REACT_SECTIONS_SETTINGS_JSON, 'utf-8');
-            const sectionsSettings = JSON.parse(fileContent);
-            const allSections = [];
-
-            sectionsKeys.forEach(section => {
-                allSections.push({ name: section, ...sectionsSettings[section] });
-            });
-
-            return allSections;
-        } else {
-            // If file doesn't exist, log a warning and return an empty list
-            console.warn(`File ${Theme.REACT_SECTIONS_SETTINGS_JSON} does not exist. Skipping section settings...`);
-            return sectionsKeys.map(section => ({ name: section }));
-        }
+private static async getAvailableReactSectionsForSync(sections: any, sectionChunkingEnabled: boolean) {
+    if (!sections) {
+        Logger.error('Error occurred: Sections data is required');
+        throw new Error('Sections data is required');
     }
+
+    if (sectionChunkingEnabled) {
+        Logger.debug('Chunking is enabled. Processing sections normally.');
+        return Object.entries<{ settings: any; Component: any }>(sections).map(([name, sectionModule]) => ({
+            name,
+            ...(sectionModule.settings || {}),
+        }));
+    } 
+
+    Logger.debug('Chunking is disabled. Processing sections without checking settings file.');
+
+    // Directly process sections without checking `.fdk\sectionsSettings.json`
+    return Object.keys(sections).map(section => ({
+        name: section
+    }));
 }
     static validateReactSectionFileNames() {
         Logger.info('Validating Section File Names')
@@ -1642,10 +1629,10 @@ export default class Theme {
             const packageJson = JSON.parse(data);
             // Check if the "enable_section_chunking" feature is set to truegitgi
             if (packageJson.fdk_feature?.enable_section_chunking === true) {
-                Logger.info('Section chunking is enabled.');
+                Logger.debug('Section chunking is enabled.');
                 return true;
             } else {
-                Logger.info('Section chunking is not enabled.');
+                Logger.debug('Section chunking is not enabled.');
                 return false;
             }
         } catch (error) {
@@ -2887,18 +2874,31 @@ export default class Theme {
         }
         // Get the theme bundle
         const parsed = await Theme.getThemeBundle(stats);
-        if (!parsed || !parsed.sections) {
-            console.error('Error: Theme bundle or sections are undefined');
-            return;
+
+        // Ensure parsed theme bundle is valid
+        if (!parsed) {
+            console.error('Error: Theme bundle is undefined or could not be parsed.');
+            throw new Error('Theme bundle is undefined or could not be parsed.');
         }
+
+        // Ensure sections exist in the parsed bundle
+        if (!parsed.sections) {
+            console.error('Error: Parsed theme bundle does not contain sections.');
+            throw new Error('Parsed theme bundle does not contain sections.');
+        }
+
+        Logger.debug('Theme bundle successfully parsed. Proceeding with section synchronization.');
+
         // Get the available sections for sync based on the section chunking flag
         let available_sections = await Theme.getAvailableReactSectionsForSync(
             parsed.sections,
             sectionChunkingEnabled
         );
+
         // Validate available sections
         await Theme.validateAvailableSections(available_sections);
-        Logger.debug('created section index file');
+
+        Logger.debug('Created section index file');
 
         const buildPath = path.join(process.cwd(), Theme.BUILD_FOLDER);
         let pArr = await Theme.uploadReactThemeBundle({ buildPath });
