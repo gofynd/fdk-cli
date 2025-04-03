@@ -850,15 +850,6 @@ export default class Theme {
 
             // Clear previosu builds
             Theme.clearPreviousBuild();
-            // const sectionChunkingDisabled = await Theme.isSectionChunkingEnabled()
-            // if (sectionChunkingDisabled) {
-            //     await Theme.createReactSectionsBundleIndexFile()
-            // }
-            // else {
-            //     Theme.validateReactSectionFileNames()
-            //     await Theme.createReactSectionsSettingsJson()
-            //     await Theme.createReactSectionsChunksIndexFile();
-            // }
             const sectionChunkingEnabled = await Theme.isSectionChunkingEnabled();
 
             if (sectionChunkingEnabled) {
@@ -1225,15 +1216,6 @@ export default class Theme {
 
             // initial build
             Logger.info(`Locally building`);
-            // const sectionChunkingDisabled = await Theme.isSectionChunkingEnabled()
-            // if (sectionChunkingDisabled) {
-            //     await Theme.createReactSectionsBundleIndexFile()
-            // }
-            // else {
-            //     Theme.validateReactSectionFileNames()
-            //     await Theme.createReactSectionsChunksIndexFile();
-            //     await Theme.createReactSectionsSettingsJson()
-            // }
 
             const sectionChunkingEnabled = await Theme.isSectionChunkingEnabled();
 
@@ -1652,23 +1634,6 @@ export default class Theme {
         rimraf.sync(`${process.cwd()}/theme/sections/index.js`);
         fs.writeFileSync(`${process.cwd()}/theme/sections/index.js`, content);
     }
-    // private static async isSectionChunkingDisabled() {
-    //     // Read the package.json file
-    //     const packageJsonPath = path.join(process.cwd(), 'package.json');
-    //     try {
-    //         const data = fs.readFileSync(packageJsonPath, 'utf-8');
-    //         const packageJson = JSON.parse(data);
-
-    //         // Check if the "disable_section_chunking" feature is set to true
-    //         if (packageJson.fdk_feature && packageJson.fdk_feature?.disable_section_chunking === true) {
-    //             return true;
-    //         }
-    //         return false;
-    //     } catch (error) {
-    //         console.error("Error reading or parsing package.json:", error);
-    //         return false;
-    //     }
-    // } 
     private static isSectionChunkingEnabled() {
         // Read the package.json file
         const packageJsonPath = path.join(process.cwd(), 'package.json');       
@@ -2910,43 +2875,6 @@ export default class Theme {
             imageCdnUrl,
             isHMREnabled: false,
         });
-
-        // const sectionChunkingDisabled = await Theme.isSectionChunkingDisabled()
-        // if (sectionChunkingDisabled) {
-        //     await Theme.createReactSectionsBundleIndexFile()
-        // }
-        // else {
-        //     Theme.validateReactSectionFileNames()
-        //     await Theme.createReactSectionsChunksIndexFile();
-        //     await Theme.createReactSectionsSettingsJson()
-        // }
-        // const parsed = await Theme.getThemeBundle(stats);
-        // let available_sections = await Theme.getAvailableReactSectionsForSync(
-        //     parsed.sections,
-        //     sectionChunkingDisabled
-        // );
-        // const sectionChunkingEnabled = await Theme.isSectionChunkingEnabled();
-
-        // if (sectionChunkingEnabled) {
-        //     Theme.validateReactSectionFileNames();
-        //     await Theme.createReactSectionsChunksIndexFile();
-        //     await Theme.createReactSectionsSettingsJson();
-        // } else {
-        //     await Theme.createReactSectionsBundleIndexFile();
-        // }
-        // // Get the theme bundle
-        // const parsed = await Theme.getThemeBundle(stats);
-        // if (!parsed || !parsed.sections) {
-        //     console.error('Error: Theme bundle or sections are undefined');
-        //     return;
-        // }
-        // // Get the available sections for sync based on the section chunking flag
-        // let available_sections = await Theme.getAvailableReactSectionsForSync(
-        //     parsed.sections,
-        //     sectionChunkingEnabled
-        // );
-        // // Validate available sections
-        // await Theme.validateAvailableSections(available_sections);
 
         const sectionChunkingEnabled = await Theme.isSectionChunkingEnabled();
 
