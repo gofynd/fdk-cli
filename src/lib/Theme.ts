@@ -3293,14 +3293,16 @@ export default class Theme {
 
         const themeName = defaultTheme.name;
         let url;
+        let branch = 'main'
         if (themeType === 'react') {
             url = `https://github.com/gofynd/Luxe`;
+            branch = 'multilang'
         } else {
             url = `https://github.com/gofynd/${themeName}`;
         }
         try {
             spinner.start();
-            await cloneGitRepository(url, targetDirectory, 'main');
+            await cloneGitRepository(url, targetDirectory, branch);
             spinner.succeed();
         } catch (err) {
             spinner.fail();
