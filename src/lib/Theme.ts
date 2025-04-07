@@ -839,6 +839,7 @@ export default class Theme {
     ) => {
         try {
             await Theme.ensureThemeTypeInPackageJson();
+            await Theme.ensureLocalesFolderExists();
             currentContext.domain
                 ? Logger.warn('Syncing Theme to: ' + currentContext.domain)
                 : Logger.warn('Please add domain to context');
@@ -1346,7 +1347,10 @@ export default class Theme {
         const oldConfig = await Theme.readSettingsJson(
                 Theme.getSettingsDataPath(),
         );
-        const isLocalAndRemoteLocalesChanged = await hasAnyDeltaBetweenLocalAndRemoteLocales();
+        let isLocalAndRemoteLocalesChanged = false
+        if (theme.theme_type === "react") {
+            isLocalAndRemoteLocalesChanged = await hasAnyDeltaBetweenLocalAndRemoteLocales();
+        }
         const themeConfigChanged = (!isNew && !_.isEqual(newConfig, oldConfig));
         return  themeConfigChanged || isLocalAndRemoteLocalesChanged;
     }
@@ -3216,6 +3220,7 @@ export default class Theme {
         await Theme.ensureThemeTypeInPackageJson();
         const activeContext = getActiveContext();
         if (activeContext.theme_type === THEME_TYPE.react) {
+            await Theme.ensureLocalesFolderExists()
             await Theme.generateAssetsReact();
         } else {
             await Theme.generateAssetsVue();
@@ -3334,4 +3339,41 @@ export default class Theme {
             throw err;
         }
     };
+
+    private static readonly ensureLocalesFolderExists = async () => {
+        try {
+            const localesPath = path.join(process.cwd(), 'theme', 'locales');
+            const exists = await fs.pathExists(localesPath);
+    
+            if (!exists) {
+                const msg = `Locales folder not found at path: ${localesPath}`;
+                Logger.debug(msg);
+                throw new CommandError(msg);
+            }
+    
+            const stat = await fs.stat(localesPath);
+            if (!stat.isDirectory()) {
+                const msg = `Locales path exists but is not a directory: ${localesPath}`;
+                Logger.debug(msg);
+                throw new CommandError(msg);
+            }
+
+            const files = await fs.readdir(localesPath);
+            const jsonFiles = files.filter((file) => file.endsWith('.json'));
+    
+            if (jsonFiles.length === 0) {
+                const msg = `Locales folder does not contain any files: ${localesPath}`;
+                Logger.debug(msg);
+                throw new CommandError(msg);
+            }
+    
+            return true;
+        } catch (err) {
+            throw new CommandError(
+                `Failed to locate the locales folder.\n${err.message}`,
+                err.code || 'UNKNOWN_ERROR',
+            );
+        }
+    };
+    
 }
