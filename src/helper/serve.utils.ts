@@ -447,7 +447,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
     app.get('/translate-ui-labels', (req, res) => {
         const locale = req.query.locale || 'en';
         const localesFolder: string = path.resolve(process.cwd(), 'theme/locales');
-        const locales = fs.readdirSync(localesFolder).filter(file => file.split('.')[0] === locale);
+        const locales = fs.readdirSync(localesFolder).filter(file => !file.endsWith('.schema.json') && file.split('.')[0] === locale);        
         const localesArray = [];
 
         // Read content of each locale file
