@@ -11,6 +11,7 @@ import {
     parseBundleFilename,
     transformSectionFileName,
     findExportedVariable,
+    FDK_PATH,
 } from '../helper/utils';
 import CommandError, { ErrorCodes } from './CommandError';
 import Logger, { COMMON_LOG_MESSAGES } from './Logger';
@@ -889,9 +890,6 @@ export default class Theme {
                 isHMREnabled: false,
                 targetDirectory
             });
-            // if (!sectionChunkingDisabled) {
-            //     await Theme.createReactSectionsSettingsJson()
-            // }
 
             const parsed = await Theme.getThemeBundle(stats);
             Logger.debug('Uploading theme assets/images');
@@ -1715,7 +1713,7 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
     }
     private static async createReactSectionsSettingsJson() {
         const sectionsPath = path.join(process.cwd(), 'theme', 'sections');
-
+        if (!isAThemeDirectory()) createDirectory(FDK_PATH());
         // Function to extract settings from a JSX file
         function extractSettings(fileContent) {
             const settingsMatch = fileContent.match(/export\s+const\s+settings\s+=\s+({[\s\S]*?});/);
