@@ -457,7 +457,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
                 const content = fs.readFileSync(filePath, 'utf8');
                 localesArray.push({
                     "locale":locale.replace('.json', ''),
-                    "resource":JSON.parse(content)
+                    "resource":JSON.parse(content).resource
                 });
             } catch (error) {
                 Logger.error(`Error reading locale file ${locale}: ${error.message}`);
