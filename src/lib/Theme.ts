@@ -1381,27 +1381,7 @@ export default class Theme {
         });
         return settings;
     }
-// private static async getAvailableReactSectionsForSync(sections: any, sectionChunkingEnabled: boolean) {
-//     if (!sections) {
-//         Logger.error('Error occurred: Sections data is required');
-//         throw new Error('Sections data is required');
-//     }
 
-//     if (sectionChunkingEnabled) {
-//         Logger.debug('Chunking is enabled. Processing sections normally.');
-//         return Object.entries<{ settings: any; Component: any }>(sections).map(([name, sectionModule]) => ({
-//             name,
-//             ...(sectionModule.settings || {}),
-//         }));
-//     } 
-
-//     Logger.debug('Chunking is disabled. Processing sections without checking settings file.');
-
-//     // Directly process sections without checking `.fdk\sectionsSettings.json`
-//     return Object.keys(sections).map(section => ({
-//         name: section
-//     }));
-// }
 private static async getAvailableReactSectionsForSync(sections, sectionChunkingEnabled) {
     if (!sections) {
         Logger.error('Error occured');
