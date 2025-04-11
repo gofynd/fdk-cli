@@ -246,7 +246,7 @@ const createLocaleInAPI = async (data: Record<string, any>, locale: string, loca
         const response: AxiosResponse = await LocalesService.createLocale(null, {
             theme_id: activeContext.theme_id,
             locale: locale,
-            resource: data.resource,
+            resource: data,
             type: localeType,
             template: false,
         })
@@ -261,7 +261,7 @@ const updateLocaleInAPI = async (data: Record<string, any>, id: string): Promise
     try {
         Logger.debug(`Updating resource in API for ID: ${id}`);
 
-        const response: AxiosResponse = await LocalesService.updateLocale(null, id, { resource: data.resource });
+        const response: AxiosResponse = await LocalesService.updateLocale(null, id, { resource: data });
 
         Logger.debug('Locale updated in API:', response.data);
     } catch (error) {
