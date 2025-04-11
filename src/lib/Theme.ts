@@ -1408,26 +1408,31 @@ export default class Theme {
         });
         return settings;
     }
-private static async getAvailableReactSectionsForSync(sections: any, sectionChunkingEnabled: boolean) {
-    if (!sections) {
-        Logger.error('Error occurred: Sections data is required');
-        throw new Error('Sections data is required');
-    }
 
+private static async getAvailableReactSectionsForSync(sections, sectionChunkingEnabled) {
+    if (!sections) {
+        Logger.error('Error occured');
+    }
     if (sectionChunkingEnabled) {
-        Logger.debug('Chunking is enabled. Processing sections normally.');
-        return Object.entries<{ settings: any; Component: any }>(sections).map(([name, sectionModule]) => ({
+        const sectionsKeys = Object.keys(sections);
+        const fileContent = fs.readFileSync(Theme.REACT_SECTIONS_SETTINGS_JSON, 'utf-8');
+        const sectionsSettings = JSON.parse(fileContent);
+        const allSections = []
+        sectionsKeys.forEach(section => {
+            allSections.push({ name: section, ...sectionsSettings[section] })
+        })
+        return allSections;
+    } else {
+
+        const allSections = Object.entries<{ settings: any; Component: any }>(
+            sections,
+        ).map(([name, sectionModule]) => ({
             name,
             ...(sectionModule.settings || {}),
         }));
-    } 
 
-    Logger.debug('Chunking is disabled. Processing sections without checking settings file.');
-
-    // Directly process sections without checking `.fdk\sectionsSettings.json`
-    return Object.keys(sections).map(section => ({
-        name: section
-    }));
+        return allSections;
+    }
 }
     static validateReactSectionFileNames() {
         Logger.info('Validating Section File Names')
