@@ -3296,7 +3296,7 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
         const themeName = defaultTheme.name;
         let url;
         if (themeType === 'react') {
-            url = `https://github.com/gofynd/Luxe`;
+            url = `https://github.com/gofynd/Turbo`;
         } else {
             url = `https://github.com/gofynd/${themeName}`;
         }
