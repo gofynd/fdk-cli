@@ -65,7 +65,8 @@ import {
 import { cloneGitRepository } from './../helper/clone_git_repository';
 import { THEME_TYPE } from '../helper/constants';
 import { MultiStats } from 'webpack';
-import { syncLocales, hasAnyDeltaBetweenLocalAndRemoteLocales, SyncMode } from '../helper/locales'
+import { syncLocales, hasAnyDeltaBetweenLocalAndRemoteLocales, SyncMode, updateLocaleFiles } from '../helper/locales'
+import localesService from './api/services/locales.service';
 
 const nanoid = customAlphabet(
     '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
@@ -735,7 +736,7 @@ export default class Theme {
             Logger.debug('Saving context');
             await createContext(context);
             await Theme.ensureThemeTypeInPackageJson();
-
+            await updateLocaleFiles(context);
             Logger.info('Installing dependencies..');
             if (
                 fs.existsSync(path.join(process.cwd(), 'theme', 'package.json'))
@@ -1346,11 +1347,15 @@ export default class Theme {
     public static isAnyDeltaBetweenLocalAndRemote = async (theme, isNew) => {
         const newConfig = Theme.getSettingsData(theme);
         const oldConfig = await Theme.readSettingsJson(
-                Theme.getSettingsDataPath(),
+                Theme.getSettingsDataPath()
         );
         let isLocalAndRemoteLocalesChanged = false
         if (theme.theme_type === "react") {
-            isLocalAndRemoteLocalesChanged = await hasAnyDeltaBetweenLocalAndRemoteLocales();
+            if (isNew) {
+                await Theme.syncLocalToRemote(theme);
+            } else {
+                isLocalAndRemoteLocalesChanged = await hasAnyDeltaBetweenLocalAndRemoteLocales();
+            }
         }
         const themeConfigChanged = (!isNew && !_.isEqual(newConfig, oldConfig));
         return  themeConfigChanged || isLocalAndRemoteLocalesChanged;

@@ -5,6 +5,8 @@ import fs_sync from 'fs';
 import * as path from 'path';
 import LocalesService from '../lib/api/services/locales.service';
 import Logger from '../lib/Logger';
+import _ from 'lodash';
+import fsExtra from 'fs-extra';
 
 /**
  * Defines the synchronization mode for locale operations
@@ -278,3 +280,43 @@ const updateLocaleFile = async (filePath: string, data: Record<string, any>, id:
         Logger.error(`Error writing to file ${filePath}: ${(err as Error).message}`);
     }
 };
+
+
+export const updateLocaleFiles = async (context) => {
+    try {
+        const staticResourceResponse = await LocalesService.getLocalesByThemeId(context);
+        const localesDir = path.join(process.cwd(), 'theme', 'locales');
+        const localeItems = _.get(staticResourceResponse, 'data.items', []);
+        if (Array.isArray(localeItems) && localeItems.length > 0) {
+            Logger.debug(`Locale items found (${localeItems.length}). Updating locale files.`);
+            if (fsExtra.existsSync(localesDir)) {
+                const files = fsExtra.readdirSync(localesDir);
+                files.forEach(file => {
+                    fsExtra.unlinkSync(path.join(localesDir, file));
+                });
+                Logger.debug('Existing locale files have been removed.');
+            } else {
+                fsExtra.mkdirSync(localesDir, { recursive: true });
+                Logger.debug(`Directory ${localesDir} did not exist and was created.`);
+            }
+            localeItems.forEach((item, index) => {
+                let fileName = '';
+                if (item.type === 'locale_schema') {
+                    fileName = `${item.locale}.schema.json`;
+                } else if (item.type === 'locale') {
+                    fileName = `${item.locale}.json`;
+                }
+                if (fileName) {
+                    fsExtra.writeJsonSync(path.join(localesDir, fileName), item.resource, { spaces: 2 });   
+                }
+            });
+            Logger.debug('Locale files updated successfully.');
+        } else {
+            Logger.debug('No locale items found in API response. Skipping locale file update.');
+        }
+    } catch (error) {
+        Logger.error('Error updating locale files:', error);
+        throw error;
+    }
+}
+  
