@@ -1327,7 +1327,7 @@ export default class Theme {
                 Theme.getSettingsDataPath(),
                 newConfig,
             );
-            await syncLocales(SyncMode.PULL);
+            // await syncLocales(SyncMode.PULL); //uncomment this for multilang testing
             Logger.info('Remote to Local: Config updated successfully');
         } catch (error) {
             throw new CommandError(error.message, error.code);
