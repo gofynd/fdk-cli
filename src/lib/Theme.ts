@@ -843,7 +843,7 @@ export default class Theme {
     ) => {
         try {
             await Theme.ensureThemeTypeInPackageJson();
-            await Theme.ensureLocalesFolderExists();
+            // await Theme.ensureLocalesFolderExists(); //uncomment this for multilang testing
             currentContext.domain
                 ? Logger.warn('Syncing Theme to: ' + currentContext.domain)
                 : Logger.warn('Please add domain to context');
@@ -1350,13 +1350,14 @@ export default class Theme {
                 Theme.getSettingsDataPath()
         );
         let isLocalAndRemoteLocalesChanged = false
-        if (theme.theme_type === "react") {
+        /* if (theme.theme_type === "react") {
             if (isNew) {
                 await Theme.syncLocalToRemote(theme);
             } else {
                 isLocalAndRemoteLocalesChanged = await hasAnyDeltaBetweenLocalAndRemoteLocales();
             }
-        }
+        } */ 
+       //uncomment this for multilang testing
         const themeConfigChanged = (!isNew && !_.isEqual(newConfig, oldConfig));
         return  themeConfigChanged || isLocalAndRemoteLocalesChanged;
     }
@@ -3247,7 +3248,7 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
         await Theme.ensureThemeTypeInPackageJson();
         const activeContext = getActiveContext();
         if (activeContext.theme_type === THEME_TYPE.react) {
-            await Theme.ensureLocalesFolderExists()
+            // await Theme.ensureLocalesFolderExists() //uncomment this for multilang testing
             await Theme.generateAssetsReact();
         } else {
             await Theme.generateAssetsVue();
@@ -3323,8 +3324,8 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
         let branch = 'main'
         if (themeType === 'react') {
             url = `https://github.com/gofynd/Luxe`;
-            branch = 'multilang'
-        } else {
+            // branch = 'multilang' //uncomment this for multilang testing
+        } else { 
             url = `https://github.com/gofynd/${themeName}`;
         }
         try {
