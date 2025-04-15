@@ -7,6 +7,7 @@ import LocalesService from '../lib/api/services/locales.service';
 import Logger from '../lib/Logger';
 import _ from 'lodash';
 import fsExtra from 'fs-extra';
+import CommandError from '../lib/CommandError';
 
 /**
  * Defines the synchronization mode for locale operations
@@ -107,18 +108,20 @@ export const hasAnyDeltaBetweenLocalAndRemoteLocales = async (): Promise<boolean
 
                 comparedFiles++; // Increment compared file count
             }
+            Logger.debug(`Comparison completed. Total files compared: ${comparedFiles}`); // Log the summary of comparisons
+            Logger.debug('No changes detected between local and remote data'); // Log when no changes are detected
+            return false; // Return false if no changes were found
         } else {
             Logger.error(`Unexpected status code: ${response.status}.`); // Handle unexpected response status codes
             return false;
         }
     } catch (error) {
-        Logger.error('Error checking for changes:', error); // Log errors during the comparison process
-        return false;
+        let errorMessage = error.message;
+        if (error.response && error.response.status === 404) {
+            errorMessage = `Failed to fetch the locale info from the API error: ${error.response.statusText}`;
+        }
+        throw new CommandError(errorMessage, error.code);
     }
-
-    Logger.debug(`Comparison completed. Total files compared: ${comparedFiles}`); // Log the summary of comparisons
-    Logger.debug('No changes detected between local and remote data'); // Log when no changes are detected
-    return false; // Return false if no changes were found
 };
 
 export const syncLocales = async (syncMode: SyncMode): Promise<void> => {
@@ -233,11 +236,11 @@ export const syncLocales = async (syncMode: SyncMode): Promise<void> => {
             Logger.error(`Unexpected status code: ${response.status}.`);
         }
     } catch (error) {
-        if (axios.isAxiosError(error) && error.code === 'ECONNABORTED') {
-            Logger.error('Error: The request timed out. Please try again later.');
-        } else {
-            Logger.error(`Error fetching data: ${error?.response?.status} - ${error?.response?.statusText || error?.message}`);
+        let errorMessage = error.message;
+        if (error.response && error.response.status === 404) {
+            errorMessage = `Failed to fetch the locale info from the API error: ${error.response.statusText}`;
         }
+        throw new CommandError(errorMessage, error.code);
     }
 };
 
