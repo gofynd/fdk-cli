@@ -3396,6 +3396,23 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
                 throw new CommandError(msg);
             }
     
+            for (const file of jsonFiles) {
+                const filePath = path.join(localesPath, file);
+                const content = await fs.readFile(filePath, 'utf8');
+
+                if (!content.trim()) {
+                    const msg = `JSON file is empty: ${filePath}`;
+                    Logger.debug(msg);
+                    throw new CommandError(msg);
+                }    
+                try {
+                    JSON.parse(content);
+                } catch (parseError) {
+                    const msg = `Invalid JSON in file: ${filePath}`;
+                    Logger.debug(msg);
+                    throw new CommandError(msg);
+                }
+            }
             return true;
         } catch (err) {
             throw new CommandError(
