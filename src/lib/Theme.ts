@@ -3378,43 +3378,42 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
             const localesPath = path.join(process.cwd(), 'theme', 'locales');
             const exists = await fs.pathExists(localesPath);
     
-            if (!exists) {
-                const msg = `Locales folder not found at path: ${localesPath}`;
-                Logger.debug(msg);
-                throw new CommandError(msg);
-            }
-    
-            const stat = await fs.stat(localesPath);
-            if (!stat.isDirectory()) {
-                const msg = `Locales path exists but is not a directory: ${localesPath}`;
-                Logger.debug(msg);
-                throw new CommandError(msg);
-            }
-
-            const files = await fs.readdir(localesPath);
-            const jsonFiles = files.filter((file) => file.endsWith('.json'));
-    
-            if (jsonFiles.length === 0) {
-                const msg = `Locales folder does not contain any files: ${localesPath}`;
-                Logger.debug(msg);
-                throw new CommandError(msg);
-            }
-    
-            for (const file of jsonFiles) {
-                const filePath = path.join(localesPath, file);
-                const content = await fs.readFile(filePath, 'utf8');
-
-                if (!content.trim()) {
-                    const msg = `JSON file is empty: ${filePath}`;
+            if (exists) {
+                // const msg = `Locales folder not found at path: ${localesPath}`;
+                // Logger.debug(msg);
+                // throw new CommandError(msg);
+                const stat = await fs.stat(localesPath);
+                if (!stat.isDirectory()) {
+                    const msg = `Locales path exists but is not a directory: ${localesPath}`;
                     Logger.debug(msg);
                     throw new CommandError(msg);
-                }    
-                try {
-                    JSON.parse(content);
-                } catch (parseError) {
-                    const msg = `Invalid JSON in file: ${filePath}`;
+                }
+
+                const files = await fs.readdir(localesPath);
+                const jsonFiles = files.filter((file) => file.endsWith('.json'));
+        
+                if (jsonFiles.length === 0) {
+                    const msg = `Locales folder does not contain any files: ${localesPath}`;
                     Logger.debug(msg);
                     throw new CommandError(msg);
+                }
+        
+                for (const file of jsonFiles) {
+                    const filePath = path.join(localesPath, file);
+                    const content = await fs.readFile(filePath, 'utf8');
+
+                    if (!content.trim()) {
+                        const msg = `JSON file is empty: ${filePath}`;
+                        Logger.debug(msg);
+                        throw new CommandError(msg);
+                    }    
+                    try {
+                        JSON.parse(content);
+                    } catch (err) {
+                        const msg = `Invalid JSON in file: ${filePath} Error: ${err.message}`;
+                        Logger.debug(msg);
+                        throw new CommandError(msg);
+                    }
                 }
             }
             return true;
