@@ -235,10 +235,6 @@ export const URLS = {
         company_id: number,
         theme_id: string,
     ) => {
-        Logger.info(urlJoin(
-            LOCALES_URL(),
-            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/translate-ui-labels?theme_id=${theme_id}&page_size=500`,
-        ))
         return urlJoin(
             LOCALES_URL(),
             `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/translate-ui-labels?theme_id=${theme_id}&page_size=500`,

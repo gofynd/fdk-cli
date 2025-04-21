@@ -736,7 +736,11 @@ export default class Theme {
             Logger.debug('Saving context');
             await createContext(context);
             await Theme.ensureThemeTypeInPackageJson();
-            await updateLocaleFiles(context);
+            if (themeData.theme_type === THEME_TYPE.react) {
+                if (fs.existsSync(path.join(process.cwd(), 'theme', 'locales'))) {
+                    await updateLocaleFiles(context);
+                }
+            }
             Logger.info('Installing dependencies..');
             if (
                 fs.existsSync(path.join(process.cwd(), 'theme', 'package.json'))
