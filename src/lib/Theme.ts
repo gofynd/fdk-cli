@@ -1331,7 +1331,9 @@ export default class Theme {
                 Theme.getSettingsDataPath(),
                 newConfig,
             );
-            await syncLocales(SyncMode.PULL);
+            if (theme.theme_type === THEME_TYPE.react) {
+                await syncLocales(SyncMode.PULL);   
+            }
             Logger.info('Remote to Local: Config updated successfully');
         } catch (error) {
             throw new CommandError(error.message, error.code);
@@ -1354,7 +1356,7 @@ export default class Theme {
                 Theme.getSettingsDataPath()
         );
         let isLocalAndRemoteLocalesChanged = false
-        if (theme.theme_type === "react") {
+        if (theme.theme_type === THEME_TYPE.react) {
             if (isNew) {
                 await Theme.syncLocalToRemote(theme);
             } else {
