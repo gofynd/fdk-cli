@@ -296,8 +296,8 @@ export default class ExtensionPreviewURL {
         if (!input) {
             return 'Tunnel URL is required';
         }
-        const urlPattern = ^(https?:\/\/)?([a-z\d.-]+)\.([a-z.]{2,6})(\/[a-z\d ._-]*)*\/?$;
-        return urlPattern.test(input) ? true : 'Invalid URL';;
+        const urlPattern = /^(https?:\/\/)?([a-z\d-]+(\.[a-z\d-]+)*\.[a-z]{2,})(:\d+)?(\/[^\s]*)?$/i;
+        return urlPattern.test(input) ? true : 'Invalid URL';
     }
 
     private getPreviewURL() {
