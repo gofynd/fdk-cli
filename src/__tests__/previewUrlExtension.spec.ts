@@ -10,6 +10,7 @@ import configStore, { CONFIG_KEYS } from '../lib/Config';
 import Logger from '../lib/Logger';
 import fs from 'fs';
 import * as CONSTANTS from './../helper/constants'
+import inquirer from 'inquirer';
 
 // fixtures
 const TOKEN = 'mocktoken';
@@ -102,6 +103,8 @@ jest.mock('cloudflared', () => ({
     return originalExeca;
 })
 
+jest.mock('inquirer');
+
 
 let mockAxios;
 let mockCustomAxios;
@@ -174,6 +177,8 @@ describe('Extension preview-url command', () => {
     });
 
     it('should successfully return preview url without any prompt', async () => {
+        (inquirer.prompt as unknown as jest.Mock).mockResolvedValue({ is_user_tunnel_url: 'No' });
+
         configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);
         configStore.set(CONFIG_KEYS.PARTNER_ACCESS_TOKEN, TOKEN);
         jest.useFakeTimers();
@@ -192,6 +197,32 @@ describe('Extension preview-url command', () => {
         const extensionContext = JSON.parse(fs.readFileSync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME).toString());
         const baseUrl = extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_BASE_URL];
         expect(baseUrl).toContain(CLOUDFLARED_TEST_URL);
+        jest.useRealTimers();
+    });
+
+    it('should successfully return preview url, for user provided tunnel url', async () => {
+        (inquirer.prompt as unknown as jest.Mock)
+        .mockResolvedValueOnce({ is_user_tunnel_url: 'Yes' })
+        .mockResolvedValueOnce({ user_tunnel_url: 'https://custom-tunnel-url.com' });
+
+        configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);
+        configStore.set(CONFIG_KEYS.PARTNER_ACCESS_TOKEN, TOKEN);
+        jest.useFakeTimers();
+
+        await program.parseAsync([
+            'ts-node',
+            './src/fdk.ts',
+            'extension',
+            'preview-url',
+            '--api-key',
+            EXTENSION_KEY,
+            '--company-id',
+            COMPANY_ID
+        ]);
+
+        const extensionContext = JSON.parse(fs.readFileSync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME).toString());
+        const baseUrl = extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_BASE_URL];
+        expect(baseUrl).toContain('https://custom-tunnel-url.com');
         jest.useRealTimers();
     });
 
