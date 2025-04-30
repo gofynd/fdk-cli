@@ -1,5 +1,6 @@
 import urljoin from 'url-join';
 import execa from 'execa';
+import inquirer from 'inquirer';
 import path from 'path';
 const serverProcesses = [];
 import fs from 'fs';
@@ -12,7 +13,8 @@ import {
     getCompanyId,
     selectExtensionFromList,
     findAllFilePathFromCurrentDirWithName,
-    getRandomFreePort
+    getRandomFreePort,
+    validateEmpty
 } from '../helper/extension_utils';
 import { displayStickyText, OutputFormatter, successBox } from '../helper/formatter';
 import CommandError, { ErrorCodes } from './CommandError';
@@ -182,6 +184,33 @@ export default class ExtensionPreviewURL {
                 }
             }
 
+            const { is_user_tunnel_url } = await inquirer
+                .prompt([
+                    {
+                        type: 'list',
+                        choices: ['Yes', 'No'],
+                        default: 'Yes',
+                        name: 'is_user_tunnel_url',
+                        message: `Would you like to use your own tunnel URL to host the extension?`,
+                        validate: validateEmpty,
+                    },
+                ])
+
+            if(is_user_tunnel_url === 'Yes'){
+
+                const { user_tunnel_url } = await inquirer
+                    .prompt([
+                        {
+                            type: 'input',
+                            name: 'user_tunnel_url',
+                            message: `Please enter the Tunnel URL that is listening on port ${frontend_port} :`,
+                            validate: extension.validateTunnelUrl,
+                        },
+                    ])
+                extension.options.tunnelUrl = user_tunnel_url.trim();
+            }
+
+
             // Start Tunnel
             // Check if tunnel url is provided in options, use it
             if(extension.options.tunnelUrl){
@@ -197,7 +226,6 @@ export default class ExtensionPreviewURL {
 
                 extension.publicTunnelURL = extensionTunnel.publicTunnelURL;
             }
-
             // Store tunnel url in extension context file
             extensionContext.set(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_BASE_URL, extension.publicTunnelURL);
             // Remove tunnel url from extension context on exit
@@ -262,6 +290,14 @@ export default class ExtensionPreviewURL {
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
+    }
+
+    private validateTunnelUrl(input: string) {
+        if (!input) {
+            return 'Tunnel URL is required';
+        }
+        const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
+        return urlPattern.test(input) ? true : 'Invalid url';;
     }
 
     private getPreviewURL() {
