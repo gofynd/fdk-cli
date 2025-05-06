@@ -1364,6 +1364,7 @@ export default class Theme {
             }
         }
         const themeConfigChanged = (!isNew && !_.isEqual(newConfig, oldConfig));
+        Logger.debug(`Changes in config: ${themeConfigChanged}, Changes in locales: ${isLocalAndRemoteLocalesChanged}`)
         return  themeConfigChanged || isLocalAndRemoteLocalesChanged;
     }
 
@@ -3421,7 +3422,7 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
             return true;
         } catch (err) {
             throw new CommandError(
-                `Failed to locate the locales folder.\n${err.message}`,
+                `${err.message}`,
                 err.code || 'UNKNOWN_ERROR',
             );
         }

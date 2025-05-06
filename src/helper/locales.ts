@@ -1,325 +1,234 @@
 import axios, { AxiosResponse } from 'axios';
 import { getActiveContext } from '../helper/utils';
-import { promises as fs } from 'fs';
-import fs_sync from 'fs';
+import fs from 'fs-extra';
 import * as path from 'path';
 import LocalesService from '../lib/api/services/locales.service';
 import Logger from '../lib/Logger';
-import _ from 'lodash';
-import fsExtra from 'fs-extra';
+import { isEqual } from 'lodash';
 import CommandError from '../lib/CommandError';
 
 /**
  * Defines the synchronization mode for locale operations
- * @enum {string}
  */
 export enum SyncMode {
-    /** Pull changes from remote to local */
-    PULL = 'pull',
-    /** Push changes from local to remote */
-    PUSH = 'push'
+  PULL = 'pull',
+  PUSH = 'push',
 }
 
-interface ApiConfig {
-    baseUrl: string;
-    headers: Record<string, string>;
-}
-
+/**
+ * Minimal structure for locale resources returned by API
+ */
 interface LocaleResource {
-    locale: string;
-    resource: Record<string, any>;
-    type: string;
+  _id?: string;
+  locale: string;
+  type: 'locale' | 'locale_schema';
+  resource: Record<string, any>;
 }
 
-export const hasAnyDeltaBetweenLocalAndRemoteLocales = async (): Promise<boolean> => {
-    let comparedFiles = 0; // Track the number of files compared
-    try {
-        Logger.debug('Starting comparison between local and remote data');
+const LOCALES_DIR = path.resolve(process.cwd(), 'theme', 'locales');
 
-        const localesFolder: string = path.resolve(process.cwd(), 'theme/locales');
-        
-        if (!fs_sync.existsSync(localesFolder)) {
-            Logger.debug('Locales folder does not exist');
-            return false;
-        }
-        
-
-        // Fetch remote data from the API
-        const response: AxiosResponse = await LocalesService.getLocalesByThemeId(null);
-
-        Logger.debug('Response received from API:', response.status);
-
-        if (response.status === 200) {
-            const data = response.data; // Extract the data from the API response
-            Logger.debug('Remote data retrieved:', data);
-
-            // Ensure the locales folder exists
-            await fs.mkdir(localesFolder, { recursive: true });
-            Logger.debug('Locales folder ensured at:', localesFolder);
-
-            // Read all files in the local locales folder
-            const localFiles = await fs.readdir(localesFolder);
-            Logger.debug('Local files found:', localFiles);
-
-            // Compare each local file with the corresponding remote resource
-            for (const file of localFiles) {
-                let locale = path.basename(file, '.json'); // Extract the locale name from the file name
-                Logger.debug('Processing local file:', file);
-
-                const localeType = locale.includes('schema') ? 'locale_schema' : 'locale';
-                locale = locale.includes('schema') ? locale.replace('.schema', '') : locale;
-
-                const localData = JSON.parse(await fs.readFile(path.join(localesFolder, file), 'utf-8')); // Read and parse the local file
-                const matchingItem = data.items.find((item: LocaleResource) => item.locale === locale && item.type === localeType); // Find the corresponding remote item
-
-                if (!matchingItem) { // If no matching remote item exists
-                    Logger.debug('No matching remote item found for locale:', locale);
-                    return true; // Changes detected
-                }
-
-                if (JSON.stringify(localData) !== JSON.stringify(matchingItem.resource)) { // Compare the local and remote data
-                    Logger.debug(`Data mismatch found for locale: ${locale}, Type: ${localeType}`);
-                    return true; // Changes detected
-                }
-
-                comparedFiles++; // Increment compared file count
-            }
-
-            // Compare each remote resource with the corresponding local file
-            for (const item of data.items) {
-                const localeFile = path.join(localesFolder, `${item.locale}${item.type === 'locale_schema' ? '.schema' : ''}.json`);; // Construct the local file path
-                Logger.debug('Processing remote item for locale file:', localeFile);
-
-                const localeData = item.resource; // Extract the remote resource data
-                let currentData = {};
-
-                try {
-                    // Attempt to read and parse the local file
-                    currentData = JSON.parse(await fs.readFile(localeFile, 'utf-8'));
-                } catch (error) {
-                    Logger.debug('Error reading local file or file not found for locale:', item.locale, error);
-                    currentData = {}; // Default to an empty object if the file is missing or invalid
-                }
-
-                if (JSON.stringify(currentData) !== JSON.stringify(localeData)) { // Compare the local and remote data
-                    Logger.debug(`Data mismatch found for remote locale: ${item.locale}, Type: ${item?.type}`);
-                    return true; // Changes detected
-                }
-
-                comparedFiles++; // Increment compared file count
-            }
-            Logger.debug(`Comparison completed. Total files compared: ${comparedFiles}`); // Log the summary of comparisons
-            Logger.debug('No changes detected between local and remote data'); // Log when no changes are detected
-            return false; // Return false if no changes were found
-        } else {
-            Logger.error(`Unexpected status code: ${response.status}.`); // Handle unexpected response status codes
-            return false;
-        }
-    } catch (error) {
-        let errorMessage = error.message;
-        if (error.response && error.response.status === 404) {
-            errorMessage = `Failed to fetch the locale info from the API error: ${error.response.statusText}`;
-        }
-        throw new CommandError(errorMessage, error.code);
-    }
-};
-
-export const syncLocales = async (syncMode: SyncMode): Promise<void> => {
-    Logger.debug(`Starting fetchData with SyncMode=${syncMode}`);
-
-    try {
-        const response: AxiosResponse = await LocalesService.getLocalesByThemeId(null);
-
-        Logger.debug('API response received');
-
-        if (response.status === 200) {
-            const data = response.data;
-            Logger.debug(`Fetched ${data.items.length} items from API`);
-        
-            const localesFolder: string = path.resolve(process.cwd(),'theme/locales');
-
-            try {
-                await fs.mkdir(localesFolder, { recursive: true });
-                Logger.debug('Ensured locales folder exists');
-            } catch (err) {
-                Logger.error(`Error ensuring locales folder exists: ${(err as Error).message}`);
-                return;
-            }
-
-            const unmatchedLocales: LocaleResource[] = [];
-
-            let localFiles: string[];
-            try {
-                localFiles = await fs.readdir(localesFolder);
-                Logger.debug(`Found ${localFiles.length} local files`);
-            } catch (err) {
-                Logger.error(`Error reading locales folder: ${(err as Error).message}`);
-                return;
-            }
-
-            for (const file of localFiles) {
-                let locale: string = path.basename(file, '.json');
-                Logger.debug(`Processing local file: ${locale}`);
-                const localeType = locale.includes('schema') ? 'locale_schema' : 'locale';
-                locale = locale.includes('schema') ? locale.replace('.schema', '') : locale;
-                let localData: Record<string, any>;
-                try {
-                    localData = JSON.parse(await fs.readFile(path.join(localesFolder, file), 'utf-8'));
-                } catch (err) {
-                    Logger.error(`Error reading file ${file}: ${(err as Error).message}`);
-                    continue;
-                }
-                const matchingItem = data.items.find((item: LocaleResource) => item.locale === locale && item.type === localeType);
-                if (!matchingItem) {
-                    Logger.debug(`No matching item found for locale: ${locale}`);
-                    unmatchedLocales.push({ locale, resource: localData, type: localeType });
-                    if (syncMode === SyncMode.PUSH) {
-                        Logger.debug(`Creating new resource in API for locale: ${locale}`);
-                        await createLocaleInAPI(localData, locale, localeType);
-                    }
-                } else {
-                    if (syncMode === SyncMode.PUSH) {
-                        if (JSON.stringify(localData) !== JSON.stringify(matchingItem.resource)) {
-                            Logger.debug(`Updating API resource for locale: ${locale}`);
-                            await updateLocaleInAPI(localData, matchingItem._id);
-                        } else {
-                            Logger.debug(`No changes detected for API resource: ${locale}`);
-                        }
-                    } else {
-                        if (JSON.stringify(localData) !== JSON.stringify(matchingItem.resource)) {
-                            Logger.debug(`Updating local file for locale: ${locale}`);
-                            await updateLocaleFile(path.join(localesFolder, file), matchingItem.resource, matchingItem._id);
-                        } else {
-                            Logger.debug(`No changes detected for local file: ${locale}`);
-                        }
-                    }
-                }
-            }
-
-            if (unmatchedLocales.length > 0) {
-                Logger.debug('Unmatched locales:', unmatchedLocales);
-            }
-
-            if (syncMode === SyncMode.PULL) {
-                for (const item of data.items) {
-                    const locale: string = item.locale;
-                    const localeFile = path.join(localesFolder, `${item.locale}${item.type === 'locale_schema' ? '.schema' : ''}.json`);
-                    const localeData: Record<string, any> = item.resource;
-                    if (!localeData) {
-                        Logger.debug(`Skipping empty resource for locale: ${locale}`);
-                        continue;
-                    }
-
-                    let currentData: Record<string, any>;
-                    try {
-                        currentData = JSON.parse(await fs.readFile(localeFile, 'utf-8').catch(() => '{}'));
-                    } catch (err) {
-                        Logger.error(`Error reading file ${localeFile}: ${(err as Error).message}`);
-                        continue;
-                    }
-
-                    if (JSON.stringify(currentData) !== JSON.stringify(localeData)) {
-                        try {
-                            Logger.debug(`Writing updated data to local file: ${localeFile}`);
-                            await fs.writeFile(localeFile, JSON.stringify(localeData, null, 2), 'utf-8');
-                        } catch (err) {
-                            Logger.error(`Error writing to file ${localeFile}: ${(err as Error).message}`);
-                        }
-                    } else {
-                        Logger.debug(`No changes detected for local file: ${locale}`);
-                    }
-                }
-            }
-
-            Logger.debug('Sync completed successfully.');
-        } else {
-            Logger.error(`Unexpected status code: ${response.status}.`);
-        }
-    } catch (error) {
-        let errorMessage = error.message;
-        if (error.response && error.response.status === 404) {
-            errorMessage = `Failed to fetch the locale info from the API error: ${error.response.statusText}`;
-        }
-        throw new CommandError(errorMessage, error.code);
-    }
-};
-
-const createLocaleInAPI = async (data: Record<string, any>, locale: string, localeType: string): Promise<void> => {
-    try {
-        Logger.debug(`Creating resource in API for locale: ${locale}`);
-        const activeContext = getActiveContext();
-        const response: AxiosResponse = await LocalesService.createLocale(null, {
-            theme_id: activeContext.theme_id,
-            locale: locale,
-            resource: data,
-            type: localeType,
-            template: false,
-        })
-        Logger.debug('Locale created in API:', response.data);
-    } catch (error) {
-        Logger.debug(error);
-        Logger.error('Error creating locale in API:', (error as Error).message);
-    }
-};
-
-const updateLocaleInAPI = async (data: Record<string, any>, id: string): Promise<void> => {
-    try {
-        Logger.debug(`Updating resource in API for ID: ${id}`);
-
-        const response: AxiosResponse = await LocalesService.updateLocale(null, id, { resource: data });
-
-        Logger.debug('Locale updated in API:', response.data);
-    } catch (error) {
-        Logger.debug(error);
-        Logger.error('Error updating locale in API:', (error as Error).message);
-    }
-};
-
-const updateLocaleFile = async (filePath: string, data: Record<string, any>, id: string): Promise<void> => {
-    try {
-        await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8');
-        Logger.debug(`Locale file updated: ${filePath}`);
-    } catch (err) {
-        Logger.error(`Error writing to file ${filePath}: ${(err as Error).message}`);
-    }
-};
-
-
-export const updateLocaleFiles = async (context) => {
-    try {
-        const staticResourceResponse = await LocalesService.getLocalesByThemeId(context);
-        const localesDir = path.join(process.cwd(), 'theme', 'locales');
-        const localeItems = _.get(staticResourceResponse, 'data.items', []);
-        if (Array.isArray(localeItems) && localeItems.length > 0) {
-            Logger.debug(`Locale items found (${localeItems.length}). Updating locale files.`);
-            if (fsExtra.existsSync(localesDir)) {
-                const files = fsExtra.readdirSync(localesDir);
-                files.forEach(file => {
-                    fsExtra.unlinkSync(path.join(localesDir, file));
-                });
-                Logger.debug('Existing locale files have been removed.');
-            } else {
-                fsExtra.mkdirSync(localesDir, { recursive: true });
-                Logger.debug(`Directory ${localesDir} did not exist and was created.`);
-            }
-            localeItems.forEach((item, index) => {
-                let fileName = '';
-                if (item.type === 'locale_schema') {
-                    fileName = `${item.locale}.schema.json`;
-                } else if (item.type === 'locale') {
-                    fileName = `${item.locale}.json`;
-                }
-                if (fileName) {
-                    fsExtra.writeJsonSync(path.join(localesDir, fileName), item.resource, { spaces: 2 });   
-                }
-            });
-            Logger.debug('Locale files updated successfully.');
-        } else {
-            Logger.debug('No locale items found in API response. Skipping locale file update.');
-        }
-    } catch (error) {
-        Logger.error('Error updating locale files:', error);
-        throw error;
-    }
+/**
+ * Ensures the locales directory exists
+ */
+async function ensureLocalesDir(): Promise<void> {
+  await fs.ensureDir(LOCALES_DIR);
 }
-  
+
+/**
+ * Reads JSON from file and throws on error (invalid JSON stops execution)
+ */
+async function readJson(filePath: string): Promise<any> {
+  return await fs.readJSON(filePath); // Propagate errors on invalid JSON
+}
+
+/**
+ * Fetches locale resources from API
+ */
+async function fetchRemoteItems(context?: any): Promise<LocaleResource[]> {
+  const response: AxiosResponse = await LocalesService.getLocalesByThemeId(context || null);
+  if (response.status !== 200) {
+    throw new CommandError(`Unexpected status code: ${response.status}`, `${response.status}`);
+  }
+  return response.data.items as LocaleResource[];
+}
+
+/**
+ * Determines filename for a given locale resource
+ */
+function getFileName(item: { locale: string; type: string }): string {
+  return `${item.locale}${item.type === 'locale_schema' ? '.schema' : ''}.json`;
+}
+
+/**
+ * Validates directory only contains JSON files and returns the JSON filenames
+ */
+async function getJsonFiles(): Promise<string[]> {
+  const allFiles = await fs.readdir(LOCALES_DIR);
+  const invalid = allFiles.filter(f => path.extname(f).toLowerCase() !== '.json');
+  if (invalid.length) {
+    throw new CommandError(
+      `Invalid files present: ${invalid.join(', ')}. Only .json locale files are allowed.`,
+      'INVALID_FILE_TYPE'
+    );
+  }
+  return allFiles;
+}
+
+/**
+ * Checks if there is any difference between local and remote locale files
+ */
+export async function hasAnyDeltaBetweenLocalAndRemoteLocales(): Promise<boolean> {
+  Logger.debug('Checking for locale deltas...');
+
+  if (!fs.existsSync(LOCALES_DIR)) {
+    Logger.debug('Locales directory not found, skipping comparison.');
+    return false;
+  }
+
+  const [remoteItems, localeFiles] = await Promise.all([
+    fetchRemoteItems(),
+    getJsonFiles(),
+  ]);
+
+  for (const item of remoteItems) {
+    const filePath = path.join(LOCALES_DIR, getFileName(item));
+    if (!localeFiles.includes(getFileName(item))) {
+      Logger.debug(`Missing locale file for locale '${item.locale}'.`);
+      return true;
+    }
+    const localeData = await readJson(filePath);
+    if (!isEqual(localeData, item.resource)) {
+      Logger.debug(`Difference detected in locale '${item.locale}' of type '${item.type}'.`);
+      return true;
+    }
+  }
+
+  // Check for extra local .json files that aren't remote items
+  const remoteNames = remoteItems.map(getFileName);
+  for (const file of localeFiles) {
+    if (!remoteNames.includes(file)) {
+      Logger.debug(`Extra locale file detected: '${file}'.`);
+      return true;
+    }
+  }
+
+  Logger.debug('No differences detected.');
+  return false;
+}
+
+/**
+ * Synchronizes locale files by pushing local changes to API or pulling remote to local
+ */
+export async function syncLocales(syncMode: SyncMode): Promise<void> {
+  Logger.debug(`Starting locale sync in '${syncMode}' mode.`);
+
+  try {
+    const remoteItems = await fetchRemoteItems();
+    await ensureLocalesDir();
+    const localFiles = await getJsonFiles();
+
+    // Map remote by filename for quick lookup
+    const remoteMap = new Map<string, LocaleResource>();
+    for (const item of remoteItems) {
+      remoteMap.set(getFileName(item), item);
+    }
+
+    if (syncMode === SyncMode.PUSH) {
+      // Push local changes to API
+      for (const file of localFiles) {
+        const filePath = path.join(LOCALES_DIR, file);
+        const localData = await readJson(filePath);
+        const remoteItem = remoteMap.get(file);
+
+        if (!remoteItem) {
+          Logger.debug(`Creating new locale resource for '${file}'.`);
+          await createOrUpdateLocaleInAPI(localData, file, 'create');
+        } else if (!isEqual(localData, remoteItem.resource)) {
+          Logger.debug(`Updating existing locale resource for '${file}'.`);
+          await createOrUpdateLocaleInAPI(localData, file, 'update', remoteItem._id!);
+        } else {
+          Logger.debug(`No changes for '${file}', skipping.`);
+        }
+      }
+    } else {
+      // PULL: write remote items to local
+      for (const item of remoteItems) {
+        const fileName = getFileName(item);
+        const filePath = path.join(LOCALES_DIR, fileName);
+        const localData = await readJson(filePath).catch(() => ({}));
+
+        if (!isEqual(localData, item.resource)) {
+          Logger.debug(`Writing remote resource to local file '${fileName}'.`);
+          await fs.writeJSON(filePath, item.resource, { spaces: 2 });
+        } else {
+          Logger.debug(`Local file '${fileName}' is up to date.`);
+        }
+      }
+    }
+
+    Logger.debug('Locale sync completed successfully.');
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      throw new CommandError(`Locale API not found: ${error.response.statusText}`, '404');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Creates or updates a locale resource in the API
+ */
+async function createOrUpdateLocaleInAPI(
+  data: Record<string, any>,
+  fileName: string,
+  action: 'create' | 'update',
+  id?: string
+): Promise<void> {
+  const locale = fileName.replace(/(\.schema)?\.json$/, '');
+  const type = fileName.includes('.schema') ? 'locale_schema' : 'locale';
+  const payload = { theme_id: getActiveContext().theme_id, locale, resource: data, type, template: false };
+
+  try {
+    if (action === 'create') {
+      await LocalesService.createLocale(null, payload);
+      Logger.debug(`Created '${locale}' resource in API.`);
+    } else {
+      await LocalesService.updateLocale(null, id!, { resource: data });
+      Logger.debug(`Updated '${locale}' resource in API.`);
+    }
+  } catch (err) {
+    Logger.error(`Failed to ${action} locale '${locale}': ${(err as Error).message}`);
+  }
+}
+
+/**
+ * Updates locale files from API response (legacy support)
+ */
+export async function updateLocaleFiles(context: any): Promise<void> {
+  try {
+    const items = await fetchRemoteItems(context);
+    await ensureLocalesDir();
+
+    // Remove non-json and clear existing .json files
+    const all = await fs.readdir(LOCALES_DIR);
+    const invalid = all.filter(f => path.extname(f).toLowerCase() !== '.json');
+    if (invalid.length) {
+      throw new CommandError(
+        `Invalid files present: ${invalid.join(', ')}. Only .json locale files are allowed.`,
+        'INVALID_FILE_TYPE'
+      );
+    }
+    await Promise.all(all.map(f => fs.remove(path.join(LOCALES_DIR, f))));
+
+    // Write fresh items
+    for (const item of items) {
+      const fileName = getFileName(item);
+      await fs.writeJSON(path.join(LOCALES_DIR, fileName), item.resource, { spaces: 2 });
+    }
+
+    Logger.debug('updateLocaleFiles: completed.');
+  } catch (err) {
+    Logger.error(`updateLocaleFiles failed: ${(err as Error).message}`);
+    throw err;
+  }
+}

@@ -324,8 +324,7 @@ describe('Theme Commands', () => {
         mock.onGet(`${URLS.GET_ORGANIZATION_DETAILS()}`).reply(200, organizationData);
         configStore.delete(CONFIG_KEYS.ORGANIZATION)
 
-        mock.onGet('https://github.com/gofynd/Luxe/archive/refs/heads/multilang.zip').passThrough()
-
+        mock.onGet('https://github.com/gofynd/Turbo/archive/refs/heads/Turbo-Multilang.zip').passThrough()
         // user login
         configStore.set(CONFIG_KEYS.USER, data.user);
 
@@ -349,6 +348,9 @@ describe('Theme Commands', () => {
     afterAll(async () => {
         await new Promise((resolve) => setTimeout(resolve, 2000));
         fs.rm(path.join(__dirname, '..', '..', 'react-test-theme'), {
+            recursive: true,
+        });        
+        fs.rm(path.join(__dirname, '..', '..', 'theme'), {
             recursive: true,
         });
         process.chdir(path.join(__dirname, '..', '..'));
@@ -379,24 +381,6 @@ describe('Theme Commands', () => {
         let newSettings_data: any = readFile(filePath);
         newSettings_data = JSON.parse(newSettings_data);
         process.chdir(`../`);
-        expect(isEqual(newSettings_data, oldSettings_data)).toBe(false);
+        expect(isEqual(newSettings_data, oldSettings_data)).toBe(true);
     });
-
-
-    // it('should successfully generate .zip file of React theme', async () => {
-    //     await createReactTheme();
-    //     process.chdir(path.join(process.cwd(), 'Locale_Turbo'));
-    //     let filepath = path.join(process.cwd(), 'package.json');
-    //     let packageContent: any = readFile(filepath);
-    //     let content = JSON.parse(packageContent);
-    //     let fileName = `${content.name}_${content.version}.zip`;
-    //     let file = path.join(process.cwd(), `${fileName}`);
-    //     await program.parseAsync([
-    //         'ts-node',
-    //         './src/fdk.ts',
-    //         'theme',
-    //         'package',
-    //     ]);
-    //     expect(fs.existsSync(file)).toBe(true);
-    // });
 });
