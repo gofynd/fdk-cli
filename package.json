@@ -27,7 +27,7 @@
     "build": "npm run clean && tsc && npm run copy-files",
     "copy-files": "copyfiles -u 1 src/**/*.html dist/",
     "watch": "tsc --watch",
-    "test": "jest --runInBand",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest --runInBand",
     "pretty": "prettier --config ./.prettierrc --write './src/**/*.*'",
     "localInstall": "sh scripts/localInstall.sh"
   },
