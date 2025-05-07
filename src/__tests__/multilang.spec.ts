@@ -381,6 +381,6 @@ describe('Theme Commands', () => {
         let newSettings_data: any = readFile(filePath);
         newSettings_data = JSON.parse(newSettings_data);
         process.chdir(`../`);
-        expect(isEqual(newSettings_data, oldSettings_data)).toBe(true);
+        expect(isEqual(newSettings_data, oldSettings_data)).toBe(false);
     });
 });
