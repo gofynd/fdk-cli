@@ -53,8 +53,8 @@ export default class ExtensionPreviewURL {
     // command handler for "extension preview-url"
     public static async previewUrlExtensionHandler(options) {
         try {
-            const { tunnelUrl, port } = options;
-            if( tunnelUrl){
+            const { tunnelUrl, port, customTunnel } = options;
+            if( tunnelUrl && !customTunnel){
                 const errorMessage = validateTunnelUrl(tunnelUrl);
                 if(typeof errorMessage === 'string'){
                     throw new CommandError(
@@ -63,7 +63,7 @@ export default class ExtensionPreviewURL {
                     );
                 }
             }
-            if(tunnelUrl && !port){
+            if(tunnelUrl && !port && !customTunnel){
                 throw new CommandError(
                     ErrorCodes.MISSING_PORT_OPTION.message,
                     ErrorCodes.MISSING_PORT_OPTION.code,
@@ -208,7 +208,7 @@ export default class ExtensionPreviewURL {
 
             let is_user_tunnel_url = 'No';
 
-            if(!tunnelUrl){
+            if(customTunnel){
                 const response = await inquirer
                     .prompt([
                         {

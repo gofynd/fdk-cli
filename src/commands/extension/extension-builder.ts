@@ -29,6 +29,7 @@ export default function extensionCommandBuilder() {
         .option('--no-auto-update', 'Auto update tunnel URL as extension launch url on partners panel')
         .option('--access-token <access-token>', 'Partner Access Token')
         .option('--reset', 'Reset extension.context file and start fresh')
+        .option('--custom-tunnel', 'Use custom tunnel url for extension preview')
         .asyncAction(ExtensionPreviewURL.previewUrlExtensionHandler);
 
     const launch_url = new Command('launch-url').description(

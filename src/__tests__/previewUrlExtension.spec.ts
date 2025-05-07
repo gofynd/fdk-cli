@@ -217,7 +217,8 @@ describe('Extension preview-url command', () => {
             '--api-key',
             EXTENSION_KEY,
             '--company-id',
-            COMPANY_ID
+            COMPANY_ID,
+            '--custom-tunnel'
         ]);
 
         const extensionContext = JSON.parse(fs.readFileSync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME).toString());
