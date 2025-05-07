@@ -377,3 +377,11 @@ export function checkRequiredDependencies(requiredDependencies: Array<RequiredDe
         );
     }
 }
+
+export function validateTunnelUrl(input: string) {
+    if (!input) {
+        return 'Tunnel URL is required';
+    }
+    const urlPattern = /^(https?:\/\/)?([a-z\d-]+(\.[a-z\d-]+)*\.[a-z]{2,})(:\d+)?(\/[^\s]*)?$/i;
+    return urlPattern.test(input) ? true : 'Invalid URL';
+}

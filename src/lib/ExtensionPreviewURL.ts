@@ -14,8 +14,10 @@ import {
     selectExtensionFromList,
     findAllFilePathFromCurrentDirWithName,
     getRandomFreePort,
-    validateEmpty
+    validateEmpty,
+    
 } from '../helper/extension_utils';
+import { validateTunnelUrl } from '../helper/utils';
 import { displayStickyText, OutputFormatter, successBox } from '../helper/formatter';
 import CommandError, { ErrorCodes } from './CommandError';
 import * as CONSTANTS from './../helper/constants';
@@ -51,6 +53,22 @@ export default class ExtensionPreviewURL {
     // command handler for "extension preview-url"
     public static async previewUrlExtensionHandler(options) {
         try {
+            const { tunnelUrl, port } = options;
+            if( tunnelUrl){
+                const errorMessage = validateTunnelUrl(tunnelUrl);
+                if(typeof errorMessage === 'string'){
+                    throw new CommandError(
+                        ErrorCodes.INVALID_TUNNEL_URL.message,
+                        ErrorCodes.INVALID_TUNNEL_URL.code,
+                    );
+                }
+            }
+            if(tunnelUrl && !port){
+                throw new CommandError(
+                    ErrorCodes.MISSING_PORT_OPTION.message,
+                    ErrorCodes.MISSING_PORT_OPTION.code,
+                );
+            }
             let partner_access_token = getPartnerAccessToken();
 
             // initialize class instance
@@ -149,10 +167,14 @@ export default class ExtensionPreviewURL {
             // Get Port to start the extension server
             let frontend_port : number;
             let backend_port : number;
+
+            if(port){
+                frontend_port = Number(port);
+            }
             
             // Get the port value from project config files if present
             for(const projectConfig of projectConfigs) {
-                if(projectConfig['roles'].includes('frontend') && projectConfig['port']){
+                if(projectConfig['roles'].includes('frontend') && projectConfig['port'] && !frontend_port){
                     frontend_port = projectConfig['port'];
                 }
                 else if(projectConfig['roles'].includes('backend') && projectConfig['port']){
@@ -184,17 +206,23 @@ export default class ExtensionPreviewURL {
                 }
             }
 
-            const { is_user_tunnel_url } = await inquirer
-                .prompt([
-                    {
-                        type: 'list',
-                        choices: ['Yes', 'No'],
-                        default: 'Yes',
-                        name: 'is_user_tunnel_url',
-                        message: `Would you like to use your own tunnel URL to host the extension?`,
-                        validate: validateEmpty,
-                    },
-                ])
+            let is_user_tunnel_url = 'No';
+
+            if(!tunnelUrl){
+                const response = await inquirer
+                    .prompt([
+                        {
+                            type: 'list',
+                            choices: ['Yes', 'No'],
+                            default: 'Yes',
+                            name: 'is_user_tunnel_url',
+                            message: `Would you like to use your own tunnel URL to host the extension?`,
+                            validate: validateEmpty,
+                        },
+                    ])
+
+                is_user_tunnel_url = response.is_user_tunnel_url;
+            }
 
             if(is_user_tunnel_url === 'Yes'){
 
@@ -204,7 +232,7 @@ export default class ExtensionPreviewURL {
                             type: 'input',
                             name: 'user_tunnel_url',
                             message: `Please enter the Tunnel URL that is listening on port ${frontend_port} :`,
-                            validate: extension.validateTunnelUrl,
+                            validate: validateTunnelUrl,
                         },
                     ])
                 extension.options.tunnelUrl = user_tunnel_url.trim();
@@ -290,14 +318,6 @@ export default class ExtensionPreviewURL {
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
-    }
-
-    private validateTunnelUrl(input: string) {
-        if (!input) {
-            return 'Tunnel URL is required';
-        }
-        const urlPattern = /^(https?:\/\/)?([a-z\d-]+(\.[a-z\d-]+)*\.[a-z]{2,})(:\d+)?(\/[^\s]*)?$/i;
-        return urlPattern.test(input) ? true : 'Invalid URL';
     }
 
     private getPreviewURL() {
