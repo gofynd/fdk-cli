@@ -230,7 +230,7 @@ describe('Theme Commands', () => {
         //
         mockInstance
             .onGet(
-                'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/x5/misc/general/free/original/gunIt_eyf-uIEAOcvPB-Turbo-payment1_1.0.69.zip',
+                'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/x5/misc/general/free/original/kS2Wr8Lwe-Turbo-payment_1.0.154.zip',
             )
             .reply(function () {
                 return [200, fs.createReadStream(filePath)];
