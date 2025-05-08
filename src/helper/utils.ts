@@ -17,7 +17,7 @@ import { createDirectory } from './file.utils';
 import { DEFAULT_CONTEXT } from '../lib/ThemeContext';
 import glob from 'glob'
 
-const FDK_PATH = () => path.join(process.cwd(), '.fdk');
+export const FDK_PATH = () => path.join(process.cwd(), '.fdk');
 const CONTEXT_PATH = () => path.join(FDK_PATH(), 'context.json');
 
 export type ThemeType = 'react' | 'vue2' | null;

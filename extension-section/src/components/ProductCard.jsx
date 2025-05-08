@@ -4,7 +4,7 @@ import styles from '../styles/style.css';
 export function ProductCard({ product }) {
     return (
         <div className={styles.product}>
-            {product.medias.map((media) => (
+            {product.media?.map((media) => (
                 <img src={media.url} alt={media.alt} />
             ))}
             <h1>{product.name}</h1>
