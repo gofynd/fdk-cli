@@ -177,6 +177,7 @@ describe('Extension preview-url command', () => {
     });
 
     it('should successfully return preview url without any prompt', async () => {
+        const tunnelUrl = 'https://custom-tunnel-url.com';
         (inquirer.prompt as unknown as jest.Mock).mockResolvedValue({ is_user_tunnel_url: 'No' });
 
         configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);
@@ -191,12 +192,16 @@ describe('Extension preview-url command', () => {
             '--api-key',
             EXTENSION_KEY,
             '--company-id',
-            COMPANY_ID
+            COMPANY_ID,
+            '--tunnel-url',
+            tunnelUrl,
+            '--port',
+            '0989'
         ]);
 
         const extensionContext = JSON.parse(fs.readFileSync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME).toString());
         const baseUrl = extensionContext[CONSTANTS.EXTENSION_CONTEXT.EXTENSION_BASE_URL];
-        expect(baseUrl).toContain(CLOUDFLARED_TEST_URL);
+        expect(baseUrl).toContain(tunnelUrl);
         jest.useRealTimers();
     });
 

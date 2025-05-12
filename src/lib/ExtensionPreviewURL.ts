@@ -69,6 +69,18 @@ export default class ExtensionPreviewURL {
                     ErrorCodes.MISSING_PORT_OPTION.code,
                 );
             }
+            if(port){
+                const portNumber = Number(port);
+                const isValid =  Number.isInteger(portNumber) && // Must be an integer
+                                portNumber >= 1 &&              // Valid port range: 1
+                                portNumber <= 65535            // to 65535
+                if(!isValid){
+                    throw new CommandError(
+                        ErrorCodes.INVALID_PORT_NUMBER.message,
+                        ErrorCodes.INVALID_PORT_NUMBER.code,
+                    );
+                }
+            }
             let partner_access_token = getPartnerAccessToken();
 
             // initialize class instance

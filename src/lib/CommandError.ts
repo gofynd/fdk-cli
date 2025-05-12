@@ -100,6 +100,10 @@ export const ErrorCodes = {
         message: 'Invalid tunnel url',
         code: 'FDK-0020',
     },
+    INVALID_PORT_NUMBER: {
+        message: 'Invalid port number',
+        code: 'FDK-0021',
+    },
 };
 
 export default class CommandError extends Error {
