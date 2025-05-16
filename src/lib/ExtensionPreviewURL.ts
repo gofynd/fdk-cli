@@ -229,7 +229,7 @@ export default class ExtensionPreviewURL {
                             validate: validateTunnelUrl,
                         },
                     ])
-                extension.options.tunnelUrl = user_tunnel_url.trim();
+                extension.options.tunnelUrl = user_tunnel_url?.trim?.();
             }
 
 
