@@ -1,5 +1,6 @@
 import urljoin from 'url-join';
 import execa from 'execa';
+import inquirer from 'inquirer';
 import path from 'path';
 const serverProcesses = [];
 import fs from 'fs';
@@ -12,8 +13,11 @@ import {
     getCompanyId,
     selectExtensionFromList,
     findAllFilePathFromCurrentDirWithName,
-    getRandomFreePort
+    getRandomFreePort,
+    validateEmpty,
+    
 } from '../helper/extension_utils';
+import { validateTunnelUrl } from '../helper/utils';
 import { displayStickyText, OutputFormatter, successBox } from '../helper/formatter';
 import CommandError, { ErrorCodes } from './CommandError';
 import * as CONSTANTS from './../helper/constants';
@@ -49,6 +53,34 @@ export default class ExtensionPreviewURL {
     // command handler for "extension preview-url"
     public static async previewUrlExtensionHandler(options) {
         try {
+            const { tunnelUrl, port, customTunnel } = options;
+            if( tunnelUrl && !customTunnel){
+                const errorMessage = validateTunnelUrl(tunnelUrl);
+                if(typeof errorMessage === 'string'){
+                    throw new CommandError(
+                        ErrorCodes.INVALID_TUNNEL_URL.message,
+                        ErrorCodes.INVALID_TUNNEL_URL.code,
+                    );
+                }
+            }
+            if(tunnelUrl && !port && !customTunnel){
+                throw new CommandError(
+                    ErrorCodes.MISSING_PORT_OPTION.message,
+                    ErrorCodes.MISSING_PORT_OPTION.code,
+                );
+            }
+            if(port){
+                const portNumber = Number(port);
+                const isValid =  Number.isInteger(portNumber) && // Must be an integer
+                                portNumber >= 1 &&              // Valid port range: 1
+                                portNumber <= 65535            // to 65535
+                if(!isValid){
+                    throw new CommandError(
+                        ErrorCodes.INVALID_PORT_NUMBER.message,
+                        ErrorCodes.INVALID_PORT_NUMBER.code,
+                    );
+                }
+            }
             let partner_access_token = getPartnerAccessToken();
 
             // initialize class instance
@@ -147,10 +179,14 @@ export default class ExtensionPreviewURL {
             // Get Port to start the extension server
             let frontend_port : number;
             let backend_port : number;
+
+            if(port){
+                frontend_port = Number(port);
+            }
             
             // Get the port value from project config files if present
             for(const projectConfig of projectConfigs) {
-                if(projectConfig['roles'].includes('frontend') && projectConfig['port']){
+                if(projectConfig['roles'].includes('frontend') && projectConfig['port'] && !frontend_port){
                     frontend_port = projectConfig['port'];
                 }
                 else if(projectConfig['roles'].includes('backend') && projectConfig['port']){
@@ -182,6 +218,21 @@ export default class ExtensionPreviewURL {
                 }
             }
 
+            if(customTunnel){
+
+                const { user_tunnel_url } = await inquirer
+                    .prompt([
+                        {
+                            type: 'input',
+                            name: 'user_tunnel_url',
+                            message: `Please enter the Tunnel URL that is listening on port ${frontend_port} :`,
+                            validate: validateTunnelUrl,
+                        },
+                    ])
+                extension.options.tunnelUrl = user_tunnel_url?.trim?.();
+            }
+
+
             // Start Tunnel
             // Check if tunnel url is provided in options, use it
             if(extension.options.tunnelUrl){
@@ -197,7 +248,6 @@ export default class ExtensionPreviewURL {
 
                 extension.publicTunnelURL = extensionTunnel.publicTunnelURL;
             }
-
             // Store tunnel url in extension context file
             extensionContext.set(CONSTANTS.EXTENSION_CONTEXT.EXTENSION_BASE_URL, extension.publicTunnelURL);
             // Remove tunnel url from extension context on exit

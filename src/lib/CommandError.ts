@@ -92,6 +92,18 @@ export const ErrorCodes = {
             'This can be caused due to VPN or Firewall, please contact your network administrator or disable and retry.',
         code: 'FDK-0013',
     },
+    MISSING_PORT_OPTION: {
+        message: 'The port option is required when tunnel URL is specified.',
+        code: 'FDK-0019',
+    },
+    INVALID_TUNNEL_URL: {
+        message: 'Invalid tunnel url',
+        code: 'FDK-0020',
+    },
+    INVALID_PORT_NUMBER: {
+        message: 'Invalid port number',
+        code: 'FDK-0021',
+    },
 };
 
 export default class CommandError extends Error {
