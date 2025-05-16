@@ -437,7 +437,7 @@ fdk extension preview --tunnel-url https://custom-tunnel-url.com --port 8080
   
 - **Custom Tunnel URL**: If you wish to use a custom tunnel URL, you can provide it using the `--tunnel-url` option. In this case, you must also specify the port using the `--port` option.
 
-- **Interactive Prompt**: If `--custom-tunnel` option is provided, the command will prompt you to decide whether you want to provide a custom tunnel URL. If you choose to do so, you will be prompted to enter the tunnel URL listening on a port number.
+- **Interactive Prompt**: If `--custom-tunnel` option is provided, the command will prompt you to enter the tunnel URL listening on a provided port number.
 
 - If you pass Tunnel URL, it will not created new tunnel and use the passed url as tunnel url.
 
