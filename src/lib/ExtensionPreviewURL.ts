@@ -218,25 +218,7 @@ export default class ExtensionPreviewURL {
                 }
             }
 
-            let is_user_tunnel_url = 'No';
-
             if(customTunnel){
-                const response = await inquirer
-                    .prompt([
-                        {
-                            type: 'list',
-                            choices: ['Yes', 'No'],
-                            default: 'Yes',
-                            name: 'is_user_tunnel_url',
-                            message: `Would you like to use your own tunnel URL to host the extension?`,
-                            validate: validateEmpty,
-                        },
-                    ])
-
-                is_user_tunnel_url = response.is_user_tunnel_url;
-            }
-
-            if(is_user_tunnel_url === 'Yes'){
 
                 const { user_tunnel_url } = await inquirer
                     .prompt([

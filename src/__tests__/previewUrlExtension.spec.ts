@@ -207,7 +207,6 @@ describe('Extension preview-url command', () => {
 
     it('should successfully return preview url, for user provided tunnel url', async () => {
         (inquirer.prompt as unknown as jest.Mock)
-        .mockResolvedValueOnce({ is_user_tunnel_url: 'Yes' })
         .mockResolvedValueOnce({ user_tunnel_url: 'https://custom-tunnel-url.com' });
 
         configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);
