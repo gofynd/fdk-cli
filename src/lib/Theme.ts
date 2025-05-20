@@ -847,7 +847,7 @@ export default class Theme {
     ) => {
         try {
             await Theme.ensureThemeTypeInPackageJson();
-            await Theme.ensureLocalesFolderExists();
+            await Theme.ensureLocalesFolderExists(targetDirectory);
             currentContext.domain
                 ? Logger.warn('Syncing Theme to: ' + currentContext.domain)
                 : Logger.warn('Please add domain to context');
@@ -3374,9 +3374,10 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
         }
     };
 
-    private static readonly ensureLocalesFolderExists = async () => {
+    private static readonly ensureLocalesFolderExists = async (targetDirectory = "") => {
         try {
-            const localesPath = path.join(process.cwd(), 'theme', 'locales');
+            const dir = targetDirectory ? targetDirectory : process.cwd();
+            const localesPath = path.join(dir, 'theme', 'locales');
             const exists = await fs.pathExists(localesPath);
     
             if (exists) {

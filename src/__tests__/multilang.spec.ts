@@ -101,10 +101,7 @@ async function createReactTheme() {
         'new',
         '-n',
         'Locale_Turbo',
-        "-t",
-        "react"
     ]);
-    process.chdir(`../`);
 }
 
 const imageS3Url = startUpload.upload.url;
@@ -350,22 +347,19 @@ describe('Theme Commands', () => {
         fs.rm(path.join(__dirname, '..', '..', 'react-test-theme'), {
             recursive: true,
         });        
-        fs.rm(path.join(__dirname, '..', '..', 'theme'), {
-            recursive: true,
-        });
         process.chdir(path.join(__dirname, '..', '..'));
         rimraf.sync(path.join(__dirname, 'theme-test-cli.json')); // remove configstore
     });
 
     it('should successfully create new react theme', async () => {
         await createReactTheme();
-        const filePath = path.join(process.cwd(), 'Locale_Turbo');
+        const filePath = path.join(process.cwd());
         expect(fs.existsSync(filePath)).toBe(true);
     });
 
     it('should successfully pull config React theme', async () => {
         await createReactTheme();
-        process.chdir(path.join(process.cwd(), 'Locale_Turbo'));
+        process.chdir(path.join(process.cwd()));
         const filePath = path.join(
             process.cwd(),
             '/theme/config/settings_data.json',
