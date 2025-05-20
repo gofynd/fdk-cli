@@ -414,6 +414,8 @@ fdk extension preview [options]
 | --api-key | Extension API key |
 | --access-token | Partner Access Token |
 | --tunnel-url | Specify a manual Tunnel URL to bypass automatic tunnel creation. |
+| --custom-tunnel | Use this option when you want to use custom tunnel url. |
+| --port | Specify the port number on which the application is listening. This option is mandatory if  tunnel URL option is provided. |
 | --no-auto-update | Disables auto-updating of tunnel URL as extension launch url on partners panel |
 | --reset | Resets the extension's context data, prompting you to re-enter all required details. Useful for a fresh start! |
 | --help    | Show help |
@@ -424,13 +426,18 @@ fdk extension preview [options]
 fdk extension preview
 ```
 ```sh
-fdk extension preview --tunnel-url https://broke-casey-eric-recommendations.trycloudflare.com
-```
-```sh
 fdk extension preview --company-id 999
 ```
+To start a preview with a custom URL and port:
+```sh
+fdk extension preview --tunnel-url https://custom-tunnel-url.com --port 8080
+```
 
-- **Cloudflared** will be used as the tunneling tool.
+- **Automatic Tunnel Creation**: If no options related to the tunnel URL and port are provided, the command will automatically use **Cloudflared** as the tunneling tool.
+  
+- **Custom Tunnel URL**: If you wish to use a custom tunnel URL, you can provide it using the `--tunnel-url` option. In this case, you must also specify the port using the `--port` option.
+
+- **Interactive Prompt**: If `--custom-tunnel` option is provided, the command will prompt you to enter the tunnel URL listening on a provided port number.
 
 - If you pass Tunnel URL, it will not created new tunnel and use the passed url as tunnel url.
 
