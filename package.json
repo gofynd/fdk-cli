@@ -64,6 +64,7 @@
     "@babel/preset-env": "^7.23.5",
     "@babel/preset-react": "^7.22.15",
     "@babel/preset-typescript": "^7.24.7",
+    "@gofynd/fdk-cli": "^7.0.1-beta.6",
     "@gofynd/fp-signature": "^1.0.1",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.15",
     "@sentry/node": "^8.20.0",

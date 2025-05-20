@@ -3,7 +3,7 @@
 
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
-import { uninterceptedApiClient } from '../lib/api/ApiClient';
+import { uninterceptedApiClient, withoutErrorResponseInterceptorAxios } from '../lib/api/ApiClient';
 import inquirer from 'inquirer';
 import { URLS } from '../lib/api/services/url';
 import mockFunction from './helper';
@@ -108,7 +108,7 @@ const imageS3Url = startUpload.upload.url;
 const srcS3Url = srcUploadData.upload.url;
 const assetS3Url = assetsUploadData.upload.url;
 
-describe('Theme Commands', () => {
+describe('React Theme Commands', () => {
     beforeAll(async () => {
         setEnv();
         createDirectory(path.join(__dirname, '..', '..', 'react-test-theme'));
@@ -118,6 +118,7 @@ describe('Theme Commands', () => {
         const mockInstance = new MockAdapter(
             uninterceptedApiClient.axiosInstance,
         );
+        const mockCustomAxios = new MockAdapter(withoutErrorResponseInterceptorAxios);
         configStore.set(CONFIG_KEYS.ORGANIZATION, organizationData._id)
         mock.onGet('https://api.fyndx1.de/service/application/content/_healthz').reply(200);
         mock.onGet(
@@ -309,6 +310,21 @@ describe('Theme Commands', () => {
                 appConfig.theme_id,
             )}`,
         ).reply(200, translatedData);
+
+        mockCustomAxios.onPut(
+            `${URLS.UPDATE_LOCALE(
+                appConfig.application_id,
+                appConfig.company_id,
+                appConfig.theme_id,
+            )}`,
+        ).reply(200, {});
+
+        mockCustomAxios.onPost(
+            `${URLS.CREATE_LOCALE(
+                appConfig.application_id,
+                appConfig.company_id,
+            )}`,
+        ).reply(200, {});
 
         mock.onGet(
             `${URLS.GET_DEFAULT_THEME(

@@ -171,6 +171,21 @@ describe('Theme Commands', () => {
                 appConfig.theme_id,
             )}`,
         ).reply(200, translatedData);
+
+        mockInstance.onPut(
+            `${URLS.UPDATE_LOCALE(
+                appConfig.application_id,
+                appConfig.company_id,
+                appConfig.theme_id,
+            )}`,
+        ).reply(200, translatedData);
+
+        mockInstance.onPost(
+            `${URLS.CREATE_LOCALE(
+                appConfig.application_id,
+                appConfig.company_id,
+            )}`,
+        ).reply(200, translatedData);
         mock.onPost(
             `${URLS.CREATE_THEME(
                 appConfig.application_id,
