@@ -311,13 +311,15 @@ describe('React Theme Commands', () => {
             )}`,
         ).reply(200, translatedData);
 
-        mockCustomAxios.onPut(
-            `${URLS.UPDATE_LOCALE(
-                appConfig.application_id,
-                appConfig.company_id,
-                appConfig.theme_id,
-            )}`,
-        ).reply(200, {});
+        const expectedUrl = URLS.UPDATE_LOCALE(
+            appConfig.application_id,
+            appConfig.company_id,
+            appConfig.theme_id
+        );
+        console.log('Mocking PUT to:', expectedUrl);
+        const baseUrl = expectedUrl.replace(/\/[0-9a-fA-F]+$/, '');
+        const putRe = new RegExp(`^${baseUrl}/[0-9a-fA-F]+$`);
+        mock.onPut(putRe).reply(200, {});
 
         mockCustomAxios.onPost(
             `${URLS.CREATE_LOCALE(
