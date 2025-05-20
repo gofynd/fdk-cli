@@ -25,13 +25,13 @@ interface LocaleResource {
   resource: Record<string, any>;
 }
 
-const LOCALES_DIR = path.resolve(process.cwd(), 'theme', 'locales');
+const LOCALES_DIR = (targetDirectory: string) => path.resolve(targetDirectory, 'theme', 'locales');
 
 /**
  * Ensures the locales directory exists
  */
-async function ensureLocalesDir(): Promise<void> {
-  await fs.ensureDir(LOCALES_DIR);
+async function ensureLocalesDir(targetDirectory: string): Promise<void> {
+  await fs.ensureDir(LOCALES_DIR(targetDirectory));
 }
 
 /**
@@ -62,8 +62,8 @@ function getFileName(item: { locale: string; type: string }): string {
 /**
  * Validates directory only contains JSON files and returns the JSON filenames
  */
-async function getJsonFiles(): Promise<string[]> {
-  const allFiles = await fs.readdir(LOCALES_DIR);
+async function getJsonFiles(targetDirectory: string): Promise<string[]> {
+  const allFiles = await fs.readdir(LOCALES_DIR(targetDirectory));
   const invalid = allFiles.filter(f => path.extname(f).toLowerCase() !== '.json');
   if (invalid.length) {
     throw new CommandError(
@@ -77,21 +77,21 @@ async function getJsonFiles(): Promise<string[]> {
 /**
  * Checks if there is any difference between local and remote locale files
  */
-export async function hasAnyDeltaBetweenLocalAndRemoteLocales(): Promise<boolean> {
+export async function hasAnyDeltaBetweenLocalAndRemoteLocales(targetDirectory): Promise<boolean> {
   Logger.debug('Checking for locale deltas...');
 
-  if (!fs.existsSync(LOCALES_DIR)) {
+  if (!fs.existsSync(LOCALES_DIR(targetDirectory))) {
     Logger.debug('Locales directory not found, skipping comparison.');
     return false;
   }
 
   const [remoteItems, localeFiles] = await Promise.all([
     fetchRemoteItems(),
-    getJsonFiles(),
+    getJsonFiles(targetDirectory),
   ]);
 
   for (const item of remoteItems) {
-    const filePath = path.join(LOCALES_DIR, getFileName(item));
+    const filePath = path.join(LOCALES_DIR(targetDirectory), getFileName(item));
     if (!localeFiles.includes(getFileName(item))) {
       Logger.debug(`Missing locale file for locale '${item.locale}'.`);
       return true;
@@ -119,13 +119,12 @@ export async function hasAnyDeltaBetweenLocalAndRemoteLocales(): Promise<boolean
 /**
  * Synchronizes locale files by pushing local changes to API or pulling remote to local
  */
-export async function syncLocales(syncMode: SyncMode): Promise<void> {
+export async function syncLocales(syncMode: SyncMode, targetDirectory = ""): Promise<void> {
   Logger.debug(`Starting locale sync in '${syncMode}' mode.`);
-
   try {
     const remoteItems = await fetchRemoteItems();
-    await ensureLocalesDir();
-    const localFiles = await getJsonFiles();
+    await ensureLocalesDir(targetDirectory);
+    const localFiles = await getJsonFiles(targetDirectory);
 
     // Map remote by filename for quick lookup
     const remoteMap = new Map<string, LocaleResource>();
@@ -136,7 +135,7 @@ export async function syncLocales(syncMode: SyncMode): Promise<void> {
     if (syncMode === SyncMode.PUSH) {
       // Push local changes to API
       for (const file of localFiles) {
-        const filePath = path.join(LOCALES_DIR, file);
+        const filePath = path.join(LOCALES_DIR(targetDirectory), file);
         const localData = await readJson(filePath);
         const remoteItem = remoteMap.get(file);
 
@@ -154,7 +153,7 @@ export async function syncLocales(syncMode: SyncMode): Promise<void> {
       // PULL: write remote items to local
       for (const item of remoteItems) {
         const fileName = getFileName(item);
-        const filePath = path.join(LOCALES_DIR, fileName);
+        const filePath = path.join(LOCALES_DIR(targetDirectory), fileName);
         const localData = await readJson(filePath).catch(() => ({}));
 
         if (!isEqual(localData, item.resource)) {
@@ -204,13 +203,13 @@ async function createOrUpdateLocaleInAPI(
 /**
  * Updates locale files from API response (legacy support)
  */
-export async function updateLocaleFiles(context: any): Promise<void> {
+export async function updateLocaleFiles(context: any, targetDirectory = ""): Promise<void> {
   try {
     const items = await fetchRemoteItems(context);
-    await ensureLocalesDir();
+    await ensureLocalesDir(targetDirectory);
 
     // Remove non-json and clear existing .json files
-    const all = await fs.readdir(LOCALES_DIR);
+    const all = await fs.readdir(LOCALES_DIR(targetDirectory));
     const invalid = all.filter(f => path.extname(f).toLowerCase() !== '.json');
     if (invalid.length) {
       throw new CommandError(
@@ -218,12 +217,12 @@ export async function updateLocaleFiles(context: any): Promise<void> {
         'INVALID_FILE_TYPE'
       );
     }
-    await Promise.all(all.map(f => fs.remove(path.join(LOCALES_DIR, f))));
+    await Promise.all(all.map(f => fs.remove(path.join(LOCALES_DIR(targetDirectory), f))));
 
     // Write fresh items
     for (const item of items) {
       const fileName = getFileName(item);
-      await fs.writeJSON(path.join(LOCALES_DIR, fileName), item.resource, { spaces: 2 });
+      await fs.writeJSON(path.join(LOCALES_DIR(targetDirectory), fileName), item.resource, { spaces: 2 });
     }
 
     Logger.debug('updateLocaleFiles: completed.');

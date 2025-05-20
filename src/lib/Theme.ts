@@ -738,7 +738,7 @@ export default class Theme {
             await Theme.ensureThemeTypeInPackageJson();
             if (themeData.theme_type === THEME_TYPE.react) {
                 if (fs.existsSync(path.join(process.cwd(), 'theme', 'locales'))) {
-                    await updateLocaleFiles(context);
+                    await updateLocaleFiles(context, targetDirectory);
                 }
             }
             Logger.info('Installing dependencies..');
@@ -853,9 +853,7 @@ export default class Theme {
                 : Logger.warn('Please add domain to context');
             let { data: theme } =
                 await ThemeService.getThemeById(currentContext);
-
-            await Theme.matchWithLatestPlatformConfig(theme, isNew);
-
+            await Theme.matchWithLatestPlatformConfig(theme, isNew, targetDirectory);
             // Clear previosu builds
             Theme.clearPreviousBuild();
             const sectionChunkingEnabled = await Theme.isSectionChunkingEnabled();
@@ -1324,7 +1322,7 @@ export default class Theme {
             throw new CommandError(error.message, error.code);
         }
     };
-    public static syncRemoteToLocal = async (theme) => {
+    public static syncRemoteToLocal = async (theme, targetDirectory = "") => {
         try {
             const newConfig = Theme.getSettingsData(theme);
             await Theme.writeSettingJson(
@@ -1332,7 +1330,7 @@ export default class Theme {
                 newConfig,
             );
             if (theme.theme_type === THEME_TYPE.react) {
-                await syncLocales(SyncMode.PULL);   
+                await syncLocales(SyncMode.PULL, targetDirectory);   
             }
             Logger.info('Remote to Local: Config updated successfully');
         } catch (error) {
@@ -1340,17 +1338,17 @@ export default class Theme {
         }
     }
 
-    public static syncLocalToRemote = async (theme) => {
+    public static syncLocalToRemote = async (theme, targetDirectory = "") => {
         try {
             const { data: theme } = await ThemeService.getThemeById(null);
-            await syncLocales(SyncMode.PUSH);
+            await syncLocales(SyncMode.PUSH, targetDirectory);
             Logger.info('Locale to Remote: Config updated successfully');
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
     }
 
-    public static isAnyDeltaBetweenLocalAndRemote = async (theme, isNew) => {
+    public static isAnyDeltaBetweenLocalAndRemote = async (theme, isNew, targetDirectory = "") => {
         const newConfig = Theme.getSettingsData(theme);
         const oldConfig = await Theme.readSettingsJson(
                 Theme.getSettingsDataPath()
@@ -1358,9 +1356,9 @@ export default class Theme {
         let isLocalAndRemoteLocalesChanged = false
         if (theme.theme_type === THEME_TYPE.react) {
             if (isNew) {
-                await Theme.syncLocalToRemote(theme);
+                await Theme.syncLocalToRemote(theme, targetDirectory);
             } else {
-                isLocalAndRemoteLocalesChanged = await hasAnyDeltaBetweenLocalAndRemoteLocales();
+                isLocalAndRemoteLocalesChanged = await hasAnyDeltaBetweenLocalAndRemoteLocales(targetDirectory);
             }
         }
         const themeConfigChanged = (!isNew && !_.isEqual(newConfig, oldConfig));
@@ -2758,7 +2756,7 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
         }
     };
 
-    private static matchWithLatestPlatformConfig = async (theme, isNew) => {
+    private static matchWithLatestPlatformConfig = async (theme, isNew, targetDirectory = "") => {
         try {
             const questions = [
                 {
@@ -2767,12 +2765,12 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
                     message: 'Do you wish to pull config from remote?',
                 },
             ];
-            if (await Theme.isAnyDeltaBetweenLocalAndRemote(theme, isNew)) {
+            if (await Theme.isAnyDeltaBetweenLocalAndRemote(theme, isNew, targetDirectory)) {
                 await inquirer.prompt(questions).then(async (answers) => {
                     if (answers.pullConfig) {
-                        await Theme.syncRemoteToLocal(theme);
+                        await Theme.syncRemoteToLocal(theme, targetDirectory);
                     } else {
-                        await Theme.syncLocalToRemote(theme);
+                        await Theme.syncLocalToRemote(theme, targetDirectory);
                     }
                 });
             }
