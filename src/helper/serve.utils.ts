@@ -28,6 +28,7 @@ import Debug from '../lib/Debug';
 import { SupportedFrameworks } from '../lib/ExtensionSection';
 import https from 'https';
 import Tunnel from '../lib/Tunnel';
+import { DEFAULT_LOCALE } from './constants';
 const packageJSON = require('../../package.json');
 
 const BUILD_FOLDER = './.fdk/dist';
@@ -445,7 +446,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
     const uploadedFiles = {};
 
     app.get('/translate-ui-labels', (req, res) => {
-        const locale = req.query.locale || 'en';
+        const locale = req.query.locale || DEFAULT_LOCALE;
         const localesFolder: string = path.join(process.cwd(), 'theme', 'locales');
         if (!fs.existsSync(localesFolder)) {
             Logger.debug(`Locales folder not found: ${localesFolder}`);
