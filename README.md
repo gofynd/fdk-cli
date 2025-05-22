@@ -1,6 +1,40 @@
 <img src="https://res.cloudinary.com/dwzm9bysq/image/upload/v1576497695/addsale/applications/0.1914751846702707/media/company/pan/FDK_mdmpbd.png" height="200"></img>
 
 # Fynd Development Kit
+
+## Overview
+
+The Fynd Development Kit (FDK) CLI is a command-line interface tool designed to streamline the development workflow for Fynd Platform. It empowers developers to create, customize, and manage themes, extensions, and other components of their Fynd Platform applications. Whether you are a seasoned developer or just starting, FDK CLI provides the necessary tools to build and deploy robust e-commerce solutions efficiently.
+
+This tool is primarily for:
+* Developers building or customizing themes for Fynd Platform stores.
+* Developers creating extensions to add new features and integrations to Fynd Platform.
+* Anyone looking to manage and update their Fynd Platform application components through a command-line interface.
+
+## Getting Started
+
+This guide will walk you through the initial setup of FDK CLI.
+
+1.  **Prerequisites**: Ensure you have met all the [Prerequisites](#prerequisites) before proceeding.
+2.  **Installation**: Install FDK CLI globally using npm by following the [Installation](#installation) guide.
+3.  **Verify Installation**: Check if the CLI is installed correctly by running:
+    ```sh
+    fdk version
+    ```
+    Alternatively, you can see all available commands with:
+    ```sh
+    fdk --help
+    ```
+4.  **Login**: Authenticate yourself by running the login command. This will open a browser window for you to log in to your Fynd Platform account.
+    ```sh
+    fdk login
+    ```
+5.  **Next Steps**: You're all set! You can now:
+    *   Create a new theme: `fdk theme new`
+    *   Initialize an existing theme: `fdk theme init`
+    *   Set up a new extension: `fdk extension init`
+    *   Explore other commands using `fdk --help` or refer to the [Commands Reference](#commands-reference).
+
 >**Note:** Experimental support for Windows is available, it may not be fully stable.
 
 [![NPM Version][npm-image]][npm-url]
@@ -9,9 +43,17 @@
 
 </div>
 
-Fynd development Kit (FDK CLI) is a cli tool developed by Fynd to create and update themes, extensions and various other components of the [Fynd Platform](https://platform.fynd.com/).
-### Quick Links
-| [Fynd Platform](https://platform.fynd.com/) | [Fynd Partners](https://partners.fynd.com/) | [Partners Documentation](https://partners.fynd.com/help) | [Platform Documentation](https://platform.fynd.com/help) | [Other Projects](#other-fynd-projects) | [Contributing](CONTRIBUTING.md) |
+### Quick Links & Resources
+| Resource                 | Link                                                                 |
+|--------------------------|----------------------------------------------------------------------|
+| Fynd Platform            | [https://platform.fynd.com/](https://platform.fynd.com/)             |
+| Fynd Partners            | [https://partners.fynd.com/](https://partners.fynd.com/)             |
+| Partners Documentation   | [https://partners.fynd.com/help](https://partners.fynd.com/help)     |
+| Platform Documentation   | [https://platform.fynd.com/help](https://platform.fynd.com/help)     |
+| FDK CLI Commands Reference | [Commands Reference](#commands-reference)                            |
+| Other Fynd Projects      | [Other Projects](#other-fynd-projects)                               |
+| Contributing Guide       | [CONTRIBUTING.md](CONTRIBUTING.md)                                   |
+| Community & Support      | Fynd Developer Community Forum (Link TBD) - Check official channels for tutorials. |
 
 # Prerequisites
 
@@ -45,79 +87,155 @@ To see the available extension commands, enter:
 ```sh
 fdk extension
 ```
-See the the [Command reference](#commands-reference) for syntax details and usage examples of the commands.
+See the [Command reference](#commands-reference) for syntax details and usage examples of the commands.
 
+## Project Structure
 
+For those interested in understanding the codebase or contributing, here's a brief overview of the main directories:
 
-## Commands
+*   `src/`: Contains the core source code for the FDK CLI.
+    *   `src/commands/`: Houses the implementation for each CLI command (e.g., `login`, `theme new`, `extension init`). Each command typically has its own file.
+    *   `src/lib/`: Includes core library functions and modules that provide the underlying logic for CLI operations, such as API interactions, file management, and business logic for themes and extensions.
+    *   `src/helper/`: Contains utility functions and helper scripts used across various parts of the CLI, like logging, error handling, and configuration management.
+*   `templates/`: Stores project templates that are used when you initialize a new theme or extension (e.g., `fdk theme new`, `fdk extension init`).
+*   `documentation/`: This directory might contain additional documentation, guides, or resources related to the FDK CLI development or usage (though primary user documentation is in this README).
+
+Understanding this structure can help you navigate the project and locate specific code if you plan to contribute or debug.
+
+## Development Workflow
+
+This section outlines the typical workflow when developing themes or extensions using the FDK CLI.
+
+### 1. Setup & Initialization
+
+*   **Login**: Ensure you are logged into the FDK CLI.
+    ```sh
+    fdk login
+    ```
+*   **Create or Initialize Project**:
+    *   For a new theme:
+        ```sh
+        fdk theme new -n <your-theme-name>
+        cd <your-theme-name>
+        ```
+    *   To initialize an existing theme:
+        ```sh
+        fdk theme init
+        ```
+    *   For a new extension:
+        ```sh
+        fdk extension init -n <your-extension-name>
+        cd <your-extension-name>
+        ```
+    *   Ensure you have a development account and it's linked. Refer to [Prerequisites](#prerequisites).
+
+### 2. Development & Local Preview
+
+*   **Making Code Changes**: Modify the theme or extension files in your local project directory.
+*   **Local Development Server**:
+    *   For themes: Use `fdk theme serve` to start a local server with hot-reloading. This allows you to see your changes in real-time in your browser.
+        ```sh
+        fdk theme serve
+        ```
+    *   For extensions: Use `fdk extension preview` (or `fdk ext preview`) to start a local server. This command often uses a tunnel service (like Cloudflare) to create a public URL for your local development server, which is then used as the extension's launch URL on the development store.
+        ```sh
+        fdk extension preview
+        ```
+        You might need to specify your company ID or other options if not set globally.
+
+### 3. Testing & Synchronization
+
+*   **Theme Synchronization**: To see your local theme changes reflected on your development store (without making it live to all users), you can sync your local files.
+    ```sh
+    fdk theme sync
+    ```
+    After syncing, you can usually preview the changes via the Fynd Platform panel for your development store. Use `fdk theme open` to get preview links.
+*   **Extension Preview**: The `fdk extension preview` command typically updates the extension's launch URL on your development company. You can then test the extension within the context of a Fynd Platform store by accessing it through the platform interface or a direct preview link if provided.
+*   **Populate Sample Data**: For easier testing, especially for new themes or extensions, you can populate your development account with sample data:
+    ```sh
+    fdk populate
+    ```
+
+### 4. Deployment & Packaging
+
+*   **Theme Packaging**: Once your theme development is complete and tested, package it into a ZIP file for upload to the Fynd Partners panel.
+    ```sh
+    fdk theme package
+    ```
+    This package can then be submitted for review or published to the marketplace.
+*   **Extension Deployment**:
+    *   For extensions, the deployment process usually involves ensuring your code is pushed to a repository (if applicable) and that your extension settings (like launch URLs, API keys) are correctly configured in the Fynd Partners panel.
+    *   For extension bindings, you might use commands like `fdk binding draft` to test on development companies and `fdk binding publish` to make them live.
+
+This workflow provides a general guideline. Specific commands and steps might vary based on your project's nature and requirements. Always refer to the detailed [Commands Reference](#commands-reference) for more options and specific use cases.
+
+## Command Overview
 ___
+
+The FDK CLI provides a range of commands to assist in your development. Below is a summary of command groups. For detailed syntax and options for each command, please refer to the [Commands Reference](#commands-reference) section.
 
 ### Global Commands
 | Command        | Description           |
 | ------------- |-------------|
-| [login](#login)     | Login user |
-| [user](#user)     | Shows user details of logged in user |
-| [logout](#logout)     | Logout user |
-| [populate](#populate)     | Populate sample data into development account to get started with theme and extension development |
-| [tunnel](#tunnel) | Create a tunnel on the specified port number to enable remote access for development and testing. |
-
-
+| [login](#login)     | Login to your Fynd Platform account. |
+| [user](#user)     | Shows user details of the logged-in user. |
+| [logout](#logout)     | Logout from your Fynd Platform account. |
+| [populate](#populate)     | Populate sample data into your development account. |
+| [tunnel](#tunnel) | Create a secure tunnel to your local development server. |
 
 ### Theme Commands
 | Command        | Description           |
 | ------------- |-------------|
-| [new](#theme-new)     | Create new theme |
-| [init](#theme-init)     | Clone or download the code of the live website onto your local machine to set up a local development environment for testing and modifications.  |
-| [serve](#theme-serve)     | Initiate theme development on your local machine. Your changes will automatically reflect in the browser whenever you save |
-| [sync](#theme-sync)     | This command will sync your local changes on live store website so you can preview it.|
-| [pull](#theme-pull)     | Pull latest theme code of your store website |
-| [pull-config](#theme-pull-config)     | Retrieve the most recent theme configuration values from the theme editor on your local machine. |
-| [open](#theme-open)    | Returns links that provide preview of the current theme. |
-| [package](#theme-package)    | Package your local theme files into a ZIP file. This will allow you to upload the theme to the partners panel and list it on the marketplace. |
-| [context](#theme-context)     | Add context of a theme |
-| [context-list](#theme-context-list)     | List all available contexts |
-| [active-context](theme-active-context)    | show currently active context |
+| [new](#theme-new)     | Create a new theme from scratch. |
+| [init](#theme-init)     | Initialize an existing theme on your local system.  |
+| [serve](#theme-serve)     | Start a local development server for your theme with hot-reloading. |
+| [sync](#theme-sync)     | Sync your local theme changes to your development store. |
+| [pull](#theme-pull)     | Pull the latest theme code from your development store. |
+| [pull-config](#theme-pull-config)     | Pull the latest theme configuration from your development store. |
+| [open](#theme-open)    | Open preview links for your current theme. |
+| [package](#theme-package)    | Package your theme into a ZIP file for deployment. |
+| [context](#theme-context)     | Add or manage theme contexts (e.g., for different environments or applications). |
+| [context-list](#theme-context-list)     | List all available theme contexts. |
+| [active-context](#theme-active-context)    | Show the currently active theme context. |
 
 ### Extension Commands
 | Command        | Description           |
 | ------------- |-------------|
-| [init](#extension-init)     | Utilize this command to set up a new extension locally, leveraging existing templates of your choice.  |
-| [preview](#extension-preview-url)   | Start the extension development server and provide a tunnel URL to preview the extension on the development company. |
-| [pull-env](#extension-pull-env)     | Retrieve extension context values from the partners panel and update current extension context. |
-| [launch-url](#extension-launch-url)     | Get/set extension's lanuch url |
+| [init](#extension-init)     | Initialize a new extension using available templates.  |
+| [preview](#extension-preview-url)   | Start a local server and tunnel to preview your extension. |
+| [pull-env](#extension-pull-env)     | Pull extension environment variables from the Fynd Partners panel. |
+| [launch-url](#extension-launch-url)     | Get or set your extension's launch URL. |
 
 ### Extension Binding Commands
 | Command        | Description           |
 | ------------- |-------------|
-| [init](#binding-init)     | Utilize this command to set up a new extension section binding locally, leveraging existing templates of either Vue 2 or React JS.  |
-| [draft](#binding-draft)     | Create a draft entry of section binding accessible on dev companies.
-| [publish](#binding-publish)     | Publish the bindings across all the companies where extension is installed..
-| [preview](#binding-preview)     | Create a tunnel and provide a link to tryout extension on any company.
-| [show-context](#binding-show-context)     | Show current extension section context.
-| [clear-context](#binding-clear-context)     | Clear current extension section context.
+| [init](#binding-init)     | Initialize a new extension section binding using available templates.  |
+| [draft](#binding-draft)     | Create a draft version of your section binding for testing.
+| [publish](#binding-publish)     | Publish your section binding to make it live.
+| [preview](#binding-preview)     | Serve your local extension binding for preview on a live storefront.
+| [show-context](#binding-show-context)     | Show the current extension section context.
+| [clear-context](#binding-clear-context)     | Clear the current extension section context.
 
 ### Config Commands
-
 | Command Type | Description                          |
 |--------------|--------------------------------------|
-| [set](#config-set-commands)        | Set configuration values.            |
-| [get](#config-get-commands)        | Retrieve current configuration values.|
-| [delete](#config-delete-commands)  (alias: `rm`)    | Delete configuration values.
+| [set](#config-set-commands)        | Set CLI configuration values.            |
+| [get](#config-get-commands)        | Retrieve current CLI configuration values.|
+| [delete](#config-delete-commands)  (alias: `rm`)    | Delete CLI configuration values.         |
 
 <div id="debugMode"></div>
 
-
 ## Debug Mode
-Add the `--verbose` flag to the command you want to run in debug mode.
-
-This will create `debug.log` file at the current working directory. In case you encounter any issues, this log file can be shared with maintainers for effective issue resolution.
+When troubleshooting, use the `--verbose` flag (or `-v`) with any command. This enables detailed logging to the console and creates a `debug.log` file in your current working directory. This log file is invaluable for diagnosing issues and can be shared with maintainers if you need further assistance.
 #### **Example**
 ```sh
 fdk login --verbose
 ```
-<div id="commands-reference"><div/>
+
+<div id="commands-reference"></div>
 
 ## Commands Reference
+All commands, their options, and usage examples are detailed below.
 ___
 ### Authentication Commands
 To use fdk cli command the user has to login to the cli.
@@ -307,7 +425,7 @@ fdk theme serve [options]
 | --help   | Show help |
 | --verbose, -v | enable debug mode |
 
-By default Server-side rendering is enable. To disable it use `--ssr false` with the serve command
+By default Server-side rendering is enable. To disable it use `--ssr false` with the serve command.
 #### **Example**
 ```sh
 fdk theme serve
@@ -320,18 +438,18 @@ ___
 <div id="theme-sync"></div>
 
 #### **sync**
-This command is used to sync your theme to the application.
+This command is used to sync your local theme changes to your development store.
 #### **Syntax**
 ```sh
 fdk theme sync
 ```
-Always verify if you have set the correct context before syncing your theme. Refer [context](#context-commands) commands.
+Always verify if you have set the correct context before syncing your theme. Refer to the [context](#theme-context) commands.
 
 ___
 <div id="theme-pull"></div>
 
 #### **pull**
-This command is used to pull latest theme code.
+This command is used to pull the latest theme code from your development store.
 #### **Syntax**
 ```sh
 fdk theme pull
@@ -340,7 +458,7 @@ ___
 <div id="theme-pull-config"></div>
 
 #### **pull-config**
-This command is used to pull latest theme config.
+This command is used to pull the latest theme configuration from your development store.
 #### **Syntax**
 ```sh
 fdk theme pull-config
@@ -350,7 +468,7 @@ ___
 <div id="theme-package"></div>
 
 #### **package**
-This command is used to create a zip file of theme.
+This command is used to package your theme into a ZIP file for deployment.
 #### **Syntax**
 ```sh
 fdk theme package
@@ -359,50 +477,50 @@ ___
 <div id="theme-open"></div>
 
 #### **open**
-This command is used to preview the theme on browser.
+This command is used to open preview links for your current theme in the browser.
 #### **Syntax**
 ```sh
 fdk theme open
 ```
 ### Extension Commands
-Extensions are pluggable snippets of code that can be installed in your applications so improve the feature set of your application. To know more visit - [Fynd Partners](https://partners.fynd.com/)
+Extensions are pluggable code snippets that enhance the functionality of your applications. They can be installed on websites built using Fynd Platform. To learn more, visit [Fynd Partners](https://partners.fynd.com/).
 
 <div id="extension-init"></div>
 
 #### **init**
-This command is used to create a extension's initial code with required dependency. It will also register extension for you on your partner account.
+This command is used to initialize a new extension, creating the basic project structure and necessary dependencies. It will also register the extension for you on your partner account.
 
-#### ****Syntax****
+#### **Syntax**
 ```sh
 fdk extension init [options]
 ```
 #### **Command Options**
 | Option        | Description           |
 | ------------- |-------------|
-| --target-dir    | Target Directory |
-| --template    | Specify the template you want to use to create the extension |
-| --help    | Show help |
-| --verbose | enable debug mode |
+| --target-dir    | Target directory for the new extension project. |
+| --template    | Specify the template (e.g., `node-vue`, `java-react`) to use for the extension. |
+| --help    | Show help for this command. |
+| --verbose | Enable debug mode for detailed logging. |
 
 #### **Example**
 ```sh
-fdk extension init --target-dir [your-directory]
+fdk extension init --target-dir ./my-new-extension
 ```
 ```sh
-fdk extension init --template [template-name]
+fdk extension init --template node-react
 ```
-You can pass the following values for the template:
-1. node-vue
-2. node-react
-3. java-vue
-4. java-react
+Available templates typically include:
+*   `node-vue`
+*   `node-react`
+*   `java-vue`
+*   `java-react`
 ___
 <div id="extension-preview-url"></div>
 
 #### **preview**
-This command will return the preview URL, which the user can use to launch or install the extension.
+This command starts a local development server for your extension and provides a public preview URL (often using a tunnel like Cloudflare). This URL can be used to launch or install the extension on a development company for testing.
 
-#### ****Syntax****
+#### **Syntax**
 ```sh
 fdk extension preview [options]
 ```
@@ -447,9 +565,9 @@ ___
 <div id="extension-pull-env"></div>
 
 #### **pull-env**
-This command will fetch extension context details from partners panel and update current extension context.
+This command will fetch the extension's context details (environment variables) from the Fynd Partners panel and update your local extension context.
 
-#### ****Syntax****
+#### **Syntax**
 ```sh
 fdk extension pull-env
 ```
@@ -464,10 +582,10 @@ ___
 <div id="extension-launch-url"></div>
 
 #### **launch-url**
-This command is used to get or set the launch url of your extension
+This command is used to get or set the launch URL of your extension. The launch URL is the endpoint where your extension is hosted and accessed.
 #### **Syntax**
 ```sh
-fdk extension launch-url get/set [options]
+fdk extension launch-url <get|set> [options]
 ```
 #### **Command Options**
 | Option        | Description  |
@@ -491,7 +609,7 @@ ___
 ### Extension Binding Commands
 Extensions bindings are reusable components which are pluggable through the theme editor to improve the user interface of your application. These can be used just like theme sections.
 
-Set the active environment before running extension commands
+Set the active environment before running extension binding commands if you are working with multiple environments:
 ```sh
 fdk env set -u api.fynd.com
 ```
@@ -500,29 +618,29 @@ fdk env set -u api.fynd.com
 <div id="binding-init"></div>
 
 #### **init**
-This command is used to create a basic boilerplate code for extension binding with required dependencies.
-#### ****Syntax****
+This command initializes a new extension binding project, creating a basic boilerplate structure with necessary dependencies (e.g., for Vue 2 or React).
+#### **Syntax**
 ```sh
 fdk binding init [options]
 ```
 #### **Command Options**
 | Option        | Description           |
 | ------------- |-------------|
-| -n, --name    | (Optional) Name of the section binding |
-| -i, --interface    | (Optional) Interface where this binding will be used. Currently, we only support Web Theme. |
-| -f, --framework | (Optional) Runtime framework. Supported values are vue2 and react |
+| -n, --name    | (Optional) Name for your section binding. |
+| -i, --interface    | (Optional) Interface where this binding will be used (e.g., Web Theme). Currently, Web Theme is the primary supported interface. |
+| -f, --framework | (Optional) JavaScript framework for the binding (e.g., `vue2`, `react`). |
 
 #### **Example**
 ```sh
-fdk binding init
+fdk binding init --name my-custom-slider --framework vue2
 ```
 ___
 <div id="binding-draft"></div>
 
 #### **draft**
-This command is used to register the binding with your development companies for alpha or beta testing.
+This command creates a draft version of your extension binding. This draft is typically registered with your development companies, allowing for alpha or beta testing before publishing.
 
-#### ****Syntax****
+#### **Syntax**
 ```sh
 fdk binding draft [options]
 ```
@@ -530,10 +648,10 @@ fdk binding draft [options]
 #### **Command Options**
 | Option        | Description           |
 | ------------- |-------------|
-| -n, --name    | (Optional) Name of the section binding |
-| -f, --framework | (Optional) Runtime framework. Supported values are vue2 and react |
-| -id, --extensionId    | (Optional) Extension Id of the current extension. |
-| -org, --organisationId    | (Optional) Organisation Id of the current extension. |
+| -n, --name    | (Optional) Name of the section binding. |
+| -f, --framework | (Optional) Runtime framework (e.g., `vue2`, `react`). |
+| -id, --extensionId    | (Optional) Extension ID to which this binding belongs. |
+| -org, --organisationId    | (Optional) Organisation ID associated with the extension. |
 
 
 #### **Example**
@@ -545,9 +663,9 @@ ___
 <div id="binding-publish"></div>
 
 #### **publish**
-This command is used to publish the binding across all live companies.
+This command publishes your extension binding, making it live across all companies where the associated extension is installed. Ensure thorough testing before publishing.
 
-#### ****Syntax****
+#### **Syntax**
 ```sh
 fdk binding publish [options]
 ```
@@ -555,10 +673,10 @@ fdk binding publish [options]
 #### **Command Options**
 | Option        | Description           |
 | ------------- |-------------|
-| -n, --name    | (Optional) Name of the section binding |
-| -f, --framework | (Optional) Runtime framework. Supported values are vue2 and react |
-| -id, --extensionId    | (Optional) Extension Id of the current extension. |
-| -org, --organisationId    | (Optional) Organisation Id of the current extension. |
+| -n, --name    | (Optional) Name of the section binding. |
+| -f, --framework | (Optional) Runtime framework (e.g., `vue2`, `react`). |
+| -id, --extensionId    | (Optional) Extension ID to which this binding belongs. |
+| -org, --organisationId    | (Optional) Organisation ID associated with the extension. |
 
 
 #### **Example**
@@ -570,9 +688,9 @@ ___
 <div id="binding-preview"></div>
 
 #### **preview**
-This command will allow developers to locally serve the extension binding which has been added to a live storefront.
+This command allows developers to locally serve an extension binding and preview its appearance and behavior on a live storefront, typically using a tunnel for secure access.
 
-#### ****Syntax****
+#### **Syntax**
 ```sh
 fdk binding preview [options]
 ```
@@ -580,10 +698,10 @@ fdk binding preview [options]
 #### **Command Options**
 | Option        | Description           |
 | ------------- |-------------|
-| -n, --name    | (Optional) Name of the section binding |
-| -f, --framework | (Optional) Runtime framework. Supported values are vue2 and react |
-| -id, --extensionId    | (Optional) Extension Id of the current extension. |
-| -org, --organisationId    | (Optional) Organisation Id of the current extension. |
+| -n, --name    | (Optional) Name of the section binding. |
+| -f, --framework | (Optional) Runtime framework (e.g., `vue2`, `react`). |
+| -id, --extensionId    | (Optional) Extension ID to which this binding belongs. |
+| -org, --organisationId    | (Optional) Organisation ID associated with the extension. |
 
 
 #### **Example**
@@ -596,9 +714,9 @@ ___
 <div id="binding-show-context"></div>
 
 #### **show-context**
-This command will allow developers to see the current extension section context.
+This command displays the current context (configuration and settings) for the active extension section binding.
 
-#### ****Syntax****
+#### **Syntax**
 ```sh
 fdk binding show-context
 ```
@@ -607,14 +725,15 @@ ___
 <div id="binding-clear-context"></div>
 
 #### **clear-context**
-This command will allow developers to clear the current extension section context.
+This command clears the current context for the active extension section binding, potentially resetting it to default values.
 
-#### ****Syntax****
+#### **Syntax**
 ```sh
 fdk binding clear-context
 ```
 ___
 ### Config Commands
+These commands allow you to manage the CLI's own configuration settings.
 <div id="config-commands"></div>
 
 <div id="config-set-commands"></div>
@@ -698,7 +817,20 @@ ___
 
 <div id="OtherProjects"></div>
 
-## Known Issues
+## Troubleshooting
+
+If you encounter any issues while using the FDK CLI, consider the following steps:
+
+*   **Enable Verbose Logging**: As detailed in the [Debug Mode](#debugMode) section, most commands support a `--verbose` flag (or `-v`). This provides detailed console output and generates a `debug.log` file in your current working directory. This log is essential for diagnosing problems.
+    ```sh
+    fdk <command> --verbose
+    ```
+*   **Check the `debug.log` File**: This file contains specific error messages, API request/response details (if applicable), and stack traces that can help pinpoint the source of an issue.
+*   **Verify Prerequisites**: Ensure all items in the [Prerequisites](#prerequisites) section are met, especially Node.js version and account setup.
+*   **Consult Documentation**: Review the relevant command in the [Commands Reference](#commands-reference) for correct syntax and options.
+*   **Check Network Connectivity**: Some commands require internet access to communicate with Fynd Platform services.
+
+Below are solutions to some specific known issues:
 
 ### Cloudflare Tunnel Startup Issue on Apple Silicon Machines
 
@@ -712,29 +844,30 @@ softwareupdate --install-rosetta
 
 This command prompts your system to install Rosetta, resolving the compatibility issue and allowing the Cloudflare tunnel to run smoothly on your machine.
 
-## Other Fynd projects
-| Project |Link |
-|---|-|
-**Nitrozen Vue** | [![Know more](https://img.shields.io/badge/snapshot--blue.svg)](https://www.npmjs.com/package/@gofynd/nitrozen-vue)
-**Javascript SDK** | [![snapshot](https://img.shields.io/badge/snapshot--blue.svg)](https://github.com/gofynd/fdk-client-javascript)
-**Extension SDK** | [![snapshot](https://img.shields.io/badge/snapshot--blue.svg)](https://github.com/gofynd/fdk-extension-javascript)
-**Extension Bridge** | [![snapshot](https://img.shields.io/badge/snapshot--blue.svg)](https://github.com/gofynd/fdk-extension-bridge-javascript)
+## Other Fynd Projects
+Explore other open-source projects from Fynd:
 
+| Project                 | Link                                                                                      | Description                                      |
+|-------------------------|-------------------------------------------------------------------------------------------|--------------------------------------------------|
+| **Nitrozen Vue**        | [![Know more](https://img.shields.io/badge/Nitrozen_Vue-blue.svg)](https://www.npmjs.com/package/@gofynd/nitrozen-vue) | Vue component library for Fynd UIs.            |
+| **Javascript SDK**      | [![fdk-client-javascript](https://img.shields.io/badge/JavaScript_SDK-blue.svg)](https://github.com/gofynd/fdk-client-javascript) | JS SDK for Fynd Platform APIs.                 |
+| **Extension SDK**       | [![fdk-extension-javascript](https://img.shields.io/badge/Extension_SDK-blue.svg)](https://github.com/gofynd/fdk-extension-javascript) | JS SDK specifically for building extensions.   |
+| **Extension Bridge**    | [![fdk-extension-bridge-javascript](https://img.shields.io/badge/Extension_Bridge-blue.svg)](https://github.com/gofynd/fdk-extension-bridge-javascript) | Bridge for communication within extensions.    |
 
-
-[npm-image]: https://img.shields.io/npm/v/@gofynd/fdk-cli?color=blue
+[npm-image]: https://img.shields.io/npm/v/@gofynd/fdk-cli.svg?color=blue&style=flat-square
 [npm-url]: https://www.npmjs.com/package/@gofynd/fdk-cli
-[downloads-image]: https://img.shields.io/npm/dm/@gofynd/fdk-cli
+[downloads-image]: https://img.shields.io/npm/dm/@gofynd/fdk-cli.svg?style=flat-square
 [downloads-url]: https://www.npmjs.com/package/@gofynd/fdk-cli
-[coveralls-badge]: https://coveralls.io/repos/github/gofynd/fdk-cli/badge.svg?branch=master&&kill_cache=1
+[coveralls-badge]: https://img.shields.io/coveralls/github/gofynd/fdk-cli/master.svg?style=flat-square
 [coveralls-url]: https://coveralls.io/github/gofynd/fdk-cli?branch=master
 
-___
+---
 
 <div id="Contributing"></div>
 
 ## Contributing
 
-Checkout [CONTRIBUTING.md](CONTRIBUTING.md) for more information on how to get started contributing to this repository.
+We welcome contributions to the FDK CLI! Please check out [CONTRIBUTING.md](CONTRIBUTING.md) for more information on how to get started, including our code of conduct and development practices.
 
-****
+---
+**Thank you for using FDK CLI!**
