@@ -336,7 +336,7 @@ describe('React Theme Commands', () => {
         mock.onGet(`${URLS.GET_ORGANIZATION_DETAILS()}`).reply(200, organizationData);
         configStore.delete(CONFIG_KEYS.ORGANIZATION)
 
-        mock.onGet('https://github.com/gofynd/Turbo/archive/refs/heads/Turbo-Multilang.zip').passThrough()
+        mock.onGet('https://github.com/gofynd/Turbo/archive/refs/heads/main.zip').passThrough()
         // user login
         configStore.set(CONFIG_KEYS.USER, data.user);
 
