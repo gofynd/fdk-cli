@@ -3328,7 +3328,7 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
         let branch = 'main'
         if (themeType === 'react') {
             url = `https://github.com/gofynd/Turbo`;
-            branch = 'Turbo-Multilang'
+            // branch = 'Turbo-Multilang'
         } else {
             url = `https://github.com/gofynd/${themeName}`;
         }
