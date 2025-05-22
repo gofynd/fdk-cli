@@ -1,5 +1,6 @@
 import configStore, { CONFIG_KEYS } from '../../Config';
 import urlJoin from 'url-join';
+import Logger from '../../Logger';
 
 const apiVersion = configStore.get(CONFIG_KEYS.API_VERSION) || '1.0';
 const getOrganizationId = () => configStore.get(CONFIG_KEYS.ORGANIZATION);
@@ -27,6 +28,8 @@ const CONFIGURATION_URL = () =>
 const MIXMASTER_URL = (serverType: string) =>
     getBaseURL() + `/service/${serverType}/partners/v` + apiVersion;
 const ASSET_URL = () => getBaseURL() + '/service/partner/assets/v2.0';
+
+const LOCALES_URL = () => getBaseURL() + '/service/partner/content/v' + apiVersion;
 
 export const URLS = {
     // AUTHENTICATION
@@ -225,4 +228,35 @@ export const URLS = {
             `/organization/${getOrganizationId()}/accounts/access-request?page_size=${page_size}&page_no=${page_no}&request_status=accepted`,
         );
     },
+
+    //Locales
+    GET_LOCALES: (
+        application_id: string,
+        company_id: number,
+        theme_id: string,
+    ) => {
+        return urlJoin(
+            LOCALES_URL(),
+            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/translate-ui-labels?theme_id=${theme_id}&page_size=500`,
+        );
+    },
+    CREATE_LOCALE: (
+        application_id: string,
+        company_id: number
+    ) => {
+        return urlJoin(
+            LOCALES_URL(),
+            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/translate-ui-labels`,
+        );
+    },
+    UPDATE_LOCALE: (
+        application_id: string,
+        company_id: number,
+        resource_id: string
+    ) => {
+        return urlJoin(
+            LOCALES_URL(),
+            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/translate-ui-labels/${resource_id}`,
+        );
+    }
 };
