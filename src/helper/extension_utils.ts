@@ -41,6 +41,7 @@ export const getCompanyId = async (promptMessage = undefined) => {
     let developmentCompanyData = await ExtensionService.getDevelopmentAccounts(
         1,
         9999,
+        true,
     );
 
     let choices = [];

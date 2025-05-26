@@ -213,10 +213,10 @@ export const URLS = {
     },
 
     // Preview URL
-    GET_DEVELOPMENT_ACCOUNTS: (page_no: number, page_size: number): string => {
+    GET_DEVELOPMENT_ACCOUNTS: (page_no: number, page_size: number, access_check: boolean = false): string => {
         return urlJoin(
             MIXMASTER_URL('partner'),
-            `/organization/${getOrganizationId()}/accounts?page_size=${page_size}&page_no=${page_no}`,
+            `/organization/${getOrganizationId()}/accounts?page_size=${page_size}&page_no=${page_no}&access_check=${access_check}`,
         );
     },
     GET_LIVE_ACCOUNTS: (page_no: number, page_size: number): string => {

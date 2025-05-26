@@ -107,11 +107,11 @@ export default {
     },
 
     // Preview URL
-    getDevelopmentAccounts: async (page_no: number, page_size: number) => {
+    getDevelopmentAccounts: async (page_no: number, page_size: number, access_check: boolean = false) => {
         try {
             let axiosOptions = Object.assign({}, getCommonHeaderOptions());
             let response = await ApiClient.get(
-                URLS.GET_DEVELOPMENT_ACCOUNTS(page_no, page_size),
+                URLS.GET_DEVELOPMENT_ACCOUNTS(page_no, page_size, access_check),
                 axiosOptions,
             );
             return response.data;
