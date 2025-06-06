@@ -196,7 +196,9 @@ async function createOrUpdateLocaleInAPI(
       Logger.debug(`Updated '${locale}' resource in API.`);
     }
   } catch (err) {
-    Logger.error(`Failed to ${action} locale '${locale}': ${(err as Error).message}`);
+    const errMsg = `Failed to ${action} locale '${locale}': ${(err as Error).message}`
+    Logger.error(errMsg);
+    throw new CommandError(errMsg, err.code);
   }
 }
 
