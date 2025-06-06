@@ -14,6 +14,7 @@ import { extractArchive } from '../helper/archive';
 const appConfig = require('./fixtures/appConfig.json');
 const themeList = require('./fixtures/themeList.json');
 const themeData = require('./fixtures/themeData.json');
+const translatedData = require("./fixtures/translation.json")
 const assetsUploadData = require('./fixtures/assetsUploadData.json');
 const srcUploadData = require('./fixtures/srcUploadData.json');
 const getAllAvailablePage = require('./fixtures/getAllAvailablePage.json');
@@ -162,6 +163,29 @@ describe('Theme Commands', () => {
                 appConfig.theme_id,
             )}`,
         ).reply(200, appConfig);
+
+        mock.onGet(
+            `${URLS.GET_LOCALES(
+                appConfig.application_id,
+                appConfig.company_id,
+                appConfig.theme_id,
+            )}`,
+        ).reply(200, translatedData);
+
+        mockInstance.onPut(
+            `${URLS.UPDATE_LOCALE(
+                appConfig.application_id,
+                appConfig.company_id,
+                appConfig.theme_id,
+            )}`,
+        ).reply(200, translatedData);
+
+        mockInstance.onPost(
+            `${URLS.CREATE_LOCALE(
+                appConfig.application_id,
+                appConfig.company_id,
+            )}`,
+        ).reply(200, translatedData);
         mock.onPost(
             `${URLS.CREATE_THEME(
                 appConfig.application_id,

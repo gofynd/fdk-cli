@@ -65,6 +65,8 @@ import {
 import { cloneGitRepository } from './../helper/clone_git_repository';
 import { THEME_TYPE } from '../helper/constants';
 import { MultiStats } from 'webpack';
+import { syncLocales, hasAnyDeltaBetweenLocalAndRemoteLocales, SyncMode, updateLocaleFiles } from '../helper/locales'
+import localesService from './api/services/locales.service';
 
 const nanoid = customAlphabet(
     '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
@@ -734,7 +736,11 @@ export default class Theme {
             Logger.debug('Saving context');
             await createContext(context);
             await Theme.ensureThemeTypeInPackageJson();
-
+            if (themeData.theme_type === THEME_TYPE.react) {
+                if (fs.existsSync(path.join(process.cwd(), 'theme', 'locales'))) {
+                    await updateLocaleFiles(context, targetDirectory);
+                }
+            }
             Logger.info('Installing dependencies..');
             if (
                 fs.existsSync(path.join(process.cwd(), 'theme', 'package.json'))
@@ -841,14 +847,13 @@ export default class Theme {
     ) => {
         try {
             await Theme.ensureThemeTypeInPackageJson();
+            await Theme.ensureLocalesFolderExists(targetDirectory);
             currentContext.domain
                 ? Logger.warn('Syncing Theme to: ' + currentContext.domain)
                 : Logger.warn('Please add domain to context');
             let { data: theme } =
                 await ThemeService.getThemeById(currentContext);
-
-            await Theme.matchWithLatestPlatformConfig(theme, isNew);
-
+            await Theme.matchWithLatestPlatformConfig(theme, isNew, targetDirectory);
             // Clear previosu builds
             Theme.clearPreviousBuild();
             const sectionChunkingEnabled = await Theme.isSectionChunkingEnabled();
@@ -1317,22 +1322,54 @@ export default class Theme {
             throw new CommandError(error.message, error.code);
         }
     };
-    public static pullThemeConfig = async () => {
+    public static syncRemoteToLocal = async (theme, targetDirectory = "") => {
         try {
-            const { data: theme } = await ThemeService.getThemeById(null);
-            const { config } = theme;
-            const newConfig: any = {};
-            if (config) {
-                newConfig.list = config.list;
-                newConfig.current = config.current;
-                newConfig.preset = config.preset;
-            }
+            const newConfig = Theme.getSettingsData(theme);
             await Theme.writeSettingJson(
                 Theme.getSettingsDataPath(),
                 newConfig,
             );
-            Theme.createVueConfig();
-            Logger.info('Config updated successfully');
+            if (theme.theme_type === THEME_TYPE.react) {
+                await syncLocales(SyncMode.PULL, targetDirectory);   
+            }
+            Logger.info('Remote to Local: Config updated successfully');
+        } catch (error) {
+            throw new CommandError(error.message, error.code);
+        }
+    }
+
+    public static syncLocalToRemote = async (theme, targetDirectory = "") => {
+        try {
+            const { data: theme } = await ThemeService.getThemeById(null);
+            await syncLocales(SyncMode.PUSH, targetDirectory);
+            Logger.info('Locale to Remote: Config updated successfully');
+        } catch (error) {
+            throw new CommandError(error.message, error.code);
+        }
+    }
+
+    public static isAnyDeltaBetweenLocalAndRemote = async (theme, isNew, targetDirectory = "") => {
+        const newConfig = Theme.getSettingsData(theme);
+        const oldConfig = await Theme.readSettingsJson(
+                Theme.getSettingsDataPath()
+        );
+        let isLocalAndRemoteLocalesChanged = false
+        if (theme.theme_type === THEME_TYPE.react) {
+            if (isNew) {
+                await Theme.syncLocalToRemote(theme, targetDirectory);
+            } else {
+                isLocalAndRemoteLocalesChanged = await hasAnyDeltaBetweenLocalAndRemoteLocales(targetDirectory);
+            }
+        }
+        const themeConfigChanged = (!isNew && !_.isEqual(newConfig, oldConfig));
+        Logger.debug(`Changes in config: ${themeConfigChanged}, Changes in locales: ${isLocalAndRemoteLocalesChanged}`)
+        return  themeConfigChanged || isLocalAndRemoteLocalesChanged;
+    }
+
+    public static pullThemeConfig = async () => {
+        try {
+            const { data: theme } = await ThemeService.getThemeById(null);
+            await Theme.syncRemoteToLocal(theme);
         } catch (error) {
             throw new CommandError(error.message, error.code);
         }
@@ -2719,12 +2756,8 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
         }
     };
 
-    private static matchWithLatestPlatformConfig = async (theme, isNew) => {
+    private static matchWithLatestPlatformConfig = async (theme, isNew, targetDirectory = "") => {
         try {
-            const newConfig = Theme.getSettingsData(theme);
-            const oldConfig = await Theme.readSettingsJson(
-                Theme.getSettingsDataPath(),
-            );
             const questions = [
                 {
                     type: 'confirm',
@@ -2732,16 +2765,12 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
                     message: 'Do you wish to pull config from remote?',
                 },
             ];
-            if (!isNew && !_.isEqual(newConfig, oldConfig)) {
+            if (await Theme.isAnyDeltaBetweenLocalAndRemote(theme, isNew, targetDirectory)) {
                 await inquirer.prompt(questions).then(async (answers) => {
                     if (answers.pullConfig) {
-                        await Theme.writeSettingJson(
-                            Theme.getSettingsDataPath(),
-                            newConfig,
-                        );
-                        Logger.info('Config updated successfully');
+                        await Theme.syncRemoteToLocal(theme, targetDirectory);
                     } else {
-                        Logger.warn('Using local config to sync');
+                        await Theme.syncLocalToRemote(theme, targetDirectory);
                     }
                 });
             }
@@ -3223,6 +3252,7 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
         await Theme.ensureThemeTypeInPackageJson();
         const activeContext = getActiveContext();
         if (activeContext.theme_type === THEME_TYPE.react) {
+            await Theme.ensureLocalesFolderExists()
             await Theme.generateAssetsReact();
         } else {
             await Theme.generateAssetsVue();
@@ -3295,14 +3325,16 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
 
         const themeName = defaultTheme.name;
         let url;
+        let branch = 'main'
         if (themeType === 'react') {
             url = `https://github.com/gofynd/Turbo`;
+            // branch = 'Turbo-Multilang'
         } else {
             url = `https://github.com/gofynd/${themeName}`;
         }
         try {
             spinner.start();
-            await cloneGitRepository(url, targetDirectory, 'main');
+            await cloneGitRepository(url, targetDirectory, branch);
             spinner.succeed();
         } catch (err) {
             spinner.fail();
@@ -3341,4 +3373,58 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
             throw err;
         }
     };
+
+    private static readonly ensureLocalesFolderExists = async (targetDirectory = "") => {
+        try {
+            const dir = targetDirectory ? targetDirectory : process.cwd();
+            const localesPath = path.join(dir, 'theme', 'locales');
+            const exists = await fs.pathExists(localesPath);
+    
+            if (exists) {
+                // const msg = `Locales folder not found at path: ${localesPath}`;
+                // Logger.debug(msg);
+                // throw new CommandError(msg);
+                const stat = await fs.stat(localesPath);
+                if (!stat.isDirectory()) {
+                    const msg = `Locales path exists but is not a directory: ${localesPath}`;
+                    Logger.debug(msg);
+                    throw new CommandError(msg);
+                }
+
+                const files = await fs.readdir(localesPath);
+                const jsonFiles = files.filter((file) => file.endsWith('.json'));
+        
+                if (jsonFiles.length === 0) {
+                    const msg = `Locales folder does not contain any files: ${localesPath}`;
+                    Logger.debug(msg);
+                    throw new CommandError(msg);
+                }
+        
+                for (const file of jsonFiles) {
+                    const filePath = path.join(localesPath, file);
+                    const content = await fs.readFile(filePath, 'utf8');
+
+                    if (!content.trim()) {
+                        const msg = `JSON file is empty: ${filePath}`;
+                        Logger.debug(msg);
+                        throw new CommandError(msg);
+                    }    
+                    try {
+                        JSON.parse(content);
+                    } catch (err) {
+                        const msg = `Invalid JSON in file: ${filePath} Error: ${err.message}`;
+                        Logger.debug(msg);
+                        throw new CommandError(msg);
+                    }
+                }
+            }
+            return true;
+        } catch (err) {
+            throw new CommandError(
+                `${err.message}`,
+                err.code || 'UNKNOWN_ERROR',
+            );
+        }
+    };
+    
 }
