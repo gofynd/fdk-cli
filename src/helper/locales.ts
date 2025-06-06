@@ -123,7 +123,11 @@ export async function syncLocales(syncMode: SyncMode, targetDirectory = ""): Pro
   Logger.debug(`Starting locale sync in '${syncMode}' mode.`);
   try {
     const remoteItems = await fetchRemoteItems();
-    await ensureLocalesDir(targetDirectory);
+    const localesDirExists = fs.existsSync(LOCALES_DIR(targetDirectory));
+    if(!localesDirExists){
+      Logger.info(`locales directory does not exist. Hence, skipping the locales sync`);
+      return;
+    }
     const localFiles = await getJsonFiles(targetDirectory);
 
     // Map remote by filename for quick lookup

@@ -385,7 +385,7 @@ async function startTunnel(port: number) {
 export async function startReactServer({ domain, host, isHMREnabled, port }) {
     const { currentContext, app, server, io } = await setupServer({ domain });
 
-    const { url } = await startTunnel(port);
+    // const { url } = await startTunnel(port);
 
     if (isHMREnabled) {
         let webpackConfigFromTheme = {};
@@ -541,7 +541,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
                         cliMeta: {
                             port,
                             domain: getFullLocalUrl(port),
-                            tunnelUrl: url,
+                            // tunnelUrl: url,
                         },
                     },
                     {
