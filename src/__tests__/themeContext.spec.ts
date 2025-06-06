@@ -9,6 +9,8 @@ const appConfig = require('./fixtures/appConfig.json');
 const tokenData = require('./fixtures/partnertoken.json');
 const appList = require('./fixtures/applicationList.json');
 const themeList = require('./fixtures/themeList.json');
+const translatedData = require("./fixtures/translation.json")
+
 const organizationData = require('./fixtures/organizationData.json');
 import { getActiveContext } from '../helper/utils';
 import fs from 'fs-extra';
@@ -101,6 +103,13 @@ describe('Theme Context Commands', () => {
                 },
             ],
         });
+        mock.onGet(
+            `${URLS.GET_LOCALES(
+                appConfig.application_id,
+                appConfig.company_id,
+                appConfig.theme_id,
+            )}`,
+        ).reply(200, translatedData);
 
         mock.onGet(`${URLS.GET_LIVE_ACCOUNTS(1, 9999)}`).reply(200, {
             items: [

@@ -27,6 +27,8 @@ import CommandError from '../lib/CommandError';
 import Debug from '../lib/Debug';
 import { SupportedFrameworks } from '../lib/ExtensionSection';
 import https from 'https';
+import Tunnel from '../lib/Tunnel';
+import { DEFAULT_LOCALE } from './constants';
 const packageJSON = require('../../package.json');
 
 const BUILD_FOLDER = './.fdk/dist';
@@ -360,8 +362,30 @@ export async function startServer({ domain, host, isSSR, port }) {
     });
 }
 
+async function startTunnel(port: number) {
+    try {
+        const tunnelInstance = new Tunnel({
+            port,
+        })
+
+        const tunnelUrl = await tunnelInstance.startTunnel();
+
+        Logger.info(`
+            Started cloudflare tunnel at ${port}: ${tunnelUrl}`)
+        return {
+            url: tunnelUrl,
+            port,
+        };
+    } catch (error) {
+        Logger.error('Error during starting cloudflare tunnel: ' + error.message);
+        return;
+    }
+}
+
 export async function startReactServer({ domain, host, isHMREnabled, port }) {
     const { currentContext, app, server, io } = await setupServer({ domain });
+
+    const { url } = await startTunnel(port);
 
     if (isHMREnabled) {
         let webpackConfigFromTheme = {};
@@ -420,6 +444,33 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
     applyProxy(app);
 
     const uploadedFiles = {};
+
+    app.get('/translate-ui-labels', (req, res) => {
+        const locale = req.query.locale || DEFAULT_LOCALE;
+        const localesFolder: string = path.join(process.cwd(), 'theme', 'locales');
+        if (!fs.existsSync(localesFolder)) {
+            Logger.debug(`Locales folder not found: ${localesFolder}`);
+            return res.json({ items: [] });
+        }
+        const locales = fs.readdirSync(localesFolder).filter(file => !file.endsWith('.schema.json') && file.split('.')[0] === locale);        
+        const localesArray = [];
+
+        // Read content of each locale file
+        locales.forEach(locale => {
+            const filePath = path.join(localesFolder, locale);
+            try {
+                const content = fs.readFileSync(filePath, 'utf8');
+                localesArray.push({
+                    "locale":locale.replace('.json', ''),
+                    "resource":JSON.parse(content)
+                });
+            } catch (error) {
+                Logger.error(`Error reading locale file ${locale}: ${error.message}`);
+            }
+        });
+        
+        res.json({"items":localesArray});
+    });
 
     app.get('/*', async (req, res) => {
         try {
@@ -490,10 +541,14 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
                         cliMeta: {
                             port,
                             domain: getFullLocalUrl(port),
+                            tunnelUrl: url,
                         },
                     },
                     {
-                        headers,
+                        headers: {
+                            ...headers,
+                            cookie: req.headers.cookie,
+                        },
                     },
                 )
                 .catch((error) => {
