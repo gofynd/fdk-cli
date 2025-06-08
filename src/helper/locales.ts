@@ -122,12 +122,12 @@ export async function hasAnyDeltaBetweenLocalAndRemoteLocales(targetDirectory): 
 export async function syncLocales(syncMode: SyncMode, targetDirectory = ""): Promise<void> {
   Logger.debug(`Starting locale sync in '${syncMode}' mode.`);
   try {
-    const remoteItems = await fetchRemoteItems();
     const localesDirExists = fs.existsSync(LOCALES_DIR(targetDirectory));
     if(!localesDirExists){
       Logger.info(`locales directory does not exist. Hence, skipping the locales sync`);
       return;
     }
+    const remoteItems = await fetchRemoteItems();
     const localFiles = await getJsonFiles(targetDirectory);
 
     // Map remote by filename for quick lookup
