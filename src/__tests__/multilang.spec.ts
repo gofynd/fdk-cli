@@ -1,395 +1,336 @@
-import axios from 'axios';
-import MockAdapter from 'axios-mock-adapter';
-import { uninterceptedApiClient, withoutErrorResponseInterceptorAxios } from '../lib/api/ApiClient';
-import inquirer from 'inquirer';
-import { URLS } from '../lib/api/services/url';
-import mockFunction from './helper';
-import { setEnv } from './helper';
-import fs from 'fs-extra';
 import rimraf from 'rimraf';
-import path from 'path';
-import { isEqual } from 'lodash';
-import { readFile } from '../helper/file.utils';
-import { extractArchive } from '../helper/archive';
-const appConfig = require('./fixtures/appConfig.json');
-const translatedData = require("./fixtures/translation.json")
-const reactThemeData = require('./fixtures/reactThemeData.json');
-const reactThemeList = require('./fixtures/reactThemeList.json');
-const assetsUploadData = require('./fixtures/assetsUploadData.json');
-const srcUploadData = require('./fixtures/srcUploadData.json');
-const getAllAvailablePage = require('./fixtures/getAllAvailablePage.json');
-const completeUpload = require('./fixtures/completeUpload.json');
-const srcCompleteUpload = require('./fixtures/srcCompleteUpload.json');
-const assetsCompleteUpload = require('./fixtures/assetsCompleteUpload.json');
-const updateThemeData = require('./fixtures/updateThemeData.json');
-const updateAvailablePageData = require('./fixtures/updateAvailablePageData.json');
-const syncThemeData = require('./fixtures/syncThemeData.json');
-const startUpload = require('./fixtures/startUpload.json');
-const tokenData = require('./fixtures/partnertoken.json');
-const initReactThemeData = require('./fixtures/initReactThemeData.json');
-const pullReactThemeData = require('./fixtures/pullReactThemeData.json');
-const initAppConfigData = require('./fixtures/initAppConfigData.json');
-const deleteData = require('./fixtures/deleteData.json');
-const deleteAvailablePage = require('./fixtures/deleteAvailablePage.json');
-const updateAllAvailablePageData = require('./fixtures/updateAllAvailablePage.json');
-const appList = require('./fixtures/applicationList.json');
-const data = require('./fixtures/email-login.json');
-const organizationData = require("./fixtures/organizationData.json")
-import { createDirectory } from '../helper/file.utils';
-import { init } from '../fdk';
+import mockFunction, { commonDir } from './helper'; // Fixed import
+import CommandError from '../lib/CommandError';
+import { init }
+    from '../fdk';
+import {
+    THEME_COMMANDS,
+    THEME_CONFIG_FILE_NAME
+} from '../helper/constants';
+import {promises as fsPromises} from 'fs';
+import { copyRecursive } from '../helper/file.utils';
+const extensionPublishDebugLog = require('./fixtures/extension_publish_debug_log.json');
+const path = require('path');
+const nock = require('nock');
+const { homedir } = require('os');
+const chalk = require('chalk');
+import inquirer from 'inquirer';
+const EXTERNAL_EVENT_RETRY_COUNT = 5;
 import configStore, { CONFIG_KEYS } from '../lib/Config';
-import { startServer, getApp } from '../lib/Auth';
+import { URLS } from '../lib/api/services/url';
+import { startServer, stopServer } from '../lib/Auth';
 const request = require('supertest');
+const tokenData = require('./fixtures/partnertoken.json');
+const organizationData = require('./fixtures/organizationData.json');
+const appConfig = require('./fixtures/appConfig.json');
+const themeList = require('./fixtures/themeList.json');
+const availablePage = require('./fixtures/availablePage.json');
+const availableSection = require('./fixtures/availableSection.json');
+const syncSuccess = require('./fixtures/syncSuccess.json');
+const syncError = require('./fixtures/syncError.json');
+const syncWarning = require('./fixtures/syncWarning.json');
+const syncPolling = require('./fixtures/syncPolling.json');
+const startUploadFileResForTheme = require('./fixtures/startUploadThemeFileRes.json');
+const startUploadFileResForImage = require('./fixtures/startUploadImageFileRes.json');
+const completeUploadFileRes = require('./fixtures/completeUploadFileRes.json');
+const themeById = require('./fixtures/themeById.json');
+import Logger from '../lib/Logger';
+import ThemeService from '../lib/Theme';
+import MockAdapter from 'axios-mock-adapter';
+import axios from 'axios';
 import {
     getRandomFreePort
 } from '../helper/extension_utils';
-
 jest.mock('inquirer');
 let program;
+const партнеры = 'partners';
+const партнерыDir = `${homedir()}/.fdk/context/${партнеры}.json`;
+const THEME_DOWNLOAD_PATH = './.fdk/archive/609babc943c30e7a5155568d.zip';
+const THEME_FOLDER_PATH = 'theme';
+const THEME_PATH = path.resolve(THEME_FOLDER_PATH);
+const IMAGE_PATH = path.resolve(THEME_FOLDER_PATH, 'assets/images/1.png');
+const SRC_PATH = path.resolve(THEME_FOLDER_PATH, 'template/foundations.html');
+const CSS_PATH = path.resolve(THEME_FOLDER_PATH, 'assets/css/main.css');
+const JS_PATH = path.resolve(THEME_FOLDER_PATH, 'assets/js/main.js');
+const CONFIG_PATH = path.resolve(THEME_FOLDER_PATH, 'config/settings_data.json');
+const PRESET_PATH = path.resolve(THEME_FOLDER_PATH, 'config/settings_schema.json');
+const apiVersion = configStore.get(CONFIG_KEYS.API_VERSION) || '1.0';
+let mock;
 
-jest.mock('configstore', () => {
-    const Store =
-        jest.requireActual('configstore');
-    const path = jest.requireActual<typeof import('path')>('path');
-    return class MockConfigstore {
-        store = new Store('@gofynd/fdk-cli', undefined, {
-            configPath: path.join(__dirname, 'theme-test-cli.json'),
-        });
-        all = this.store.all;
-        size = this.store.size;
-        path = this.store.path;
-        get(key: string) {
-            return this.store.get(key);
-        }
-        set(key: string, value: any) {
-            this.store.set(key, value);
-        }
-        delete(key: string) {
-            this.store.delete(key);
-        }
-        clear() {
-            this.store.clear();
-        }
-        has(key: string) {
-            return this.store.has(key);
-        }
-    };
-});
-
-jest.mock('open', () => {
-    return () => {}
-})
-
-
-async function createReactTheme() {
-    const inquirerMock = mockFunction(inquirer.prompt);
-    inquirerMock.mockResolvedValue({
-        showCreateFolder: 'Yes',
-        accountType: 'development',
-        selectedCompany: 'cli-test',
-        selectedApplication: 'anurag',
-        selectedTheme: 'Namaste',
-        themeType: 'react',
-    });
-    await program.parseAsync([
-        'ts-node',
-        './src/fdk.ts',
-        'theme',
-        'new',
-        '-n',
-        'Locale_Turbo',
-    ]);
+export async function login() {
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    const port =  await getRandomFreePort([]);
+    const app = await startServer(port);
+    const req = request(app);
+    await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '--host', 'api.fyndx1.de']);
+    return await req.post('/token').send(tokenData);
 }
 
-const imageS3Url = startUpload.upload.url;
-const srcS3Url = srcUploadData.upload.url;
-const assetS3Url = assetsUploadData.upload.url;
-
-describe('React Theme Commands', () => {
+describe('Multilang Commands', () => {
     beforeAll(async () => {
-        setEnv();
-        createDirectory(path.join(__dirname, '..', '..', 'react-test-theme'));
-        process.chdir(`./react-test-theme/`);
+        rimraf.sync('./auth-test-cli.json');
+        rimraf.sync('./theme-test-cli.json');
         program = await init('fdk');
-        const mock = new MockAdapter(axios);
-        const mockInstance = new MockAdapter(
-            uninterceptedApiClient.axiosInstance,
-        );
-        const mockCustomAxios = new MockAdapter(withoutErrorResponseInterceptorAxios);
-        configStore.set(CONFIG_KEYS.ORGANIZATION, organizationData._id)
+        configStore.set(CONFIG_KEYS.ORGANIZATION, organizationData._id);
+        mock = new MockAdapter(axios);
         mock.onGet('https://api.fyndx1.de/service/application/content/_healthz').reply(200);
+        mock.onGet(`${await URLS.GET_ORGANIZATION_DETAILS()}`).reply(
+            200,
+            organizationData,
+        );
         mock.onGet(
-            `${URLS.GET_APPLICATION_DETAILS(
+            `${await URLS.GET_APPLICATION_DETAILS(
                 appConfig.company_id,
                 appConfig.application_id,
             )}`,
         ).reply(200, appConfig);
         mock.onGet(
-            `${URLS.THEME_BY_ID(
+            `${await URLS.THEME_BY_ID(
                 appConfig.application_id,
                 appConfig.company_id,
                 appConfig.theme_id,
             )}`,
         ).reply(200, appConfig);
-
         mock.onGet(
-            `${URLS.GET_LOCALES(
-                appConfig.application_id,
+            `${await URLS.GET_ALL_THEME(
                 appConfig.company_id,
-                appConfig.theme_id,
-            )}`,
-        ).reply(200, translatedData);
-
-        mock.onPost(
-            `${URLS.CREATE_THEME(
                 appConfig.application_id,
-                appConfig.company_id,
             )}`,
-        ).reply(200, reactThemeData);
+        ).reply(200, themeList.items);
         mock.onGet(
-            `${URLS.THEME_BY_ID(
+            `${await URLS.GET_THEME_DEVELOPMENT_STATUS_URL(
                 appConfig.application_id,
                 appConfig.company_id,
-                appConfig.theme_id,
+                themeList.items[0]._id,
             )}`,
-        ).reply(200, reactThemeData);
+        ).reply(200, syncSuccess);
         mock.onPost(
-            `${URLS.START_UPLOAD_FILE('application-theme-images')}`,
-        ).replyOnce(200, startUpload);
-        mock.onPost(
-            `${URLS.START_UPLOAD_FILE('application-theme-images')}`,
-        ).reply(200, startUpload);
-        mock.onPut(`${imageS3Url}`).reply(200, '');
-        mockInstance.onPut(`${imageS3Url}`).reply(200, '');
-        mock.onPost(
-            `${URLS.COMPLETE_UPLOAD_FILE('application-theme-images')}`,
-        ).reply(200, completeUpload);
-        mock.onPost(`${URLS.START_UPLOAD_FILE('application-theme-src')}`).reply(
-            200,
-            srcUploadData,
-        );
-        mock.onPut(`${srcS3Url}`).reply(200, '');
-        mockInstance.onPut(`${srcS3Url}`).reply(200, '');
-        mock.onPost(
-            `${URLS.COMPLETE_UPLOAD_FILE('application-theme-src')}`,
-        ).reply(200, srcCompleteUpload);
-
-        mock.onPost(
-            `${URLS.START_UPLOAD_FILE('application-theme-assets')}`,
-        ).reply(200, assetsUploadData);
-        mock.onPut(`${assetS3Url}`).reply(200, '');
-        mockInstance.onPut(`${assetS3Url}`).reply(200, '');
-        mock.onPost(
-            `${URLS.COMPLETE_UPLOAD_FILE('application-theme-assets')}`,
-        ).reply(200, assetsCompleteUpload);
-        const availablePageUrl = new RegExp(
-            `${URLS.AVAILABLE_PAGE(
+            `${await URLS.SYNC_THEME(
                 appConfig.application_id,
                 appConfig.company_id,
-                appConfig.theme_id,
+                themeList.items[0]._id,
             )}`,
-        );
-        const availablePage = new RegExp(
-            `${URLS.AVAILABLE_PAGE(
+        ).reply(200, syncSuccess);
+        mock.onPost(
+            `${await URLS.PULL_THEME(
                 appConfig.application_id,
                 appConfig.company_id,
-                appConfig.theme_id,
-                '*',
+                themeList.items[0]._id,
             )}`,
-        );
-        mock.onGet(availablePageUrl).reply(200, getAllAvailablePage.data);
-        mock.onPost().reply(200, appConfig);
-        mock.onPut(
-            `${URLS.THEME_BY_ID(
-                appConfig.application_id,
-                appConfig.company_id,
-                appConfig.theme_id,
-            )}`,
-        ).reply(200, updateThemeData);
-        mock.onPut(availablePageUrl).reply(200, updateAvailablePageData);
-        mock.onPut(availablePageUrl).reply(200, updateAllAvailablePageData);
-        mock.onGet(
-            `${URLS.GET_APPLICATION_DETAILS(
-                appConfig.application_id,
-                appConfig.company_id,
-            )}`,
-        ).reply(200, initAppConfigData);
-        mock.onGet(
-            `${URLS.THEME_BY_ID(
-                appConfig.application_id,
-                appConfig.company_id,
-                initReactThemeData._id,
-            )}`,
-        ).reply(200, initReactThemeData);
-        let filePath = path.join(__dirname, 'fixtures', 'archive.zip');
-        //
-        mockInstance
-            .onGet(
-                'https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/x5/misc/general/free/original/kS2Wr8Lwe-Turbo-payment_1.0.154.zip',
-            )
-            .reply(function () {
-                return [200, fs.createReadStream(filePath)];
-            });
-        mock.onGet(initReactThemeData.src.link).reply(function () {
-            return [200, fs.createReadStream(filePath)];
+        ).reply(200, {
+            name: 'Namaste',
+            version: '1.0.0',
+            zip_url:
+                'https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addKart/themes/download/609babc943c30e7a5155568d.zip',
+            _id: '609babc943c30e7a5155568d',
         });
-
-        mock.onGet(`${URLS.GET_DEVELOPMENT_ACCOUNTS(1, 9999)}`).reply(200, {
+        mock.onGet(
+            `${await URLS.GET_THEME_ASSETS_URL(
+                appConfig.company_id,
+                appConfig.application_id,
+                themeList.items[0]._id,
+            )}`,
+        ).reply(200, {
             items: [
                 {
-                    company: {
-                        uid: 1,
-                        name: 'cli-test',
-                    },
-                    company_name: 'cli-test',
+                    value: 'assets/images/1.png',
+                    link: 'https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addKart/themes/609babc943c30e7a5155568d/assets/images/1.png',
+                },
+                {
+                    value: 'template/foundations.html',
+                    link: 'https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addKart/themes/609babc943c30e7a5155568d/template/foundations.html',
+                },
+                {
+                    value: 'assets/css/main.css',
+                    link: 'https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addKart/themes/609babc943c30e7a5155568d/assets/css/main.css',
+                },
+                {
+                    value: 'assets/js/main.js',
+                    link: 'https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addKart/themes/609babc943c30e7a5155568d/assets/js/main.js',
+                },
+                {
+                    value: 'config/settings_data.json',
+                    link: 'https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addKart/themes/609babc943c30e7a5155568d/config/settings_data.json',
+                },
+                {
+                    value: 'config/settings_schema.json',
+                    link: 'https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addKart/themes/609babc943c30e7a5155568d/config/settings_schema.json',
                 },
             ],
         });
-
-        mock.onGet(`${URLS.GET_LIVE_ACCOUNTS(1, 9999)}`).reply(200, {
-            items: [
-                {
-                    company: {
-                        uid: 1,
-                        name: 'cli-test',
-                    },
-                    company_name: 'cli-test',
-                },
-            ],
-        });
-
         mock.onGet(
-            `${URLS.THEME_BY_ID(
-                appConfig.application_id,
-                appConfig.company_id,
-                appConfig.theme_id,
-            )}`,
-        ).reply(200, pullReactThemeData);
-        let zipfilePath = path.join(__dirname, 'fixtures', 'Locale_Turbo.zip');
-        mock.onGet(pullReactThemeData.src.link).reply(function () {
-            return [200, fs.createReadStream(zipfilePath)];
-        });
-        mockInstance.onGet(pullReactThemeData.src.link).reply(function () {
-            return [200, fs.createReadStream(zipfilePath)];
-        });
-        mock.onDelete(
-            `${URLS.THEME_BY_ID(
-                appConfig.application_id,
-                appConfig.company_id,
-                appConfig.theme_id,
-            )}`,
-        ).reply(200, deleteData);
-        mock.onDelete(availablePage).reply(200, deleteAvailablePage);
-
-        mock.onGet(`${URLS.GET_APPLICATION_LIST(appConfig.company_id)}`).reply(
-            200,
-            appList,
-        );
-
+            'https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addKart/themes/download/609babc943c30e7a5155568d.zip',
+        ).reply(200, {});
         mock.onGet(
-            `${URLS.GET_ALL_THEME(
-                appConfig.company_id,
-                appConfig.application_id,
-            )}`,
-        ).reply(200, reactThemeList.items);
-
+            'https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addKart/themes/609babc943c30e7a5155568d/assets/images/1.png',
+        ).reply(200, {});
         mock.onGet(
-            `${URLS.GET_ALL_THEME(
-                appConfig.company_id,
-                appConfig.application_id,
-            )}`,
-        ).reply(200, reactThemeList.items);
-
+            'https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addKart/themes/609babc943c30e7a5155568d/template/foundations.html',
+        ).reply(200, {});
         mock.onGet(
-            `${URLS.GET_LOCALES(
+            'https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addKart/themes/609babc943c30e7a5155568d/assets/css/main.css',
+        ).reply(200, {});
+        mock.onGet(
+            'https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addKart/themes/609babc943c30e7a5155568d/assets/js/main.js',
+        ).reply(200, {});
+        mock.onGet(
+            'https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addKart/themes/609babc943c30e7a5155568d/config/settings_data.json',
+        ).reply(200, {});
+        mock.onGet(
+            'https://cdn.pixelbin.io/v2/falling-surf-7c8bb8/fyndnp/wrkr/addKart/themes/609babc943c30e7a5155568d/config/settings_schema.json',
+        ).reply(200, {});
+        mock.onPost(
+            `${await URLS.ADD_THEME_TO_APPLICATION(
                 appConfig.application_id,
                 appConfig.company_id,
-                appConfig.theme_id,
             )}`,
-        ).reply(200, translatedData);
-
-        const expectedUrl = URLS.UPDATE_LOCALE(
+        ).reply(200, appConfig);
+        mock.onPost(`${await URLS.UPDATE_LOCALE(
             appConfig.application_id,
             appConfig.company_id,
-            appConfig.theme_id
+            appConfig.theme_id,
+        )}.json`).reply(200, {"n":1,"ok":1,"updatedExisting":true});
+        mock.onPost(
+            `${await URLS.CREATE_THEME(
+                appConfig.company_id,
+                appConfig.application_id,
+            )}`,
+        ).reply(200, themeById);
+        mock.onPost(
+            `${await URLS.START_UPLOAD_URL(appConfig.application_id, appConfig.company_id, appConfig.theme_id,'application-theme-images')}`,
+            startUploadFileResForImage,
         );
-        console.log('Mocking PUT to:', expectedUrl);
-        const baseUrl = expectedUrl.replace(/\/[0-9a-fA-F]+$/, '');
-        const putRe = new RegExp(`^${baseUrl}/[0-9a-fA-F]+$`);
-        mock.onPut(putRe).reply(200, {});
-
-        mockCustomAxios.onPost(
-            `${URLS.CREATE_LOCALE(
+        mock.onPost(
+            `${await URLS.START_UPLOAD_URL(appConfig.application_id, appConfig.company_id, appConfig.theme_id,'application-theme-images')}`,
+            startUploadFileResForImage,
+        );
+        mock.onPost(
+            `${await URLS.COMPLETE_UPLOAD_URL(appConfig.application_id, appConfig.company_id, appConfig.theme_id,'application-theme-images')}`,
+            completeUploadFileRes,
+        );
+        mock.onPost(`${await URLS.START_UPLOAD_URL(appConfig.application_id, appConfig.company_id, appConfig.theme_id,'application-theme-src')}`).reply(
+            200,
+            startUploadFileResForTheme,
+        );
+        mock.onPost(
+            `${await URLS.COMPLETE_UPLOAD_URL(appConfig.application_id, appConfig.company_id, appConfig.theme_id,'application-theme-src')}`,
+            completeUploadFileRes,
+        );
+        mock.onPost(
+            `${await URLS.START_UPLOAD_URL(appConfig.application_id, appConfig.company_id, appConfig.theme_id,'application-theme-assets')}`,
+            startUploadFileResForTheme,
+        );
+        mock.onPost(
+            `${await URLS.COMPLETE_UPLOAD_URL(appConfig.application_id, appConfig.company_id, appConfig.theme_id,'application-theme-assets')}`,
+            completeUploadFileRes,
+        );
+        mock.onGet(
+            `${await URLS.AVAILABLE_PAGE(
                 appConfig.application_id,
                 appConfig.company_id,
+                themeList.items[0]._id,
+                'theme',
+            )}`,
+        ).reply(200, availablePage);
+        mock.onGet(
+            `${await URLS.AVAILABLE_PAGE(
+                appConfig.application_id,
+                appConfig.company_id,
+                themeList.items[0]._id,
+                'theme',
+            )}`,
+        ).reply(200, availablePage);
+        mock.onGet(
+            `${await URLS.GET_SECTIONS_URL(
+                appConfig.company_id,
+                appConfig.application_id,
+                themeList.items[0]._id,
+            )}`,
+        ).reply(200, availableSection);
+        mock.onPost(
+            `${await URLS.CREATE_SECTION_URL(
+                appConfig.company_id,
+                appConfig.application_id,
+                themeList.items[0]._id,
             )}`,
         ).reply(200, {});
-
-        mock.onGet(
-            `${URLS.GET_DEFAULT_THEME(
+        mock.onPut(
+            `${await URLS.UPDATE_SECTION_URL(
                 appConfig.company_id,
                 appConfig.application_id,
+                themeList.items[0]._id,
+                availableSection.items[0]._id,
             )}`,
-        ).reply(200, { name: 'Emerge' });
-
-
-        mock.onGet(`${URLS.GET_ORGANIZATION_DETAILS()}`).reply(200, organizationData);
-        configStore.delete(CONFIG_KEYS.ORGANIZATION)
-
-        mock.onGet('https://github.com/gofynd/Turbo/archive/refs/heads/main.zip').passThrough()
-        // user login
-        configStore.set(CONFIG_KEYS.USER, data.user);
-
-        process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
-        const port =  await getRandomFreePort([]);
-        const app = await startServer(port);
-        const req = request(app);
-        await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '--host', 'api.fyndx1.de']);
-        await req.post('/token').send(tokenData);
-    });
-
-    afterEach(() => {
-        const reactThemeDir = path.join(process.cwd(), 'Locale_Turbo');
-        try {
-            rimraf.sync(reactThemeDir);
-        } catch (err) {
-            console.error(`Error while deleting ${reactThemeDir}.`);
-        }
-    });
-
-    afterAll(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        fs.rm(path.join(__dirname, '..', '..', 'react-test-theme'), {
-            recursive: true,
-        });        
-        process.chdir(path.join(__dirname, '..', '..'));
-        rimraf.sync(path.join(__dirname, 'theme-test-cli.json')); // remove configstore
-    });
-
-    it('should successfully create new react theme', async () => {
-        await createReactTheme();
-        const filePath = path.join(process.cwd());
-        expect(fs.existsSync(filePath)).toBe(true);
-    });
-
-    it('should successfully pull config React theme', async () => {
-        await createReactTheme();
-        process.chdir(path.join(process.cwd()));
-        const filePath = path.join(
-            process.cwd(),
-            '/theme/config/settings_data.json',
-        );
-        let oldSettings_data: any = readFile(filePath);
-        oldSettings_data = JSON.parse(oldSettings_data);
+        ).reply(200, {});
+        mock.onDelete(
+            `${await URLS.DELETE_SECTION_URL(
+                appConfig.company_id,
+                appConfig.application_id,
+                themeList.items[0]._id,
+                availableSection.items[0]._id,
+            )}`,
+        ).reply(200, {});
+        await login();
+        const inquirerMock = mockFunction(inquirer.prompt);
+        inquirerMock.mockResolvedValue({
+            showCreateFolder: 'Yes',
+            accountType: 'development',
+            selectedCompany: 'cli-test',
+            selectedApplication: 'Namaste',
+            selectedTheme: 'Namaste',
+        });
         await program.parseAsync([
             'ts-node',
             './src/fdk.ts',
             'theme',
-            'pull-config',
+            'context',
+            '-n',
+            'fyndx1',
         ]);
-        let newSettings_data: any = readFile(filePath);
-        newSettings_data = JSON.parse(newSettings_data);
-        process.chdir(`../`);
-        expect(isEqual(newSettings_data, oldSettings_data)).toBe(false);
+    });
+
+    afterAll(() => {
+        rimraf.sync('./auth-test-cli.json');
+        rimraf.sync('./theme-test-cli.json');
+        rimraf.sync(THEME_DOWNLOAD_PATH);
+        rimraf.sync(THEME_FOLDER_PATH);
+        rimraf.sync('./.fdk/context.json');
+        rimraf.sync(партнерыDir);
+        stopServer();
+    });
+    it('should validate UPDATE_LOCALE url', async () => {
+        const themeId = '609babc943c30e7a5155568d';
+        const companyId = '1';
+        const applicationId = '609babc943c30e7a5155568c'
+        const expectedUrl = await URLS.UPDATE_LOCALE(
+            applicationId,
+            companyId,
+            themeId,
+        );
+        const baseUrl = expectedUrl.replace(/\/[0-9a-fA-F]+$/, '');
+        expect(baseUrl).toBe(`${configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)}/service/partner/partners/${apiVersion}/company/${companyId}/application/${applicationId}/theme`);
+    });
+    it('should create new locale', async () => {
+        const inquirerMock = mockFunction(inquirer.prompt);
+        inquirerMock.mockResolvedValue({ selected_locale: 'hi' });
+        mock.onPost(
+            `${await URLS.CREATE_LOCALE(
+                appConfig.application_id,
+                appConfig.company_id,
+                appConfig.theme_id,
+            )}`,
+        ).reply(200, {"n":1,"ok":1,"updatedExisting":true});
+        await program.parseAsync([
+            'ts-node',
+            './src/fdk.ts',
+            'theme',
+            'add-locale',
+        ]);
+        mock.onGet(
+            `${await URLS.GET_ALL_THEME(
+                appConfig.company_id,
+                appConfig.application_id,
+            )}`,
+        ).reply(200, themeList.items);
     });
 });

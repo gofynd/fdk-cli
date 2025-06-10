@@ -6,7 +6,7 @@ import which from 'which';
 import CommandError, { ErrorCodes } from '../lib/CommandError';
 import Logger, { COMMON_LOG_MESSAGES } from '../lib/Logger';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
-import execa from 'execa';
+// import execa from 'execa'; // Commented out original import
 import Debug from '../lib/Debug';
 import * as babel from '@babel/core';
 import * as fsNode from 'fs';
@@ -149,6 +149,7 @@ export const evaluateModule = (code) => {
 export const installJavaPackages = async (
     targetDir: string = process.cwd(),
 ) => {
+    const execa = (await import('execa')).default; // Dynamic import
     return new Promise(async (resolve, reject) => {
         await execa('mvn', ['clean'], { cwd: targetDir });
         let exec = execa('mvn', ['package', '-DskipTests'], { cwd: targetDir });
@@ -168,6 +169,7 @@ export const installJavaPackages = async (
 };
 
 export const installNpmPackages = async (targetDir: string = process.cwd()) => {
+    const execa = (await import('execa')).default; // Dynamic import
     return new Promise(async (resolve, reject) => {
         let exec = execa('npm', ['i'], { cwd: targetDir });
         exec.stdout.on('data', (data) => {

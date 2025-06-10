@@ -29,27 +29,22 @@ jest.mock('inquirer');
 let program;
 
 jest.mock('configstore', () => {
-    const Store =
-        jest.requireActual('configstore');
-    return class MockConfigstore {
-        store = new Store('test-cli', undefined, {
-            configPath: './themeCtx-test-cli.json',
-        });
-        all = this.store.all;
-        size = this.store.size;
-        get(key: string) {
-            return this.store.get(key);
-        }
-        set(key: string, value) {
-            this.store.set(key, value);
-        }
-        delete(key) {
-            this.store.delete(key);
-        }
-        clear() {
-            this.store.clear();
-        }
+    const mockStore = {
+        all: {},
+        size: 0,
+        get: jest.fn(),
+        set: jest.fn((key, value) => {
+            mockStore.all[key] = value;
+        }),
+        delete: jest.fn((key) => {
+            delete mockStore.all[key];
+        }),
+        clear: jest.fn(() => {
+            mockStore.all = {};
+        }),
+        path: '',
     };
+    return jest.fn(() => mockStore);
 });
 
 jest.mock('open', () => {

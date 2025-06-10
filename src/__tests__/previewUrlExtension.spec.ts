@@ -9,7 +9,7 @@ import { URLS } from '../lib/api/services/url';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
 import Logger from '../lib/Logger';
 import fs from 'fs';
-import * as CONSTANTS from './../helper/constants'
+import * as CONSTANTS from '../helper/constants'; // Fixed import path
 import inquirer from 'inquirer';
 
 // fixtures
@@ -127,13 +127,13 @@ describe('Extension preview-url command', () => {
         mockCustomAxios = new MockAdapter(withoutErrorResponseInterceptorAxios);
 
         mockAxios
-            .onGet(`${URLS.GET_DEVELOPMENT_ACCOUNTS(1, 9999)}`)
+            .onGet(`${await URLS.GET_DEVELOPMENT_ACCOUNTS(1, 9999)}`)
             .reply(200, {
                 items: [{ company: { uid: COMPANY_ID, name: 'cli-test' } }],
             });
         
         mockAxios
-            .onGet(`${URLS.GET_EXTENSION_LIST(1, 9999)}`)
+            .onGet(`${await URLS.GET_EXTENSION_LIST(1, 9999)}`)
             .reply(200, {
                 name: EXTENSION_NAME,
                 _id: EXTENSION_KEY,
@@ -143,7 +143,7 @@ describe('Extension preview-url command', () => {
             });
 
         mockAxios
-            .onGet(URLS.GET_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY))
+            .onGet(await URLS.GET_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY))
             .reply(200, {
                 client_data: {
                     secret: [EXTENSION_SECRET]
@@ -151,10 +151,10 @@ describe('Extension preview-url command', () => {
             })
 
         mockCustomAxios
-            .onPatch(`${URLS.UPDATE_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY)}`)
+            .onPatch(`${await URLS.UPDATE_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY)}`)
             .reply(200, {});
         mockAxios
-            .onPatch(`${URLS.UPDATE_EXTENSION_DETAILS(EXTENSION_KEY)}`)
+            .onPatch(`${await URLS.UPDATE_EXTENSION_DETAILS_URL()}`)
             .reply(200, {});
 
         fs.writeFileSync('fdk.ext.config.json', JSON.stringify(fdkExtConfigBackEnd, null, 4));
@@ -235,7 +235,7 @@ describe('Extension preview-url command', () => {
         jest.useFakeTimers();
 
         mockAxios
-            .onPatch(`${URLS.UPDATE_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY)}`)
+            .onPatch(`${await URLS.UPDATE_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY)}`)
             .reply(404, { message: 'not found' });
         configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);
 

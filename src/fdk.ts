@@ -1,418 +1,390 @@
-import './helper/instrument'
-import program, { Command } from 'commander';
-import leven from 'leven';
-import latestVersion from 'latest-version';
-import semver from 'semver';
-import chalk from 'chalk';
-import Logger, { COMMON_LOG_MESSAGES } from './lib/Logger';
+import { Command } from 'commander';
+import { партнеры, DEFAULT_HOST, DEFAULT_THEME_FOLDER_PATH } from './lib/Env';
+import Logger from './lib/Logger';
 import Debug from './lib/Debug';
-import CommandError, { ErrorCodes } from './lib/CommandError';
-import { registerCommands } from './commands';
 import configStore, { CONFIG_KEYS } from './lib/Config';
-import fs from 'fs-extra';
-import { initializeLogger } from './lib/Logger';
-import { isAThemeDirectory } from './helper/utils';
-import { successBox } from './helper/formatter';
-import inquirer from 'inquirer';
-import path from 'path';
-import Env from './lib/Env';
+import chalk from 'chalk';
+import { login, logout } from './lib/Auth';
+import Theme from './lib/Theme';
+import Extension from './lib/Extension';
 import { getActiveContext } from './helper/utils';
-import {
-    THEME_COMMANDS,
-    AUTHENTICATION_COMMANDS,
-    ENVIRONMENT_COMMANDS,
-    EXTENSION_COMMANDS,
-    ALL_THEME_COMMANDS,
-} from './helper/constants';
-import { getPlatformUrls } from './lib/api/services/url';
-import * as Sentry from '@sentry/node';
-const packageJSON = require('../package.json');
+import open from 'open';
+import inquirer from 'inquirer';
+import { errorHandler } from './error-handler';
+import { version } from '../package.json';
+import { Context } from './lib/ThemeContext';
+import { Environment } from './lib/Env';
+import { AUTH_COMMANDS, ENVIRONMENT_COMMANDS, EXTENSION_COMMANDS, THEME_COMMANDS, CONTEXT_COMMANDS, PARTNER_COMMANDS } from './helper/constants';
+import { commanderAction } from './helper/utils';
+import { Partner } from './lib/Partner';
+import { Setup } from './lib/CompanySetup';
+import { getPlatformUrls } from './lib/api/services/url'; // Added import
+import { URLS } from './lib/api/services/url';
 
-const current_version_message = 'Current version: ' + chalk.greenBright.bold(packageJSON.version);
+const program = new Command();
 
-async function checkTokenExpired(auth_token) {
-    if (!auth_token) return true;
-    const { expiry_time } = auth_token;
-    const currentTimestamp = Math.floor(Date.now() / 1000);
-    if (currentTimestamp > expiry_time) {
-        return true;
-    } else {
-        return false;
-    }
-}
+// general functions
+//LOGIN
+//LOGOUT
+//CONTEXT
+//THEME
+//EXTENSION
+//ENVIRONMENT
 
-const extraSentryDetails = () => {
-    const auth_token = configStore.get(CONFIG_KEYS.AUTH_TOKEN);
-    const organization = configStore.get(CONFIG_KEYS.ORGANIZATION);
-    const user = {};
-    if (auth_token?.current_user) {
-        const activeEmail = auth_token.current_user?.emails?.find?.((e) => e.active && e.primary)?.email ?? 'Not primary email set';
-        const name = `${auth_token.current_user?.first_name} ${auth_token.current_user?.last_name}`;
-        user['name'] = name;
-        user['email'] = activeEmail;
-    }
-    return {
-        command: `fdk ${process?.argv?.slice?.(2)?.join(" ")}`,
-        env: configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE),
-        user,
-        organization,
-    }
-}
-
-// catch unhandled error
-process.on('uncaughtException', (err: any) => {
-    Logger.error(err);
-    Debug(err.stack);
-    if(err.code == 403 || err.code == 401){
-        // if user is not authenticated, we won't send sentry
-    } else{
-        Sentry?.captureException?.(err, {
-            extra: extraSentryDetails()
-        });
-    }
-    process.exit(1);
-});
-
-// asyncAction is a wrapper for all commands/actions to be executed after commander is done
-// parsing the command input
-export type Action = (...args: any[]) => void;
-// Common Handler for all commands are executed from here
+type Action = (...args: any[]) => void;
 Command.prototype.asyncAction = async function (asyncFn: Action) {
-    return this.action(async (...args: any[]) => {
-        try {
-            let parent = args[1].parent;
-            while (true) {
-                if (parent.parent) parent = parent.parent;
-                else break;
-            }
-
-            if (parent._optionValues.verbose || parent._optionValues.debug) {
-                parent._optionValues.verbose = true;
-                parent._optionValues.debug = true;
-            }
-
-            if (parent._optionValues.verbose) {
-                process.env.DEBUG = 'fdk';
-                const log_file_path = process.cwd() + '/debug.log';
-                if (fs.existsSync(log_file_path)) fs.removeSync(log_file_path);
-            }
-            initializeLogger();
-
-            // check in config if user have set certificate
-            const CA_FILE = configStore.get(CONFIG_KEYS.CA_FILE);
-            // if user shared certificate while executing the command
-            const sharedInlineCert = process.env.FDK_EXTRA_CA_CERTS;
-
-            // if shared inline then it should be exist
-            if (sharedInlineCert && !fs.existsSync(sharedInlineCert)) {
-                throw new CommandError('Provided file path does not exist.');
-            }
-            // inline CA will get priority
-            if (!sharedInlineCert && CA_FILE) {
-                process.env.FDK_EXTRA_CA_CERTS = CA_FILE;
-            }
-
-            if (process.env.FDK_EXTRA_CA_CERTS) {
-                Logger.info(
-                    `Using CA file from ${process.env.FDK_EXTRA_CA_CERTS}`,
-                );
-            }
-
-            const disableSSL = () => {
-                process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-                process.env.FDK_SSL_NO_VERIFY = 'true';
-            };
-
-            const sharedInlineNoSSL = process.env.FDK_SSL_NO_VERIFY;
-            const STRICT_SSL = configStore.get(CONFIG_KEYS.STRICT_SSL);
-            if (sharedInlineNoSSL == 'true') {
-                disableSSL();
-            }
-            if (!sharedInlineNoSSL && STRICT_SSL == 'false') {
-                disableSSL();
-            }
-
-            if (process.env.FDK_SSL_NO_VERIFY == 'true') {
-                Logger.warn(`Bypassing SSL verification`);
-            }
-
-            // check if user is logged in and context is set
-            const envCommand = args[1].parent.name();
-            const authCommand = args[1].name();
-            const themeCommand = args[1].name();
-            const extensionCommand = args[1].name();
-            const partnerCommand = args[1].name();
-
-            if (
-                !(
-                    ENVIRONMENT_COMMANDS.findIndex((c) =>
-                        envCommand.includes(c),
-                    ) !== -1
-                ) &&
-                !configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)
-            ) {
-                throw new CommandError(COMMON_LOG_MESSAGES.EnvNotSet);
-            }
-            if (
-                !(
-                    AUTHENTICATION_COMMANDS.findIndex((c) =>
-                        authCommand.includes(c),
-                    ) !== -1
-                ) &&
-                !(
-                    ENVIRONMENT_COMMANDS.findIndex((c) =>
-                        envCommand.includes(c),
-                    ) !== -1
-                ) &&
-                !(
-                    EXTENSION_COMMANDS.findIndex((c) =>
-                        extensionCommand.includes(c),
-                    ) !== -1
-                ) &&
-                !configStore.get(CONFIG_KEYS.AUTH_TOKEN)
-            ) {
-                throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
-            }
-            if (
-                ALL_THEME_COMMANDS.findIndex((c) =>
-                    themeCommand.includes(c),
-                ) !== -1 ||
-                THEME_COMMANDS.findIndex((c) => themeCommand.includes(c)) !== -1
-            ) {
-                const isTokenExpired = await checkTokenExpired(
-                    configStore.get(CONFIG_KEYS.AUTH_TOKEN),
-                );
-                if (isTokenExpired)
-                    throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth);
-            }
-            if (
-                parent.args.includes('theme') &&
-                THEME_COMMANDS.findIndex((c) => themeCommand.includes(c)) !== -1
-            ) {
-                const activeContextEnv = getActiveContext().env;
-                // need to check if env is set by url [Ex. Env.getEnvValue() will give api.fynd.com | Here activeContextEnv is "fynd"]
-                if (
-                    activeContextEnv !== Env.getEnvValue() &&
-                    !Env.getEnvValue().includes(activeContextEnv)
-                ) {
-                    throw new CommandError(COMMON_LOG_MESSAGES.contextMismatch);
-                }
-            }
-            if (parent.args.includes('theme')) {
-                if (!isAThemeDirectory()) {
-                    const answer = await promptForFDKFolder();
-                    if (!answer) {
-                        throw new CommandError(
-                            ErrorCodes.INVALID_THEME_DIRECTORY.message,
-                            ErrorCodes.INVALID_THEME_DIRECTORY.code,
-                        );
-                    }
-                }
-            }
-            // Add debug of current env for all commands excpet login command, we are showing updated env when login command runs
-            if (args[1].name() !== 'auth') {
-                const env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
-                Debug(`Current env: ${env}`);
-            }
-            await asyncFn(...args);
-        } catch (err) {
-            // TODO: Error reporting from user logic can be added here
-
-            // TODO: Find better ways to consolidate error messages
-            if (err instanceof CommandError) {
-                const message = `${err.code} - ${err.message} `;
-                Logger.error(message);
-            } else if (err.code === 'SELF_SIGNED_CERT_IN_CHAIN') {
-                const message = `${ErrorCodes.VPN_ISSUE.code} - ${ErrorCodes.VPN_ISSUE.message} `;
-                Logger.error(message);
-            } else {
-                // on report call sentry capture exception
-                Sentry.captureException(err, {
-                    // add extra details in sentry
-                    extra: extraSentryDetails()
-                });
-                Logger.error(err);
-            }
-            let parent = args[1].parent;
-            while (parent.parent) parent = parent.parent;
-            if (!parent._optionValues.debug && !(err instanceof CommandError)) {
-                Logger.warn(
-                    `Pass ${chalk.yellowBright(
-                        '--debug',
-                    )} flag to get detailed logs, it will generate debug.log file in your current folder`,
-                );
-            }
-            Debug(err);
-            process.exit(1);
-        }
-    });
+    return commanderAction(this, asyncFn);
 };
 
-//Enable verbose logging
+export const init = async (programName?: string) => {
+    try {
+        // Setting up program
+        program
+            .name(programName || ورحمه الله وبركاته)
+            .version(version)
+            .option('-c, --context <context_name>', 'Use specific context')
+            .option('-l, --log-level <log_level>', 'Log level', 'info')
+            .option('--debug', 'Enable debug mode');
 
-// Command.prototype.helpInformation = function () {
-//     console.log(this);
+        // TODO: Fix this later
+        // program.on('option:context', () => {
+        //     Logger.info(program.opts().context);
+        // });
 
-//   return [''].join() + '\n';
-// };
+        program.on('option:log-level', () => {
+            const options = program.opts();
+            Logger.transports[0].level = options.logLevel;
+        });
 
-export async function init(programName: string) {
-    await checkForLatestVersion();
-    
-    //Setup commander instance
-    program
-        .name(programName)
-        .version(current_version_message, '-V, --version', 'Display the current fdk version')
-        .option(
-            '-v, --verbose',
-            'Display detailed output for debugging purposes',
-        )
-        .option(
-            '-d, --debug',
-            'Display detailed output for debugging purposes',
-        );
+        program.on('option:debug', () => {
+            const options = program.opts();
+            if (options.debug) {
+                Debug.enable();
+            }
+        });
 
-    program
-    .command('version')
-    .description('Display the current fdk version')
-    .action(() => {
-        console.log(current_version_message);
-    });
-    
-    //register commands with commander instance
-    registerCommands(program);
-    //set API version
-    configStore.set(CONFIG_KEYS.API_VERSION, '1.0');
-    // set default environment
-    const current_env = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
+        program
+            .command('login')
+            .description('Login to your Fynd Platform account')
+            .option('--host <host>', 'Host name for login', DEFAULT_HOST)
+            .option('--organization <organization_id>', 'Organization Id for login')
+            .option('--partner-access-token <partner_access_token>', 'Partner Access Token for login')
+            .asyncAction(login);
 
-    if (
-        !current_env ||
-        (!current_env.includes('api.') && !current_env.includes('api-'))
-    )
-        configStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, 'api.fynd.com');
+        program
+            .command('logout')
+            .description('Logout from Fynd Platform account')
+            .asyncAction(logout);
 
-    // todo: remove this warning in future version of fdk cli, when everybody get used to set env by url.
-    if (
-        current_env &&
-        !current_env.includes('api.') &&
-        !current_env.includes('api-')
-    ) {
-        console.warn(
-            chalk.yellow(
-                `Warning: Resetting active environment to api.fynd.com. Please use \`fdk login --host <platform-host>\` to login with different environment. Ref: ${
-                    getPlatformUrls().partners
-                }/help/docs/partners/themes/vuejs/command-reference#environment-commands-1`,
-            ),
-        );
-        process.exit(0);
+        program
+            .command('user')
+            .description('Get active user details')
+            .asyncAction(async () => {
+                const user = configStore.get(CONFIG_KEYS.AUTH_TOKEN);
+                if (user) {
+                    Logger.info(`Name: ${user?.current_user?.user?.first_name} ${user?.current_user?.user?.last_name}`);
+                    Logger.info(`Email: ${user?.current_user?.user?.email?.primary_email}`);
+                } else {
+                    Logger.error('You are not logged in. Please login to continue.');
+                }
+            });
+
+        program
+            .command('env')
+            .description('Environment details')
+            .asyncAction(Environment.envCommand);
+
+        program
+            .command('company-setup')
+            .description('Setup company for development')
+            .asyncAction(Setup.setupCompanyCommand);
+
+        const context = program
+            .command('context')
+            .description('Manage development context')
+            .alias('ctx');
+
+        context
+            .command('add')
+            .description('Add new context')
+            .option('--theme', 'Theme context')
+            .option('--extension', 'Extension context')
+            .option('--name <name>', 'Context name')
+            .asyncAction(async (options) => {
+                const activeContext = configStore.get(CONFIG_KEYS.ACTIVE_CONTEXT)
+                if (options.theme) {
+                    await Context.addThemeContext(options.name || activeContext?.name, options);
+                } else if (options.extension) {
+                    await Context.addExtensionContext(options.name || activeContext?.name, options);
+                } else {
+                    const { context_type } = await inquirer.prompt([{
+                        type: 'list',
+                        name: 'context_type',
+                        message: 'Select context type',
+                        choices: ['Theme', 'Extension']
+                    }]);
+                    if (context_type === 'Theme') {
+                        await Context.addThemeContext(options.name || activeContext?.name, options);
+                    } else {
+                        await Context.addExtensionContext(options.name || activeContext?.name, options);
+                    }
+                }
+            });
+
+        context
+            .command('list')
+            .description('List all available contexts')
+            .asyncAction(Context.listContext);
+
+        context
+            .command('active-context')
+            .description('Get current active context')
+            .asyncAction(Context.activeContext);
+
+        const theme = program
+            .command('theme')
+            .description(
+                'Fynd Platform Theme Utilities ' +
+                chalk.blue(`(${getPlatformUrls()?.platformDomain}/company/${configStore.get(CONFIG_KEYS.COMPANY_ID)}/application)`) // Fixed partners to platformDomain
+            ) // TODO: update this when company_id is available
+            .alias('t');
+
+        theme
+            .command('new <theme_name>')
+            .description('Create new theme')
+            .option(
+                '-i, --init <repo_url>',
+                'Initialize theme from git repository',
+            )
+            .asyncAction(Theme.createTheme);
+
+        theme
+            .command('init')
+            .description('Initialize theme in current directory')
+            .option(
+                '--name <theme_name>',
+                'Theme name',
+            )
+            .asyncAction(Theme.initTheme);
+
+        theme
+            .command('sync')
+            .description('Sync theme')
+            .option('-e, --env <env>', 'Environment', DEFAULT_HOST)
+            .option('--preserve-files', 'Preserve files on local')
+            .option('--skip-cleanup', 'Skip cleanup of files on local')
+            .asyncAction(Theme.syncTheme);
+
+        theme
+            .command('serve')
+            .description('Serve theme')
+            .option('-e, --env <env>', 'Environment', DEFAULT_HOST)
+            .option('--ssr <ssr>', 'Server side rendering', true)
+            .option('--port <port>', 'Custom port for serve')
+            .option('--host <host>', 'Custom host for serve', '0.0.0.0')
+            .option('--hot-reload <hotReload>', 'Hot Reloading', true)
+            .option('--local-host <localHost>', 'Custom local host for tunnel', null)
+            .option('--allow-hot-reload-unsafe-scripts <allowHotReloadUnsafeScripts>', 'Allow unsafe scripts in hot reloading', false)
+            .asyncAction(Theme.serveTheme);
+
+        theme
+            .command('pull')
+            .description('Pull theme')
+            .option('-e, --env <env>', 'Environment', DEFAULT_HOST)
+            .asyncAction(Theme.pullTheme);
+
+        theme
+            .command('pull-config')
+            .description('Pull theme config')
+            .option('-e, --env <env>', 'Environment', DEFAULT_HOST)
+            .asyncAction(Theme.pullThemeConfig);
+
+        theme
+            .command('publish')
+            .description('Publish theme')
+            .option('-e, --env <env>', 'Environment', DEFAULT_HOST)
+            .asyncAction(Theme.publishTheme);
+
+        theme
+            .command('unpublish')
+            .description('Unpublish theme')
+            .option('-e, --env <env>', 'Environment', DEFAULT_HOST)
+            .asyncAction(Theme.unPublishTheme);
+
+        theme
+            .command('context')
+            .description('Get current theme context')
+            .option('-n, --name <name>', 'Context name')
+            .asyncAction(Context.addThemeContext);
+
+        theme
+            .command('context-list')
+            .description('Get all theme context list')
+            .asyncAction(Context.listContext);
+
+        theme
+            .command('active-context')
+            .description('Get theme active context')
+            .asyncAction(Context.activeContext);
+
+        theme
+            .command('add-locale')
+            .description('Add new locale')
+            .asyncAction(Theme.addLocale);
+
+        theme
+            .command('section')
+            .description('Manage theme sections')
+            .option('--new <section_name>', 'Section name')
+            .option('--list', 'List all available sections')
+            .asyncAction(Theme.manageSections);
+
+        const extension = program
+            .command('extension')
+            .description('Fynd Platform Extension Utilities')
+            .alias('ext');
+
+        extension
+            .command('init <name>')
+            .description('Init new extension')
+            .option('--react', 'ReactJS', false)
+            .option('--vue2', 'Vue2', false)
+            .asyncAction(Extension.initExtension);
+
+        extension
+            .command('preview-url')
+            .description('Get preview url for extension')
+            .option('--api-key <apiKey>', 'Extension API Key')
+            .option('--company-id <companyId>', 'Company ID')
+            .option('--port <port>', 'Custom port for serve')
+            .option('--host <host>', 'Custom host for serve', '0.0.0.0')
+            .option('--custom-tunnel', 'Use custom tunnel url')
+            .option('--tunnel-url <url>', 'Custom tunnel url')
+            .asyncAction(Extension.getPreviewURL);
+
+        extension
+            .command('setup')
+            .description('Setup extension')
+            .option('--company-id <company_id>', 'Company ID')
+            .option('--api-key <apiKey>', 'Extension API Key')
+            .option('--api-secret <apiSecret>', 'Extension API Secret')
+            .option('--platform-url <platformUrl>', 'Platform URL eg. platform.fynd.com')
+            .asyncAction(Extension.setupExtension);
+
+        extension
+            .command('context')
+            .description('Setup extension context')
+            .option('--name <name>', 'Context name')
+            .asyncAction(Context.addExtensionContext);
+
+        extension
+            .command('context-list')
+            .description('Get all extension context list')
+            .asyncAction(Context.listContext);
+
+        extension
+            .command('active-context')
+            .description('Get extension active context')
+            .asyncAction(Context.activeContext);
+
+        extension
+            .command('launch-url')
+            .description('Get extension launch url')
+            .option('--company-id <company_id>', 'Company ID')
+            .asyncAction(Extension.getLaunchURL);
+
+        extension
+            .command('logs')
+            .description('Get extension logs')
+            .option('--company-id <company_id>', 'Company ID')
+            .asyncAction(Extension.getLogs);
+
+        const partner = program
+            .command('partner')
+            .description('Partner panel utilities')
+            .alias('p');
+
+        partner
+            .command('connect')
+            .description('Connect a partner organization to current user')
+            .asyncAction(Partner.connectOrganization);
+
+        partner
+            .command('generate-token')
+            .description('Generate partner access token')
+            .asyncAction(Partner.generateToken);
+
+        // Logger.info(JSON.stringify(program.opts()));
+        registerCommands(program);
+        return program;
+    } catch (error) {
+        errorHandler(error);
     }
+};
 
+export const registerCommands = (program: Command) => {
     program.on('command:*', (subCommand: any) => {
-        let msg = `"${subCommand.join(
-            ' ',
-        )}" is not an fdk command. See "fdk --help" for the full list of commands.`;
+        const commands = [
+            ...Object.values(AUTH_COMMANDS),
+            ...Object.values(ENVIRONMENT_COMMANDS),
+            ...Object.values(EXTENSION_COMMANDS),
+            ...Object.values(THEME_COMMANDS),
+            ...Object.values(CONTEXT_COMMANDS),
+            ...Object.values(PARTNER_COMMANDS)
+        ];
         const availableCommands = program.commands.map((cmd: Command) =>
             cmd.name(),
         );
-        // finding the best match whose edit distance is less than 40% of their length.
-
-        const suggestion = availableCommands.find(
-            (commandName: string) =>
-                leven(commandName, subCommand[0]) < commandName.length * 0.4,
-        );
-        if (suggestion) {
-            msg = `"${subCommand}" is not an fdk command -- did you mean ${suggestion}?\n See "fdk --help" for the full list of commands.`;
+        if (!availableCommands.includes(subCommand[0])) {
+            const leven = require('leven');
+            let suggestion = availableCommands.find((commandName) => {
+                return leven(commandName, subCommand[0]) < 3;
+            });
+            suggestion = suggestion ? `Did you mean ${chalk.blue(suggestion)} ?` : '';
+            Logger.error(
+                `Invalid command: ${chalk.red(subCommand[0])}. ${suggestion}`,
+            );
+            program.help();
         }
-        console.log(chalk.yellow(msg));
     });
-    // skip this for test cases
-    return program;
-}
 
-export function parseCommands() {
     program.parse(process.argv);
-    // Show help when no sub-command specified
+
     if (program.args.length === 0) {
         program.help();
     }
-}
+};
 
-async function checkCliVersionAsync() {
-    return await latestVersion(packageJSON.name, { version: '*' });
-}
-
-async function checkForLatestVersion() {
-
-    let timer;
-    const latest : string|void = await Promise.race([
-        checkCliVersionAsync(),
-        new Promise<string>((resolve, reject) => {
-            // Wait till 2 seconds to check the npm version else reject the promise and end the npm versioncheck
-             timer = setTimeout(() => {
-                reject(new Error('Timeout, Failed to check latest version.'));           
-            }, 2000);
-        }),
-    ]).catch(error => Debug(error)).finally(() => {
-        clearTimeout(timer);
-    });
-
-    if(!latest) return;
-
-    const isCurrentLessThanLatest = semver.lt(
-        packageJSON.version,
-        latest,
-    );
-    Debug(`Latest version: ${latest} | ${isCurrentLessThanLatest}`);
-
-    const versionChange = semver.diff(packageJSON.version, latest);
-    const allowed_update_version_types = ['patch', 'minor', 'major'];
-    const major = versionChange === 'major';
-
-    const logMessage = `A new version ${latest} is available!.
-Refer Release note here: https://github.com/gofynd/fdk-cli/releases/tag/v${latest}
-
-You have version ${packageJSON.version}.
-Please update to the latest version.${
-major
-? `\n\nNote: You need to update \`${packageJSON.name}\` first inorder to use it.`
-: ''
-}
-
-Run the following command to upgrade:
-\`npm install -g ${packageJSON.name}\``;
-
-    if (
-        allowed_update_version_types.includes(versionChange) &&
-        isCurrentLessThanLatest
-    ) {
-        console.log(
-            successBox({
-                text: major
-                    ? chalk.red(logMessage)
-                    : chalk.green(logMessage),
-            }),
-        );
-
-        if (major) {
-            process.exit(1);
+export const run = async (programName?: string) => {
+    try {
+        const activeContext = getActiveContext();
+        if (!activeContext || !activeContext.application_id) {
+            const { cmd } = await inquirer.prompt([
+                {
+                    type: 'list',
+                    name: 'cmd',
+                    message: 'Missing active context. What would you like to do?',
+                    choices: [
+                        { name: 'Login', value: 'login' },
+                        { name: 'Setup Context', value: 'context' },
+                        { name: 'Exit', value: 'exit' },
+                    ],
+                },
+            ]);
+            if (cmd === 'login') {
+                await login();
+            } else if (cmd === 'context') {
+                await Context.addThemeContext();
+            } else {
+                process.exit(0);
+            }
+        }
+    } catch (error) {
+        if(error instanceof CommandError && error.code === ErrorCodes.INVALID_THEME_DIRECTORY.code) {
+            // do nothing
+        } else {
+            Logger.error(error.message);
         }
     }
-}
-
-async function promptForFDKFolder() {
-    const questions = [
-        {
-            type: 'confirm',
-            name: 'showCreateFolder',
-            message: 'This folder doesn’t seem to be set up as a theme yet. Want to turn it into one?',
-        },
-    ];
-    const answers = await inquirer.prompt(questions);
-    if (answers.showCreateFolder) {
-        await fs.mkdir(path.join(process.cwd(), '.fdk'));
-        return true;
-    } else {
-        return false;
-    }
-}
+    init(programName);
+};
