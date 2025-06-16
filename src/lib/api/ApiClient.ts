@@ -4,7 +4,8 @@ import axios, {
     AxiosResponse,
     AxiosInstance,
     ResponseType,
-    AxiosRequestHeaders,
+    RawAxiosRequestHeaders,
+    InternalAxiosRequestConfig
 } from 'axios';
 import {
     isNetworkErrorCode,
@@ -51,7 +52,7 @@ uninterceptedAxiosInstance.interceptors.response.use((response) => {
 
 // Axios Interceptors
 axios.interceptors.request.use(
-    function (request: AxiosRequestConfig) {
+    function (request: InternalAxiosRequestConfig) {
         try {
             // log curl request incase of debug
             const curl = new Curl(request);
@@ -102,7 +103,7 @@ class ApiEngine {
 
     head(url: string, opt: Options = {}): Promise<AxiosResponse<any>> {
         return this.axiosInstance.head(url, {
-            headers: opt.headers as AxiosRequestHeaders,
+            headers: opt.headers as RawAxiosRequestHeaders,
             params: opt.params,
             responseType: opt.responseType,
             paramsSerializer: (params) => {
@@ -118,7 +119,7 @@ class ApiEngine {
     ): Promise<AxiosResponse<any>> {
         return this.axiosInstance.get(url, {
             params: opt.params,
-            headers: opt.headers as AxiosRequestHeaders,
+            headers: opt.headers as RawAxiosRequestHeaders,
             responseType: opt.responseType,
             paramsSerializer: (params) => {
                 return transformRequestOptions(params);
@@ -129,7 +130,7 @@ class ApiEngine {
 
     post(url: string, opt: Options = {}): Promise<AxiosResponse<any>> {
         return this.axiosInstance.post(url, opt.data, {
-            headers: opt.headers as AxiosRequestHeaders,
+            headers: opt.headers as RawAxiosRequestHeaders,
             params: opt.params,
             responseType: opt.responseType,
         });
@@ -137,7 +138,7 @@ class ApiEngine {
 
     put(url: string, opt: Options = {}): Promise<AxiosResponse<any>> {
         return this.axiosInstance.put(url, opt.data, {
-            headers: opt.headers as AxiosRequestHeaders,
+            headers: opt.headers as RawAxiosRequestHeaders,
             params: opt.params,
             responseType: opt.responseType,
         });
@@ -145,7 +146,7 @@ class ApiEngine {
 
     patch(url: string, opt: Options = {}): Promise<AxiosResponse<any>> {
         return this.axiosInstance.patch(url, opt.data, {
-            headers: opt.headers as AxiosRequestHeaders,
+            headers: opt.headers as RawAxiosRequestHeaders,
             params: opt.params,
             responseType: opt.responseType,
         });
@@ -154,7 +155,7 @@ class ApiEngine {
     del(url: string, opt: Options = {}): Promise<AxiosResponse<any>> {
         return this.axiosInstance.delete(url, {
             data: opt.data,
-            headers: opt.headers as AxiosRequestHeaders,
+            headers: opt.headers as RawAxiosRequestHeaders,
             params: opt.params,
             responseType: opt.responseType,
         });
@@ -163,7 +164,7 @@ class ApiEngine {
     getMisc(url: string, opt: Options = {}): Promise<AxiosResponse<any>> {
         return axiosMisc.get(url, {
             params: opt.params,
-            headers: opt.headers as AxiosRequestHeaders,
+            headers: opt.headers as RawAxiosRequestHeaders,
             responseType: opt.responseType,
             paramsSerializer: (params) => {
                 return transformRequestOptions(params);
@@ -172,7 +173,7 @@ class ApiEngine {
     }
 
     postMisc(url: string, opt: Options = {}): Promise<AxiosResponse<any>> {
-        return axiosMisc.post(url, opt.data, { headers: opt.headers as AxiosRequestHeaders });
+        return axiosMisc.post(url, opt.data, { headers: opt.headers as RawAxiosRequestHeaders });
     }
 }
 

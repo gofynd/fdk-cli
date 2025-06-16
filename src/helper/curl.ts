@@ -1,19 +1,19 @@
 import qs from 'query-string';
-import { AxiosRequestConfig } from 'axios';
+import axios, { AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 import combineURLs from 'axios/lib/helpers/combineURLs';
 import isAbsoluteURL from 'axios/lib/helpers/isAbsoluteURL';
 
 export default class CurlHelper {
-    reqConfig: AxiosRequestConfig;
-    constructor(config: AxiosRequestConfig) {
+    reqConfig: InternalAxiosRequestConfig;
+    constructor(config: InternalAxiosRequestConfig) {
         this.reqConfig = config;
     }
 
     getUrl(): string {
         let url = this.reqConfig.url;
 
-        if (this.reqConfig.baseURL && !isAbsoluteURL(url)) {
-            url = combineURLs(this.reqConfig.baseURL, url).trim();
+        if (this.reqConfig.baseURL && !axios.isAxiosError(url)) {
+            url = axios.getUri({ ...this.reqConfig, url }).trim();
         }
 
         let queryParamString = '';
