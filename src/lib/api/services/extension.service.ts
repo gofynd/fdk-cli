@@ -11,6 +11,7 @@ export type RegisterExtensionPayloadNew = {
     developed_by_name?: string;
     contact_email?: string;
     callbacks: Object;
+    launch_type?: string;
 };
 
 type UpdateLaunchURLPayload = {
