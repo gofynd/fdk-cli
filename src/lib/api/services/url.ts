@@ -141,11 +141,21 @@ export const URLS = {
     },
 
     // Extension
-    GET_EXTENSION_LIST: (page_no: number, page_size: number): string => {
-        return urlJoin(
+    GET_EXTENSION_LIST: (page_no: number, page_size: number, launch_type?: string | string[]): string => {
+        let url = urlJoin(
             MIXMASTER_URL('partner'),
             `/organization/${getOrganizationId()}/extension/?page_size=${page_size}&page_no=${page_no}`,
         );
+        if (launch_type) {
+            if (Array.isArray(launch_type)) {
+                for (const lt of launch_type) {
+                    url += `&launch_type=${encodeURIComponent(lt.toLowerCase())}`;
+                }
+            } else {
+                url += `&launch_type=${encodeURIComponent(launch_type.toLowerCase())}`;
+            }
+        }
+        return url;
     },
 
     REGISTER_EXTENSION_PARTNER: (): string => {

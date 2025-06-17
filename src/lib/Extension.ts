@@ -52,6 +52,7 @@ export default class Extension {
         let answers: Object = {};
         try {
             let selected_ext_type;
+            let action = INIT_ACTIONS.create_extension;
 
             // Checking required dependency
             checkRequiredDependencies([
@@ -62,18 +63,18 @@ export default class Extension {
             ])
 
             const template = options.template;
-            if(!!template){
-                if(!Object.keys(TEMPLATES).includes(template)){
+            let launchTypes;
+            if (!!template) {
+                if (!Object.keys(TEMPLATES).includes(template)) {
                     throw new CommandError(
                         "Invalid template passed. Available options are: " + Object.keys(TEMPLATES).join(", ")+"",
                         ErrorCodes.INVALID_INPUT.code
                     );
                 }
-            } 
-
-            let action =  INIT_ACTIONS.create_extension;
-            Debug("Checking if extensions exist in developer's organization...")
-            const extensionList = await ExtensionService.getExtensionList(1, 9999);
+                const templateObj = TEMPLATES[template];
+                launchTypes = templateObj.launchTypes;
+            }
+            const extensionList = await ExtensionService.getExtensionList(1, 9999, launchTypes);
 
             // If developer already has extensions in their organization, provide option to either:
             // 1. Create a new extension

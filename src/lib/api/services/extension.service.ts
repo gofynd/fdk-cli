@@ -133,11 +133,11 @@ export default {
         }
     },
 
-    getExtensionList: async (page_no: number, page_size: number) => {
+    getExtensionList: async (page_no: number, page_size: number, launch_type?: string | string[]) => {
         try {
             let axiosOptions = Object.assign({}, getCommonHeaderOptions());
             let response = await ApiClient.get(
-                URLS.GET_EXTENSION_LIST(page_no, page_size),
+                URLS.GET_EXTENSION_LIST(page_no, page_size, launch_type),
                 axiosOptions,
             );
             return response.data;

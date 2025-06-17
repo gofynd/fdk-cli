@@ -73,7 +73,7 @@ export const getCompanyId = async (promptMessage = undefined) => {
     return await promptDevelopmentCompany(choices, promptMessage);
 };
 
-export const selectExtensionFromList = async (prefetchedExtensionList = undefined) => {
+export const selectExtensionFromList = async (prefetchedExtensionList = undefined, launch_type: string | string[] = undefined) => {
     let extensionList;
 
     if (prefetchedExtensionList) {
@@ -82,6 +82,7 @@ export const selectExtensionFromList = async (prefetchedExtensionList = undefine
         extensionList = await ExtensionService.getExtensionList(
             1,
             9999,
+            launch_type
         );
     }
     let choices = [];
