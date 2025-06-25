@@ -108,4 +108,7 @@ export const COMMON_LOG_MESSAGES = {
     ThemeTypeNotAvailableInContext: `${chalk.yellow(
         `Theme Type Not Available in Context and Package.json`,
     )}`,
+    insufficientPermission: `You don't have permission to access this resource.\n${chalk.yellow(
+        'Please contact your administrator to get access',
+    )}`,
 };

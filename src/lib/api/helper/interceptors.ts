@@ -126,6 +126,14 @@ export function responseErrorInterceptor() {
         Debug(error);
         if (
             error.response &&
+            (error.response.status === 401 || error.response.status === 403) &&
+            error?.response?.data?.message?.includes?.('insufficient permission')
+        ) {
+            ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
+            throw new CommandError(COMMON_LOG_MESSAGES.insufficientPermission, error.response.status);
+        }
+        else if (
+            error.response &&
             (error.response.status === 401 || error.response.status === 403)
         ) {
             ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
