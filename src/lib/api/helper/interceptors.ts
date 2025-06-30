@@ -129,8 +129,21 @@ export function responseErrorInterceptor() {
             (error.response.status === 401 || error.response.status === 403) &&
             error?.response?.data?.message?.includes?.('insufficient permission')
         ) {
-            ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
             throw new CommandError(COMMON_LOG_MESSAGES.insufficientPermission, error.response.status);
+        }
+        if (
+            error.response &&
+            (error.response.status === 401 || error.response.status === 403) &&
+            error?.response?.data?.message?.includes?.('access to extensions')
+        ) {
+            throw new CommandError(COMMON_LOG_MESSAGES.accessToExtensions, error.response.status);
+        }
+        else if (
+            error.response &&
+            (error.response.status === 401 || error.response.status === 403) &&
+            error?.response?.data?.message?.includes?.('organization does not have access to the company')
+        ) {
+            throw new CommandError(COMMON_LOG_MESSAGES.companyAccessDenied, error.response.status);
         }
         else if (
             error.response &&

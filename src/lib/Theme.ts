@@ -962,7 +962,6 @@ export default class Theme {
             });
             Logger.debug(b5.toString());
         } catch (error) {
-            Logger.error(error);
             throw new CommandError(error.message, error.code);
         } finally {
             rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));

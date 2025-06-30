@@ -111,4 +111,10 @@ export const COMMON_LOG_MESSAGES = {
     insufficientPermission: `You don't have permission to access this resource.\n${chalk.yellow(
         'Please contact your administrator to get access',
     )}`,
+    companyAccessDenied: `Selected organization doesn't have access to this company.\n${chalk.yellow(
+        'Please contact your administrator',
+    )}`,
+    accessToExtensions: `You don't have access to extensions.\n${chalk.yellow(
+        'Please contact your administrator to get access',
+    )}`,
 };

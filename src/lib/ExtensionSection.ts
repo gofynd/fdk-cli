@@ -151,13 +151,15 @@ export default class ExtensionSection {
                             )?._id;
                         } catch (error) {
                             Logger.error(
-                                'Could not fetch the list of extensions',
+                                error.message
                             );
-                            extensionId = await promptUser({
-                                type: 'text',
-                                name: 'extensionId',
-                                message: 'Please Enter your extensionId: ',
-                            });
+                            if(error.code !== 403 && error.code !== 401){
+                                extensionId = await promptUser({
+                                    type: 'text',
+                                    name: 'extensionId',
+                                    message: 'Please Enter your extensionId: ',
+                                });
+                            }
                         } finally {
                             Configstore.set(
                                 'extensionSections.extensionId',
@@ -280,6 +282,9 @@ export default class ExtensionSection {
             const userInput = {};
             for (let val in missingKeys) {
                 const result = await getOption(missingKeys[val]);
+                if(!result){
+                    break;
+                }
                 userInput[missingKeys[val]] = result;
             }
 
