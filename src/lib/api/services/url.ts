@@ -95,10 +95,10 @@ export const URLS = {
         );
     },
 
-    GET_DEFAULT_THEME: (company_id: number, application_id: string) => {
+    GET_DEFAULT_THEME: (company_id: number, application_id: string, mode: string) => {
         return urlJoin(
             THEME_URL(),
-            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/default_theme`,
+            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/default_theme?mode=${mode}`,
         );
     },
 

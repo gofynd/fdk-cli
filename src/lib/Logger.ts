@@ -108,13 +108,29 @@ export const COMMON_LOG_MESSAGES = {
     ThemeTypeNotAvailableInContext: `${chalk.yellow(
         `Theme Type Not Available in Context and Package.json`,
     )}`,
-    insufficientPermission: `You don't have permission to access this resource.\n${chalk.yellow(
+    insufficientPermission: `You have insufficient permission to access the resource.\n${chalk.yellow(
         'Please contact your administrator to get access',
     )}`,
-    companyAccessDenied: `Selected organization doesn't have access to this company.\n${chalk.yellow(
+    companyAccessDenied: `Selected organization does not have access to the company.\n${chalk.yellow(
         'Please contact your administrator',
     )}`,
     accessToExtensions: `You don't have access to extensions.\n${chalk.yellow(
         'Please contact your administrator to get access',
     )}`,
+    themesPermissionDenied: `You do not have permission to manage themes.\n${chalk.yellow(
+        'Please contact your administrator to get access')}`,
+    extensionsPermissionDenied: `You do not have permission to access extensions.\n${chalk.yellow(
+        'Please contact your administrator to get access')}`,
+    settingsPermissionDenied: `You do not have permission to change settings.\n${chalk.yellow(
+        'Please contact your administrator to get access')}`,
+    teamPermissionDenied: `You do not have permission to manage the team.\n${chalk.yellow(
+        'Please contact your administrator to get access')}`,
+    auditTrailPermissionDenied: `You do not have permission to view the audit trail.\n${chalk.yellow(
+        'Please contact your administrator to get access')}`,
+    referralPermissionDenied: `You do not have permission to refer other users.\n${chalk.yellow(
+        'Please contact your administrator to get access')}`,
+    developmentAccountsPermissionDenied: `You do not have permission to access development companies.\n${chalk.yellow(
+        'Please contact your administrator to get access')}`,
+    liveAccountsPermissionDenied: `You do not have permission to access live companies.\n${chalk.yellow(
+        'Please contact your administrator to get access')}`
 };

@@ -137,7 +137,7 @@ export default class ExtensionSection {
 
                             if (!extensions?.length) {
                                 throw new Error(
-                                    'No installed extensions found!',
+                                    'No extension found in the organization!',
                                 );
                             }
                             const selectedExtensionName = await promptUser({

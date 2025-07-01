@@ -406,7 +406,7 @@ export default class Theme {
         let shouldDelete = false;
         try {
             Logger.debug('Cloning template files');
-            await Theme.cloneTemplate(options, targetDirectory, appConfig, '');
+            await Theme.cloneTemplate(options, targetDirectory, appConfig, '', configObj);
             shouldDelete = true;
             process.chdir(path.join('.', options.name));
             Logger.info('Installing dependencies');
@@ -521,6 +521,7 @@ export default class Theme {
                 targetDirectory,
                 appConfig,
                 themeType,
+                configObj
             );
             shouldDelete = true;
             process.chdir(path.join('.', options.name));
@@ -632,7 +633,6 @@ export default class Theme {
             });
             Logger.info(b5.toString());
         } catch (error) {
-            Logger.error(error);
             if (shouldDelete) await Theme.cleanUp(targetDirectory);
             throw new CommandError(error.message, error.code);
         }
@@ -3312,10 +3312,12 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
         targetDirectory,
         appConfig,
         themeType,
+        configObj
     ) => {
         const defaultTheme = await ThemeService.getDefaultTheme({
             company_id: appConfig.company_id,
             application_id: appConfig._id,
+            mode: configObj.accountType
         });
         if (!defaultTheme) {
             throw new CommandError(`Default Theme Not Available`);

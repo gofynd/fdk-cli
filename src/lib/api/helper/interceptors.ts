@@ -124,24 +124,37 @@ export function responseErrorInterceptor() {
     return (error) => {
         // Request made and server responded
         Debug(error);
-        if (
-            error.response &&
-            (error.response.status === 401 || error.response.status === 403) &&
-            error?.response?.data?.message?.includes?.('insufficient permission')
-        ) {
-            throw new CommandError(COMMON_LOG_MESSAGES.insufficientPermission, error.response.status);
+
+        let errorCode = "";
+        let errorMessage = error?.response?.data?.message;
+        if(error?.response?.data?.code){
+            errorCode = error.response.data.code.replace(/_([a-z])/g, (match, letter)=> letter.toUpperCase());
         }
         if (
             error.response &&
             (error.response.status === 401 || error.response.status === 403) &&
-            error?.response?.data?.message?.includes?.('access to extensions')
+            errorCode
+        ) {
+            throw new CommandError(COMMON_LOG_MESSAGES[errorCode], error.response.status);
+        }
+        else if (
+            error.response &&
+            (error.response.status === 401 || error.response.status === 403) &&
+            errorMessage && COMMON_LOG_MESSAGES.insufficientPermission.includes(errorMessage)
+        ) {
+            throw new CommandError(COMMON_LOG_MESSAGES.insufficientPermission, error.response.status);
+        }
+        else if (
+            error.response &&
+            (error.response.status === 401 || error.response.status === 403) &&
+            errorMessage && COMMON_LOG_MESSAGES.accessToExtensions.includes(errorMessage)
         ) {
             throw new CommandError(COMMON_LOG_MESSAGES.accessToExtensions, error.response.status);
         }
         else if (
             error.response &&
             (error.response.status === 401 || error.response.status === 403) &&
-            error?.response?.data?.message?.includes?.('organization does not have access to the company')
+            errorMessage && COMMON_LOG_MESSAGES.companyAccessDenied.includes(errorMessage.toLowerCase())
         ) {
             throw new CommandError(COMMON_LOG_MESSAGES.companyAccessDenied, error.response.status);
         }

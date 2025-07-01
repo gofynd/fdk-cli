@@ -231,7 +231,7 @@ export default {
         try {
             const axiosOption = Object.assign({}, getCommonHeaderOptions());
             const res = await ApiClient.get(
-                URLS.GET_DEFAULT_THEME(data.company_id, data.application_id),
+                URLS.GET_DEFAULT_THEME(data.company_id, data.application_id, data.mode),
                 axiosOption,
             );
             return res?.data;
