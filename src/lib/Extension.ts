@@ -102,6 +102,11 @@ export default class Extension {
                 isExtensionNameFixed = true;
                 // Set launch_type in prompt_answers for later template selection
                 prompt_answers.launch_type = selected_ext_launch_type;
+                
+                // Extract payment_mode_slug from existing extension config if available
+                if (selected_ext_launch_type === LAUNCH_TYPES.PAYMENT && extensionDetails.config?.payment_mode_slug) {
+                    prompt_answers.payment_mode_slug = extensionDetails.config.payment_mode_slug;
+                }
             } else {
                 // ask new extension name
                 await inquirer
@@ -148,6 +153,20 @@ export default class Extension {
                 prompt_answers = await inquirer.prompt(
                     extensionTypeQuestions,
                 );
+            }
+
+            // If launch type is Payment, ask for payment mode slug right after launch type selection
+            // Only ask for new extensions, not when selecting existing extensions
+            if (prompt_answers.launch_type === LAUNCH_TYPES.PAYMENT && action === INIT_ACTIONS.create_extension) {
+                const paymentModeAnswer = await inquirer.prompt([
+                    {
+                        type: 'input',
+                        name: 'payment_mode_slug',
+                        message: 'Enter Payment Mode Slug:',
+                        validate: validateEmpty,
+                    },
+                ]);
+                prompt_answers = { ...prompt_answers, ...paymentModeAnswer };
             }
 
             // Always prompt for template selection after launch_type is set
@@ -342,6 +361,14 @@ export default class Extension {
                     },
                     launch_type: answers.launch_type.toLowerCase()
                 };
+
+                // Add config with payment_mode_slug for Payment launch type
+                if (answers.launch_type === LAUNCH_TYPES.PAYMENT && answers.payment_mode_slug) {
+                    data.config = {
+                        payment_mode_slug: answers.payment_mode_slug
+                    };
+                }
+
                 const { current_user: user } = ConfigStore.get(
                     CONFIG_KEYS.AUTH_TOKEN,
                 );

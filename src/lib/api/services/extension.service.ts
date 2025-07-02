@@ -12,6 +12,9 @@ export type RegisterExtensionPayloadNew = {
     contact_email?: string;
     callbacks: Object;
     launch_type?: string;
+    config?: {
+        payment_mode_slug?: string;
+    };
 };
 
 type UpdateLaunchURLPayload = {
