@@ -462,18 +462,19 @@ export default class ExtensionSection {
                     context,
                     sectionData.status,
                 );
+                 Logger.info('Code published ...');
+
             } else {
                 throw new CommandError(
                     'Unsupported Framework! Only react and vue2 are supported',
                 );
             }
-        } else {
+        } else if(bindingInterface) {
             throw new CommandError(
                 'Unsupported Interface! Only Web Themes are supported',
             );
         }
 
-        Logger.info('Code published ...');
     }
 
     static async buildExtensionCodeVue({ bundleName }) {
@@ -683,18 +684,18 @@ export default class ExtensionSection {
                     context,
                     sectionData.status,
                 );
+                Logger.info('Draft successful!');
             } else {
                 throw new CommandError(
                     'Unsupported Framework! Only react and vue2 are supported',
                 );
             }
-        } else {
+        } else if(bindingInterface) {
             throw new CommandError(
                 'Unsupported Interface! Only Web Themes are supported',
             );
         }
 
-        Logger.info('Draft successful!');
     }
 
     static async watchExtensionCodeBuild(
@@ -1001,7 +1002,7 @@ export default class ExtensionSection {
                     'Unsupported Framework! Only react and vue2 are supported',
                 );
             }
-        } else {
+        } else if(bindingInterface) {
             throw new CommandError(
                 'Unsupported Interface! Only Web Themes are supported',
             );
