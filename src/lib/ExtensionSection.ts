@@ -204,8 +204,10 @@ export default class ExtensionSection {
                             themeId: undefined,
                             companyType: 'live',
                         };
+                        let isError = false;
+                        let errorObj: any;
                         try {
-                            const configObj =
+                            const configObj: any =
                                 await Theme.selectCompanyAndStore();
                             const { data: appConfig } =
                                 await configurationService.getApplicationDetails(
@@ -216,6 +218,7 @@ export default class ExtensionSection {
                                 await themeService.getAppliedTheme({
                                     company_id: appConfig.company_id,
                                     application_id: appConfig.id,
+                                    account_type: configObj.accountType,
                                 });
 
                             themeDetails = {
@@ -225,15 +228,23 @@ export default class ExtensionSection {
                                 companyType: configObj['accountType'],
                             };
                         } catch (error) {
-                            Logger.error('Could not fetch the applied!');
-                            for (let lkey in themeDetails) {
-                                themeDetails[lkey] = await promptUser({
-                                    type: 'text',
-                                    name: lkey,
-                                    message: `Please enter ${lkey}: `,
-                                });
+                            Logger.error('Could not fetch the applied themes!');
+                            if(error.code !== 403 && error.code !== 401){
+                                for (let lkey in themeDetails) {
+                                    themeDetails[lkey] = await promptUser({
+                                        type: 'text',
+                                        name: lkey,
+                                        message: `Please enter ${lkey}: `,
+                                    });
+                                }
+                            } else {
+                                isError = true;
+                                errorObj = error;
                             }
                         } finally {
+                            if(isError){
+                                throw errorObj;
+                            }
                             Configstore.set(
                                 'extensionSections.appliedTheme',
                                 themeDetails,
@@ -244,7 +255,9 @@ export default class ExtensionSection {
                     default:
                         return null;
                 }
-            } catch (error) { }
+            } catch (error) { 
+                throw new CommandError(error.message);
+            }
         }
 
         if (!Configstore.all.extensionSections) {
@@ -293,6 +306,7 @@ export default class ExtensionSection {
             return finalContext;
         } catch (error) {
             console.log(error);
+            throw new CommandError(error.message);
         }
     }
 
@@ -378,6 +392,10 @@ export default class ExtensionSection {
                 } else {
                     throw new CommandError('Unsupported framework!');
                 }
+            } else if(bindingInterface) {
+                throw new CommandError(
+                    'Unsupported Interface! Only Web Themes are supported',
+                );
             }
 
 

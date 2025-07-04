@@ -72,20 +72,21 @@ export const URLS = {
     },
 
     //THEME
-    CREATE_THEME: (company_id: number, application_id: string) => {
+    CREATE_THEME: (company_id: number, application_id: string, mode: string) => {
         return urlJoin(
             THEME_URL(),
-            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}`,
+            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}?mode=${mode}`,
         );
     },
     THEME_BY_ID: (
         application_id: string,
         company_id: number,
         theme_id: string,
+        mode: string
     ) => {
         return urlJoin(
             THEME_URL(),
-            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/${theme_id}`,
+            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/${theme_id}?mode=${mode}`,
         );
     },
     GET_ALL_THEME: (company_id: number, application_id: string, mode: string) => {
@@ -102,10 +103,10 @@ export const URLS = {
         );
     },
 
-    GET_APPLIED_THEME: (company_id: number, application_id: string) => {
+    GET_APPLIED_THEME: (company_id: number, application_id: string, mode: string) => {
         return urlJoin(
             THEME_URL(),
-            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/applied-theme`,
+            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/applied-theme?mode=${mode}`,
         );
     },
 

@@ -33,12 +33,12 @@ export default class ThemeContext {
                 throw new CommandError(
                     'Context with the same name already exists',
                 );
-            let configObj = await Theme.selectCompanyAndStore();
+            let configObj: any = await Theme.selectCompanyAndStore();
             configObj = await Theme.selectTheme(configObj);
             const { data: appConfig } =
                 await ConfigurationService.getApplicationDetails(configObj);
             const { data: themeData } =
-                await ThemeService.getThemeById(configObj);
+                await ThemeService.getThemeById({...configObj, account_type: configObj.accountType});
             const themeName = themeData?.name || 'default';
             let context: any = {
                 name: options.name,
@@ -48,6 +48,7 @@ export default class ThemeContext {
                 theme_id: themeData._id,
                 application_token: appConfig.token,
                 theme_type: themeData.theme_type,
+                account_type: configObj.accountType,
             };
             Logger.info('Saving context');
             await createContext(context);
