@@ -129,6 +129,7 @@ describe('React Theme Commands', () => {
                 appConfig.application_id,
                 appConfig.company_id,
                 appConfig.theme_id,
+                'development'
             )}`,
         ).reply(200, appConfig);
 
@@ -144,6 +145,7 @@ describe('React Theme Commands', () => {
             `${URLS.CREATE_THEME(
                 appConfig.application_id,
                 appConfig.company_id,
+                'development'
             )}`,
         ).reply(200, reactThemeData);
         mock.onGet(
@@ -151,6 +153,7 @@ describe('React Theme Commands', () => {
                 appConfig.application_id,
                 appConfig.company_id,
                 appConfig.theme_id,
+                'development'
             )}`,
         ).reply(200, reactThemeData);
         mock.onPost(
@@ -204,6 +207,7 @@ describe('React Theme Commands', () => {
                 appConfig.application_id,
                 appConfig.company_id,
                 appConfig.theme_id,
+                'development'
             )}`,
         ).reply(200, updateThemeData);
         mock.onPut(availablePageUrl).reply(200, updateAvailablePageData);
@@ -219,6 +223,7 @@ describe('React Theme Commands', () => {
                 appConfig.application_id,
                 appConfig.company_id,
                 initReactThemeData._id,
+                'development'
             )}`,
         ).reply(200, initReactThemeData);
         let filePath = path.join(__dirname, 'fixtures', 'archive.zip');
@@ -263,6 +268,7 @@ describe('React Theme Commands', () => {
                 appConfig.application_id,
                 appConfig.company_id,
                 appConfig.theme_id,
+                'development'
             )}`,
         ).reply(200, pullReactThemeData);
         let zipfilePath = path.join(__dirname, 'fixtures', 'Locale_Turbo.zip');
@@ -277,6 +283,7 @@ describe('React Theme Commands', () => {
                 appConfig.application_id,
                 appConfig.company_id,
                 appConfig.theme_id,
+                'development'
             )}`,
         ).reply(200, deleteData);
         mock.onDelete(availablePage).reply(200, deleteAvailablePage);
@@ -290,6 +297,7 @@ describe('React Theme Commands', () => {
             `${URLS.GET_ALL_THEME(
                 appConfig.company_id,
                 appConfig.application_id,
+                'development'
             )}`,
         ).reply(200, reactThemeList.items);
 
@@ -297,6 +305,7 @@ describe('React Theme Commands', () => {
             `${URLS.GET_ALL_THEME(
                 appConfig.company_id,
                 appConfig.application_id,
+                'development'
             )}`,
         ).reply(200, reactThemeList.items);
 
@@ -329,6 +338,7 @@ describe('React Theme Commands', () => {
             `${URLS.GET_DEFAULT_THEME(
                 appConfig.company_id,
                 appConfig.application_id,
+                'development'
             )}`,
         ).reply(200, { name: 'Emerge' });
 
