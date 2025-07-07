@@ -36,7 +36,6 @@ export interface ThemeContextInterface {
     domain?: string;
     env?: string;
     theme_type: ThemeType;
-    account_type?: string;
 }
 
 export const transformRequestOptions = (params) => {

@@ -72,41 +72,40 @@ export const URLS = {
     },
 
     //THEME
-    CREATE_THEME: (company_id: number, application_id: string, mode: string) => {
+    CREATE_THEME: (company_id: number, application_id: string) => {
         return urlJoin(
             THEME_URL(),
-            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}?mode=${mode}`,
+            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}`,
         );
     },
     THEME_BY_ID: (
         application_id: string,
         company_id: number,
         theme_id: string,
-        mode: string
     ) => {
         return urlJoin(
             THEME_URL(),
-            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/${theme_id}?mode=${mode}`,
+            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/${theme_id}`,
         );
     },
-    GET_ALL_THEME: (company_id: number, application_id: string, mode: string) => {
+    GET_ALL_THEME: (company_id: number, application_id: string) => {
         return urlJoin(
             THEME_URL(),
-            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/themes?mode=${mode}`,
-        );
-    },
-
-    GET_DEFAULT_THEME: (company_id: number, application_id: string, mode: string) => {
-        return urlJoin(
-            THEME_URL(),
-            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/default_theme?mode=${mode}`,
+            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/themes`,
         );
     },
 
-    GET_APPLIED_THEME: (company_id: number, application_id: string, mode: string) => {
+    GET_DEFAULT_THEME: (company_id: number, application_id: string) => {
         return urlJoin(
             THEME_URL(),
-            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/applied-theme?mode=${mode}`,
+            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/default_theme`,
+        );
+    },
+
+        GET_APPLIED_THEME: (company_id: number, application_id: string) => {
+        return urlJoin(
+            THEME_URL(),
+            `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/applied-theme`,
         );
     },
 

@@ -472,7 +472,6 @@ export default class Theme {
                 theme_id: theme._id,
                 application_token: appConfig.token,
                 theme_type: 'vue2',
-                account_type: configObj.accountType,
             };
             Logger.info('Saving context');
             await createContext(context);
@@ -608,7 +607,6 @@ export default class Theme {
                 theme_id: theme._id,
                 application_token: appConfig.token,
                 theme_type: 'react',
-                account_type: configObj.accountType,
             };
 
             Logger.debug('Saving context');
@@ -652,7 +650,7 @@ export default class Theme {
 
             Logger.debug('Fetching Template Files');
             const { data: themeData } =
-                await ThemeService.getThemeById({...configObj, account_type: configObj.accountType});
+                await ThemeService.getThemeById({...configObj});
             const themeName = themeData?.name || 'default';
             dir_name = Theme.sanitizeThemeName(themeName);
             targetDirectory = path.join(process.cwd(), dir_name);
@@ -684,7 +682,6 @@ export default class Theme {
                 theme_id: themeData._id,
                 application_token: appConfig.token,
                 theme_type: themeData.theme_type,
-                account_type: configObj.accountType,
             };
 
             process.chdir(path.join('.', dir_name));

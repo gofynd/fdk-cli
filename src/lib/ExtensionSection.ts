@@ -218,7 +218,6 @@ export default class ExtensionSection {
                                 await themeService.getAppliedTheme({
                                     company_id: appConfig.company_id,
                                     application_id: appConfig.id,
-                                    account_type: configObj.accountType,
                                 });
 
                             themeDetails = {

@@ -14,7 +14,7 @@ export default {
                 getCommonHeaderOptions(),
             );
             const res = await ApiClient.post(
-                URLS.CREATE_THEME(data.company_id, data.application_id, data.accountType),
+                URLS.CREATE_THEME(data.company_id, data.application_id),
                 axiosOption,
             );
             return res;
@@ -31,7 +31,6 @@ export default {
                     activeContext.application_id,
                     activeContext.company_id,
                     activeContext.theme_id,
-                    activeContext.account_type
                 ),
                 axiosOption,
             );
@@ -55,7 +54,6 @@ export default {
                     activeContext.application_id,
                     activeContext.company_id,
                     activeContext.theme_id,
-                    activeContext.account_type
                 ),
                 axiosOption,
             );
@@ -73,7 +71,6 @@ export default {
                     activeContext.application_id,
                     activeContext.company_id,
                     activeContext.theme_id,
-                    activeContext.account_type
                 ),
                 axiosOption,
             );
@@ -222,7 +219,7 @@ export default {
         try {
             const axiosOption = Object.assign({}, getCommonHeaderOptions());
             const res = await ApiClient.get(
-                URLS.GET_ALL_THEME(data.company_id, data.application_id, data.accountType),
+                URLS.GET_ALL_THEME(data.company_id, data.application_id),
                 axiosOption,
             );
             return res;
@@ -234,7 +231,7 @@ export default {
         try {
             const axiosOption = Object.assign({}, getCommonHeaderOptions());
             const res = await ApiClient.get(
-                URLS.GET_DEFAULT_THEME(data.company_id, data.application_id, data.mode),
+                URLS.GET_DEFAULT_THEME(data.company_id, data.application_id),
                 axiosOption,
             );
             return res?.data;
@@ -246,7 +243,7 @@ export default {
         try {
             const axiosOption = Object.assign({}, getCommonHeaderOptions());
             const res = await ApiClient.get(
-                URLS.GET_APPLIED_THEME(data.company_id, data.application_id, data.account_type),
+                URLS.GET_APPLIED_THEME(data.company_id, data.application_id),
                 axiosOption,
             );
             return res?.data;
