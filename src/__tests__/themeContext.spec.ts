@@ -132,7 +132,6 @@ describe('Theme Context Commands', () => {
             `${URLS.GET_ALL_THEME(
                 appConfig.company_id,
                 appConfig.application_id,
-                'development'
             )}`,
         ).reply(200, themeList.items);
 
@@ -141,7 +140,6 @@ describe('Theme Context Commands', () => {
                 appConfig.application_id,
                 appConfig.company_id,
                 appConfig.theme_id,
-                'development'
             )}`,
         ).reply(200, appConfig);
 

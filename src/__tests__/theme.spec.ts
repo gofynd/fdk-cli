@@ -100,7 +100,6 @@ async function createThemeFromZip() {
                     application_token: '8DXpyVsKD',
                     env: 'api.fyndx1.de',
                     theme_type: 'vue2',
-                    account_type: 'development'
                 },
             },
         },
@@ -162,7 +161,6 @@ describe('Theme Commands', () => {
                 appConfig.application_id,
                 appConfig.company_id,
                 appConfig.theme_id,
-                'development'
             )}`,
         ).reply(200, appConfig);
 
@@ -192,7 +190,6 @@ describe('Theme Commands', () => {
             `${URLS.CREATE_THEME(
                 appConfig.application_id,
                 appConfig.company_id,
-                'development'
             )}`,
         ).reply(200, themeData);
         mock.onGet(
@@ -200,7 +197,6 @@ describe('Theme Commands', () => {
                 appConfig.application_id,
                 appConfig.company_id,
                 appConfig.theme_id,
-                'development'
             )}`,
         ).reply(200, syncThemeData);
         mock.onPost(
@@ -254,7 +250,6 @@ describe('Theme Commands', () => {
                 appConfig.application_id,
                 appConfig.company_id,
                 appConfig.theme_id,
-                'development'
             )}`,
         ).reply(200, updateThemeData);
         mock.onPut(availablePageUrl).reply(200, updateAvailablePageData);
@@ -270,7 +265,6 @@ describe('Theme Commands', () => {
                 appConfig.application_id,
                 appConfig.company_id,
                 initThemeData._id,
-                'development'
             )}`,
         ).reply(200, initThemeData);
         let filePath = path.join(__dirname, 'fixtures', 'archive.zip');
@@ -315,7 +309,6 @@ describe('Theme Commands', () => {
                 appConfig.application_id,
                 appConfig.company_id,
                 appConfig.theme_id,
-                'development'
             )}`,
         ).reply(200, pullThemeData);
         let zipfilePath = path.join(__dirname, 'fixtures', 'pull-archive.zip');
@@ -330,7 +323,6 @@ describe('Theme Commands', () => {
                 appConfig.application_id,
                 appConfig.company_id,
                 appConfig.theme_id,
-                'development'
             )}`,
         ).reply(200, deleteData);
         mock.onDelete(availablePage).reply(200, deleteAvailablePage);
@@ -344,7 +336,6 @@ describe('Theme Commands', () => {
             `${URLS.GET_ALL_THEME(
                 appConfig.company_id,
                 appConfig.application_id,
-                'development'
             )}`,
         ).reply(200, themeList.items);
 
@@ -352,7 +343,6 @@ describe('Theme Commands', () => {
             `${URLS.GET_ALL_THEME(
                 appConfig.company_id,
                 appConfig.application_id,
-                'development'
             )}`,
         ).reply(200, themeList.items);
 
@@ -360,7 +350,6 @@ describe('Theme Commands', () => {
             `${URLS.GET_DEFAULT_THEME(
                 appConfig.company_id,
                 appConfig.application_id,
-                'development'
             )}`,
         ).reply(200, { name: 'Emerge' });
 

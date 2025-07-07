@@ -248,7 +248,6 @@ export default {
             const res = await ApiClient.get(
                 URLS.GET_APPLIED_THEME(data.company_id, data.application_id, data.account_type),
                 axiosOption,
-                'development'
             );
             return res?.data;
         } catch (err) {
