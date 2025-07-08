@@ -60,6 +60,40 @@ export function getPort(port) {
     return detect(port);
 }
 
+function createPreProxyMiddleware(currentDomain: string, options: any, withSignature: boolean) {
+    return async (req, res, next) => {
+        // generating new signature for proxy server
+        req.transformRequest = transformRequest;
+
+        // Rewrite `/service` to `/api/service`
+        if (req.originalUrl.startsWith('/service')) {
+            req.originalUrl = req.originalUrl.replace('/service', '/api/service');
+        }
+
+        req.url = req.originalUrl;
+        req.baseURL = currentDomain;
+
+        // don't send body for GET request
+        if (!_.isEmpty(req.body)) {
+            req.data = req.body;
+        }
+
+        delete req.headers['x-fp-signature'];
+        delete req.headers['x-fp-date'];
+
+        const url = new URL(currentDomain);
+        req.headers.host = url.host;
+
+        // Add signature headers only if required
+        if (withSignature) {
+            const config = await addSignatureFn(options)(req);
+            req.headers['x-fp-signature'] = config.headers['x-fp-signature'];
+            req.headers['x-fp-date'] = config.headers['x-fp-date'];
+        }
+        next();
+    };
+}
+
 function applyProxy(app: any) {
     const currentContext = getActiveContext();
     const currentDomain = `https://${currentContext.domain}`;
@@ -88,32 +122,14 @@ function applyProxy(app: any) {
 
     // proxy to solve CORS issue
     const corsProxy = createProxyMiddleware(options);
-    app.use(
-        ['/service', '/ext'],
-        async (req, res, next) => {
-            // generating new signature for proxy server
-            req.transformRequest = transformRequest;
-            req.originalUrl = req.originalUrl.startsWith('/service')
-                ? req.originalUrl.replace('/service', '/api/service')
-                : req.originalUrl;
-            req.url = req.originalUrl;
-            // don't send body for GET request
-            if (!_.isEmpty(req.body)) {
-                req.data = req.body;
-            }
-            req.baseURL = currentDomain;
-            delete req.headers['x-fp-signature'];
-            delete req.headers['x-fp-date'];
-            const url = new URL(currentDomain);
-            req.headers.host = url.host;
-            // regenerating signature as per proxy server
-            const config = await addSignatureFn(options)(req);
-            req.headers['x-fp-signature'] = config.headers['x-fp-signature'];
-            req.headers['x-fp-date'] = config.headers['x-fp-date'];
-            next();
-        },
-        corsProxy,
-    );
+
+    // Middleware with signature regeneration
+    const withSignatureMiddleware = createPreProxyMiddleware(currentDomain, options, true);
+    app.use(['/service', '/ext'], withSignatureMiddleware, corsProxy);
+
+    // Middleware without signature regeneration
+    const withoutSignatureMiddleware = createPreProxyMiddleware(currentDomain, options, false);
+    app.use(['/cdn'], withoutSignatureMiddleware, corsProxy);
 }
 
 async function setupServer({ domain }) {
