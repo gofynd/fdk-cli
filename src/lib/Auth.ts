@@ -253,6 +253,7 @@ export default class Auth {
         ConfigStore.clear();
         ConfigStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, currentEnv);
         ConfigStore.set(CONFIG_KEYS.EXTRAS, extras);
+        ConfigStore.set('extensionSections', {});
     }
 
     public static getUserInfo() {

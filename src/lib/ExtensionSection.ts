@@ -304,7 +304,6 @@ export default class ExtensionSection {
 
             return finalContext;
         } catch (error) {
-            console.log(error);
             throw new CommandError(error.message);
         }
     }
@@ -854,7 +853,7 @@ export default class ExtensionSection {
                 data,
             );
         } catch (error) {
-            console.log(error);
+            throw new CommandError(error.message);
         }
     }
     public static async previewExtension(options: any) {

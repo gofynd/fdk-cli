@@ -160,6 +160,13 @@ export function responseErrorInterceptor() {
         }
         else if (
             error.response &&
+            (error.response.status === 401 || error.response.status === 403) &&
+            errorMessage && !errorMessage.includes('login')
+        ) {
+            throw new CommandError(errorMessage, error.response.status);
+        }
+        else if (
+            error.response &&
             (error.response.status === 401 || error.response.status === 403)
         ) {
             ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
