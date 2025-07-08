@@ -60,21 +60,55 @@ export function getPort(port) {
     return detect(port);
 }
 
+function createPreProxyMiddleware(currentDomain: string, options: any, withSignature: boolean) {
+    return async (req, res, next) => {
+        // generating new signature for proxy server
+        req.transformRequest = transformRequest;
+
+        // Rewrite `/service` to `/api/service`
+        if (req.originalUrl.startsWith('/service')) {
+            req.originalUrl = req.originalUrl.replace('/service', '/api/service');
+        }
+
+        req.url = req.originalUrl;
+        req.baseURL = currentDomain;
+
+        // don't send body for GET request
+        if (!_.isEmpty(req.body)) {
+            req.data = req.body;
+        }
+
+        delete req.headers['x-fp-signature'];
+        delete req.headers['x-fp-date'];
+
+        const url = new URL(currentDomain);
+        req.headers.host = url.host;
+
+        // Add signature headers only if required
+        if (withSignature) {
+            const config = await addSignatureFn(options)(req);
+            req.headers['x-fp-signature'] = config.headers['x-fp-signature'];
+            req.headers['x-fp-date'] = config.headers['x-fp-date'];
+        }
+        next();
+    };
+}
+
 function applyProxy(app: any) {
     const currentContext = getActiveContext();
     const currentDomain = `https://${currentContext.domain}`;
     let httpsAgent;
 
-    if(process.env.FDK_EXTRA_CA_CERTS){
+    if (process.env.FDK_EXTRA_CA_CERTS) {
         // Load the VPN's CA certificate
         const ca = fs.readFileSync(process.env.FDK_EXTRA_CA_CERTS);
         // Create an HTTPS agent with the CA certificate
         httpsAgent = { ca }
     }
-    if(process.env.FDK_SSL_NO_VERIFY == 'true'){
+    if (process.env.FDK_SSL_NO_VERIFY == 'true') {
         httpsAgent = { rejectUnauthorized: false }
     }
-    if(httpsAgent){
+    if (httpsAgent) {
         httpsAgent = new https.Agent(httpsAgent);
     }
     const options = {
@@ -88,32 +122,14 @@ function applyProxy(app: any) {
 
     // proxy to solve CORS issue
     const corsProxy = createProxyMiddleware(options);
-    app.use(
-        ['/service', '/ext'],
-        async (req, res, next) => {
-            // generating new signature for proxy server
-            req.transformRequest = transformRequest;
-            req.originalUrl = req.originalUrl.startsWith('/service')
-                ? req.originalUrl.replace('/service', '/api/service')
-                : req.originalUrl;
-            req.url = req.originalUrl;
-            // don't send body for GET request
-            if (!_.isEmpty(req.body)) {
-                req.data = req.body;
-            }
-            req.baseURL = currentDomain;
-            delete req.headers['x-fp-signature'];
-            delete req.headers['x-fp-date'];
-            const url = new URL(currentDomain);
-            req.headers.host = url.host;
-            // regenerating signature as per proxy server
-            const config = await addSignatureFn(options)(req);
-            req.headers['x-fp-signature'] = config.headers['x-fp-signature'];
-            req.headers['x-fp-date'] = config.headers['x-fp-date'];
-            next();
-        },
-        corsProxy,
-    );
+
+    // Middleware with signature regeneration
+    const withSignatureMiddleware = createPreProxyMiddleware(currentDomain, options, true);
+    app.use(['/service', '/ext'], withSignatureMiddleware, corsProxy);
+
+    // Middleware without signature regeneration
+    const withoutSignatureMiddleware = createPreProxyMiddleware(currentDomain, options, false);
+    app.use(['/cdn'], withoutSignatureMiddleware, corsProxy);
 }
 
 async function setupServer({ domain }) {
@@ -223,7 +239,7 @@ export async function startServer({ domain, host, isSSR, port }) {
                 // but sometime it may happen that development is going on and auth token gets expired
                 // in that case API will give 401 error and AUTH_TOKEN from config will be removed
                 // if before code exits, if any request comes here then we need to check if it is exist or not
-                if(!User){
+                if (!User) {
                     throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth, "401");
                 }
                 themeUrl = (
@@ -237,7 +253,7 @@ export async function startServer({ domain, host, isSSR, port }) {
                 jetfireUrl.searchParams.set('__csr', 'true');
             }
             // Bundle directly passed on with POST request body.
-            const { data: html } : { data : string} = await axios({
+            const { data: html }: { data: string } = await axios({
                 method: 'POST',
                 url: jetfireUrl.toString(),
                 headers,
@@ -452,7 +468,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
             Logger.debug(`Locales folder not found: ${localesFolder}`);
             return res.json({ items: [] });
         }
-        const locales = fs.readdirSync(localesFolder).filter(file => !file.endsWith('.schema.json') && file.split('.')[0] === locale);        
+        const locales = fs.readdirSync(localesFolder).filter(file => !file.endsWith('.schema.json') && file.split('.')[0] === locale);
         const localesArray = [];
 
         // Read content of each locale file
@@ -461,15 +477,15 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
             try {
                 const content = fs.readFileSync(filePath, 'utf8');
                 localesArray.push({
-                    "locale":locale.replace('.json', ''),
-                    "resource":JSON.parse(content)
+                    "locale": locale.replace('.json', ''),
+                    "resource": JSON.parse(content)
                 });
             } catch (error) {
                 Logger.error(`Error reading locale file ${locale}: ${error.message}`);
             }
         });
-        
-        res.json({"items":localesArray});
+
+        res.json({ "items": localesArray });
     });
 
     app.get('/*', async (req, res) => {
@@ -584,7 +600,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 			`);
             const finalHTML = $.html()
             res.send(finalHTML);
-        } catch (error) { 
+        } catch (error) {
             Logger.debug(error);
             res.send(error)
         }
