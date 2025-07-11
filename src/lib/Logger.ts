@@ -125,10 +125,6 @@ export const COMMON_LOG_MESSAGES = {
         'Please contact your administrator to get access')}`,
     teamPermissionDenied: `You do not have permission to manage the team.\n${chalk.yellow(
         'Please contact your administrator to get access')}`,
-    auditTrailPermissionDenied: `You do not have permission to view the audit trail.\n${chalk.yellow(
-        'Please contact your administrator to get access')}`,
-    referralPermissionDenied: `You do not have permission to refer other users.\n${chalk.yellow(
-        'Please contact your administrator to get access')}`,
     developmentAccountsPermissionDenied: `You do not have permission to access development companies.\n${chalk.yellow(
         'Please contact your administrator to get access')}`,
     liveAccountsPermissionDenied: `You do not have permission to access live companies.\n${chalk.yellow(
