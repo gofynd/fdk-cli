@@ -982,7 +982,7 @@ export default class ExtensionSection {
                             organisationId,
                             {
                                 application_id: applicationId,
-                                sectionPreviewHash,
+                                section_preview_hash: sectionPreviewHash,
                             }
                         );
                         Logger.info('Preview Session Closed');
