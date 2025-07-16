@@ -7,7 +7,7 @@
   "extends": [
     "eslint:recommended",
     "airbnb-base",
-    "@typescript-eslint/recommended"
+    "plugin:@typescript-eslint/recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -44,7 +44,37 @@
     "no-console": "off",
     "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
-    "no-unused-vars": "off"
+    "no-unused-vars": "off",
+    "camelcase": "warn",
+    "no-underscore-dangle": "warn",
+    "no-param-reassign": "warn",
+    "no-useless-catch": "warn",
+    "consistent-return": "warn",
+    "no-eval": "warn",
+    "no-new-func": "warn",
+    "no-restricted-syntax": "warn",
+    "no-await-in-loop": "warn",
+    "guard-for-in": "warn",
+    "no-plusplus": "warn",
+    "func-names": "warn",
+    "no-empty": "warn",
+    "no-throw-literal": "warn",
+    "no-useless-constructor": "warn",
+    "no-empty-function": "warn",
+    "no-unsafe-finally": "warn",
+    "class-methods-use-this": "warn",
+    "no-shadow": "warn",
+    "radix": "warn",
+    "eqeqeq": "warn",
+    "max-len": ["warn", { "code": 120 }],
+    "import/no-dynamic-require": "warn",
+    "global-require": "warn",
+    "@typescript-eslint/no-require-imports": "warn",
+    "array-callback-return": "warn",
+    "no-nested-ternary": "warn",
+    "default-case": "warn",
+    "no-useless-escape": "warn",
+    "import/prefer-default-export": "warn"
   },
   "settings": {
     "import/resolver": {

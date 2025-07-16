@@ -29,7 +29,9 @@
     "watch": "tsc --watch",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest --runInBand",
     "pretty": "prettier --config ./.prettierrc --write './src/**/*.*'",
-    "localInstall": "sh scripts/localInstall.sh"
+    "localInstall": "sh scripts/localInstall.sh",
+    "lint": "eslint src/**/*.{js,ts,jsx,tsx} --fix",
+    "lint:check": "eslint src/**/*.{js,ts,jsx,tsx}"
   },
   "devDependencies": {
     "@types/async": "^3.2.24",

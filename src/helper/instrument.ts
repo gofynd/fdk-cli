@@ -6,14 +6,12 @@ const sentryFilePath = path.join(__dirname, './../sentry.json');
 const packageJSON = require('../../package.json');
 
 const sentryDSN = fs.existsSync(sentryFilePath)
-    ? fs.readJsonSync(sentryFilePath)['dsn']
-    : undefined;
+  ? fs.readJsonSync(sentryFilePath).dsn
+  : undefined;
 
 if (sentryDSN) {
-    Sentry.init({
-        dsn: sentryDSN,
-        release: packageJSON.version,
-    });
+  Sentry.init({
+    dsn: sentryDSN,
+    release: packageJSON.version,
+  });
 }
-    
-    
