@@ -650,7 +650,7 @@ export default class Theme {
     }
   }
 
-  public static initTheme = async (options) => {
+  public static initTheme = async (_options) => {
     let shouldDelete = false;
     let targetDirectory = '';
     let dir_name = 'default';
@@ -821,7 +821,7 @@ export default class Theme {
           restructureSpinner.start();
           this.restructTheme();
           restructureSpinner.succeed();
-        } catch (err) {
+        } catch (_err) {
           spinner.fail();
           Logger.error(
             'Failed restructuring: Please check your folder structure',
@@ -860,9 +860,11 @@ export default class Theme {
     try {
       await Theme.ensureThemeTypeInPackageJson();
       await Theme.ensureLocalesFolderExists(targetDirectory);
-      currentContext.domain
-        ? Logger.warn(`Syncing Theme to: ${currentContext.domain}`)
-        : Logger.warn('Please add domain to context');
+      if (currentContext.domain) {
+        Logger.warn(`Syncing Theme to: ${currentContext.domain}`);
+      } else {
+        Logger.warn('Please add domain to context');
+      }
       const { data: theme } = await ThemeService.getThemeById(currentContext);
       await Theme.matchWithLatestPlatformConfig(theme, isNew, targetDirectory);
       // Clear previosu builds
@@ -985,9 +987,11 @@ export default class Theme {
   ) => {
     try {
       await Theme.ensureThemeTypeInPackageJson();
-      currentContext.domain
-        ? Logger.warn(`Syncing Theme to: ${currentContext.domain}`)
-        : Logger.warn('Please add domain to context');
+      if (currentContext.domain) {
+        Logger.warn(`Syncing Theme to: ${currentContext.domain}`);
+      } else {
+        Logger.warn('Please add domain to context');
+      }
       const { data: theme } = await ThemeService.getThemeById(currentContext);
 
       // Merge with latest platform config
@@ -997,11 +1001,11 @@ export default class Theme {
       }
 
       Logger.info('Reading Files');
-      let themeContent: any = readFile(`${process.cwd()}/config.json`);
+      let _themeContent: any = readFile(`${process.cwd()}/config.json`);
 
       try {
-        themeContent = JSON.parse(themeContent);
-      } catch (e) {
+        _themeContent = JSON.parse(_themeContent);
+      } catch (_e) {
         throw new CommandError('Invalid config.json');
       }
 
@@ -1067,7 +1071,7 @@ export default class Theme {
 
       // extract page level settings schema
       Logger.debug('Updating Available pages');
-      const { pagesToSave, allowedDefaultProps } = await Theme.updateAvailablePages({
+      const { pagesToSave: _pagesToSave, allowedDefaultProps } = await Theme.updateAvailablePages({
         assetHash,
       });
 
@@ -1172,8 +1176,10 @@ export default class Theme {
 
       const isSSR = typeof options.ssr === 'boolean'
         ? options.ssr
-        : options.ssr == 'true';
-      !isSSR ? Logger.warn('Disabling SSR') : null;
+        : options.ssr === 'true';
+      if (!isSSR) {
+        Logger.warn('Disabling SSR');
+      }
 
       // initial build
       Logger.info('Locally building');
@@ -1192,7 +1198,7 @@ export default class Theme {
       // open browser
       try {
         await open(getFullLocalUrl(port));
-      } catch (err) {
+      } catch (_err) {
         console.log(`Open in browser: ${getFullLocalUrl(port)}`);
       }
       Logger.info(chalk.bold.green('Watching files for changes'));
@@ -1347,7 +1353,7 @@ export default class Theme {
     }
   };
 
-  public static syncLocalToRemote = async (theme, targetDirectory = '') => {
+  public static syncLocalToRemote = async (_theme, targetDirectory = '') => {
     try {
       const { data: theme } = await ThemeService.getThemeById(null);
       await syncLocales(SyncMode.PUSH, targetDirectory);
@@ -1407,8 +1413,10 @@ export default class Theme {
     try {
       sectionsFiles = fs
         .readdirSync(path.join(Theme.TEMPLATE_DIRECTORY, '/sections'))
-        .filter((o) => o != 'index.js');
-    } catch (err) { }
+        .filter((o) => o !== 'index.js');
+    } catch (_err) {
+      // Ignore errors if sections directory doesn't exist
+    }
     const settings = sectionsFiles.map((f) => Theme.extractSettingsFromFile(
       `${Theme.TEMPLATE_DIRECTORY}/theme/sections/${f}`,
     ));
@@ -1515,7 +1523,7 @@ export default class Theme {
 
       try {
         return settingsText ? JSON.parse(settingsText) : {};
-      } catch (err) {
+      } catch (_err) {
         throw new Error(
           `Invalid settings JSON object in ${path}. Validate JSON from https://jsonlint.com/`,
         );
@@ -1568,7 +1576,7 @@ export default class Theme {
   private static validateSections(available_sections) {
     const fileNameRegex = /^[0-9a-zA-Z-_ ... ]+$/;
     const sectionNamesObject = {};
-    available_sections.forEach((section, index) => {
+    available_sections.forEach((section, _index) => {
       if (!fileNameRegex.test(section.name)) {
         throw new Error(`Invalid section name, ${section.name}`);
       }
@@ -1645,7 +1653,7 @@ export default class Theme {
 
     const importingTemplate = fileNames
       .map((fileName) => {
-        const [SectionName, sectionKey] = transformSectionFileName(fileName);
+        const [SectionName, _sectionKey] = transformSectionFileName(fileName);
         return `const ${SectionName} = loadable(() => import(/* webpackChunkName:"${SectionName}" */ './${fileName}'));\n`;
       })
       .join('\n');

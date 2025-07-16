@@ -73,7 +73,7 @@ export default class Tunnel {
     }
 
     const {
-      url: urlPromise, connections, child, stop,
+      url: urlPromise, connections: _connections, child, stop,
     } = startTunnel({
       '--url': `http://localhost:${this.options.port}`,
     });

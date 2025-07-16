@@ -9,7 +9,7 @@ import urlJoin from 'url-join';
 import { parse as stackTraceParser } from 'stacktrace-parser';
 import glob from 'glob';
 import detect from 'detect-port';
-import chalk from 'chalk';
+// import chalk from 'chalk';
 import cors from 'cors';
 import { createProxyMiddleware, fixRequestBody } from 'http-proxy-middleware';
 import webpackDevMiddleware from 'webpack-dev-middleware';
@@ -32,9 +32,9 @@ import { DEFAULT_LOCALE } from './constants';
 const { transformRequest } = axios.defaults;
 const packageJSON = require('../../package.json');
 
-const BUILD_FOLDER = './.fdk/dist';
+// const BUILD_FOLDER = './.fdk/dist';
 const SERVE_BUILD_FOLDER = './.fdk/distServed';
-const port = 5001;
+// const port = 5001;
 let sockets = [];
 const publicCache = {};
 const headers = {
@@ -121,9 +121,9 @@ async function setupServer({ domain }) {
   const currentContext = getActiveContext();
   const app = express();
   const server = require('http').createServer(app);
-  const io = require('socket.io')(server);
+  const _io = require('socket.io')(server);
 
-  io.on('connection', (socket) => {
+  _io.on('connection', (socket) => {
     sockets.push(socket);
     socket.on('disconnect', () => {
       sockets = sockets.filter((s) => s !== socket);
@@ -138,7 +138,7 @@ async function setupServer({ domain }) {
   });
 
   return {
-    currentContext, app, server, io,
+    currentContext, app, server, io: _io,
   };
 }
 
@@ -176,7 +176,7 @@ async function requestToOriginalSource(req, res, domain, themeId) {
 }
 
 export async function startServer({
-  domain, host, isSSR, port,
+  domain, host: _host, isSSR, port,
 }) {
   const {
     currentContext, app, server, io,
@@ -185,7 +185,7 @@ export async function startServer({
   applyProxy(app);
 
   app.use(express.static(path.resolve(process.cwd(), SERVE_BUILD_FOLDER)));
-  app.get(['/__webpack_hmr', '/manifest.json'], async (req, res, next) => res.end());
+  app.get(['/__webpack_hmr', '/manifest.json'], async (req, res, _next) => res.end());
   app.get('/*', async (req, res) => {
     // If browser is not requesting for html page (it can be file, API call, etc...), then fetch and send requested data directly from source
     const acceptHeader = req.get('Accept');
@@ -255,23 +255,23 @@ export async function startServer({
 
       const $ = cheerio.load(html);
       $('head').prepend(`
-					<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
-					<script>
-					var socket = io();
-					console.log('Initialized sockets')
-					socket.on('reload',function(){
-						location.reload();
-					});
-					</script>
-				`);
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+        <script>
+        var socket = io();
+        console.log('Initialized sockets')
+        socket.on('reload',function(){
+          location.reload();
+        });
+        </script>
+        `);
       $('head').append(`
-					<script>
-						if(window.env) {
-							window.env.SENTRY_DSN='';
-							window.env.SENTRY_ENVIRONMENT='development';
-						}
-					</script>
-				`);
+          <script>
+            if(window.env) {
+              window.env.SENTRY_DSN='';
+              window.env.SENTRY_ENVIRONMENT='development';
+            }
+          </script>
+        `);
 
       const umdJsInitial = $('link[data-umdjs-cli-source="initial"]');
       umdJsInitial.after(
@@ -337,7 +337,7 @@ export async function startServer({
                   })</p>`;
                 }
               }
-            } catch (err) {
+            } catch (_err) {
               console.log('    at FAILED_TO_PARSE_LINE');
             }
           });
@@ -368,7 +368,7 @@ export async function startServer({
   });
 }
 
-async function startTunnel(port: number) {
+async function _startTunnel(port: number) {
   try {
     const tunnelInstance = new Tunnel({
       port,
@@ -388,7 +388,7 @@ async function startTunnel(port: number) {
 }
 
 export async function startReactServer({
-  domain, host, isHMREnabled, port,
+  domain, host: _host, isHMREnabled, port,
 }) {
   const {
     currentContext, app, server, io,
@@ -452,7 +452,7 @@ export async function startReactServer({
 
   applyProxy(app);
 
-  const uploadedFiles = {};
+  const _uploadedFiles = {};
 
   app.get('/translate-ui-labels', (req, res) => {
     const locale = req.query.locale || DEFAULT_LOCALE;
@@ -563,32 +563,32 @@ export async function startReactServer({
         .catch((error) => ({ data: error.message }));
       const $ = cheerio.load(html);
       $('head').prepend(`
-				<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
-				<script>
-				var socket = io();
-				socket.on('reload',function(){
-					${isHMREnabled
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+        <script>
+        var socket = io();
+        socket.on('reload',function(){
+          ${isHMREnabled
     ? `
-						try {
-							window.APP_DATA.themeBundleUMDURL = '/themeBundle.umd.js';
-							window.APP_DATA.isServerRendered = false;
-							window.APP_DATA.forceRender = true;
-							window.webpackChunkthemeBundle = [];
-							// document.getElementById('app').innerHTML='';
-							if (window.fpi) {
-								window.APP_DATA.reduxData = window.fpi.store.getState();
-							}
-							window.loadApp().catch(console.log);
-						} catch(e) { console.log( e );}
-					`
+            try {
+              window.APP_DATA.themeBundleUMDURL = '/themeBundle.umd.js';
+              window.APP_DATA.isServerRendered = false;
+              window.APP_DATA.forceRender = true;
+              window.webpackChunkthemeBundle = [];
+              // document.getElementById('app').innerHTML='';
+              if (window.fpi) {
+                window.APP_DATA.reduxData = window.fpi.store.getState();
+              }
+              window.loadApp().catch(console.log);
+            } catch(e) { console.log( e );}
+          `
     : `
-						window.location.reload();
-					`
+            window.location.reload();
+          `
 }
 
-				});
-				</script>
-			`);
+        });
+        </script>
+      `);
       const finalHTML = $.html();
       res.send(finalHTML);
     } catch (error) {
@@ -620,9 +620,9 @@ export async function startExtensionServer(options: ExtensionServerOptions) {
   const server = require('http').createServer(app);
 
   if (framework === 'react') {
-    const io = require('socket.io')(server);
+    const _io = require('socket.io')(server);
 
-    io.on('connection', (socket) => {
+    _io.on('connection', (socket) => {
       sockets.push(socket);
       socket.on('disconnect', () => {
         sockets = sockets.filter((s) => s !== socket);
