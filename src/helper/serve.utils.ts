@@ -202,7 +202,7 @@ export async function startServer({ domain, host, isSSR, port }) {
         const acceptHeader = req.get('Accept');
         if (
             (acceptHeader && !acceptHeader.includes('text/html')) ||
-            req.path.includes('/public')
+            req.path.includes('/public') || req.path.includes('/cdn')
         ) {
             // while text/html is a commonly included type, it's not a strict requirement for all browsers to include it in their Accept headers for HTML page requests.
             return await requestToOriginalSource(
@@ -442,6 +442,8 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
         app.use(webpackHotMiddleware(compiler));
     }
     app.use(express.static(path.resolve(process.cwd(), SERVE_BUILD_FOLDER)));
+    
+    applyProxy(app);
 
     app.use((request, response, next) => {
         // Filtering so that HMR file requests are not routed to skyfire pods
@@ -457,7 +459,6 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
         next();
     });
 
-    applyProxy(app);
 
     const uploadedFiles = {};
 
@@ -494,7 +495,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
             const acceptHeader = req.get('Accept');
             if (
                 (acceptHeader && !acceptHeader.includes('text/html')) ||
-                req.path.includes('/public')
+                req.path.includes('/public') || req.path.includes('/cdn')
             ) {
                 // while text/html is a commonly included type, it's not a strict requirement for all browsers to include it in their Accept headers for HTML page requests.
                 return await requestToOriginalSource(
