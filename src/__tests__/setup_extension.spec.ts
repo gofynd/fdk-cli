@@ -16,11 +16,13 @@ import ExtensionService, {
 } from '../lib/api/services/extension.service';
 import path from 'path';
 import { LAUNCH_TYPES } from '../helper/constants';
+import { getCommonHeaderOptions } from '../lib/api/services/utils';
 
 const EXTENSION_KEY = '68808232d7924019689a768c';
 const EXTENSION_SECRET = 'mockextensionsecret';
 const COMPANY_ID = '1';
 const EXTENSION_NAME = 'mockextensionname';
+const ORGANIZATION_ID = '60afe92972b7a964de57a1d4';
 const fdkExtConfigFrontEnd = require('./fixtures/fdkExtConfigFrontEnd.json');
 const fdkExtConfigBackEnd = require('./fixtures/fdkExtConfigBackEnd.json');
 const partnertoken = require('./fixtures/partnertoken.json');
@@ -34,6 +36,7 @@ let mockAxios;
 
 function cleanUp() {
     rimraf.sync('company-ext');
+    rimraf.sync(extensionList.items[0].name);
     rimraf.sync('app-ext');
     rimraf.sync('payment-ext');
     rimraf.sync('fdk.ext.config.json');
@@ -72,13 +75,45 @@ function extensionSavingData({name, type, launch_type, payment_mode_slug}){
     }
     return data;
 }
+
+jest.mock('configstore', () => {
+    const Store =
+        jest.requireActual('configstore');
+    const path = jest.requireActual<typeof import('path')>('path');
+    return class MockConfigstore {
+        store = new Store('@gofynd/fdk-cli', undefined, {
+            configPath: path.join(__dirname, 'theme-test-cli.json'),
+        });
+        all = this.store.all;
+        size = this.store.size;
+        path = this.store.path;
+        get(key: string) {
+            return this.store.get(key);
+        }
+        set(key: string, value: any) {
+            this.store.set(key, value);
+        }
+        delete(key: string) {
+            this.store.delete(key);
+        }
+        clear() {
+            this.store.clear();
+        }
+        has(key: string) {
+            return this.store.has(key);
+        }
+    };
+});
+
 fdescribe('Extension Commands', () => {
+    const commonHeaders = getCommonHeaderOptions()
     beforeAll(async () => {
         setEnv();
         process.chdir(path.join(__dirname, '..', '..'));
         program = await init('fdk');
         jest.spyOn(ExtensionService, 'getExtensionList').mockImplementation(async () => extensionList);
         cleanUp()
+        configStore.set(CONFIG_KEYS.ORGANIZATION, ORGANIZATION_ID)
     });
     beforeEach(async () => {
         mockAxios = new MockAdapter(axios);
@@ -90,8 +125,8 @@ fdescribe('Extension Commands', () => {
             .reply(() => [200, applicationZip]);
         mockAxios.onGet(`${URLS.GET_EXTENSION_LIST(1, 9999)}`).reply(200, extensionList);
         mockAxios.onGet(URLS.GET_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY)).reply(200, {
-            extention_type: 'Private',
-            launch_type: 'Company',
+            extention_type: 'private',
+            launch_type: 'company',
             extension: { id: EXTENSION_KEY, name: EXTENSION_NAME },
             client_data: { secret: [EXTENSION_SECRET] },
             config: {}
@@ -106,19 +141,14 @@ fdescribe('Extension Commands', () => {
         });
         mockAxios.onPatch(`${URLS.UPDATE_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY)}`).reply(200, {});
         mockAxios.onPatch(`${URLS.UPDATE_EXTENSION_DETAILS(EXTENSION_KEY)}`).reply(200, {});
-        await mockAxios.onPost(URLS.REGISTER_EXTENSION_PARTNER()).reply(200, {
+        await mockAxios.onPost(URLS.REGISTER_EXTENSION_PARTNER(), undefined, {
+            headers: commonHeaders
+        }   ).reply(200, {
             client_id: 'test-client-id',
             secret: [EXTENSION_SECRET],
             base_url: 'http://localdev.fynd.com',
         });
 
-        await mockAxios.onGet(URLS.GET_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY)).reply(200, {
-            client_data: {secret: ['test-client-id']},
-            secret: [EXTENSION_SECRET],
-            base_url: 'http://localdev.fynd.com',
-            extention_type: 'private',
-            launch_type: 'company',
-        });
 
         configStore.set(CONFIG_KEYS.AUTH_TOKEN, partnertoken.auth_token);
         configStore.set(CONFIG_KEYS.PARTNER_ACCESS_TOKEN, partnertoken.auth_token.access_token);
@@ -169,35 +199,16 @@ fdescribe('Extension Commands', () => {
         expect(fs.existsSync('payment-ext')).toBe(true);
     });
 
-    fit('should select an existing extension', async () => {
+    it('should select an existing extension', async () => {
         const inquirerMock = mockFunction(inquirer.prompt);
         inquirerMock
             .mockResolvedValueOnce({ action: CONSTANTS.INIT_ACTIONS.select_extension })
             .mockResolvedValueOnce({ extension: extensionList.items[0] })
             .mockResolvedValueOnce({ project_type: 'Node + Vue 3 + SQLite' });
         await program.parseAsync(['ts-node', './src/fdk.ts', 'extension', 'init']);
-        expect(fs.existsSync(extensionList.items[0].extension.name)).toBe(true);
+        expect(fs.existsSync(extensionList.items[0].name)).toBe(true);
     });
 
-    it('should prompt user to choose between create new or select existing extension', async () => {
-        const inquirerMock = mockFunction(inquirer.prompt);
-        // Simulate user chooses to create a new extension
-        inquirerMock
-            .mockResolvedValueOnce({ action: CONSTANTS.INIT_ACTIONS.create_extension })
-            .mockResolvedValueOnce({ name: 'PromptedExt' })
-            .mockResolvedValueOnce({ type: 'Private', launch_type: 'Company' })
-            .mockResolvedValueOnce({ project_type: 'Node + Vue 3 + SQLite' });
-        await program.parseAsync(['ts-node', './src/fdk.ts', 'extension', 'init']);
-        expect(fs.existsSync('PromptedExt')).toBe(true);
-
-        // Simulate user chooses to select an existing extension
-        inquirerMock
-            .mockResolvedValueOnce({ action: CONSTANTS.INIT_ACTIONS.select_extension })
-            .mockResolvedValueOnce({ extension: extensionList.items[0] })
-            .mockResolvedValueOnce({ project_type: 'Node + Vue 3 + SQLite' });
-        await program.parseAsync(['ts-node', './src/fdk.ts', 'extension', 'init']);
-        expect(fs.existsSync(extensionList.items[0].extension.name)).toBe(true);
-    });
 
     it('should run preview command', async () => {
         const inquirerMock = mockFunction(inquirer.prompt);
