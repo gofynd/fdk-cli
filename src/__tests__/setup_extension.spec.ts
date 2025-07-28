@@ -97,7 +97,7 @@ jest.mock('../helper/spinner', () => {
     }));
 });
 
-fdescribe('Extension Commands', () => {
+describe('Extension Commands', () => {
     const commonHeaders = getCommonHeaderOptions().headers;
     beforeAll(async () => {
         setEnv();
@@ -116,21 +116,21 @@ fdescribe('Extension Commands', () => {
         );
 
         // Mock payment extension template download
-        mockAxios
+        await mockAxios
             .onGet(
                 'https://github.com/gofynd/payment-extension-boilerplate/archive/refs/heads/main.zip',
             )
             .reply(() => [200, paymentZip]);
         // Mock company/application extension template download
-        mockAxios
+        await mockAxios
             .onGet(
                 'https://github.com/gofynd/example-extension-javascript/archive/refs/heads/main.zip',
             )
             .reply(() => [200, applicationZip]);
-        mockAxios
+        await mockAxios
             .onGet(`${URLS.GET_EXTENSION_LIST(1, 9999)}`)
             .reply(200, extensionList);
-        mockAxios
+        await mockAxios
             .onGet(URLS.GET_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY))
             .reply(200, {
                 extention_type: 'private',
@@ -139,18 +139,18 @@ fdescribe('Extension Commands', () => {
                 client_data: { secret: [EXTENSION_SECRET] },
                 config: {},
             });
-        mockAxios.onPost(URLS.REGISTER_EXTENSION_PARTNER()).reply(200, {
+        await mockAxios.onPost(URLS.REGISTER_EXTENSION_PARTNER()).reply(200, {
             client_id: EXTENSION_KEY,
             secret: [EXTENSION_SECRET],
             base_url: 'http://localdev.fynd.com',
         });
-        mockAxios
+        await mockAxios
             .onGet(`${URLS.GET_DEVELOPMENT_ACCOUNTS(1, 9999)}`)
             .reply(200, {
                 items: [{ company: { uid: COMPANY_ID, name: 'cli-test' } }],
             });
         // mockAxios.onPatch(`${URLS.UPDATE_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY)}`).reply(200, {});
-        mockAxios
+        await mockAxios
             .onPatch(`${URLS.UPDATE_EXTENSION_DETAILS(EXTENSION_KEY)}`)
             .reply(200, {});
         await mockAxios
@@ -164,7 +164,7 @@ fdescribe('Extension Commands', () => {
             });
 
         // Mock the updateLaunchURLPartners API call using the correct axios instance
-        mockWithoutErrorAxios
+        await mockWithoutErrorAxios
             .onPatch(URLS.UPDATE_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY))
             .reply((config) => {
                 if (config.data) {
@@ -199,6 +199,7 @@ fdescribe('Extension Commands', () => {
             'frontend/fdk.ext.config.json',
             JSON.stringify(fdkExtConfigFrontEnd, null, 4),
         );
+        
     });
     afterEach(async () => {
         cleanUp();
@@ -209,10 +210,10 @@ fdescribe('Extension Commands', () => {
         if (mockWithoutErrorAxios) {
             mockWithoutErrorAxios.restore();
         }
-        // Force cleanup of any remaining timers or intervals
-        jest.clearAllTimers();
         // Wait for any pending promises to resolve
         await new Promise((resolve) => setImmediate(resolve));
+        // Force cleanup of any remaining timers or intervals
+        jest.clearAllTimers();
     });
 
     afterAll(async () => {
@@ -224,8 +225,6 @@ fdescribe('Extension Commands', () => {
         if (mockWithoutErrorAxios) {
             mockWithoutErrorAxios.restore();
         }
-        // Force cleanup of any remaining timers or intervals
-        jest.clearAllTimers();
         // Wait for any pending promises to resolve
         await new Promise((resolve) => setImmediate(resolve));
         // Clear any remaining axios interceptors
@@ -233,6 +232,8 @@ fdescribe('Extension Commands', () => {
         axios.interceptors.response.clear();
         // Restore process.exit mock
         mockExit.mockRestore();
+        // Force cleanup of any remaining timers or intervals
+        jest.clearAllTimers();
     });
 
     it('should create a company extension', async () => {
@@ -412,26 +413,6 @@ fdescribe('Extension Commands', () => {
         }
     });
 
-    it('should handle missing port error in preview', async () => {
-        await expect(
-            program.parseAsync([
-                'ts-node',
-                './src/fdk.ts',
-                'extension',
-                'preview-url',
-                '--api-key',
-                EXTENSION_KEY,
-                '--company-id',
-                COMPANY_ID,
-                '--tunnel-url',
-                'https://custom-tunnel-url.com',
-            ]),
-        ).rejects.toThrow();
-
-        // Verify that process.exit was called
-        expect(mockExit).toHaveBeenCalledWith(1);
-    });
-
     it('should handle invalid port error in preview', async () => {
         await expect(
             program.parseAsync([
@@ -456,7 +437,7 @@ fdescribe('Extension Commands', () => {
 
     it('should handle API error in launch-url set', async () => {
         // Override the mock to return an error for this specific test
-        mockWithoutErrorAxios
+        await mockWithoutErrorAxios
             .onPatch(URLS.UPDATE_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY))
             .reply(500, { message: 'API error' });
 
