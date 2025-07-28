@@ -123,7 +123,7 @@ function getErrorMessage(error) {
 export function responseErrorInterceptor() {
     return (error) => {
         // Request made and server responded
-        Debug(error);
+        Debug(`Error recieved from backend: ${JSON.stringify(error)}`);
 
         let errorCode = "";
         let errorMessage = error?.response?.data?.message;
@@ -131,34 +131,6 @@ export function responseErrorInterceptor() {
             errorCode = error.response.data.code.replace(/_([a-z])/g, (match, letter)=> letter.toUpperCase());
         }
         if (
-            error.response &&
-            (error.response.status === 401 || error.response.status === 403) &&
-            errorCode
-        ) {
-            throw new CommandError(COMMON_LOG_MESSAGES[errorCode], error.response.status);
-        }
-        else if (
-            error.response &&
-            (error.response.status === 401 || error.response.status === 403) &&
-            errorMessage && COMMON_LOG_MESSAGES.insufficientPermission.includes(errorMessage)
-        ) {
-            throw new CommandError(COMMON_LOG_MESSAGES.insufficientPermission, error.response.status);
-        }
-        else if (
-            error.response &&
-            (error.response.status === 401 || error.response.status === 403) &&
-            errorMessage && COMMON_LOG_MESSAGES.accessToExtensions.includes(errorMessage)
-        ) {
-            throw new CommandError(COMMON_LOG_MESSAGES.accessToExtensions, error.response.status);
-        }
-        else if (
-            error.response &&
-            (error.response.status === 401 || error.response.status === 403) &&
-            errorMessage && COMMON_LOG_MESSAGES.companyAccessDenied.includes(errorMessage.toLowerCase())
-        ) {
-            throw new CommandError(COMMON_LOG_MESSAGES.companyAccessDenied, error.response.status);
-        }
-        else if (
             error.response &&
             (error.response.status === 401 || error.response.status === 403) &&
             errorMessage && !errorMessage.includes('login')

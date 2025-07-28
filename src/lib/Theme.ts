@@ -650,7 +650,7 @@ export default class Theme {
 
             Logger.debug('Fetching Template Files');
             const { data: themeData } =
-                await ThemeService.getThemeById({...configObj});
+                await ThemeService.getThemeById(configObj);
             const themeName = themeData?.name || 'default';
             dir_name = Theme.sanitizeThemeName(themeName);
             targetDirectory = path.join(process.cwd(), dir_name);

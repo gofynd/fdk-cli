@@ -107,26 +107,5 @@ export const COMMON_LOG_MESSAGES = {
     invalidThemeType: `${chalk.yellow(`Theme Type can be react or vue2 only`)}`,
     ThemeTypeNotAvailableInContext: `${chalk.yellow(
         `Theme Type Not Available in Context and Package.json`,
-    )}`,
-    insufficientPermission: `You have insufficient permission to access the resource.\n${chalk.yellow(
-        'Please contact your administrator to get access',
-    )}`,
-    companyAccessDenied: `Selected organization does not have access to the company.\n${chalk.yellow(
-        'Please contact your administrator',
-    )}`,
-    accessToExtensions: `You don't have access to extensions.\n${chalk.yellow(
-        'Please contact your administrator to get access',
-    )}`,
-    themesPermissionDenied: `You do not have permission to manage themes.\n${chalk.yellow(
-        'Please contact your administrator to get access')}`,
-    extensionsPermissionDenied: `You do not have permission to access extensions.\n${chalk.yellow(
-        'Please contact your administrator to get access')}`,
-    settingsPermissionDenied: `You do not have permission to change settings.\n${chalk.yellow(
-        'Please contact your administrator to get access')}`,
-    teamPermissionDenied: `You do not have permission to manage the team.\n${chalk.yellow(
-        'Please contact your administrator to get access')}`,
-    developmentAccountsPermissionDenied: `You do not have permission to access development companies.\n${chalk.yellow(
-        'Please contact your administrator to get access')}`,
-    liveAccountsPermissionDenied: `You do not have permission to access live companies.\n${chalk.yellow(
-        'Please contact your administrator to get access')}`
+    )}`
 };

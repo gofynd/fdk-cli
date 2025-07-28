@@ -38,7 +38,7 @@ export default class ThemeContext {
             const { data: appConfig } =
                 await ConfigurationService.getApplicationDetails(configObj);
             const { data: themeData } =
-                await ThemeService.getThemeById({...configObj});
+                await ThemeService.getThemeById(configObj);
             const themeName = themeData?.name || 'default';
             let context: any = {
                 name: options.name,
