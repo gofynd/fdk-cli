@@ -5,6 +5,7 @@ import axios, {
     AxiosInstance,
     ResponseType,
     AxiosRequestHeaders,
+    InternalAxiosRequestConfig,
 } from 'axios';
 import {
     isNetworkErrorCode,
@@ -51,7 +52,7 @@ uninterceptedAxiosInstance.interceptors.response.use((response) => {
 
 // Axios Interceptors
 axios.interceptors.request.use(
-    function (request: AxiosRequestConfig) {
+    function (request: InternalAxiosRequestConfig) {
         try {
             // log curl request incase of debug
             const curl = new Curl(request);

@@ -39,4 +39,6 @@ module.exports = {
     "!**/__tests__/**"
   ],
   testTimeout: 1000000,
+  // Add global teardown to ensure proper cleanup
+  globalTeardown: '<rootDir>/src/__tests__/globalTeardown.js',
 };
