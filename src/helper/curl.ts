@@ -1,11 +1,11 @@
 import qs from 'query-string';
-import axios, { AxiosRequestConfig, AxiosRequestHeaders } from 'axios';
+import axios, { InternalAxiosRequestConfig } from 'axios';
 import combineURLs from 'axios/lib/helpers/combineURLs';
 import isAbsoluteURL from 'axios/lib/helpers/isAbsoluteURL';
 
 export default class CurlHelper {
-    reqConfig: AxiosRequestConfig;
-    constructor(config: AxiosRequestConfig) {
+    reqConfig: InternalAxiosRequestConfig;
+    constructor(config: InternalAxiosRequestConfig) {
         this.reqConfig = config;
     }
 
