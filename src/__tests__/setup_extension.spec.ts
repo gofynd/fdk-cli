@@ -31,13 +31,6 @@ const paymentZip = fs.readFileSync(
 );
 jest.mock('inquirer');
 
-// Mock process.exit to prevent tests from actually exiting
-const mockExit = jest
-    .spyOn(process, 'exit')
-    .mockImplementation((code?: string | number | null | undefined) => {
-        throw new Error('process.exit called');
-    });
-
 let program;
 let mockAxios;
 let mockWithoutErrorAxios;
@@ -86,15 +79,6 @@ jest.mock('configstore', () => {
             return this.store.has(key);
         }
     };
-});
-
-jest.mock('../helper/spinner', () => {
-    return jest.fn().mockImplementation(() => ({
-        start: jest.fn(),
-        succeed: jest.fn(),
-        fail: jest.fn(),
-        stop: jest.fn(),
-    }));
 });
 
 describe('Extension Commands', () => {
@@ -230,8 +214,7 @@ describe('Extension Commands', () => {
         // Clear any remaining axios interceptors
         axios.interceptors.request.clear();
         axios.interceptors.response.clear();
-        // Restore process.exit mock
-        mockExit.mockRestore();
+
         // Force cleanup of any remaining timers or intervals
         jest.clearAllTimers();
     });
