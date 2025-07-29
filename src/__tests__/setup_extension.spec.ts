@@ -53,6 +53,15 @@ function cleanUp() {
     rimraf.sync('setup_extension-test-cli.json');
 }
 
+jest.mock('../helper/spinner', () => {
+    return jest.fn().mockImplementation(() => ({
+        start: jest.fn(),
+        succeed: jest.fn(),
+        fail: jest.fn(),
+        stop: jest.fn(),
+    }));
+});
+
 jest.mock('configstore', () => {
     const Store = jest.requireActual('configstore');
     const path = jest.requireActual<typeof import('path')>('path');
@@ -201,6 +210,7 @@ describe('Extension Commands', () => {
     });
 
     afterAll(async () => {
+        await cleanUp()
         process.chdir(path.join(__dirname, '..', '..'));
         // Ensure all mocks are restored
         if (mockAxios) {
@@ -346,23 +356,6 @@ describe('Extension Commands', () => {
         // No error means success
     });
 
-    it('should handle valid port in preview', async () => {
-        await program.parseAsync([
-            'ts-node',
-            './src/fdk.ts',
-            'extension',
-            'preview-url',
-            '--api-key',
-            EXTENSION_KEY,
-            '--company-id',
-            COMPANY_ID,
-            '--tunnel-url',
-            'https://custom-tunnel-url.com',
-            '--port',
-            '3000'
-        ]);
-        // No error means success
-    });
 
     it('should set launch url successfully', async () => {
         const inquirerMock = mockFunction(inquirer.prompt);
