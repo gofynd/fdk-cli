@@ -2,6 +2,8 @@ import rimraf from 'rimraf';
 import inquirer from 'inquirer';
 import MockAdapter from 'axios-mock-adapter';
 import axios from 'axios';
+import request from 'supertest';
+import nock from 'nock';
 import configStore, { CONFIG_KEYS } from '../lib/Config';
 import mockFunction, { setEnv } from './helper';
 import { init } from '../fdk';
@@ -12,7 +14,6 @@ import {
   getRandomFreePort,
 } from '../helper/extension_utils';
 
-const request = require('supertest');
 const tokenData = require('./fixtures/partnertoken.json');
 const organizationData = require('./fixtures/organizationData.json');
 
@@ -51,7 +52,6 @@ jest.mock('open', () => () => {});
 export async function login(domain?: string) {
   const port = await getRandomFreePort([]);
   const app = await startServer(port);
-  const nock = require('nock');
   nock.disableNetConnect();
   nock('https://api.fyndx1.de')
     .post('/token')
