@@ -73,6 +73,9 @@ function applyProxy(app: any) {
     httpsAgent = { ca };
   }
   if (process.env.FDK_SSL_NO_VERIFY == 'true') {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error("Disabling SSL verification is not allowed in production.");
+    }
     httpsAgent = { rejectUnauthorized: false };
   }
   if (httpsAgent) {
