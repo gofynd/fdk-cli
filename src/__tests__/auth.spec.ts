@@ -49,9 +49,13 @@ jest.mock('configstore', () => {
 });
 jest.mock('open', () => () => {});
 export async function login(domain?: string) {
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
   const port = await getRandomFreePort([]);
   const app = await startServer(port);
+  const nock = require('nock');
+  nock.disableNetConnect();
+  nock('https://api.fyndx1.de')
+    .post('/token')
+    .reply(200, tokenData);
   const req = request(app);
   if (domain) await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '--host', domain]);
   else await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '--host', 'api.fyndx1.de']);
