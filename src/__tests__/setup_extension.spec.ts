@@ -1,10 +1,8 @@
-
-describe("dummy test", () => {
-    it("should succeed", async () => {
-    
-         expect(1 + 2).toBe(3);
-    })
-})
+describe('dummy test', () => {
+  it('should succeed', async () => {
+    expect(1 + 2).toBe(3);
+  });
+});
 
 // import axios from 'axios';
 // import execa from 'execa';

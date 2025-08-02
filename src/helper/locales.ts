@@ -1,10 +1,10 @@
 import axios, { AxiosResponse } from 'axios';
-import { getActiveContext } from '../helper/utils';
 import fs from 'fs-extra';
 import * as path from 'path';
+import { isEqual } from 'lodash';
+import { getActiveContext } from './utils';
 import LocalesService from '../lib/api/services/locales.service';
 import Logger from '../lib/Logger';
-import { isEqual } from 'lodash';
 import CommandError from '../lib/CommandError';
 
 /**
@@ -64,11 +64,11 @@ function getFileName(item: { locale: string; type: string }): string {
  */
 async function getJsonFiles(targetDirectory: string): Promise<string[]> {
   const allFiles = await fs.readdir(LOCALES_DIR(targetDirectory));
-  const invalid = allFiles.filter(f => path.extname(f).toLowerCase() !== '.json');
+  const invalid = allFiles.filter((f) => path.extname(f).toLowerCase() !== '.json');
   if (invalid.length) {
     throw new CommandError(
       `Invalid files present: ${invalid.join(', ')}. Only .json locale files are allowed.`,
-      'INVALID_FILE_TYPE'
+      'INVALID_FILE_TYPE',
     );
   }
   return allFiles;
@@ -119,12 +119,12 @@ export async function hasAnyDeltaBetweenLocalAndRemoteLocales(targetDirectory): 
 /**
  * Synchronizes locale files by pushing local changes to API or pulling remote to local
  */
-export async function syncLocales(syncMode: SyncMode, targetDirectory = ""): Promise<void> {
+export async function syncLocales(syncMode: SyncMode, targetDirectory = ''): Promise<void> {
   Logger.debug(`Starting locale sync in '${syncMode}' mode.`);
   try {
     const localesDirExists = fs.existsSync(LOCALES_DIR(targetDirectory));
-    if(!localesDirExists){
-      Logger.info(`locales directory does not exist. Hence, skipping the locales sync`);
+    if (!localesDirExists) {
+      Logger.info('locales directory does not exist. Hence, skipping the locales sync');
       return;
     }
     const remoteItems = await fetchRemoteItems();
@@ -185,11 +185,13 @@ async function createOrUpdateLocaleInAPI(
   data: Record<string, any>,
   fileName: string,
   action: 'create' | 'update',
-  id?: string
+  id?: string,
 ): Promise<void> {
   const locale = fileName.replace(/(\.schema)?\.json$/, '');
   const type = fileName.includes('.schema') ? 'locale_schema' : 'locale';
-  const payload = { theme_id: getActiveContext().theme_id, locale, resource: data, type, template: false };
+  const payload = {
+    theme_id: getActiveContext().theme_id, locale, resource: data, type, template: false,
+  };
 
   try {
     if (action === 'create') {
@@ -200,7 +202,7 @@ async function createOrUpdateLocaleInAPI(
       Logger.debug(`Updated '${locale}' resource in API.`);
     }
   } catch (err) {
-    const errMsg = `Failed to ${action} locale '${locale}': ${(err as Error).message}`
+    const errMsg = `Failed to ${action} locale '${locale}': ${(err as Error).message}`;
     Logger.error(errMsg);
     throw new CommandError(errMsg, err.code);
   }
@@ -209,21 +211,21 @@ async function createOrUpdateLocaleInAPI(
 /**
  * Updates locale files from API response (legacy support)
  */
-export async function updateLocaleFiles(context: any, targetDirectory = ""): Promise<void> {
+export async function updateLocaleFiles(context: any, targetDirectory = ''): Promise<void> {
   try {
     const items = await fetchRemoteItems(context);
     await ensureLocalesDir(targetDirectory);
 
     // Remove non-json and clear existing .json files
     const all = await fs.readdir(LOCALES_DIR(targetDirectory));
-    const invalid = all.filter(f => path.extname(f).toLowerCase() !== '.json');
+    const invalid = all.filter((f) => path.extname(f).toLowerCase() !== '.json');
     if (invalid.length) {
       throw new CommandError(
         `Invalid files present: ${invalid.join(', ')}. Only .json locale files are allowed.`,
-        'INVALID_FILE_TYPE'
+        'INVALID_FILE_TYPE',
       );
     }
-    await Promise.all(all.map(f => fs.remove(path.join(LOCALES_DIR(targetDirectory), f))));
+    await Promise.all(all.map((f) => fs.remove(path.join(LOCALES_DIR(targetDirectory), f))));
 
     // Write fresh items
     for (const item of items) {

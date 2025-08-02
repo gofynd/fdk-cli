@@ -2,10 +2,10 @@ import fs from 'fs-extra';
 import path from 'path';
 import axios from 'axios';
 import extract from 'extract-zip';
-import Debug from './../lib/Debug';
+import ini from 'ini';
+import Debug from '../lib/Debug';
 import { moveDirContent } from './utils';
 import { TEMP_DIR_NAME } from './constants';
-import ini from 'ini';
 
 interface GitHubRepoInfo {
   owner: string;
@@ -19,7 +19,7 @@ export async function cloneGitRepository(
 ): Promise<void> {
   const { owner, repo } = parseGitHubUrl(repositoryUrl);
   const zipUrl = `https://github.com/${owner}/${repo}/archive/refs/heads/${branch}.zip`;
-  
+
   await downloadAndExtractZip(zipUrl, targetDirectory, repo, branch);
 
   // Handle any submodules within the repository

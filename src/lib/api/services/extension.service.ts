@@ -7,10 +7,10 @@ export type RegisterExtensionPayloadNew = {
     extention_type: 'private' | 'public';
     base_url: string;
     scope?: [string];
-    logo?: Object;
+    logo?: object;
     developed_by_name?: string;
     contact_email?: string;
-    callbacks: Object;
+    callbacks: object;
 };
 
 type UpdateLaunchURLPayload = {
@@ -18,281 +18,260 @@ type UpdateLaunchURLPayload = {
 };
 
 export default {
-    registerExtensionPartners: async (data: RegisterExtensionPayloadNew) => {
-        try {
-            let headers = getCommonHeaderOptions().headers;
-            data.scope = ['company/profile'];
-            data.logo = {
-                small: 'https://res.cloudinary.com/dwzm9bysq/image/upload/v1566539375/production/media/store/logo/jwosxsgh9ufoucdxpm10.png',
-                large: 'https://res.cloudinary.com/dwzm9bysq/image/upload/v1566539375/production/media/store/logo/jwosxsgh9ufoucdxpm10.png',
-            };
+  registerExtensionPartners: async (data: RegisterExtensionPayloadNew) => {
+    try {
+      const { headers } = getCommonHeaderOptions();
+      data.scope = ['company/profile'];
+      data.logo = {
+        small: 'https://res.cloudinary.com/dwzm9bysq/image/upload/v1566539375/production/media/store/logo/jwosxsgh9ufoucdxpm10.png',
+        large: 'https://res.cloudinary.com/dwzm9bysq/image/upload/v1566539375/production/media/store/logo/jwosxsgh9ufoucdxpm10.png',
+      };
 
-            let axiosOptions = Object.assign(
-                {},
-                {
-                    data: data,
-                },
-                {
-                    headers: headers,
-                },
-            );
-            const response = await ApiClient.post(
-                URLS.REGISTER_EXTENSION_PARTNER(),
-                axiosOptions,
-            );
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
+      const axiosOptions = {
 
-    getExtensionDataPartners: async (extension_api_key: string) => {
-        try {
-            let headers = getCommonHeaderOptions().headers;
-            let response = await ApiClient.get(
-                URLS.GET_EXTENSION_DETAILS_PARTNERS(extension_api_key),
-                { headers: headers },
-            );
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
+        data,
+        headers,
+      };
+      const response = await ApiClient.post(
+        URLS.REGISTER_EXTENSION_PARTNER(),
+        axiosOptions,
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 
-    updateLaunchURL: async (
-        extension_api_key: string,
-        partner_access_token: string,
-        data: UpdateLaunchURLPayload,
-    ) => {
-        try {
-            let headers = getCommonHeaderOptions().headers;
-            headers['x-partner-token'] = partner_access_token;
+  getExtensionDataPartners: async (extension_api_key: string) => {
+    try {
+      const { headers } = getCommonHeaderOptions();
+      const response = await ApiClient.get(
+        URLS.GET_EXTENSION_DETAILS_PARTNERS(extension_api_key),
+        { headers },
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 
-            let axiosOptions = Object.assign(
-                {},
-                {
-                    data: data,
-                },
-                {
-                    headers: headers,
-                },
-            );
+  updateLaunchURL: async (
+    extension_api_key: string,
+    partner_access_token: string,
+    data: UpdateLaunchURLPayload,
+  ) => {
+    try {
+      const { headers } = getCommonHeaderOptions();
+      headers['x-partner-token'] = partner_access_token;
 
-            let response = await ApiClient.patch(
-                URLS.UPDATE_EXTENSION_DETAILS(extension_api_key),
-                axiosOptions,
-            );
-            return response.data;
-        } catch (error) {
-            return error;
-        }
-    },
+      const axiosOptions = {
 
-    updateLaunchURLPartners: async (
-        extension_api_key: string,
-        data: UpdateLaunchURLPayload,
-    ) => {
-        try {
-            let headers = getCommonHeaderOptions().headers;
+        data,
+        headers,
+      };
 
-            let response = await withoutErrorResponseInterceptorAxios.patch(
-                URLS.UPDATE_EXTENSION_DETAILS_PARTNERS(extension_api_key),
-                data,
-                { headers}
-            );
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
+      const response = await ApiClient.patch(
+        URLS.UPDATE_EXTENSION_DETAILS(extension_api_key),
+        axiosOptions,
+      );
+      return response.data;
+    } catch (error) {
+      return error;
+    }
+  },
 
-    // Preview URL
-    getDevelopmentAccounts: async (page_no: number, page_size: number) => {
-        try {
-            let axiosOptions = Object.assign({}, getCommonHeaderOptions());
-            let response = await ApiClient.get(
-                URLS.GET_DEVELOPMENT_ACCOUNTS(page_no, page_size),
-                axiosOptions,
-            );
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
-    getLiveAccounts: async (page_no: number, page_size: number) => {
-        try {
-            let axiosOptions = Object.assign({}, getCommonHeaderOptions());
-            let response = await ApiClient.get(
-                URLS.GET_LIVE_ACCOUNTS(page_no, page_size),
-                axiosOptions,
-            );
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
+  updateLaunchURLPartners: async (
+    extension_api_key: string,
+    data: UpdateLaunchURLPayload,
+  ) => {
+    try {
+      const { headers } = getCommonHeaderOptions();
 
-    getExtensionList: async (page_no: number, page_size: number) => {
-        try {
-            let axiosOptions = Object.assign({}, getCommonHeaderOptions());
-            let response = await ApiClient.get(
-                URLS.GET_EXTENSION_LIST(page_no, page_size),
-                axiosOptions,
-            );
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
+      const response = await withoutErrorResponseInterceptorAxios.patch(
+        URLS.UPDATE_EXTENSION_DETAILS_PARTNERS(extension_api_key),
+        data,
+        { headers },
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 
-     // Extension Section
+  // Preview URL
+  getDevelopmentAccounts: async (page_no: number, page_size: number) => {
+    try {
+      const axiosOptions = { ...getCommonHeaderOptions() };
+      const response = await ApiClient.get(
+        URLS.GET_DEVELOPMENT_ACCOUNTS(page_no, page_size),
+        axiosOptions,
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  getLiveAccounts: async (page_no: number, page_size: number) => {
+    try {
+      const axiosOptions = { ...getCommonHeaderOptions() };
+      const response = await ApiClient.get(
+        URLS.GET_LIVE_ACCOUNTS(page_no, page_size),
+        axiosOptions,
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 
-     publishExtensionBindings: async (
-        extensionId: string,
-        organisationId: string,
-        data : any
-    ) => {
-        try {
-            const axiosOption = Object.assign(
-                {},
-                { data },
-                {
-                    headers: {
-                        ...getCommonHeaderOptions().headers,
-                        'x-application-data': '{}',
-                        'x-user-data': '{}',
-                    }
-                },
-            );
+  getExtensionList: async (page_no: number, page_size: number) => {
+    try {
+      const axiosOptions = { ...getCommonHeaderOptions() };
+      const response = await ApiClient.get(
+        URLS.GET_EXTENSION_LIST(page_no, page_size),
+        axiosOptions,
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 
-            const res = await ApiClient.post(
-                URLS.PUBLISH_SECTIONS(extensionId, organisationId),
-                axiosOption,
-            );
+  // Extension Section
 
-            return res.data;
-        } catch (error) {
-            throw error;
-        }
-    },
+  publishExtensionBindings: async (
+    extensionId: string,
+    organisationId: string,
+    data : any,
+  ) => {
+    try {
+      const axiosOption = {
 
-    previewExtensionBindings: async (
-        extensionId: string,
-        organisationId: string,
-        data : any
-    ) => {
-        try {
+        data,
+        headers: {
+          ...getCommonHeaderOptions().headers,
+          'x-application-data': '{}',
+          'x-user-data': '{}',
+        },
+      };
 
-            const axiosOption = Object.assign(
-                {},
-                { data },
-                {
-                    headers: {
-                        ...getCommonHeaderOptions().headers,
-                        'x-application-data': '{}',
-                        'x-user-data': '{}',
-                    }
-                },
-            );
+      const res = await ApiClient.post(
+        URLS.PUBLISH_SECTIONS(extensionId, organisationId),
+        axiosOption,
+      );
 
-            const res = await ApiClient.post(
-                URLS.PREVIEW_SECTIONS(extensionId, organisationId),
-                axiosOption,
-            );
+      return res.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 
-            return res.data;
-        } catch (error) {
-            throw error;
-        }
-    },
+  previewExtensionBindings: async (
+    extensionId: string,
+    organisationId: string,
+    data : any,
+  ) => {
+    try {
+      const axiosOption = {
 
-    deleteExtensionBindings: async (
-        extensionId: string,
-        organisationId: string,
-        data : any
-    ) => {
-        try {
+        data,
+        headers: {
+          ...getCommonHeaderOptions().headers,
+          'x-application-data': '{}',
+          'x-user-data': '{}',
+        },
+      };
 
-            const axiosOption = Object.assign(
-                {},
-                { data },
-                {
-                    headers: {
-                        ...getCommonHeaderOptions().headers,
-                        'x-application-data': '{}',
-                        'x-user-data': '{}',
-                    }
-                },
-            );
+      const res = await ApiClient.post(
+        URLS.PREVIEW_SECTIONS(extensionId, organisationId),
+        axiosOption,
+      );
 
-            const res = await ApiClient.del(
-                URLS.DELETE_SECTIONS(extensionId, organisationId),
-                axiosOption,
-            );
+      return res.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 
-            return res.data;
-        } catch (error) {
-            throw error;
-        }
-    },
+  deleteExtensionBindings: async (
+    extensionId: string,
+    organisationId: string,
+    data : any,
+  ) => {
+    try {
+      const axiosOption = {
 
-    draftExtensionBindings: async (
-        extensionId: string,
-        organisationId: string,
-        data : any
-    ) => {
-        try {
-            const axiosOption = Object.assign(
-                {},
-                { data },
-                {
-                    headers: {
-                        ...getCommonHeaderOptions().headers,
-                        'x-application-data': '{}',
-                        'x-user-data': '{}',
-                    }
-                },
-            );
+        data,
+        headers: {
+          ...getCommonHeaderOptions().headers,
+          'x-application-data': '{}',
+          'x-user-data': '{}',
+        },
+      };
 
-            const res = await ApiClient.post(
-                URLS.DRAFT_SECTIONS(extensionId, organisationId),
-                axiosOption,
-            );
+      const res = await ApiClient.del(
+        URLS.DELETE_SECTIONS(extensionId, organisationId),
+        axiosOption,
+      );
 
-            return res.data;
-        } catch (error) {
-            throw error;
-        }
-    },
+      return res.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 
-    getExtensionBindings: async (
-        extension_id: string,
-        organization_id: string,
-        binding_name : string,
-        accountType : string,
-        framework: string,
-    ) => {
-        try {
-            const axiosOption = Object.assign(
-                {},
-                { },
-                {
-                    headers: {
-                        ...getCommonHeaderOptions().headers,
-                        'x-application-data': '{}',
-                        'x-user-data': '{}',
-                    }
-                },
-            );
+  draftExtensionBindings: async (
+    extensionId: string,
+    organisationId: string,
+    data : any,
+  ) => {
+    try {
+      const axiosOption = {
 
-            const res = await ApiClient.get(
-                URLS.GET_EXTENSION_SECTIONS(extension_id, organization_id, binding_name, accountType, framework),
-                axiosOption,
-            );
+        data,
+        headers: {
+          ...getCommonHeaderOptions().headers,
+          'x-application-data': '{}',
+          'x-user-data': '{}',
+        },
+      };
 
-            return res.data;
-        } catch (error) {
-            throw error;
-        }
-    },
+      const res = await ApiClient.post(
+        URLS.DRAFT_SECTIONS(extensionId, organisationId),
+        axiosOption,
+      );
+
+      return res.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  getExtensionBindings: async (
+    extension_id: string,
+    organization_id: string,
+    binding_name : string,
+    accountType : string,
+    framework: string,
+  ) => {
+    try {
+      const axiosOption = {
+
+        headers: {
+          ...getCommonHeaderOptions().headers,
+          'x-application-data': '{}',
+          'x-user-data': '{}',
+        },
+      };
+
+      const res = await ApiClient.get(
+        URLS.GET_EXTENSION_SECTIONS(extension_id, organization_id, binding_name, accountType, framework),
+        axiosOption,
+      );
+
+      return res.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
