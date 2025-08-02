@@ -116,18 +116,12 @@ Command.prototype.asyncAction = async function (asyncFn: Action) {
         );
       }
 
-      const disableSSL = () => {
-        process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-        process.env.FDK_SSL_NO_VERIFY = 'true';
-      };
-
       const sharedInlineNoSSL = process.env.FDK_SSL_NO_VERIFY;
       const STRICT_SSL = configStore.get(CONFIG_KEYS.STRICT_SSL);
-      if (sharedInlineNoSSL == 'true') {
-        disableSSL();
-      }
-      if (!sharedInlineNoSSL && STRICT_SSL == 'false') {
-        disableSSL();
+      if (sharedInlineNoSSL == 'true' || STRICT_SSL == 'false') {
+        Logger.warn(
+          'SSL verification is required for secure connections. Please ensure proper configuration.',
+        );
       }
 
       if (process.env.FDK_SSL_NO_VERIFY == 'true') {
