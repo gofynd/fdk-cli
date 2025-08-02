@@ -356,7 +356,6 @@ describe('Theme Commands', () => {
     // user login
     configStore.set(CONFIG_KEYS.USER, data.user);
 
-    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
     const port = await getRandomFreePort([]);
     const app = await startServer(port);
     const req = request(app);
