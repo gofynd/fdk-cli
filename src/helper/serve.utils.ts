@@ -60,14 +60,21 @@ export function getPort(port) {
     return detect(port);
 }
 
-function createPreProxyMiddleware(currentDomain: string, options: any, withSignature: boolean) {
+function createPreProxyMiddleware(
+    currentDomain: string,
+    options: any,
+    withSignature: boolean,
+) {
     return async (req, res, next) => {
         // generating new signature for proxy server
         req.transformRequest = transformRequest;
 
         // Rewrite `/service` to `/api/service`
         if (req.originalUrl.startsWith('/service')) {
-            req.originalUrl = req.originalUrl.replace('/service', '/api/service');
+            req.originalUrl = req.originalUrl.replace(
+                '/service',
+                '/api/service',
+            );
         }
 
         req.url = req.originalUrl;
@@ -78,9 +85,6 @@ function createPreProxyMiddleware(currentDomain: string, options: any, withSigna
             req.data = req.body;
         }
 
-        delete req.headers['x-fp-signature'];
-        delete req.headers['x-fp-date'];
-
         const url = new URL(currentDomain);
         req.headers.host = url.host;
 
@@ -89,6 +93,9 @@ function createPreProxyMiddleware(currentDomain: string, options: any, withSigna
             const config = await addSignatureFn(options)(req);
             req.headers['x-fp-signature'] = config.headers['x-fp-signature'];
             req.headers['x-fp-date'] = config.headers['x-fp-date'];
+        } else {
+            delete req.headers['x-fp-signature'];
+            delete req.headers['x-fp-date'];
         }
         next();
     };
@@ -99,16 +106,16 @@ function applyProxy(app: any) {
     const currentDomain = `https://${currentContext.domain}`;
     let httpsAgent;
 
-    if(process.env.FDK_EXTRA_CA_CERTS){
+    if (process.env.FDK_EXTRA_CA_CERTS) {
         // Load the VPN's CA certificate
         const ca = fs.readFileSync(process.env.FDK_EXTRA_CA_CERTS);
         // Create an HTTPS agent with the CA certificate
-        httpsAgent = { ca }
+        httpsAgent = { ca };
     }
-    if(process.env.FDK_SSL_NO_VERIFY == 'true'){
-        httpsAgent = { rejectUnauthorized: false }
+    if (process.env.FDK_SSL_NO_VERIFY == 'true') {
+        httpsAgent = { rejectUnauthorized: false };
     }
-    if(httpsAgent){
+    if (httpsAgent) {
         httpsAgent = new https.Agent(httpsAgent);
     }
     const options = {
@@ -117,18 +124,26 @@ function applyProxy(app: any) {
         cookieDomainRewrite: '127.0.0.1', // rewrite cookies to localhost
         onProxyReq: fixRequestBody,
         onError: (error) => Logger.error(error),
-        agent: httpsAgent
+        agent: httpsAgent,
     };
 
     // proxy to solve CORS issue
     const corsProxy = createProxyMiddleware(options);
 
     // Middleware with signature regeneration
-    const withSignatureMiddleware = createPreProxyMiddleware(currentDomain, options, true);
+    const withSignatureMiddleware = createPreProxyMiddleware(
+        currentDomain,
+        options,
+        true,
+    );
     app.use(['/service', '/ext'], withSignatureMiddleware, corsProxy);
 
     // Middleware without signature regeneration
-    const withoutSignatureMiddleware = createPreProxyMiddleware(currentDomain, options, false);
+    const withoutSignatureMiddleware = createPreProxyMiddleware(
+        currentDomain,
+        options,
+        false,
+    );
     app.use(['/cdn'], withoutSignatureMiddleware, corsProxy);
 }
 
@@ -202,7 +217,8 @@ export async function startServer({ domain, host, isSSR, port }) {
         const acceptHeader = req.get('Accept');
         if (
             (acceptHeader && !acceptHeader.includes('text/html')) ||
-            req.path.includes('/public') || req.path.includes('/cdn')
+            req.path.includes('/public') ||
+            req.path.includes('/cdn')
         ) {
             // while text/html is a commonly included type, it's not a strict requirement for all browsers to include it in their Accept headers for HTML page requests.
             return await requestToOriginalSource(
@@ -239,8 +255,11 @@ export async function startServer({ domain, host, isSSR, port }) {
                 // but sometime it may happen that development is going on and auth token gets expired
                 // in that case API will give 401 error and AUTH_TOKEN from config will be removed
                 // if before code exits, if any request comes here then we need to check if it is exist or not
-                if(!User){
-                    throw new CommandError(COMMON_LOG_MESSAGES.RequireAuth, "401");
+                if (!User) {
+                    throw new CommandError(
+                        COMMON_LOG_MESSAGES.RequireAuth,
+                        '401',
+                    );
                 }
                 themeUrl = (
                     await UploadService.uploadFile(
@@ -253,14 +272,14 @@ export async function startServer({ domain, host, isSSR, port }) {
                 jetfireUrl.searchParams.set('__csr', 'true');
             }
             // Bundle directly passed on with POST request body.
-            const { data: html } : { data : string} = await axios({
+            const { data: html }: { data: string } = await axios({
                 method: 'POST',
                 url: jetfireUrl.toString(),
                 headers,
                 data: {
                     theme_url: themeUrl,
                     domain: getFullLocalUrl(port),
-                }
+                },
             });
 
             let $ = cheerio.load(html);
@@ -334,17 +353,20 @@ export async function startServer({ domain, host, isSSR, port }) {
                     stack?.forEach(({ methodName, lineNumber, column }) => {
                         try {
                             if (lineNumber == null || lineNumber < 1) {
-                                errorString += `<p>      at  <strong>${methodName || ''
-                                    }</strong></p>`;
+                                errorString += `<p>      at  <strong>${
+                                    methodName || ''
+                                }</strong></p>`;
                             } else {
                                 const pos = smc.originalPositionFor({
                                     line: lineNumber,
                                     column,
                                 });
                                 if (pos && pos.line != null) {
-                                    errorString += `<p>      at  <strong>${methodName || pos.name || ''
-                                        }</strong> (${pos.source}:${pos.line}:${pos.column
-                                        })</p>`;
+                                    errorString += `<p>      at  <strong>${
+                                        methodName || pos.name || ''
+                                    }</strong> (${pos.source}:${pos.line}:${
+                                        pos.column
+                                    })</p>`;
                                 }
                             }
                         } catch (err) {
@@ -369,7 +391,8 @@ export async function startServer({ domain, host, isSSR, port }) {
                 return reject(err);
             }
             Logger.info(
-                `Starting starter at port -- ${port} in ${isSSR ? 'SSR' : 'Non-SSR'
+                `Starting starter at port -- ${port} in ${
+                    isSSR ? 'SSR' : 'Non-SSR'
                 } mode`,
             );
             Logger.info(`************* Using Debugging build`);
@@ -382,18 +405,20 @@ async function startTunnel(port: number) {
     try {
         const tunnelInstance = new Tunnel({
             port,
-        })
+        });
 
         const tunnelUrl = await tunnelInstance.startTunnel();
 
         Logger.info(`
-            Started cloudflare tunnel at ${port}: ${tunnelUrl}`)
+            Started cloudflare tunnel at ${port}: ${tunnelUrl}`);
         return {
             url: tunnelUrl,
             port,
         };
     } catch (error) {
-        Logger.error('Error during starting cloudflare tunnel: ' + error.message);
+        Logger.error(
+            'Error during starting cloudflare tunnel: ' + error.message,
+        );
         return;
     }
 }
@@ -442,7 +467,7 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
         app.use(webpackHotMiddleware(compiler));
     }
     app.use(express.static(path.resolve(process.cwd(), SERVE_BUILD_FOLDER)));
-    
+
     applyProxy(app);
 
     app.use((request, response, next) => {
@@ -459,34 +484,45 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
         next();
     });
 
-
     const uploadedFiles = {};
 
     app.get('/translate-ui-labels', (req, res) => {
         const locale = req.query.locale || DEFAULT_LOCALE;
-        const localesFolder: string = path.join(process.cwd(), 'theme', 'locales');
+        const localesFolder: string = path.join(
+            process.cwd(),
+            'theme',
+            'locales',
+        );
         if (!fs.existsSync(localesFolder)) {
             Logger.debug(`Locales folder not found: ${localesFolder}`);
             return res.json({ items: [] });
         }
-        const locales = fs.readdirSync(localesFolder).filter(file => !file.endsWith('.schema.json') && file.split('.')[0] === locale);        
+        const locales = fs
+            .readdirSync(localesFolder)
+            .filter(
+                (file) =>
+                    !file.endsWith('.schema.json') &&
+                    file.split('.')[0] === locale,
+            );
         const localesArray = [];
 
         // Read content of each locale file
-        locales.forEach(locale => {
+        locales.forEach((locale) => {
             const filePath = path.join(localesFolder, locale);
             try {
                 const content = fs.readFileSync(filePath, 'utf8');
                 localesArray.push({
-                    "locale":locale.replace('.json', ''),
-                    "resource":JSON.parse(content)
+                    locale: locale.replace('.json', ''),
+                    resource: JSON.parse(content),
                 });
             } catch (error) {
-                Logger.error(`Error reading locale file ${locale}: ${error.message}`);
+                Logger.error(
+                    `Error reading locale file ${locale}: ${error.message}`,
+                );
             }
         });
-        
-        res.json({"items":localesArray});
+
+        res.json({ items: localesArray });
     });
 
     app.get('/*', async (req, res) => {
@@ -495,7 +531,8 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
             const acceptHeader = req.get('Accept');
             if (
                 (acceptHeader && !acceptHeader.includes('text/html')) ||
-                req.path.includes('/public') || req.path.includes('/cdn')
+                req.path.includes('/public') ||
+                req.path.includes('/cdn')
             ) {
                 // while text/html is a commonly included type, it's not a strict requirement for all browsers to include it in their Accept headers for HTML page requests.
                 return await requestToOriginalSource(
@@ -505,14 +542,25 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
                     currentContext.theme_id,
                 );
             }
-            const BUNDLE_DIR = path.join(process.cwd(), path.join('.fdk', 'distServed'));
-            if (req.originalUrl == '/favicon.ico' || req.originalUrl == '/.webp') {
+            const BUNDLE_DIR = path.join(
+                process.cwd(),
+                path.join('.fdk', 'distServed'),
+            );
+            if (
+                req.originalUrl == '/favicon.ico' ||
+                req.originalUrl == '/.webp'
+            ) {
                 return res.status(404).send('Not found');
             }
             // While build is not complete
             if (!fs.existsSync(path.join(BUNDLE_DIR, 'themeBundle.umd.js'))) {
                 return res.sendFile(
-                    path.join(__dirname, '../../', '/dist/helper', '/loader.html'),
+                    path.join(
+                        __dirname,
+                        '../../',
+                        '/dist/helper',
+                        '/loader.html',
+                    ),
                 );
             }
             const skyfireUrl = new URL(urlJoin(domain, req.originalUrl));
@@ -529,7 +577,8 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
             const promises = [];
             const themeURLs: any = {};
             for (let fileName of buildFiles) {
-                const { extension, componentName } = parseBundleFilename(fileName);
+                const { extension, componentName } =
+                    parseBundleFilename(fileName);
                 if (
                     ['js', 'css'].includes(extension) &&
                     requiredFiles.indexOf(componentName) !== -1 &&
@@ -541,7 +590,8 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
                         User.current_user._id,
                     ).then((response) => {
                         const url = response.complete.cdn.url;
-                        themeURLs[componentName] = themeURLs[componentName] || {};
+                        themeURLs[componentName] =
+                            themeURLs[componentName] || {};
                         themeURLs[componentName][extension] = url;
                     });
                     promises.push(promise);
@@ -577,8 +627,9 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 				<script>
 				var socket = io();
 				socket.on('reload',function(){
-					${isHMREnabled
-                    ? `
+					${
+                        isHMREnabled
+                            ? `
 						try {
 							window.APP_DATA.themeBundleUMDURL = '/themeBundle.umd.js';
 							window.APP_DATA.isServerRendered = false;
@@ -591,19 +642,19 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 							window.loadApp().catch(console.log);
 						} catch(e) { console.log( e );}
 					`
-                    : `
+                            : `
 						window.location.reload();
 					`
-                }
+                    }
 
 				});
 				</script>
 			`);
-            const finalHTML = $.html()
+            const finalHTML = $.html();
             res.send(finalHTML);
-        } catch (error) { 
+        } catch (error) {
             Logger.debug(error);
-            res.send(error)
+            res.send(error);
         }
     });
 
