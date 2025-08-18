@@ -152,6 +152,26 @@ async function promptDevelopmentCompany(choices, promptMessage = undefined): Pro
     return companyId;
 }
 
+async function promptApplicationId(choices, promptMessage = undefined): Promise<number> {
+    let applicationId: number;
+    try {
+        let answers = await inquirer.prompt([
+            {
+                type: 'list',
+                choices: choices,
+                name: 'application_id',
+                message: promptMessage || 'Application Id:',
+                pageSize: 6,
+                validate: validateEmpty,
+            },
+        ]);
+        applicationId = answers.application_id;
+    } catch (error) {
+        throw new CommandError(error.message);
+    }
+    return applicationId;
+}
+
 export const getActiveContext = (throwError = false) => {
     let contextData: Object = {};
     try {
@@ -254,4 +274,47 @@ export async function getRandomFreePort(excluded_port = []) {
     } else {
         return await getRandomFreePort([...excluded_port, randomPort]);
     }
+}
+
+export const getApplicationId = async (companyId: number, promptMessage = undefined) => {
+    const applicationList = await ExtensionService.getApplicationList(companyId, 1, 9999);
+    let choices = [];
+    applicationList.items.map((data) => {
+        choices.push({ name: data.name, value: data._id });
+    });
+
+    if (choices.length === 0) {
+        const createApplicationFormURL =  urljoin(
+                getPlatformUrls().platform,
+                'company',
+                companyId.toString(),
+            )
+           
+        Logger.info(
+            chalk.yellowBright(
+                `You don't have application under company "${companyId}", You can create application from ${OutputFormatter.link(createApplicationFormURL)} and try again.`,
+            ),
+        );
+
+        throw new CommandError(
+            ErrorCodes.NO_DEVELOPMENT_COMPANY.message,
+            ErrorCodes.NO_DEVELOPMENT_COMPANY.code,
+        );
+    }
+
+    return await promptApplicationId(choices, promptMessage);
+}
+
+export const checkAndValidatePaymentSlug = async(slug: string) => {
+    const validInput =  validateEmpty(slug);
+    if(!validInput){
+        return 'Slug is required';
+    }
+
+    const isSlugAvailable = await ExtensionService.checkPaymentSlug(slug);
+    if(!isSlugAvailable.is_valid && isSlugAvailable.error_message){
+        return isSlugAvailable.error_message;
+    }
+
+    return true;
 }

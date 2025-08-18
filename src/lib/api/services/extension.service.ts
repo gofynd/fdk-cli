@@ -27,8 +27,8 @@ export default {
             let headers = getCommonHeaderOptions().headers;
             data.scope = ['company/profile'];
             data.logo = {
-                small: 'https://res.cloudinary.com/dwzm9bysq/image/upload/v1566539375/production/media/store/logo/jwosxsgh9ufoucdxpm10.png',
-                large: 'https://res.cloudinary.com/dwzm9bysq/image/upload/v1566539375/production/media/store/logo/jwosxsgh9ufoucdxpm10.png',
+                "small": "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/misc/pictures/free-icon/original/YmPWIj2KN-logo.png",
+                "large": "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/misc/pictures/free-icon/original/YmPWIj2KN-logo.png"
             };
 
             let axiosOptions = Object.assign(
@@ -299,4 +299,24 @@ export default {
             throw error;
         }
     },
+
+    getApplicationList: async (companyId: number, page_no: number, page_size: number) => {
+        try {
+            const axiosOption = Object.assign({}, getCommonHeaderOptions());
+            const res = await ApiClient.get(URLS.GET_APPLICATION_LIST(companyId, page_no, page_size), axiosOption);
+            return res.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    checkPaymentSlug: async (slug: string) => {
+        try {
+            const axiosOption = Object.assign({}, getCommonHeaderOptions());
+            const res = await ApiClient.get(URLS.CHECK_PAYMENT_SLUG(slug), axiosOption);
+            return res.data;
+        } catch (error) {
+            throw error;
+        }
+    }
 };
