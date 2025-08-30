@@ -47,6 +47,11 @@ export const getApp = async () => {
             if (Auth.wantToChangeOrganization){
                 ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
                 clearExtensionContext();
+                const currentEnv = ConfigStore.get(
+                    CONFIG_KEYS.CURRENT_ENV_VALUE,
+                );
+                ConfigStore.clear();
+                ConfigStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, currentEnv);
             }
             const expiryTimestamp =
                 Math.floor(Date.now() / 1000) + req.body.auth_token.expires_in;
@@ -248,6 +253,7 @@ export default class Auth {
         ConfigStore.clear();
         ConfigStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, currentEnv);
         ConfigStore.set(CONFIG_KEYS.EXTRAS, extras);
+        ConfigStore.set('extensionSections', {});
     }
 
     public static getUserInfo() {

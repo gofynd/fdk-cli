@@ -123,8 +123,21 @@ function getErrorMessage(error) {
 export function responseErrorInterceptor() {
     return (error) => {
         // Request made and server responded
-        Debug(error);
+        Debug(`Error recieved from backend: ${JSON.stringify(error)}`);
+
+        let errorCode = "";
+        let errorMessage = error?.response?.data?.message;
+        if(error?.response?.data?.code){
+            errorCode = error.response.data.code.replace(/_([a-z])/g, (match, letter)=> letter.toUpperCase());
+        }
         if (
+            error.response &&
+            (error.response.status === 401 || error.response.status === 403) &&
+            errorMessage && !errorMessage.includes('login')
+        ) {
+            throw new CommandError(errorMessage, error.response.status);
+        }
+        else if (
             error.response &&
             (error.response.status === 401 || error.response.status === 403)
         ) {

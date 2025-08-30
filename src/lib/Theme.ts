@@ -371,7 +371,7 @@ export default class Theme {
                 throw new CommandError(`Folder ${options.name} already exists`);
             }
 
-            const configObj = await Theme.selectCompanyAndStore();
+            const configObj: any = await Theme.selectCompanyAndStore();
             const { data: appConfig } =
                 await ConfigurationService.getApplicationDetails(configObj);
 
@@ -520,7 +520,7 @@ export default class Theme {
                 options,
                 targetDirectory,
                 appConfig,
-                themeType,
+                themeType
             );
             shouldDelete = true;
             process.chdir(path.join('.', options.name));
@@ -632,7 +632,6 @@ export default class Theme {
             });
             Logger.info(b5.toString());
         } catch (error) {
-            Logger.error(error);
             if (shouldDelete) await Theme.cleanUp(targetDirectory);
             throw new CommandError(error.message, error.code);
         }
@@ -643,7 +642,7 @@ export default class Theme {
         let targetDirectory = '';
         let dir_name = 'default';
         try {
-            let configObj = await Theme.selectCompanyAndStore();
+            let configObj: any = await Theme.selectCompanyAndStore();
             configObj = await Theme.selectTheme(configObj);
             const { data: appConfig } =
                 await ConfigurationService.getApplicationDetails(configObj);
@@ -962,7 +961,6 @@ export default class Theme {
             });
             Logger.debug(b5.toString());
         } catch (error) {
-            Logger.error(error);
             throw new CommandError(error.message, error.code);
         } finally {
             rimraf.sync(path.join(process.cwd(), Theme.SRC_FOLDER));
@@ -3312,7 +3310,7 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
         options,
         targetDirectory,
         appConfig,
-        themeType,
+        themeType
     ) => {
         const defaultTheme = await ThemeService.getDefaultTheme({
             company_id: appConfig.company_id,

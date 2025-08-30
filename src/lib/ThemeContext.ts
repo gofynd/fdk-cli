@@ -33,7 +33,7 @@ export default class ThemeContext {
                 throw new CommandError(
                     'Context with the same name already exists',
                 );
-            let configObj = await Theme.selectCompanyAndStore();
+            let configObj: any = await Theme.selectCompanyAndStore();
             configObj = await Theme.selectTheme(configObj);
             const { data: appConfig } =
                 await ConfigurationService.getApplicationDetails(configObj);

@@ -137,7 +137,7 @@ export default class ExtensionSection {
 
                             if (!extensions?.length) {
                                 throw new Error(
-                                    'No installed extensions found!',
+                                    'No extension found in the organization!',
                                 );
                             }
                             const selectedExtensionName = await promptUser({
@@ -151,13 +151,15 @@ export default class ExtensionSection {
                             )?._id;
                         } catch (error) {
                             Logger.error(
-                                'Could not fetch the list of extensions',
+                                error.message
                             );
-                            extensionId = await promptUser({
-                                type: 'text',
-                                name: 'extensionId',
-                                message: 'Please Enter your extensionId: ',
-                            });
+                            if(error.code !== 403 && error.code !== 401){
+                                extensionId = await promptUser({
+                                    type: 'text',
+                                    name: 'extensionId',
+                                    message: 'Please Enter your extensionId: ',
+                                });
+                            }
                         } finally {
                             Configstore.set(
                                 'extensionSections.extensionId',
@@ -202,8 +204,10 @@ export default class ExtensionSection {
                             themeId: undefined,
                             companyType: 'live',
                         };
+                        let isError = false;
+                        let errorObj: any;
                         try {
-                            const configObj =
+                            const configObj: any =
                                 await Theme.selectCompanyAndStore();
                             const { data: appConfig } =
                                 await configurationService.getApplicationDetails(
@@ -223,15 +227,23 @@ export default class ExtensionSection {
                                 companyType: configObj['accountType'],
                             };
                         } catch (error) {
-                            Logger.error('Could not fetch the applied!');
-                            for (let lkey in themeDetails) {
-                                themeDetails[lkey] = await promptUser({
-                                    type: 'text',
-                                    name: lkey,
-                                    message: `Please enter ${lkey}: `,
-                                });
+                            Logger.error('Could not fetch the applied themes!');
+                            if(error.code !== 403 && error.code !== 401){
+                                for (let lkey in themeDetails) {
+                                    themeDetails[lkey] = await promptUser({
+                                        type: 'text',
+                                        name: lkey,
+                                        message: `Please enter ${lkey}: `,
+                                    });
+                                }
+                            } else {
+                                isError = true;
+                                errorObj = error;
                             }
                         } finally {
+                            if(isError){
+                                throw errorObj;
+                            }
                             Configstore.set(
                                 'extensionSections.appliedTheme',
                                 themeDetails,
@@ -242,7 +254,9 @@ export default class ExtensionSection {
                     default:
                         return null;
                 }
-            } catch (error) { }
+            } catch (error) { 
+                throw new CommandError(error.message);
+            }
         }
 
         if (!Configstore.all.extensionSections) {
@@ -280,6 +294,9 @@ export default class ExtensionSection {
             const userInput = {};
             for (let val in missingKeys) {
                 const result = await getOption(missingKeys[val]);
+                if(!result){
+                    break;
+                }
                 userInput[missingKeys[val]] = result;
             }
 
@@ -287,7 +304,7 @@ export default class ExtensionSection {
 
             return finalContext;
         } catch (error) {
-            console.log(error);
+            throw new CommandError(error.message);
         }
     }
 
@@ -373,6 +390,10 @@ export default class ExtensionSection {
                 } else {
                     throw new CommandError('Unsupported framework!');
                 }
+            } else if(bindingInterface) {
+                throw new CommandError(
+                    'Unsupported Interface! Only Web Themes are supported',
+                );
             }
 
 
@@ -457,18 +478,19 @@ export default class ExtensionSection {
                     context,
                     sectionData.status,
                 );
+                 Logger.info('Code published ...');
+
             } else {
                 throw new CommandError(
                     'Unsupported Framework! Only react and vue2 are supported',
                 );
             }
-        } else {
+        } else if(bindingInterface) {
             throw new CommandError(
                 'Unsupported Interface! Only Web Themes are supported',
             );
         }
 
-        Logger.info('Code published ...');
     }
 
     static async buildExtensionCodeVue({ bundleName }) {
@@ -678,18 +700,18 @@ export default class ExtensionSection {
                     context,
                     sectionData.status,
                 );
+                Logger.info('Draft successful!');
             } else {
                 throw new CommandError(
                     'Unsupported Framework! Only react and vue2 are supported',
                 );
             }
-        } else {
+        } else if(bindingInterface) {
             throw new CommandError(
                 'Unsupported Interface! Only Web Themes are supported',
             );
         }
 
-        Logger.info('Draft successful!');
     }
 
     static async watchExtensionCodeBuild(
@@ -831,7 +853,7 @@ export default class ExtensionSection {
                 data,
             );
         } catch (error) {
-            console.log(error);
+            throw new CommandError(error.message);
         }
     }
     public static async previewExtension(options: any) {
@@ -996,7 +1018,7 @@ export default class ExtensionSection {
                     'Unsupported Framework! Only react and vue2 are supported',
                 );
             }
-        } else {
+        } else if(bindingInterface) {
             throw new CommandError(
                 'Unsupported Interface! Only Web Themes are supported',
             );

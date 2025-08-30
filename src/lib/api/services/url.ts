@@ -102,7 +102,7 @@ export const URLS = {
         );
     },
 
-    GET_APPLIED_THEME: (company_id: number, application_id: string) => {
+        GET_APPLIED_THEME: (company_id: number, application_id: string) => {
         return urlJoin(
             THEME_URL(),
             `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/applied-theme`,
