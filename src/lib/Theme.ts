@@ -1,11 +1,9 @@
 import {
     asyncForEach,
     createContext,
-    decodeBase64,
     evaluateModule,
     getActiveContext,
     pageNameModifier,
-    isAThemeDirectory,
     installNpmPackages,
     ThemeContextInterface,
     parseBundleFilename,
@@ -14,11 +12,10 @@ import {
     FDK_PATH,
 } from '../helper/utils';
 import CommandError, { ErrorCodes } from './CommandError';
-import Logger, { COMMON_LOG_MESSAGES } from './Logger';
+import Logger from './Logger';
 import ConfigurationService from './api/services/configuration.service';
 import fs from 'fs-extra';
 import path from 'path';
-import execa from 'execa';
 import rimraf from 'rimraf';
 import terminalLink from 'terminal-link';
 import chalk from 'chalk';
@@ -877,7 +874,6 @@ export default class Theme {
                 destFolder: Theme.SRC_ARCHIVE_FOLDER,
                 zipFileName: Theme.ZIP_FILE_NAME,
             });
-            // await Theme.copyReactThemeSourceToFdkFolder();
 
             Logger.debug('Uploading theme source code zip file');
             let srcCdnUrl = await Theme.uploadThemeSrcZip();
@@ -960,7 +956,7 @@ export default class Theme {
                         ),
                     ),
             });
-            Logger.debug(b5.toString());
+            Logger.info(b5.toString());
         } catch (error) {
             Logger.error(error);
             throw new CommandError(error.message, error.code);
@@ -1988,46 +1984,6 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
                 path.join(process.cwd(), 'package.json'),
                 path.join(process.cwd(), Theme.SRC_FOLDER, 'package.json'),
             );
-            await archiveFolder({
-                srcFolder: Theme.SRC_FOLDER,
-                destFolder: Theme.SRC_ARCHIVE_FOLDER,
-                zipFileName: Theme.ZIP_FILE_NAME,
-            });
-        } catch (err) {
-            throw new CommandError(
-                `Failed to copying theme files to .fdk folder`,
-            );
-        }
-    };
-
-    private static copyReactThemeSourceToFdkFolder = async () => {
-        try {
-            await fs.copy(
-                path.join(process.cwd(), 'theme'),
-                path.join(process.cwd(), Theme.SRC_FOLDER),
-            );
-            fs.copyFileSync(
-                path.join(process.cwd(), 'package.json'),
-                path.join(process.cwd(), Theme.SRC_FOLDER, 'package.json'),
-            );
-
-            if (fs.existsSync(path.join(process.cwd(), 'webpack.config.js'))) {
-                fs.copyFileSync(
-                    path.join(process.cwd(), 'webpack.config.js'),
-                    path.join(
-                        process.cwd(),
-                        Theme.SRC_FOLDER,
-                        'webpack.config.js',
-                    ),
-                );
-            }
-            if (fs.existsSync(path.join(process.cwd(), 'config.json'))) {
-                fs.copyFileSync(
-                    path.join(process.cwd(), 'config.json'),
-                    path.join(process.cwd(), Theme.SRC_FOLDER, 'config.json'),
-                );
-            }
-
             await archiveFolder({
                 srcFolder: Theme.SRC_FOLDER,
                 destFolder: Theme.SRC_ARCHIVE_FOLDER,
