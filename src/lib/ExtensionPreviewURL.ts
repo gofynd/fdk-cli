@@ -169,7 +169,7 @@ export default class ExtensionPreviewURL {
             }
 
             // Get application list when extension launch type is payment
-            if(extensionDetails.launch_type.includes('payment')){
+            if(extensionDetails?.launch_type?.includes('payment')){
                 extension.options.applicationId = await getApplicationId(extension.options.companyId);
             }
 
