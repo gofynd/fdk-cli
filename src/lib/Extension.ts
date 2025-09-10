@@ -208,6 +208,8 @@ export default class Extension {
                 ...answers,
                 ...prompt_answers,
             };
+            // save extension launch type to config
+            ConfigStore.set(CONFIG_KEYS.EXTENSION_LAUNCH_TYPE, answers.launch_type.toLowerCase());
             
             await Extension.createExtension(answers, action === INIT_ACTIONS.create_extension);
         } catch (error) {

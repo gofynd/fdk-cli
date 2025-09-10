@@ -68,6 +68,10 @@ export const ErrorCodes = {
             'fdk.ext.config.json or fdk.ext.config.yml file is in invalid format',
         code: 'FDK-0018',
     },
+    INVALID_EXTENSION_LAUNCH_TYPE: {
+        message: 'Invalid extension launch type',
+        code: 'FDK-0019',
+    },
 
     // generic
     ECONN_RESET: {
