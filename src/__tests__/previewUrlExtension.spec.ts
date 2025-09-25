@@ -146,7 +146,8 @@ describe('Extension preview-url command', () => {
             .onGet(URLS.GET_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY))
             .reply(200, {
                 client_data: {
-                    secret: [EXTENSION_SECRET]
+                    secret: [EXTENSION_SECRET],
+                    launch_type: 'company'
                 }
             })
 

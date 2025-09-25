@@ -15,6 +15,7 @@ export const CONFIG_KEYS = {
     EXTRAS: 'extras',
     STRICT_SSL: 'extras.strict_ssl',
     CA_FILE: 'extras.ca_file',
+    EXTENSION_LAUNCH_TYPE: 'extension_launch_type',
 };
 
 // global config store - The config is stored in a JSON file located in $XDG_CONFIG_HOME or ~/.config

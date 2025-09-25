@@ -57,21 +57,21 @@ export const TEMPLATES = {
         repo: 'https://github.com/gofynd/example-extension-javascript-react',
         launchTypes: ['Company', 'Application']
     },
-    'node-next': {
-        name: 'Node + Next.js + SQLite',
-        repo: 'https://github.com/gofynd/example-extension-nextjs',
-        launchTypes: ['Company', 'Application']
-    },
-    'java-vue': {
-        name: 'Java + Vue 2 + SQLite',
-        repo: 'https://github.com/gofynd/example-extension-java-vue',
-        launchTypes: ['Company', 'Application']
-    },
-    'java-react': {
-        name: 'Java + React.js + SQLite',
-        repo: 'https://github.com/gofynd/example-extension-java-react',
-        launchTypes: ['Company', 'Application']
-    },
+    // 'node-next': {
+    //     name: 'Node + Next.js + SQLite',
+    //     repo: 'https://github.com/gofynd/example-extension-nextjs',
+    //     launchTypes: ['Company', 'Application']
+    // },
+    // 'java-vue': {
+    //     name: 'Java + Vue 2 + SQLite',
+    //     repo: 'https://github.com/gofynd/example-extension-java-vue',
+    //     launchTypes: ['Company', 'Application']
+    // },
+    // 'java-react': {
+    //     name: 'Java + React.js + SQLite',
+    //     repo: 'https://github.com/gofynd/example-extension-java-react',
+    //     launchTypes: ['Company', 'Application']
+    // },
     'payment-node-react': {
         name: 'Node + React.js + SQLite(Payment)',
         repo: 'https://github.com/gofynd/payment-extension-boilerplate',
@@ -124,8 +124,8 @@ export const INIT_ACTION_LIST = [
 export const PROJECT_REPOS = {
     [TEMPLATES['node-vue'].name]: TEMPLATES['node-vue'].repo,
     [TEMPLATES['node-react'].name]: TEMPLATES['node-react'].repo,
-    [TEMPLATES['node-next'].name]: TEMPLATES['node-next'].repo,
-    [TEMPLATES['java-vue'].name]: TEMPLATES['java-vue'].repo,
-    [TEMPLATES['java-react'].name]: TEMPLATES['java-react'].repo,
+    // [TEMPLATES['node-next'].name]: TEMPLATES['node-next'].repo,
+    // [TEMPLATES['java-vue'].name]: TEMPLATES['java-vue'].repo,
+    // [TEMPLATES['java-react'].name]: TEMPLATES['java-react'].repo,
     [TEMPLATES['payment-node-react'].name]: TEMPLATES['payment-node-react'].repo
 };

@@ -16,6 +16,7 @@ import {
     validateEmpty,
     replaceContent,
     selectExtensionFromList,
+    checkAndValidatePaymentSlug
 } from '../helper/extension_utils';
 
 import { createDirectory, writeFile, readFile } from '../helper/file.utils';
@@ -163,30 +164,43 @@ export default class Extension {
                         type: 'input',
                         name: 'payment_mode_slug',
                         message: 'Enter Payment Mode Slug:',
-                        validate: validateEmpty,
+                        validate: checkAndValidatePaymentSlug,
                     },
                 ]);
                 prompt_answers = { ...prompt_answers, ...paymentModeAnswer };
             }
 
-            // Always prompt for template selection after launch_type is set
-            const templateAnswer = await inquirer.prompt([
-                Extension.getTemplateQuestion(prompt_answers.launch_type || prompt_answers.launch_type || LAUNCH_TYPES.COMPANY)
-            ]);
-            prompt_answers = { ...prompt_answers, ...templateAnswer };
+            if(template){
+                const selectedLaunchType = prompt_answers.launch_type;
+                if(TEMPLATES[template].launchTypes.includes(selectedLaunchType)){
+                    prompt_answers.project_type = TEMPLATES[template].name;
+                } else {
+                    throw new CommandError(
+                        `Invalid Extension launch type for "${template}" template. Available options are:  ${TEMPLATES[template].launchTypes.join(", ")}`,
+                        ErrorCodes.INVALID_INPUT.code
+                    );
+                }
+
+            } else {
+                // Always prompt for template selection after launch_type is set
+                const templateAnswer = await inquirer.prompt([
+                    Extension.getTemplateQuestion(prompt_answers.launch_type || LAUNCH_TYPES.COMPANY)
+                ]);
+                prompt_answers = { ...prompt_answers, ...templateAnswer };
+            }
 
             if(action === INIT_ACTIONS.select_extension){
                 prompt_answers.type = selected_ext_type;
             }
 
-            if (prompt_answers.project_type === TEMPLATES['java-react'].name || prompt_answers.project_type === TEMPLATES['java-vue'].name) {
-                checkRequiredDependencies([
-                    {
-                        name: 'mvn',
-                        errorMessage: 'Please Install Maven to create Java based extension. Refer https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html to install Maven'
-                    }
-                ])   
-            }
+            // if (prompt_answers.project_type === TEMPLATES['java-react'].name || prompt_answers.project_type === TEMPLATES['java-vue'].name) {
+            //     checkRequiredDependencies([
+            //         {
+            //             name: 'mvn',
+            //             errorMessage: 'Please Install Maven to create Java based extension. Refer https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html to install Maven'
+            //         }
+            //     ])   
+            // }
 
             answers.launch_url = 'http://localdev.fyndx0.de';
             answers.project_url = getRepoUrlForTemplate(prompt_answers.project_type);
@@ -194,6 +208,8 @@ export default class Extension {
                 ...answers,
                 ...prompt_answers,
             };
+            // save extension launch type to config
+            ConfigStore.set(CONFIG_KEYS.EXTENSION_LAUNCH_TYPE, answers.launch_type.toLowerCase());
             
             await Extension.createExtension(answers, action === INIT_ACTIONS.create_extension);
         } catch (error) {

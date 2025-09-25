@@ -1,5 +1,5 @@
 import qs from 'query-string';
-import axios, { AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
+import axios, { InternalAxiosRequestConfig } from 'axios';
 import combineURLs from 'axios/lib/helpers/combineURLs';
 import isAbsoluteURL from 'axios/lib/helpers/isAbsoluteURL';
 

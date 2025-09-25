@@ -327,7 +327,7 @@ describe('Theme Commands', () => {
         ).reply(200, deleteData);
         mock.onDelete(availablePage).reply(200, deleteAvailablePage);
 
-        mock.onGet(`${URLS.GET_APPLICATION_LIST(appConfig.company_id)}`).reply(
+        mock.onGet(`${URLS.GET_APPLICATION_LIST(appConfig.company_id, 1, 999)}`).reply(
             200,
             appList,
         );
