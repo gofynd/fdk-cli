@@ -95,7 +95,7 @@ export function extensionWebpackConfig(env: ExtensionBuildContext, webpackConfig
         mode: 'production',
         target: 'node',
         externals: {
-            react: 'fs',
+            react: 'React',
             'fdk-core/components': 'fs',
             'react-router-dom': 'fs',
             'fdk-core/utils': 'fs',
