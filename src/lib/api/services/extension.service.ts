@@ -26,10 +26,6 @@ export default {
         try {
             let headers = getCommonHeaderOptions().headers;
             data.scope = ['company/profile'];
-            data.logo = {
-                "small": "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/misc/pictures/free-icon/original/YmPWIj2KN-logo.png",
-                "large": "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/misc/pictures/free-icon/original/YmPWIj2KN-logo.png"
-            };
 
             let axiosOptions = Object.assign(
                 {},
