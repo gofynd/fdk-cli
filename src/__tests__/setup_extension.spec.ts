@@ -221,9 +221,6 @@ describe('Extension Commands', () => {
         }
         // Wait for any pending promises to resolve
         await new Promise((resolve) => setImmediate(resolve));
-        // Clear any remaining axios interceptors
-        axios.interceptors.request.clear();
-        axios.interceptors.response.clear();
 
         // Force cleanup of any remaining timers or intervals
         jest.clearAllTimers();
