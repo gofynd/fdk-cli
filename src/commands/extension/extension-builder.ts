@@ -10,6 +10,7 @@ export default function extensionCommandBuilder() {
         .description('Extension Commands');
     extension
         .command('init')
+        .aliases(['i'])
         .description('Initialize extension')
         .option('--template <template-name>', 'Create extension from specific template')
         .option(
@@ -20,7 +21,7 @@ export default function extensionCommandBuilder() {
 
     extension
         .command('preview-url')
-        .aliases(['preview'])
+        .aliases(['preview', 'p'])
         .description('Get extension preview url to launch the extension')
         .option('--api-key <api-key>', 'Extension API Key')
         .option('--company-id <id>', 'Company ID')
@@ -32,17 +33,19 @@ export default function extensionCommandBuilder() {
         .option('--custom-tunnel', 'Use custom tunnel url for extension preview')
         .asyncAction(ExtensionPreviewURL.previewUrlExtensionHandler);
 
-    const launch_url = new Command('launch-url').description(
-        'launch url commands',
-    );
+    const launch_url = new Command('launch-url')
+        .aliases(['lu'])
+        .description('launch url commands');
     launch_url
         .command('get')
+        .aliases(['g'])
         .description('Get current launch url for extension')
         .option('--api-key <api-key>', 'Extension API key')
         .asyncAction(ExtensionLaunchURL.getLaunchURLHandler);
 
     launch_url
         .command('set')
+        .aliases(['s'])
         .description('Set a launch url for extension')
         .option('--api-key <api-key>', 'Extension API key')
         .option('--url <launch-url>', 'Launch url')
@@ -54,6 +57,7 @@ export default function extensionCommandBuilder() {
 
     extension
         .command('pull-env')
+        .aliases(['pe'])
         .description('Pull environment variable for the extension from partners panel')
         .asyncAction(ExtensionEnv.extensionEnvPullHandler);
 
