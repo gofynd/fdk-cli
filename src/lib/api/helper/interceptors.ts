@@ -1,4 +1,5 @@
-import axios from 'axios';
+const combineURLs = require('axios/lib/helpers/combineURLs');
+const isAbsoluteURL = require('axios/lib/helpers/isAbsoluteURL');
 const { sign } = require('@gofynd/fp-signature');
 import Debug from '../../Debug';
 import CommandError, { ErrorCodes } from '../../CommandError';
@@ -34,8 +35,8 @@ function interceptorFn(options) {
                 );
             }
             let url = config.url;
-            if (config.baseURL && !axios.isAxiosError(url)) {
-                url = axios.getUri({ ...config, url });
+            if (config.baseURL && !isAbsoluteURL(config.url)) {
+                url = combineURLs(config.baseURL, config.url);
             }
             const { host, pathname, search } = new URL(url);
             if (pathname.includes('/service') || pathname.startsWith('/ext')) {
