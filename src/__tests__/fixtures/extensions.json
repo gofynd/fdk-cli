@@ -1,0 +1,130 @@
+{
+    "items": [
+        {
+            "logo": {
+                "small": "https://res.cloudinary.com/dwzm9bysq/image/upload/v1566539375/production/media/store/logo/jwosxsgh9ufoucdxpm10.png",
+                "large": "https://res.cloudinary.com/dwzm9bysq/image/upload/v1566539375/production/media/store/logo/jwosxsgh9ufoucdxpm10.png"
+            },
+            "callbacks": {
+                "setup": "https://editor-spot-fat-europe.trycloudflare.com/fp/setup",
+                "auth": "https://editor-spot-fat-europe.trycloudflare.com/fp/auth",
+                "install": "https://editor-spot-fat-europe.trycloudflare.com/fp/install",
+                "uninstall": "https://editor-spot-fat-europe.trycloudflare.com/fp/uninstall",
+                "auto_install": "https://editor-spot-fat-europe.trycloudflare.com/fp/auto_install"
+            },
+            "partner": {
+                "callbacks": {
+                    "auth": "https://editor-spot-fat-europe.trycloudflare.com/adm/auth",
+                    "install": "https://editor-spot-fat-europe.trycloudflare.com/adm/install"
+                }
+            },
+            "_id": "68808232d7924019689a768c",
+            "id": "68808232d7924019689a768c",
+            "name": "payment-extension-2",
+            "description": "",
+            "base_url": "https://editor-spot-fat-europe.trycloudflare.com",
+            "whitelisted_urls": [],
+            "ext_version": "1.0",
+            "extention_type": "private",
+            "organization_id": "6870ad7ab6a5036db91a8b5c",
+            "contact_email": "ajaysaini@gofynd.com",
+            "scope": [
+                "company/profile",
+                "company/payment"
+            ],
+            "developed_by_name": "Test Company",
+            "is_hidden": false,
+            "launch_type": "payment",
+            "is_setup_complete": true,
+            "created_at": "2025-07-23T06:33:22.420Z",
+            "modified_at": "2025-07-23T10:04:04.578Z",
+            "__v": 0,
+            "subscriber_count": 1
+        },
+        {
+            "logo": {
+                "small": "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/misc/pictures/free-icon/original/YmPWIj2KN-logo.png",
+                "large": "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/misc/pictures/free-icon/original/YmPWIj2KN-logo.png"
+            },
+            "callbacks": {
+                "setup": "https://critics-suffering-reservoir-oscar.trycloudflare.com/fp/setup",
+                "auth": "https://critics-suffering-reservoir-oscar.trycloudflare.com/fp/auth",
+                "install": "https://critics-suffering-reservoir-oscar.trycloudflare.com/fp/install",
+                "uninstall": "https://critics-suffering-reservoir-oscar.trycloudflare.com/fp/uninstall",
+                "auto_install": "https://critics-suffering-reservoir-oscar.trycloudflare.com/fp/auto_install"
+            },
+            "partner": {
+                "callbacks": {
+                    "auth": "https://critics-suffering-reservoir-oscar.trycloudflare.com/adm/auth",
+                    "install": "https://critics-suffering-reservoir-oscar.trycloudflare.com/adm/install"
+                }
+            },
+            "_id": "688080bfd7924019689a7667",
+            "name": "payment-ext",
+            "description": "",
+            "base_url": "https://critics-suffering-reservoir-oscar.trycloudflare.com",
+            "whitelisted_urls": [],
+            "ext_version": "1.0.0",
+            "extention_type": "private",
+            "organization_id": "6870ad7ab6a5036db91a8b5c",
+            "contact_email": "ajaysaini@gofynd.com",
+            "scope": [
+                "company/payment"
+            ],
+            "developed_by_name": "Test Company",
+            "is_hidden": false,
+            "launch_type": "payment",
+            "is_setup_complete": true,
+            "created_at": "2025-07-23T06:27:11.373Z",
+            "modified_at": "2025-07-23T06:28:13.970Z",
+            "__v": 0,
+            "subscriber_count": 1
+        },
+        {
+            "logo": {
+                "small": "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/misc/pictures/free-icon/original/YmPWIj2KN-logo.png",
+                "large": "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyndnp/wrkr/addsale/misc/pictures/free-icon/original/YmPWIj2KN-logo.png"
+            },
+            "callbacks": {
+                "setup": "https://been-processors-emily-violent.trycloudflare.com/fp/setup",
+                "auth": "https://been-processors-emily-violent.trycloudflare.com/fp/auth",
+                "install": "https://been-processors-emily-violent.trycloudflare.com/fp/install",
+                "uninstall": "https://been-processors-emily-violent.trycloudflare.com/fp/uninstall",
+                "auto_install": "https://been-processors-emily-violent.trycloudflare.com/fp/auto_install"
+            },
+            "partner": {
+                "callbacks": {
+                    "auth": "https://been-processors-emily-violent.trycloudflare.com/adm/auth",
+                    "install": "https://been-processors-emily-violent.trycloudflare.com/adm/install"
+                }
+            },
+            "_id": "6874f77d19a3bbbc039a3830",
+            "name": "kjnjk",
+            "description": "",
+            "base_url": "https://been-processors-emily-violent.trycloudflare.com",
+            "whitelisted_urls": [],
+            "ext_version": "1.0.0",
+            "extention_type": "private",
+            "organization_id": "6870ad7ab6a5036db91a8b5c",
+            "contact_email": "ajaysaini@gofynd.com",
+            "scope": [
+                "company/profile"
+            ],
+            "developed_by_name": "Test Company",
+            "is_hidden": false,
+            "launch_type": "application",
+            "is_setup_complete": true,
+            "created_at": "2025-07-14T12:26:37.745Z",
+            "modified_at": "2025-07-18T11:07:48.536Z",
+            "__v": 0,
+            "subscriber_count": 0
+        }
+    ],
+    "page": {
+        "type": "number",
+        "current": 1,
+        "size": 10,
+        "item_total": 3,
+        "has_next": false
+    }
+}

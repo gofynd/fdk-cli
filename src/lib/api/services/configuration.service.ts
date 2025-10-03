@@ -27,7 +27,7 @@ export default {
                 is_active: is_active,
             };
             const res = await ApiClient.get(
-                URLS.GET_APPLICATION_LIST(company_id),
+                URLS.GET_APPLICATION_LIST(company_id, 1, 999),
                 axiosOption,
             );
             return res;

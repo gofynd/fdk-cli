@@ -60,7 +60,7 @@ export default class ExtensionLaunchURL {
                     spinner.succeed();
                 } catch (err) {
                     if (
-                        err.response.status === 404 &&
+                        err.response?.status === 404 &&
                         err?.response?.data?.message === 'not found'
                     ) {
                         if (!partner_access_token) {

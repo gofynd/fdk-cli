@@ -11,6 +11,10 @@ export type RegisterExtensionPayloadNew = {
     developed_by_name?: string;
     contact_email?: string;
     callbacks: Object;
+    launch_type?: string;
+    config?: {
+        payment_mode_slug?: string;
+    };
 };
 
 type UpdateLaunchURLPayload = {
@@ -22,10 +26,6 @@ export default {
         try {
             let headers = getCommonHeaderOptions().headers;
             data.scope = ['company/profile'];
-            data.logo = {
-                small: 'https://res.cloudinary.com/dwzm9bysq/image/upload/v1566539375/production/media/store/logo/jwosxsgh9ufoucdxpm10.png',
-                large: 'https://res.cloudinary.com/dwzm9bysq/image/upload/v1566539375/production/media/store/logo/jwosxsgh9ufoucdxpm10.png',
-            };
 
             let axiosOptions = Object.assign(
                 {},
@@ -132,11 +132,11 @@ export default {
         }
     },
 
-    getExtensionList: async (page_no: number, page_size: number) => {
+    getExtensionList: async (page_no: number, page_size: number, launch_type?: string | string[]) => {
         try {
             let axiosOptions = Object.assign({}, getCommonHeaderOptions());
             let response = await ApiClient.get(
-                URLS.GET_EXTENSION_LIST(page_no, page_size),
+                URLS.GET_EXTENSION_LIST(page_no, page_size, launch_type),
                 axiosOptions,
             );
             return response.data;
@@ -295,4 +295,24 @@ export default {
             throw error;
         }
     },
+
+    getApplicationList: async (companyId: number, page_no: number, page_size: number) => {
+        try {
+            const axiosOption = Object.assign({}, getCommonHeaderOptions());
+            const res = await ApiClient.get(URLS.GET_APPLICATION_LIST(companyId, page_no, page_size), axiosOption);
+            return res.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    checkPaymentSlug: async (slug: string) => {
+        try {
+            const axiosOption = Object.assign({}, getCommonHeaderOptions());
+            const res = await ApiClient.get(URLS.CHECK_PAYMENT_SLUG(slug), axiosOption);
+            return res.data;
+        } catch (error) {
+            throw error;
+        }
+    }
 };

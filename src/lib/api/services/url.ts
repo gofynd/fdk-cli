@@ -30,6 +30,7 @@ const MIXMASTER_URL = (serverType: string) =>
 const ASSET_URL = () => getBaseURL() + '/service/partner/assets/v2.0';
 
 const LOCALES_URL = () => getBaseURL() + '/service/partner/content/v' + apiVersion;
+const PAYMENT_URL = () => getBaseURL() + '/service/partner/payment/v' + apiVersion;
 
 export const URLS = {
     // AUTHENTICATION
@@ -50,10 +51,10 @@ export const URLS = {
             `/organization/${getOrganizationId()}/company/${company_id}/application/${application_id}`,
         );
     },
-    GET_APPLICATION_LIST: (company_id: number) => {
+    GET_APPLICATION_LIST: (company_id: number, page_no: number, page_size: number) => {
         return urlJoin(
             MIXMASTER_URL('partner'),
-            `/organization/${getOrganizationId()}/company/${company_id}/application`,
+            `/organization/${getOrganizationId()}/company/${company_id}/application?page_no=${page_no}&page_size=${page_size}`,
         );
     },
 
@@ -141,11 +142,21 @@ export const URLS = {
     },
 
     // Extension
-    GET_EXTENSION_LIST: (page_no: number, page_size: number): string => {
-        return urlJoin(
+    GET_EXTENSION_LIST: (page_no: number, page_size: number, launch_type?: string | string[]): string => {
+        let url = urlJoin(
             MIXMASTER_URL('partner'),
             `/organization/${getOrganizationId()}/extension/?page_size=${page_size}&page_no=${page_no}`,
         );
+        if (launch_type) {
+            if (Array.isArray(launch_type)) {
+                for (const lt of launch_type) {
+                    url += `&launch_type=${encodeURIComponent(lt.toLowerCase())}`;
+                }
+            } else {
+                url += `&launch_type=${encodeURIComponent(launch_type.toLowerCase())}`;
+            }
+        }
+        return url;
     },
 
     REGISTER_EXTENSION_PARTNER: (): string => {
@@ -257,6 +268,13 @@ export const URLS = {
         return urlJoin(
             LOCALES_URL(),
             `organization/${getOrganizationId()}/company/${company_id}/application/${application_id}/translate-ui-labels/${resource_id}`,
+        );
+    },
+
+    CHECK_PAYMENT_SLUG: (slug: string) => {
+        return urlJoin(
+            PAYMENT_URL(),
+            `organization/${getOrganizationId()}/payment/slug?slug=${slug}`,
         );
     }
 };

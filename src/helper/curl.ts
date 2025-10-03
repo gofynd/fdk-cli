@@ -1,5 +1,5 @@
 import qs from 'query-string';
-import { AxiosRequestConfig } from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import combineURLs from 'axios/lib/helpers/combineURLs';
 import isAbsoluteURL from 'axios/lib/helpers/isAbsoluteURL';
 
@@ -13,7 +13,7 @@ export default class CurlHelper {
         let url = this.reqConfig.url;
 
         if (this.reqConfig.baseURL && !isAbsoluteURL(url)) {
-            url = combineURLs(this.reqConfig.baseURL, url).trim();
+            url = combineURLs(this.reqConfig.baseURL, url);
         }
 
         let queryParamString = '';

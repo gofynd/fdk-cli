@@ -15,7 +15,7 @@ import {
     findAllFilePathFromCurrentDirWithName,
     getRandomFreePort,
     validateEmpty,
-    
+    getApplicationId,
 } from '../helper/extension_utils';
 import { validateTunnelUrl } from '../helper/utils';
 import { displayStickyText, OutputFormatter, successBox } from '../helper/formatter';
@@ -148,12 +148,6 @@ export default class ExtensionPreviewURL {
                     })
                 )
             }
-            
-            // get the companyId
-            if (!extension.options.companyId) {
-                extension.options.companyId = await getCompanyId("Select the development company you'd like to use to run the extension: ?");
-                Debug(`Using user selected development company ${extension.options.companyId}`)
-            }
 
             // get the extension api key
             if (!extension.options.apiKey) {
@@ -168,6 +162,17 @@ export default class ExtensionPreviewURL {
             }
             extension.options.apiSecret = extensionDetails.client_data.secret[0];
             
+            // get the companyId
+            if (!extension.options.companyId) {
+                extension.options.companyId = await getCompanyId("Select the development company you'd like to use to run the extension: ?");
+                Debug(`Using user selected development company ${extension.options.companyId}`)
+            }
+
+            // Get application list when extension launch type is payment
+            if(extensionDetails?.launch_type?.includes('payment')){
+                extension.options.applicationId = await getApplicationId(extension.options.companyId);
+            }
+
             // Updating data to context file
             extensionContext.setAll({
                 [CONSTANTS.EXTENSION_CONTEXT.DEVELOPMENT_COMPANY] : extension.options.companyId,
@@ -271,7 +276,7 @@ export default class ExtensionPreviewURL {
                 const ports = extension.getServicePorts(projectConfigs, backend_port.toString(), frontend_port.toString())
                 await extension.checkPorts(ports, function () {
                     // get preview URL
-                    const previewURL = extension.getPreviewURL();
+                    const previewURL = extension.getPreviewURL(extensionDetails.launch_type);
     
                     Debug(
                         `${OutputFormatter.link(extension.publicTunnelURL, 'TUNNEL URL:')}`
@@ -314,8 +319,16 @@ export default class ExtensionPreviewURL {
         }
     }
 
-    private getPreviewURL() {
+    private getPreviewURL(launch_type: string) {
         let baseURL = getPlatformUrls().platform;
+        if(launch_type === 'payment'){
+            return urljoin(
+                baseURL,
+                `/company/${this.options.companyId}`,
+                `/application/${this.options.applicationId}`,
+                `/extensions/${this.options.apiKey}`,
+            );
+        }
         return urljoin(
             baseURL,
             `/company/${this.options.companyId}`,
