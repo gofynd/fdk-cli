@@ -245,12 +245,9 @@ export default class Auth {
             CONFIG_KEYS.CURRENT_ENV_VALUE,
         );
         const extras = ConfigStore.get(CONFIG_KEYS.EXTRAS);
-        const extensionLaunchType = ConfigStore.get(CONFIG_KEYS.EXTENSION_LAUNCH_TYPE);
         ConfigStore.clear();
         ConfigStore.set(CONFIG_KEYS.CURRENT_ENV_VALUE, currentEnv);
         ConfigStore.set(CONFIG_KEYS.EXTRAS, extras);
-        // setting extension launch type to the previous value again
-        ConfigStore.set(CONFIG_KEYS.EXTENSION_LAUNCH_TYPE, extensionLaunchType);
     }
 
     public static getUserInfo() {
