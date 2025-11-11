@@ -1540,7 +1540,7 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
             const data = findExportedVariable(path, 'sections');
             try {
                 const settings = JSON.parse(data);
-                return settings || {};
+                return settings || [];
             } catch (error) {
                 Logger.error(error);
                 throw new Error(
@@ -1583,7 +1583,7 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
                     return `const component${i} = () => import(/* webpackChunkName: "${chunkName}" */ './${f}');`;
                 })
                 .join('\n')}
-            
+
             function exportComponents(components) {
                 return [
                     ${available_sections
@@ -1600,7 +1600,7 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
                 .join(',\n')}
                 ];
             }
-            
+
             export default exportComponents([${fileNames
                 .map((f, i) => `component${i}`)
                 .join(', ')}]);
