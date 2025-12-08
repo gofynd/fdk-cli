@@ -59,35 +59,6 @@ export default {
         }
     },
 
-    updateLaunchURL: async (
-        extension_api_key: string,
-        partner_access_token: string,
-        data: UpdateLaunchURLPayload,
-    ) => {
-        try {
-            let headers = getCommonHeaderOptions().headers;
-            headers['x-partner-token'] = partner_access_token;
-
-            let axiosOptions = Object.assign(
-                {},
-                {
-                    data: data,
-                },
-                {
-                    headers: headers,
-                },
-            );
-
-            let response = await ApiClient.patch(
-                URLS.UPDATE_EXTENSION_DETAILS(extension_api_key),
-                axiosOptions,
-            );
-            return response.data;
-        } catch (error) {
-            return error;
-        }
-    },
-
     updateLaunchURLPartners: async (
         extension_api_key: string,
         data: UpdateLaunchURLPayload,

@@ -154,9 +154,6 @@ describe('Extension preview-url command', () => {
         mockCustomAxios
             .onPatch(`${URLS.UPDATE_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY)}`)
             .reply(200, {});
-        mockAxios
-            .onPatch(`${URLS.UPDATE_EXTENSION_DETAILS(EXTENSION_KEY)}`)
-            .reply(200, {});
 
         fs.writeFileSync('fdk.ext.config.json', JSON.stringify(fdkExtConfigBackEnd, null, 4));
         fs.mkdirSync('frontend', {
@@ -232,35 +229,4 @@ describe('Extension preview-url command', () => {
         jest.useRealTimers();
     });
 
-    it('Should throw an error for partner access token for lower versions than v1.9.2 to update base url of extension', async () => {
-        jest.useFakeTimers();
-
-        mockAxios
-            .onPatch(`${URLS.UPDATE_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY)}`)
-            .reply(404, { message: 'not found' });
-        configStore.set(CONFIG_KEYS.AUTH_TOKEN, LOGIN_AUTH_TOKEN);
-
-        try {
-            jest.spyOn(process, 'exit').mockImplementation(() => {
-                throw new Error(
-                    'Please provide partner access token eg --access-token partnerAccessToken',
-                );
-            });
-            await program.parseAsync([
-                'ts-node',
-                './src/fdk.ts',
-                'extension',
-                'preview-url',
-                '--api-key',
-                EXTENSION_KEY,
-                '--company-id',
-                COMPANY_ID
-            ]);
-            jest.useRealTimers();
-        } catch (err) {
-            expect(err.message).toBe(
-                'Please provide partner access token eg --access-token partnerAccessToken',
-            );
-        }
-    });
 });

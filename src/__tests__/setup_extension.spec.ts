@@ -142,10 +142,6 @@ describe('Extension Commands', () => {
             .reply(200, {
                 items: [{ company: { uid: COMPANY_ID, name: 'cli-test' } }],
             });
-        // mockAxios.onPatch(`${URLS.UPDATE_EXTENSION_DETAILS_PARTNERS(EXTENSION_KEY)}`).reply(200, {});
-        await mockAxios
-            .onPatch(`${URLS.UPDATE_EXTENSION_DETAILS(EXTENSION_KEY)}`)
-            .reply(200, {});
         await mockAxios
             .onPost(URLS.REGISTER_EXTENSION_PARTNER(), undefined, {
                 headers: commonHeaders,
