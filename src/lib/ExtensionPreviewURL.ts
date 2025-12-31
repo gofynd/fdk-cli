@@ -172,6 +172,13 @@ export default class ExtensionPreviewURL {
             }
             extension.options.apiSecret = extensionDetails.client_data.secret[0];
             
+            // Updating data to context file
+            extensionContext.setAll({
+                [CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]: extension.options.apiKey,
+                [CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_SECRET]: extension.options.apiSecret,
+                [CONSTANTS.EXTENSION_CONTEXT.CURRENT_ENV]: extension.options.currentEnv,
+                [CONSTANTS.EXTENSION_CONTEXT.LAUNCH_TYPE]: extensionDetails?.launch_type,
+            })
             // get the companyId
             if (!extension.options.companyId) {
                 extension.options.companyId = await getCompanyId("Select the development company you'd like to use to run the extension: ?");
