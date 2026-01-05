@@ -11,7 +11,8 @@ export default class ExtensionEnv {
     public static async extensionEnvPullHandler(){
         const selected_extension = await selectExtensionFromList();
         const extension = await extensionService.getExtensionDataPartners(selected_extension.extension.id);
-        const existingExtensionType = ConfigStore.get(CONFIG_KEYS.EXTENSION_LAUNCH_TYPE);
+        const extensionContext = new ExtensionContext();
+        const existingExtensionType = extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.LAUNCH_TYPE);
 
         let message = '';
         const paymentLaunchType = LAUNCH_TYPES.PAYMENT.toLowerCase();
@@ -29,14 +30,11 @@ export default class ExtensionEnv {
         if(message){
             throw new CommandError(message, ErrorCodes.INVALID_EXTENSION_LAUNCH_TYPE.code);
         }
-
-        ConfigStore.set(CONFIG_KEYS.EXTENSION_LAUNCH_TYPE, extension.launch_type.toLowerCase());
-        
-        const extensionContext = new ExtensionContext();
         extensionContext.setAll({
             [CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]: extension._id,
             [CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_SECRET]: extension.client_data.secret[0],
-            [CONSTANTS.EXTENSION_CONTEXT.EXTENSION_BASE_URL]: extension.base_url
+            [CONSTANTS.EXTENSION_CONTEXT.EXTENSION_BASE_URL]: extension.base_url,
+            [CONSTANTS.EXTENSION_CONTEXT.LAUNCH_TYPE]: extension.launch_type.toLowerCase()
         });
 
         Logger.info('Successfully Pulled Extension context')

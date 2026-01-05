@@ -208,8 +208,6 @@ export default class Extension {
                 ...answers,
                 ...prompt_answers,
             };
-            // save extension launch type to config
-            ConfigStore.set(CONFIG_KEYS.EXTENSION_LAUNCH_TYPE, answers.launch_type.toLowerCase());
             
             await Extension.createExtension(answers, action === INIT_ACTIONS.create_extension);
         } catch (error) {
@@ -294,11 +292,13 @@ export default class Extension {
     private static async updateExtensionContextFile(
         targetDir: string,
         extension_api_key: string, 
-        extension_api_secret: string
+        extension_api_secret: string,
+        launch_type: string
     ){
         const extensionContext = {
             EXTENSION_API_KEY: extension_api_key,
-            EXTENSION_API_SECRET: extension_api_secret
+            EXTENSION_API_SECRET: extension_api_secret,
+            LAUNCH_TYPE: launch_type
         };
 
         fs.writeFileSync(path.join(targetDir, EXTENSION_CONTEXT_FILE_NAME), JSON.stringify(extensionContext, null, 4));
@@ -414,7 +414,8 @@ export default class Extension {
                 await Extension.updateExtensionContextFile(
                     answers.targetDir,
                     answers.extension_api_key,
-                    answers.extension_api_secret
+                    answers.extension_api_secret,
+                    answers.launch_type.toLowerCase()
                 );
                 await Extension.replaceGrootWithExtensionName(
                     answers.targetDir,

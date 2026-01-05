@@ -87,7 +87,7 @@ export const selectExtensionFromList = async (prefetchedExtensionList = undefine
     }
     let choices = [];
     extensionList.items.map((data) => {
-        choices.push({ name: data.name, value: { id: data._id, name: data.name } });
+        choices.push({ name: data.name, value: { id: data._id, name: data.name, launch_type: data.launch_type } });
     });
 
     if (choices.length === 0) {

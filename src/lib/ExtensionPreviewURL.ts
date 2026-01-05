@@ -96,7 +96,8 @@ export default class ExtensionPreviewURL {
             // Validate environment before extension preview
             const currentEnv = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
             const contextEnv = extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.CURRENT_ENV) || currentEnv;
-            
+            const existingLaunchType = extensionContext.get(CONSTANTS.EXTENSION_CONTEXT.LAUNCH_TYPE);
+
             if(currentEnv != contextEnv)
                 extensionContext.deleteAll();
             
@@ -152,6 +153,15 @@ export default class ExtensionPreviewURL {
             // get the extension api key
             if (!extension.options.apiKey) {
                 let selected = await selectExtensionFromList();
+            
+                if( 
+                    selected?.extension?.launch_type 
+                    && existingLaunchType 
+                    && selected?.extension?.launch_type !== existingLaunchType
+                ){
+                    const message = `Current extension boilerplate is of type ${existingLaunchType} and not compatible with ${selected?.extension?.launch_type} launch type`;
+                    throw new CommandError(message, ErrorCodes.INVALID_EXTENSION_LAUNCH_TYPE.code);
+                }
                 extension.options.apiKey = selected.extension.id;
                 Debug(`Using user selected Extension ${selected.extension.name} with API key ${selected.extension.id}`,);
             }
@@ -162,6 +172,13 @@ export default class ExtensionPreviewURL {
             }
             extension.options.apiSecret = extensionDetails.client_data.secret[0];
             
+            // Updating data to context file
+            extensionContext.setAll({
+                [CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]: extension.options.apiKey,
+                [CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_SECRET]: extension.options.apiSecret,
+                [CONSTANTS.EXTENSION_CONTEXT.CURRENT_ENV]: extension.options.currentEnv,
+                [CONSTANTS.EXTENSION_CONTEXT.LAUNCH_TYPE]: extensionDetails?.launch_type,
+            })
             // get the companyId
             if (!extension.options.companyId) {
                 extension.options.companyId = await getCompanyId("Select the development company you'd like to use to run the extension: ?");
@@ -179,6 +196,7 @@ export default class ExtensionPreviewURL {
                 [CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_KEY]: extension.options.apiKey,
                 [CONSTANTS.EXTENSION_CONTEXT.EXTENSION_API_SECRET]: extension.options.apiSecret,
                 [CONSTANTS.EXTENSION_CONTEXT.CURRENT_ENV]: extension.options.currentEnv,
+                [CONSTANTS.EXTENSION_CONTEXT.LAUNCH_TYPE]: extensionDetails?.launch_type,
             })
 
             // Get Port to start the extension server
