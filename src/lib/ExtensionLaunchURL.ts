@@ -5,7 +5,6 @@ import CommandError, { ErrorCodes } from './CommandError';
 import Spinner from '../helper/spinner';
 import { OutputFormatter } from '../helper/formatter';
 import inquirer from 'inquirer';
-import { response } from 'express';
 
 export default class ExtensionLaunchURL {
     public static async setLaunchURLHandler(options) {
@@ -50,46 +49,19 @@ export default class ExtensionLaunchURL {
             let spinner = new Spinner('Updating Launch URL on Partners Panel');
             try {
                 spinner.start();
-                //let manualUpdateRequired = false;
-
-                try {
-                    await ExtensionService.updateLaunchURLPartners(
-                        extension_api_key,
-                        { base_url: launch_url },
-                    );
-                    spinner.succeed();
-                } catch (err) {
-                    if (
-                        err.response?.status === 404 &&
-                        err?.response?.data?.message === 'not found'
-                    ) {
-                        if (!partner_access_token) {
-                            throw new CommandError(
-                                'Please provide partner access token eg --access-token partnerAccessToken',
-                            );
-                        }
-                        const res = await ExtensionService.updateLaunchURL(
-                            extension_api_key,
-                            partner_access_token,
-                            { base_url: launch_url },
-                        );
-                        if (res.code) {
-                            throw new CommandError(
-                                'Failed updating Launch Url on Partners Panel',
-                            );
-                        }
-                    } else {
-                        throw new CommandError(
-                            err?.response?.data?.message ||
-                                'Failed updating Launch Url on Partners Panel',
-                            ErrorCodes.API_ERROR.code,
-                            response
-                        );
-                    }
-                }
+                await ExtensionService.updateLaunchURLPartners(
+                    extension_api_key,
+                    { base_url: launch_url },
+                );
+                spinner.succeed();
             } catch (error) {
                 spinner.fail();
-                throw new CommandError(error.message, error.code, error.response);
+                throw new CommandError(
+                    error?.response?.data?.message ||
+                        'Failed updating Launch Url on Partners Panel',
+                    error.code || ErrorCodes.API_ERROR.code,
+                    error.response
+                );
             }
         } catch (error) {
             throw new CommandError(error.message, error.code, error.response);
