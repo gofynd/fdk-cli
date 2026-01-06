@@ -3,12 +3,16 @@ on:
     release:
         types: [created]
 
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
 jobs:
     release-check:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v3
-            - uses: actions/setup-node@v3
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
               with:
                   node-version: '18.x'
                   registry-url: 'https://registry.npmjs.org'
@@ -27,11 +31,11 @@ jobs:
 
         steps:
             - name: checkout repository
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
               with:
                 fetch-depth: 0
 
-            - uses: actions/setup-node@v3
+            - uses: actions/setup-node@v4
               with:
                 node-version: '18.x'
                 registry-url: 'https://registry.npmjs.org'
@@ -84,5 +88,3 @@ jobs:
             
             - name: Publish to npmjs
               run: npm publish --access public
-              env:
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
