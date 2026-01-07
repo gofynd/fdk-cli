@@ -35,7 +35,10 @@ jobs:
             - uses: actions/setup-node@v4
               with:
                   node-version: '18.x'
-                  registry-url: 'https://registry.npmjs.org'
+                  # Don't use registry-url to avoid automatic token auth creation
+            
+            - name: Configure npm registry for OIDC
+              run: npm config set registry https://registry.npmjs.org/
             
             - name: Install NPM package
               run: npm install
@@ -76,23 +79,24 @@ jobs:
             
             - name: Remove token-based authentication and prepare for OIDC
               run: |
-                  # Remove token from .npmrc files
+                  # Completely remove .npmrc files that might contain token auth
                   NPMRC_PATH=$(npm config get userconfig 2>/dev/null || echo "/home/runner/work/_temp/.npmrc")
                   if [ -f "$NPMRC_PATH" ]; then
-                      echo "Removing _authToken from: $NPMRC_PATH"
-                      sed -i.bak '/_authToken/d' "$NPMRC_PATH" 2>/dev/null || true
+                      echo "Removing .npmrc at: $NPMRC_PATH"
+                      rm -f "$NPMRC_PATH" 2>/dev/null || true
                   fi
                   if [ -f "/home/runner/work/_temp/.npmrc" ]; then
-                      echo "Removing _authToken from temp .npmrc"
-                      sed -i.bak '/_authToken/d' "/home/runner/work/_temp/.npmrc" 2>/dev/null || true
+                      echo "Removing temp .npmrc"
+                      rm -f "/home/runner/work/_temp/.npmrc" 2>/dev/null || true
                   fi
                   
-                  # Verify OIDC is available
-                  echo "Checking OIDC availability:"
-                  echo "ACTIONS_ID_TOKEN_REQUEST_URL: ${ACTIONS_ID_TOKEN_REQUEST_URL:-NOT_SET}"
+                  # Ensure registry is set without auth token
+                  npm config set registry https://registry.npmjs.org/
+                  npm config delete //registry.npmjs.org/:_authToken 2>/dev/null || true
                   
-                  # Verify trusted publisher configuration
-                  echo "Workflow file: on_push.yml"
+                  # Verify OIDC is available
+                  echo "OIDC token URL: ${ACTIONS_ID_TOKEN_REQUEST_URL:-NOT_SET}"
+                  echo "Workflow: on_push.yml"
                   echo "Repository: ${{ github.repository }}"
             
             - name: Publish to npmjs
@@ -100,3 +104,5 @@ jobs:
               env:
                   # Explicitly unset NODE_AUTH_TOKEN to force OIDC
                   NODE_AUTH_TOKEN: ""
+                  # Clear npm config userconfig to prevent token auth
+                  NPM_CONFIG_USERCONFIG: ""
