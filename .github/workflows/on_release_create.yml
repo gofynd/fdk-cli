@@ -37,8 +37,9 @@ jobs:
 
             - uses: actions/setup-node@v4
               with:
-                node-version: '18.x'
+                node-version: '24.x' # Node 24+ required for full OIDC support
                 registry-url: 'https://registry.npmjs.org'
+                # When trusted publishing is configured, npm automatically uses OIDC
             
             - name: Install NPM package
               run: npm install
