@@ -74,16 +74,29 @@ jobs:
             - name: Delete SourceMap files
               run: find ./dist -type f -name '*.map' -exec rm -f {} \;
             
-            - name: Remove token-based authentication from .npmrc
+            - name: Remove token-based authentication and prepare for OIDC
               run: |
+                  # Remove token from .npmrc files
                   NPMRC_PATH=$(npm config get userconfig 2>/dev/null || echo "/home/runner/work/_temp/.npmrc")
                   if [ -f "$NPMRC_PATH" ]; then
+                      echo "Removing _authToken from: $NPMRC_PATH"
                       sed -i.bak '/_authToken/d' "$NPMRC_PATH" 2>/dev/null || true
                   fi
-                  # Also check temp directory
                   if [ -f "/home/runner/work/_temp/.npmrc" ]; then
+                      echo "Removing _authToken from temp .npmrc"
                       sed -i.bak '/_authToken/d' "/home/runner/work/_temp/.npmrc" 2>/dev/null || true
                   fi
+                  
+                  # Verify OIDC is available
+                  echo "Checking OIDC availability:"
+                  echo "ACTIONS_ID_TOKEN_REQUEST_URL: ${ACTIONS_ID_TOKEN_REQUEST_URL:-NOT_SET}"
+                  
+                  # Verify trusted publisher configuration
+                  echo "Workflow file: on_push.yml"
+                  echo "Repository: ${{ github.repository }}"
             
             - name: Publish to npmjs
               run: npm publish --access public
+              env:
+                  # Explicitly unset NODE_AUTH_TOKEN to force OIDC
+                  NODE_AUTH_TOKEN: ""
