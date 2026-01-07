@@ -21,6 +21,8 @@ jobs:
               with:
                   node-version: '18.x'
                   registry-url: 'https://registry.npmjs.org'
+                  # Don't set always-auth to prevent token-based auth
+                  always-auth: false
             - run: npm install
             - run: node ./scripts/stableReleaseCheck.js
     publish-package-npm:
@@ -102,15 +104,49 @@ jobs:
             
             - name: Remove token-based authentication from .npmrc
               run: |
-                  if [ -f ~/.npmrc ]; then
+                  echo "Finding npmrc location..."
+                  NPMRC_LOCATION=$(npm config get userconfig 2>/dev/null || echo "~/.npmrc")
+                  echo "NPMRC location: $NPMRC_LOCATION"
+                  
+                  # Expand ~ to home directory
+                  NPMRC_PATH="${NPMRC_LOCATION/#\~/$HOME}"
+                  
+                  if [ -f "$NPMRC_PATH" ]; then
+                      echo "Found .npmrc at: $NPMRC_PATH"
+                      echo "Current .npmrc content:"
+                      cat "$NPMRC_PATH"
+                      echo ""
                       echo "Removing any _authToken entries from .npmrc to force OIDC:"
-                      sed -i.bak '/_authToken/d' ~/.npmrc 2>/dev/null || true
+                      sed -i.bak '/_authToken/d' "$NPMRC_PATH" 2>/dev/null || true
                       echo "Updated .npmrc content:"
-                      cat ~/.npmrc 2>/dev/null || echo "No .npmrc after cleanup"
+                      cat "$NPMRC_PATH" 2>/dev/null || echo "No .npmrc after cleanup"
                   else
-                      echo "No .npmrc file found"
+                      echo "No .npmrc file found at $NPMRC_PATH"
+                      # Also check common locations
+                      for loc in ~/.npmrc "$HOME/.npmrc" "/home/runner/.npmrc"; do
+                          if [ -f "$loc" ]; then
+                              echo "Found .npmrc at: $loc"
+                              sed -i.bak '/_authToken/d' "$loc" 2>/dev/null || true
+                          fi
+                      done
                   fi
+                  
+                  # Also check temp directory
+                  TEMP_NPMRC="/home/runner/work/_temp/.npmrc"
+                  if [ -f "$TEMP_NPMRC" ]; then
+                      echo "Found temp .npmrc at: $TEMP_NPMRC"
+                      sed -i.bak '/_authToken/d' "$TEMP_NPMRC" 2>/dev/null || true
+                  fi
+                  
+                  echo "Unsetting NODE_AUTH_TOKEN environment variable"
+                  unset NODE_AUTH_TOKEN
+                  
+                  echo "Final npm config:"
+                  npm config list
+            
             - name: Publish to npmjs
               run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ""  # Explicitly unset to prevent token auth
 
   
