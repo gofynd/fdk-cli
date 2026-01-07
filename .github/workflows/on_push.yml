@@ -1,0 +1,119 @@
+name: Run Tests on Push
+
+on:
+  push:
+    branches:
+      - oidc_publish_changes
+    # Exclude tags (handled by on_push_tag.yml)
+    tags-ignore:
+      - '**'
+
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
+jobs:
+    release-check:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '18.x'
+                  registry-url: 'https://registry.npmjs.org'
+            - run: npm install
+            - run: node ./scripts/stableReleaseCheck.js
+    publish-package-npm:
+        needs: 
+            - release-check
+            - run-test-cases
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: checkout repository
+              uses: actions/checkout@v4
+              with:
+                fetch-depth: 0
+
+            - uses: actions/setup-node@v4
+              with:
+                node-version: '18.x'
+                registry-url: 'https://registry.npmjs.org'
+            
+            - name: Verify OIDC token availability
+              run: |
+                echo "GITHUB_REPOSITORY: ${{ github.repository }}"
+                echo "GITHUB_WORKFLOW: ${{ github.workflow }}"
+                echo "ACTIONS_ID_TOKEN_REQUEST_URL: ${ACTIONS_ID_TOKEN_REQUEST_URL:-NOT_SET}"
+                echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+SET}"
+            
+            - name: Install NPM package
+              run: npm install
+            
+            - name: get version
+              id: fdk-cli-version
+              uses: martinbeentjes/npm-get-version-action@v1.3.1
+            
+            - name: Build the project
+              run: npm run build
+      
+            - name: Installing sentry
+              run: npm i -g @sentry/cli@2.28.6
+      
+            - name: Add Debug Id to dist
+              run: sentry-cli sourcemaps inject --org ${{ env.SENTRY_ORG }} --project ${{ env.SENTRY_PROJECT }} ./dist
+              env:
+                SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+                SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+      
+            - name: create sentry.io release
+              uses: getsentry/action-release@v1
+              env:
+                SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+                SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+                SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+              with:
+                environment: production
+                sourcemaps: './dist'
+                version: ${{ steps.fdk-cli-version.outputs.current-version }}
+            
+            # # Alternative of above to try in local
+            # - name: Upload source map to Sentry
+            #   run: sentry-cli sourcemaps upload --org ${{ env.SENTRY_ORG }} --project ${{ env.SENTRY_PROJECT }} --release ${{ env.RELEASE_VERSION }} --auth-token ${{ env.SENTRY_AUTH_TOKEN }} ./dist
+            #   env:
+            #     SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+            #     SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+            #     SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+            #     RELEASE_VERSION: ${{ steps.fdk-cli-version.outputs.current-version }}
+      
+            - name: Adding Sentry DSN
+              run: | 
+                echo "{\"dsn\": \"${{ secrets.SENTRY_DSN }}\"}" > ./dist/sentry.json
+
+            - name: Delete SourceMap files
+              run: find ./dist -type f -name '*.map' -exec rm -f {} \;
+            
+            - name: Debug npm configuration
+              run: |
+                echo "NPM registry: $(npm config get registry)"
+                echo "Checking for .npmrc:"
+                cat ~/.npmrc 2>&1 || echo "No .npmrc file found"
+                echo "NPM config list:"
+                npm config list
+                echo "Checking OIDC environment:"
+                echo "ACTIONS_ID_TOKEN_REQUEST_URL: ${ACTIONS_ID_TOKEN_REQUEST_URL:-NOT_SET}"
+            
+            - name: Remove token-based authentication from .npmrc
+              run: |
+                  if [ -f ~/.npmrc ]; then
+                      echo "Removing any _authToken entries from .npmrc to force OIDC:"
+                      sed -i.bak '/_authToken/d' ~/.npmrc 2>/dev/null || true
+                      echo "Updated .npmrc content:"
+                      cat ~/.npmrc 2>/dev/null || echo "No .npmrc after cleanup"
+                  else
+                      echo "No .npmrc file found"
+                  fi
+            - name: Publish to npmjs
+              run: npm publish --access public
+
+  
