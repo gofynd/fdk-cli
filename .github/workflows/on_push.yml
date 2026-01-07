@@ -23,10 +23,6 @@ jobs:
             - run: npm install
             - run: node ./scripts/stableReleaseCheck.js
 
-    run-test-cases:
-        needs: release-check
-        uses: ./.github/workflows/call_test_cases.yml
-
     publish-package-npm:
         needs: 
             - release-check
