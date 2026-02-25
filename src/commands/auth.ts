@@ -7,6 +7,7 @@ export default function context(program: Command) {
         .command('auth')
         .alias('login')
         .option('--host [platform-host]', 'Fynd Platform API Domain')
+        .option('--region [region]', 'Region for authentication (e.g. asia-south1, asia-south1/default, asia-south1/development)')
         .description('Login using partner panel')
         .asyncAction(Auth.login);
 
