@@ -133,6 +133,7 @@ fdk login [options]
 | Option        | Description           | 
 | ------------- |-------------| 
 | --host    | URL of the partners panel host or API host |
+| --region    | Region selection for multi-region partners ex. asia-south1, asia-south1/development |
 | --help    | Show help |
 | --verbose, -v | enable debug mode |
 
@@ -144,7 +145,7 @@ fdk login
 fdk login --host partners.fynd.com
 ```
 ```sh
-fdk login --host api.fynd.com
+fdk login --host api.fynd.com --region asia-south1
 ```
 
 <div id="user"></div>
