@@ -39,23 +39,23 @@ export const getApp = async () => {
     app.post('/token', async (req, res) => {
         try {
             Debug(req);
-            if (isLoading){
+            if (isLoading) {
                 return res.status(429).json({ message: 'Another request is in progress. Please try again later.' });
             }
-            isLoading = true; 
-            
-            if (Auth.wantToChangeOrganization){
+            isLoading = true;
+
+            if (Auth.wantToChangeOrganization) {
                 ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
                 clearExtensionContext();
             }
             const expiryTimestamp =
                 Math.floor(Date.now() / 1000) + req.body.auth_token.expires_in;
             req.body.auth_token.expiry_time = expiryTimestamp;
-            if(Auth.newDomainToUpdate){
-                if(Auth.newDomainToUpdate === 'api.fynd.com'){
+            if (Auth.newDomainToUpdate) {
+                if (Auth.newDomainToUpdate === 'api.fynd.com') {
                     Env.setEnv(Auth.newDomainToUpdate);
                 }
-                else{
+                else {
                     await Env.setNewEnvs(Auth.newDomainToUpdate);
                 }
             }
@@ -77,15 +77,15 @@ export const getApp = async () => {
             Auth.stopSever();
             res.status(500).json({ message: 'failed' });
         }
-        finally{
-            isLoading=false;
+        finally {
+            isLoading = false;
         }
     });
 
     return { app };
 };
 
-function startTimer(){
+function startTimer() {
     Debug("Server timer starts")
     Auth.timer_id = setTimeout(() => {
         Auth.stopSever(() => {
@@ -94,7 +94,7 @@ function startTimer(){
     }, SERVER_TIMER)
 }
 
-function resetTimer(){
+function resetTimer() {
     if (Auth.timer_id) {
         Debug("Server timer stoped")
         clearTimeout(Auth.timer_id)
@@ -102,12 +102,12 @@ function resetTimer(){
     }
 }
 
-function clearExtensionContext(){
+function clearExtensionContext() {
     const extensionContext = new ExtensionContext();
     extensionContext.deleteAll();
 }
 
-export const startServer = async (port:number) => {
+export const startServer = async (port: number) => {
     if (Auth.server) return Auth.server;
 
     const { app } = await getApp();
@@ -144,21 +144,21 @@ export default class Auth {
     static timer_id;
     static wantToChangeOrganization = false;
     static newDomainToUpdate = null;
-    constructor() {}
+    constructor() { }
     public static async login(options) {
 
         let env: string;
-        const port =  await getRandomFreePort([]);
-        if(options.host){
+        const port = await getRandomFreePort([]);
+        if (options.host) {
             env = await Env.verifyAndSanitizeEnvValue(options.host);
         }
-        else{
+        else {
             env = 'api.fynd.com';
         }
 
         let current_env = Env.getEnvValue();
 
-        if(current_env !== env){
+        if (current_env !== env) {
             // update new domain after login
             Auth.newDomainToUpdate = env;
 
@@ -189,30 +189,27 @@ export default class Auth {
                     await startServer(port);
                 }
             });
-        } else 
+        } else
             await startServer(port);
         try {
             let domain = null;
             let partnerDomain = env.replace('api', 'partners');
             domain = `https://${partnerDomain}`;
+            const region = options.region?.trim();
+            const callbackUrl = `${getLocalBaseUrl()}:${port}`;
+            const queryParams = new URLSearchParams({ 'fdk-cli': 'true', callback: callbackUrl });
+            if (region) queryParams.set('region', region);
+            const authUrl = `${domain}/organizations/?${queryParams.toString()}`;
             try {
                 if (Auth.wantToChangeOrganization || !isLoggedIn) {
-                    await open(
-                        `${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
-                            `${getLocalBaseUrl()}:${port}`,
-                        )}`,
-                    );
+                    await open(authUrl);
                     console.log(
-                        `Open link on browser: ${OutputFormatter.link(`${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
-                            `${getLocalBaseUrl()}:${port}`,
-                            )}`)}`,
+                        `Open link on browser: ${OutputFormatter.link(authUrl)}`,
                     );
                 }
             } catch (err) {
                 console.log(
-                    `Open link on browser: ${OutputFormatter.link(`${domain}/organizations/?fdk-cli=true&callback=${encodeURIComponent(
-                        `${getLocalBaseUrl()}:${port}`,
-                        )}`)}`,
+                    `Open link on browser: ${OutputFormatter.link(authUrl)}`,
                 );
             }
         } catch (error) {
@@ -240,7 +237,7 @@ export default class Auth {
         }
     }
 
-    private static updateConfigStoreForLogout(){
+    private static updateConfigStoreForLogout() {
         const currentEnv = ConfigStore.get(
             CONFIG_KEYS.CURRENT_ENV_VALUE,
         );
@@ -258,9 +255,8 @@ export default class Auth {
             const activeEmail =
                 user.emails.find((e) => e.active && e.primary)?.email ||
                 'Primary email missing';
-            const text = `Name: ${user.first_name} ${
-                user.last_name
-            }\nEmail: ${activeEmail}\nOrganization: ${getOrganizationDisplayName()}`;
+            const text = `Name: ${user.first_name} ${user.last_name
+                }\nEmail: ${activeEmail}\nOrganization: ${getOrganizationDisplayName()}`;
             Logger.info(successBox({ text }));
         } catch (error) {
             throw new CommandError(error.message, error.code);
