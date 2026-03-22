@@ -192,7 +192,7 @@ async function requestToOriginalSource(req, res, domain, themeId) {
         // If there's an error, pass it to the client
         if (error?.response) {
             // If there is a response from the server
-            res.status(error?.response?.status).send(error?.response?.data);
+            res.status(error?.response?.status ?? 400).send(error?.response?.data);
         } else if (error?.request) {
             // If the request was made but no response was received
             res.status(500).send('No response from server');
