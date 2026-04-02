@@ -23,8 +23,13 @@ import { MAX_RETRY } from '../../helper/constants';
 import https from 'https'
 axios.defaults.withCredentials = true;
 axios.defaults.timeout = 60000; // 1 minute
+axios.defaults.maxBodyLength = Infinity;
+axios.defaults.maxContentLength = Infinity;
 
-let uninterceptedAxiosInstance = axios.create();
+let uninterceptedAxiosInstance = axios.create({
+    maxBodyLength: Infinity,
+    maxContentLength: Infinity,
+});
 
 const axiosRetryConfig = {
     retries: MAX_RETRY,
