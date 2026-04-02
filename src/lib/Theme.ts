@@ -861,7 +861,8 @@ export default class Theme {
             if (sectionChunkingEnabled) {
                 Theme.validateReactSectionFileNames();
                 await Theme.createReactSectionsChunksIndexFile();
-                await Theme.createReactSectionsSettingsJson();
+                await Theme.createReactSectionsSettingsJson(); // also generates settings_definition.json
+                Theme.validateSettingsDefinition();
             } else {
                 await Theme.createReactSectionsBundleIndexFile();
             }
@@ -1460,6 +1461,64 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
         })
         return true;
     }
+    static validateSettingsDefinition() {
+        const settingsDefPath = path.join(
+            process.cwd(),
+            'theme',
+            'config',
+            'settings_definition.json',
+        );
+        if (!fs.existsSync(settingsDefPath)) {
+            throw new Error('settings_definition.json was not generated. Check build logs for errors.');
+        }
+        try {
+            const settingsDef = fs.readJSONSync(settingsDefPath);
+            if (!settingsDef.sections || typeof settingsDef.sections !== 'object') {
+                throw new Error('settings_definition.json must contain a "sections" object');
+            }
+            if (!settingsDef.global_config || typeof settingsDef.global_config !== 'object') {
+                throw new Error('settings_definition.json must contain a "global_config" object');
+            }
+            if (!settingsDef.global_config.paths || typeof settingsDef.global_config.paths !== 'object') {
+                throw new Error('settings_definition.json global_config must contain a "paths" object');
+            }
+            // Validate section descriptions and icons
+            const sections = settingsDef.sections;
+            if (sections && typeof sections === 'object') {
+                for (const [sectionName, section] of Object.entries(sections)) {
+                    const sec = section as any;
+                    if (sec.description && sec.description.length > 600) {
+                        throw new Error(
+                            `Section "${sectionName}" description exceeds 600 character limit (${sec.description.length} chars)`
+                        );
+                    }
+                    if (sec.icon) {
+                        const iconLower = sec.icon.toLowerCase();
+                        if (!iconLower.endsWith('.svg') && !iconLower.endsWith('.png') && !iconLower.startsWith('http')) {
+                            Logger.warn(`Section "${sectionName}" icon should be SVG or PNG format`);
+                        }
+                    }
+                    if (Array.isArray(sec.blocks)) {
+                        for (const block of sec.blocks) {
+                            if (block.description && block.description.length > 600) {
+                                throw new Error(
+                                    `Block "${block.name || block.type}" in section "${sectionName}" description exceeds 600 character limit`
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+            Logger.info('settings_definition.json validation passed');
+        } catch (error) {
+            if (error.message?.includes('settings_definition.json')) {
+                throw error;
+            }
+            throw new Error(`Invalid settings_definition.json: ${error.message}`);
+        }
+        return true;
+    }
+
     static evaluateBundle(path, key = 'themeBundle') {
         const code = fs.readFileSync(path, { encoding: 'utf8' });
         const scope = {
@@ -1765,6 +1824,145 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
         Theme.deleteReactSectionsSettingsJson() // Remove the existing JSON file if it exists
         fs.writeFileSync(outputFilePath, JSON.stringify(sectionsSettings, null, 2));
         Logger.info('Sections settings JSON file created successfully!');
+
+        // Auto-generate settings_definition.json from extracted sections + settings_schema.json
+        Theme.generateSettingsDefinition(sectionsSettings);
+    }
+
+    /**
+     * Static color/palette paths — standard across all themes using the Fynd framework.
+     */
+    private static STATIC_GLOBAL_CONFIG_PATHS: Record<string, string> = {
+        primary_color: 'config/list/0/global_config/static/props/colors/primary_color',
+        secondary_color: 'config/list/0/global_config/static/props/colors/secondary_color',
+        accent_color: 'config/list/0/global_config/static/props/colors/accent_color',
+        link_color: 'config/list/0/global_config/static/props/colors/link_color',
+        button_secondary_color: 'config/list/0/global_config/static/props/colors/button_secondary_color',
+        bg_color: 'config/list/0/global_config/static/props/colors/bg_color',
+        text_heading: 'config/list/0/global_config/static/props/palette/general_setting/text/text_heading',
+        text_body: 'config/list/0/global_config/static/props/palette/general_setting/text/text_body',
+        text_label: 'config/list/0/global_config/static/props/palette/general_setting/text/text_label',
+        text_secondary: 'config/list/0/global_config/static/props/palette/general_setting/text/text_secondary',
+        page_background: 'config/list/0/global_config/static/props/palette/general_setting/theme/page_background',
+        theme_accent: 'config/list/0/global_config/static/props/palette/general_setting/theme/theme_accent',
+        button_primary: 'config/list/0/global_config/static/props/palette/general_setting/button/button_primary',
+        button_secondary: 'config/list/0/global_config/static/props/palette/general_setting/button/button_secondary',
+        button_link: 'config/list/0/global_config/static/props/palette/general_setting/button/button_link',
+    };
+
+    /**
+     * Generate settings_definition.json from extracted section settings + settings_schema.json.
+     * Called automatically during build/sync/publish after section extraction.
+     */
+    private static generateSettingsDefinition(sectionsSettings: Record<string, any>) {
+        try {
+            const configDir = path.join(process.cwd(), 'theme', 'config');
+            const schemaPath = path.join(configDir, 'settings_schema.json');
+            const outputPath = path.join(configDir, 'settings_definition.json');
+
+            // --- Build sections from extracted settings ---
+            const sections: Record<string, any> = {};
+            for (const [sectionName, settings] of Object.entries(sectionsSettings)) {
+                const sectionDef: any = {
+                    name: sectionName,
+                    label: (settings as any).label || sectionName,
+                    description: (settings as any).description || '',
+                    icon: (settings as any).icon || '',
+                    props: {},
+                    blocks: [],
+                };
+
+                // Convert props array to keyed object
+                const props = (settings as any).props;
+                if (Array.isArray(props)) {
+                    for (const prop of props) {
+                        if (prop && prop.id) {
+                            sectionDef.props[prop.id] = {
+                                type: prop.type || 'text',
+                                value: prop.default !== undefined ? prop.default : '',
+                            };
+                        }
+                    }
+                }
+
+                // Process blocks
+                const blocks = (settings as any).blocks;
+                if (Array.isArray(blocks)) {
+                    for (const block of blocks) {
+                        if (!block) continue;
+                        const blockDef: any = {
+                            type: block.type || 'default',
+                            name: block.name || block.type || 'Block',
+                            description: block.description || '',
+                            icon: block.icon || '',
+                            props: {},
+                        };
+                        if (Array.isArray(block.props)) {
+                            for (const prop of block.props) {
+                                if (prop && prop.id) {
+                                    blockDef.props[prop.id] = {
+                                        type: prop.type || 'text',
+                                        value: prop.default !== undefined ? prop.default : '',
+                                    };
+                                }
+                            }
+                        }
+                        sectionDef.blocks.push(blockDef);
+                    }
+                }
+
+                sections[sectionName] = sectionDef;
+            }
+
+            // --- Build global_config from settings_schema.json ---
+            let schemaProps: any[] = [];
+            if (fs.existsSync(schemaPath)) {
+                const schema = fs.readJSONSync(schemaPath);
+                schemaProps = Array.isArray(schema.props) ? schema.props : [];
+            }
+
+            // Paths: static (colors/palette) + custom (from schema prop IDs)
+            const paths: Record<string, string> = { ...Theme.STATIC_GLOBAL_CONFIG_PATHS };
+            for (const prop of schemaProps) {
+                if (prop && prop.id) {
+                    paths[prop.id] = `config/list/0/global_config/custom/props/${prop.id}`;
+                }
+            }
+
+            // Template: default values from schema props
+            const customProps: Record<string, any> = {};
+            for (const prop of schemaProps) {
+                if (prop && prop.id) {
+                    customProps[prop.id] = prop.default !== undefined ? prop.default : '';
+                }
+            }
+
+            const globalConfig = {
+                paths,
+                template: {
+                    config: {
+                        list: [{
+                            global_config: {
+                                static: { props: {} },
+                                custom: { props: customProps },
+                            },
+                        }],
+                    },
+                },
+                schema: { props: schemaProps },
+            };
+
+            const settingsDefinition = {
+                version: '1.0.0',
+                sections,
+                global_config: globalConfig,
+            };
+
+            fs.writeFileSync(outputPath, JSON.stringify(settingsDefinition, null, 2));
+            Logger.info('settings_definition.json generated successfully!');
+        } catch (error) {
+            Logger.error(`Failed to generate settings_definition.json: ${error.message}`);
+        }
     }
 
     private static extractSectionsFromFile(path) {
@@ -2225,6 +2423,18 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
             );
             theme.config = theme.config || {};
             theme.config.global_schema = globalConfigSchema;
+
+            // Load settings_definition.json if it exists
+            const settingsDefinitionPath = path.join(
+                process.cwd(),
+                'theme',
+                'config',
+                'settings_definition.json',
+            );
+            if (fs.existsSync(settingsDefinitionPath)) {
+                theme.config.settings_definition = await fs.readJSON(settingsDefinitionPath);
+            }
+
             theme.config.current = globalConfigData.current || 'default';
 
             // Modify list to update deleted page's prop
