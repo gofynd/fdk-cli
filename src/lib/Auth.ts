@@ -18,6 +18,11 @@ import { OutputFormatter, successBox } from '../helper/formatter';
 import OrganizationService from './api/services/organization.service';
 import { getOrganizationDisplayName } from '../helper/utils';
 import ExtensionContext from './ExtensionContext';
+import ApiClient from './api/ApiClient';
+import { URLS } from './api/services/url';
+import * as semver from 'semver';
+
+const packageJSON = require('../../package.json');
 
 async function checkTokenExpired(auth_token) {
     const { expiry_time } = auth_token;
@@ -28,6 +33,8 @@ async function checkTokenExpired(auth_token) {
         return false;
     }
 }
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const getApp = async () => {
     const app = express();
@@ -145,6 +152,130 @@ export default class Auth {
     static wantToChangeOrganization = false;
     static newDomainToUpdate = null;
     constructor() { }
+
+    private static async getAuthFlowConfig() {
+        try {
+            const response = await ApiClient.get(URLS.OAUTH_CLIENT_CONFIG(), {
+                params: { client_id: 'fdk-cli' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-fp-cli': `${packageJSON.version}`,
+                },
+            });
+            return response.data || {};
+        } catch (error) {
+            return { auth_mode: 'legacy' };
+        }
+    }
+
+    private static shouldUseDeviceFlow(config: { auth_mode?: string; min_cli_version?: string }) {
+        if ((config?.auth_mode || '').toLowerCase() !== 'device_code') {
+            return false;
+        }
+        const minVersion = config?.min_cli_version;
+        if (!minVersion) return true;
+        return semver.gte(semver.coerce(packageJSON.version) || packageJSON.version, semver.coerce(minVersion) || minVersion);
+    }
+
+    private static async runDeviceLogin(env: string, options: any) {
+        const response = await ApiClient.post(URLS.OAUTH_DEVICE_AUTHORIZATION(), {
+            headers: {
+                'Content-Type': 'application/json',
+                'x-fp-cli': `${packageJSON.version}`,
+            },
+            data: {
+                client_id: 'fdk-cli',
+                scope: ['organization/*'],
+                requested_host: env,
+                requested_region: options.region?.trim(),
+            },
+        });
+        const {
+            device_code,
+            user_code,
+            verification_uri_complete,
+            interval = 5,
+            expires_in = 600,
+        } = response.data;
+
+        const verificationUrl = new URL(verification_uri_complete);
+        if (!verificationUrl.searchParams.has('user_code')) {
+            verificationUrl.searchParams.set('user_code', user_code);
+        }
+        if (!verificationUrl.searchParams.has('device_flow')) {
+            verificationUrl.searchParams.set('device_flow', 'true');
+        }
+        const verificationLink = verificationUrl.toString();
+
+        Logger.info(`User verification code: ${chalk.cyan(user_code)}`);
+        try {
+            await open(verificationLink);
+            console.log(`Opened link to start the auth process: ${OutputFormatter.link(verificationLink)}`);
+        } catch (err) {
+            console.log(`Open this link to continue login: ${OutputFormatter.link(verificationLink)}`);
+        }
+
+        const maxAttempts = Math.ceil(expires_in / interval);
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            await sleep(interval * 1000);
+            try {
+                const tokenRes = await ApiClient.post(URLS.OAUTH_DEVICE_TOKEN(), {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-fp-cli': `${packageJSON.version}`,
+                    },
+                    data: {
+                        grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
+                        client_id: 'fdk-cli',
+                        device_code,
+                    },
+                });
+                const authToken = tokenRes.data.auth_token;
+                const organization = tokenRes.data.organization;
+                if (Auth.wantToChangeOrganization) {
+                    ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
+                    clearExtensionContext();
+                }
+                const expiryTimestamp =
+                    Math.floor(Date.now() / 1000) + authToken.expires_in;
+                authToken.expiry_time = expiryTimestamp;
+                if (Auth.newDomainToUpdate) {
+                    if (Auth.newDomainToUpdate === 'api.fynd.com') {
+                        Env.setEnv(Auth.newDomainToUpdate);
+                    }
+                    else {
+                        await Env.setNewEnvs(Auth.newDomainToUpdate);
+                    }
+                }
+                ConfigStore.set(CONFIG_KEYS.AUTH_TOKEN, authToken);
+                ConfigStore.set(CONFIG_KEYS.ORGANIZATION, organization);
+                const organization_detail =
+                    await OrganizationService.getOrganizationDetails();
+                ConfigStore.set(
+                    CONFIG_KEYS.ORGANIZATION_DETAIL,
+                    organization_detail.data,
+                );
+                Logger.info(`Logged in successfully in organization ${getOrganizationDisplayName()}`);
+                return;
+            } catch (error) {
+                const oauthError = error?.response?.data?.error;
+                if (oauthError === 'authorization_pending') continue;
+                if (oauthError === 'slow_down') {
+                    await sleep(2000);
+                    continue;
+                }
+                if (oauthError === 'access_denied') {
+                    throw new CommandError('Login denied in browser.', '403');
+                }
+                if (oauthError === 'expired_token') {
+                    throw new CommandError('Device code expired. Please run `fdk login` again.', '400');
+                }
+                throw error;
+            }
+        }
+        throw new CommandError('Login timed out. Please run `fdk login` again.', '408');
+    }
+
     public static async login(options) {
 
         let env: string;
@@ -186,12 +317,19 @@ export default class Auth {
                     return;
                 } else {
                     Auth.wantToChangeOrganization = true;
-                    await startServer(port);
                 }
             });
-        } else
-            await startServer(port);
+            if (!Auth.wantToChangeOrganization) {
+                return;
+            }
+        }
         try {
+            const authFlowConfig = await Auth.getAuthFlowConfig();
+            if (Auth.shouldUseDeviceFlow(authFlowConfig)) {
+                await Auth.runDeviceLogin(env, options);
+                return;
+            }
+            await startServer(port);
             let domain = null;
             let partnerDomain = env.replace('api', 'partners');
             domain = `https://${partnerDomain}`;
