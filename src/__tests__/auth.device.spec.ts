@@ -49,6 +49,7 @@ describe('Auth device flow', () => {
         jest.restoreAllMocks();
         jest.clearAllMocks();
         configStore.clear();
+        process.exitCode = 0;
 
         jest.spyOn(Env, 'verifyAndSanitizeEnvValue').mockResolvedValue('api.fyndx1.de');
         jest.spyOn(Env, 'getEnvValue').mockReturnValue('api.fyndx1.de');
@@ -57,6 +58,10 @@ describe('Auth device flow', () => {
             data: { _id: 'org-1', name: 'Test Org' },
         } as any);
         openMock.mockResolvedValue(undefined);
+    });
+
+    afterEach(() => {
+        process.exitCode = 0;
     });
 
     afterAll(() => {
