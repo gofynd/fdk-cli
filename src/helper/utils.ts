@@ -169,7 +169,11 @@ export const installJavaPackages = async (
 
 export const installNpmPackages = async (targetDir: string = process.cwd()) => {
     return new Promise(async (resolve, reject) => {
-        let exec = execa('npm', ['i'], { cwd: targetDir });
+        // Third-party theme/extension trees must not inherit fdk-cli's engine-strict (or parent .npmrc).
+        let exec = execa('npm', ['i'], {
+            cwd: targetDir,
+            env: { ...process.env, npm_config_engine_strict: 'false' },
+        });
         exec.stdout.on('data', (data) => {
             Debug(data);
         });
