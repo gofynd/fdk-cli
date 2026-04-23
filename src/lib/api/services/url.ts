@@ -43,6 +43,15 @@ export const URLS = {
     VERIFY_OTP: () => {
         return urlJoin(AUTH_URL(), '/auth/login/mobile/otp/verify');
     },
+    OAUTH_CLIENT_CONFIG: () => {
+        return urlJoin(AUTH_URL(), '/oauth/client-config');
+    },
+    OAUTH_DEVICE_AUTHORIZATION: () => {
+        return urlJoin(AUTH_URL(), '/oauth/device_authorization');
+    },
+    OAUTH_DEVICE_TOKEN: () => {
+        return urlJoin(AUTH_URL(), '/oauth/token');
+    },
 
     //CONFIGURATION
     GET_APPLICATION_DETAILS: (company_id: number, application_id: string) => {
