@@ -19,7 +19,6 @@ import OrganizationService from './api/services/organization.service';
 import { getOrganizationDisplayName } from '../helper/utils';
 import ExtensionContext from './ExtensionContext';
 import ApiClient from './api/ApiClient';
-import { URLS } from './api/services/url';
 import * as semver from 'semver';
 
 const packageJSON = require('../../package.json');
@@ -153,9 +152,10 @@ export default class Auth {
     static newDomainToUpdate = null;
     constructor() { }
 
-    private static async getAuthFlowConfig() {
+    private static async getAuthFlowConfig(env: string) {
         try {
-            const response = await ApiClient.get(URLS.OAUTH_CLIENT_CONFIG(), {
+            const url = `https://${env}/service/panel/authentication/v1.0/oauth/client-config`;
+            const response = await ApiClient.get(url, {
                 params: { client_id: 'fdk-cli' },
                 headers: {
                     'Content-Type': 'application/json',
@@ -178,7 +178,8 @@ export default class Auth {
     }
 
     private static async runDeviceLogin(env: string, options: any) {
-        const response = await ApiClient.post(URLS.OAUTH_DEVICE_AUTHORIZATION(), {
+        const authBase = `https://${env}/service/panel/authentication/v1.0`;
+        const response = await ApiClient.post(`${authBase}/oauth/device_authorization`, {
             headers: {
                 'Content-Type': 'application/json',
                 'x-fp-cli': `${packageJSON.version}`,
@@ -219,7 +220,7 @@ export default class Auth {
         for (let attempt = 0; attempt < maxAttempts; attempt++) {
             await sleep(interval * 1000);
             try {
-                const tokenRes = await ApiClient.post(URLS.OAUTH_DEVICE_TOKEN(), {
+                const tokenRes = await ApiClient.post(`${authBase}/oauth/token`, {
                     headers: {
                         'Content-Type': 'application/json',
                         'x-fp-cli': `${packageJSON.version}`,
@@ -324,7 +325,7 @@ export default class Auth {
             }
         }
         try {
-            const authFlowConfig = await Auth.getAuthFlowConfig();
+            const authFlowConfig = await Auth.getAuthFlowConfig(env);
             if (Auth.shouldUseDeviceFlow(authFlowConfig)) {
                 await Auth.runDeviceLogin(env, options);
                 return;
