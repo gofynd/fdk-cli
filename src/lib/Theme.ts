@@ -861,7 +861,8 @@ export default class Theme {
             if (sectionChunkingEnabled) {
                 Theme.validateReactSectionFileNames();
                 await Theme.createReactSectionsChunksIndexFile();
-                await Theme.createReactSectionsSettingsJson();
+                await Theme.createReactSectionsSettingsJson(); // also generates settings_definition.json
+                Theme.validateSettingsDefinition();
             } else {
                 await Theme.createReactSectionsBundleIndexFile();
             }
@@ -1460,6 +1461,161 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
         })
         return true;
     }
+    static validateSettingsDefinition() {
+        const settingsDefPath = path.join(
+            process.cwd(),
+            'theme',
+            'config',
+            'settings_definition.json',
+        );
+        if (!fs.existsSync(settingsDefPath)) {
+            throw new Error('settings_definition.json was not generated. Check build logs for errors.');
+        }
+        try {
+            const settingsDef = fs.readJSONSync(settingsDefPath);
+            if (!settingsDef.sections || typeof settingsDef.sections !== 'object') {
+                throw new Error('settings_definition.json must contain a "sections" object');
+            }
+            if (!settingsDef.global_config || typeof settingsDef.global_config !== 'object') {
+                throw new Error('settings_definition.json must contain a "global_config" object');
+            }
+            if (!settingsDef.global_config.paths || typeof settingsDef.global_config.paths !== 'object') {
+                throw new Error('settings_definition.json global_config must contain a "paths" object');
+            }
+            // Validate section descriptions and icons
+            const sections = settingsDef.sections;
+            if (sections && typeof sections === 'object') {
+                for (const [sectionName, section] of Object.entries(sections)) {
+                    const sec = section as any;
+                    if (sec.description && sec.description.length > 600) {
+                        throw new Error(
+                            `Section "${sectionName}" description exceeds 600 character limit (${sec.description.length} chars)`
+                        );
+                    }
+                    if (sec.icon) {
+                        Theme.validateSectionIcon(sectionName, sec.icon);
+                    }
+                    if (Array.isArray(sec.blocks)) {
+                        for (const block of sec.blocks) {
+                            if (block.description && block.description.length > 600) {
+                                throw new Error(
+                                    `Block "${block.name || block.type}" in section "${sectionName}" description exceeds 600 character limit`
+                                );
+                            }
+                            if (block.icon) {
+                                Theme.validateSectionIcon(
+                                    `${sectionName} > block "${block.name || block.type}"`,
+                                    block.icon,
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+            // Parallel size check for all section icons
+            Theme.validateSectionIconSizes(sections);
+            Logger.info('settings_definition.json validation passed');
+        } catch (error) {
+            if (error.message?.includes('settings_definition.json')) {
+                throw error;
+            }
+            throw new Error(`Invalid settings_definition.json: ${error.message}`);
+        }
+        return true;
+    }
+
+    /**
+     * Validate a section icon (format/URL check — synchronous, instant).
+     * - Must be a URL (http:// or https://)
+     * - Allowed formats: SVG, PNG only
+     */
+    private static validateSectionIcon(sectionName: string, icon: string) {
+        if (!icon || typeof icon !== 'string') return;
+        const iconTrimmed = icon.trim();
+        if (!iconTrimmed) return;
+
+        if (!iconTrimmed.startsWith('http://') && !iconTrimmed.startsWith('https://')) {
+            throw new Error(
+                `Section "${sectionName}" icon must be a URL (http:// or https://). Got: "${iconTrimmed.substring(0, 50)}"`
+            );
+        }
+
+        const urlPath = iconTrimmed.split('?')[0].toLowerCase();
+        if (!urlPath.endsWith('.svg') && !urlPath.endsWith('.png')) {
+            throw new Error(
+                `Section "${sectionName}" icon must be SVG or PNG format. Got: "${iconTrimmed.substring(0, 80)}"`
+            );
+        }
+    }
+
+    /**
+     * Validate all section icon sizes in parallel (one batch HTTP check).
+     * Hard limit: 150 KB per icon. Called after format validation.
+     */
+    private static validateSectionIconSizes(sections: Record<string, any>) {
+        const MAX_ICON_SIZE = 150 * 1024; // 150 KB
+        const icons: Array<{ name: string; url: string }> = [];
+
+        for (const [sectionName, section] of Object.entries(sections)) {
+            const sec = section as any;
+            if (sec.icon && typeof sec.icon === 'string' && sec.icon.trim().startsWith('http')) {
+                icons.push({ name: sectionName, url: sec.icon.trim() });
+            }
+            // Collect block icons too
+            if (Array.isArray(sec.blocks)) {
+                for (const block of sec.blocks) {
+                    if (block.icon && typeof block.icon === 'string' && block.icon.trim().startsWith('http')) {
+                        icons.push({
+                            name: `${sectionName} > block "${block.name || block.type}"`,
+                            url: block.icon.trim(),
+                        });
+                    }
+                }
+            }
+        }
+
+        if (icons.length === 0) return;
+
+        try {
+            const { execSync } = require('child_process');
+            // Check each icon's Content-Length via HEAD request in parallel
+            const errors: string[] = [];
+            const curlArgs = icons.map(
+                (ic) => `-sI "${ic.url}"`
+            ).join(' ');
+            const output = execSync(
+                `curl --parallel --parallel-max 20 ${curlArgs}`,
+                { timeout: 15000, encoding: 'utf8' }
+            );
+
+            // Parse Content-Length from each response header block
+            const responses = output.split(/\r?\n\r?\n/).filter(Boolean);
+            let iconIdx = 0;
+            for (const resp of responses) {
+                const clMatch = resp.match(/content-length:\s*(\d+)/i);
+                if (clMatch && iconIdx < icons.length) {
+                    const sizeBytes = parseInt(clMatch[1], 10);
+                    if (sizeBytes > MAX_ICON_SIZE) {
+                        errors.push(
+                            `"${icons[iconIdx].name}" icon exceeds 150 KB limit (${Math.round(sizeBytes / 1024)} KB). ` +
+                            `Recommended: 50–100 KB, dimensions 24×24 to 64×64.`
+                        );
+                    }
+                    iconIdx++;
+                }
+            }
+            if (errors.length > 0) {
+                throw new Error(errors.join('\n'));
+            }
+        } catch (err: any) {
+            if (err.message?.includes('150 KB')) {
+                throw err;
+            }
+            // Fallback: curl --parallel not available, skip size check with warning
+            Logger.warn(`Could not verify icon sizes: ${err.message}`);
+        }
+    }
+
     static evaluateBundle(path, key = 'themeBundle') {
         const code = fs.readFileSync(path, { encoding: 'utf8' });
         const scope = {
@@ -1765,6 +1921,181 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
         Theme.deleteReactSectionsSettingsJson() // Remove the existing JSON file if it exists
         fs.writeFileSync(outputFilePath, JSON.stringify(sectionsSettings, null, 2));
         Logger.info('Sections settings JSON file created successfully!');
+
+        // Auto-generate settings_definition.json from extracted sections + settings_schema.json
+        Theme.generateSettingsDefinition(sectionsSettings);
+    }
+
+    /**
+     * Static color/palette paths — standard across all themes using the Fynd framework.
+     */
+    private static STATIC_GLOBAL_CONFIG_PATHS: Record<string, string> = {
+        // Colors
+        primary_color: 'config/list/0/global_config/static/props/colors/primary_color',
+        secondary_color: 'config/list/0/global_config/static/props/colors/secondary_color',
+        accent_color: 'config/list/0/global_config/static/props/colors/accent_color',
+        link_color: 'config/list/0/global_config/static/props/colors/link_color',
+        button_secondary_color: 'config/list/0/global_config/static/props/colors/button_secondary_color',
+        bg_color: 'config/list/0/global_config/static/props/colors/bg_color',
+        // Palette — Text
+        text_heading: 'config/list/0/global_config/static/props/palette/general_setting/text/text_heading',
+        text_body: 'config/list/0/global_config/static/props/palette/general_setting/text/text_body',
+        text_label: 'config/list/0/global_config/static/props/palette/general_setting/text/text_label',
+        text_secondary: 'config/list/0/global_config/static/props/palette/general_setting/text/text_secondary',
+        // Palette — Theme
+        page_background: 'config/list/0/global_config/static/props/palette/general_setting/theme/page_background',
+        theme_accent: 'config/list/0/global_config/static/props/palette/general_setting/theme/theme_accent',
+        // Palette — Button
+        button_primary: 'config/list/0/global_config/static/props/palette/general_setting/button/button_primary',
+        button_secondary: 'config/list/0/global_config/static/props/palette/general_setting/button/button_secondary',
+        button_link: 'config/list/0/global_config/static/props/palette/general_setting/button/button_link',
+        // Palette — Sale & Discount
+        sale_badge_background: 'config/list/0/global_config/static/props/palette/general_setting/sale_discount/sale_badge_background',
+        sale_badge_text: 'config/list/0/global_config/static/props/palette/general_setting/sale_discount/sale_badge_text',
+        sale_discount_text: 'config/list/0/global_config/static/props/palette/general_setting/sale_discount/sale_discount_text',
+        sale_timer: 'config/list/0/global_config/static/props/palette/general_setting/sale_discount/sale_timer',
+        // Palette — Header
+        header_background: 'config/list/0/global_config/static/props/palette/general_setting/header/header_background',
+        header_nav: 'config/list/0/global_config/static/props/palette/general_setting/header/header_nav',
+        header_icon: 'config/list/0/global_config/static/props/palette/general_setting/header/header_icon',
+        // Palette — Footer
+        footer_background: 'config/list/0/global_config/static/props/palette/general_setting/footer/footer_background',
+        footer_bottom_background: 'config/list/0/global_config/static/props/palette/general_setting/footer/footer_bottom_background',
+        footer_heading_text: 'config/list/0/global_config/static/props/palette/general_setting/footer/footer_heading_text',
+        footer_body_text: 'config/list/0/global_config/static/props/palette/general_setting/footer/footer_body_text',
+        footer_icon: 'config/list/0/global_config/static/props/palette/general_setting/footer/footer_icon',
+        // Palette — Advanced: Overlay & Popup
+        dialog_background: 'config/list/0/global_config/static/props/palette/advance_setting/overlay_popup/dialog_backgroung',
+        overlay: 'config/list/0/global_config/static/props/palette/advance_setting/overlay_popup/overlay',
+        // Palette — Advanced: Divider & Stroke
+        divider_strokes: 'config/list/0/global_config/static/props/palette/advance_setting/divider_stroke_highlight/divider_strokes',
+        highlight: 'config/list/0/global_config/static/props/palette/advance_setting/divider_stroke_highlight/highlight',
+        // Palette — Advanced: User Alerts
+        success_background: 'config/list/0/global_config/static/props/palette/advance_setting/user_alerts/success_background',
+        success_text: 'config/list/0/global_config/static/props/palette/advance_setting/user_alerts/success_text',
+        error_background: 'config/list/0/global_config/static/props/palette/advance_setting/user_alerts/error_background',
+        error_text: 'config/list/0/global_config/static/props/palette/advance_setting/user_alerts/error_text',
+        info_background: 'config/list/0/global_config/static/props/palette/advance_setting/user_alerts/info_background',
+        info_text: 'config/list/0/global_config/static/props/palette/advance_setting/user_alerts/info_text',
+    };
+
+    /**
+     * Generate settings_definition.json from extracted section settings + settings_schema.json.
+     * Called automatically during build/sync/publish after section extraction.
+     */
+    private static generateSettingsDefinition(sectionsSettings: Record<string, any>) {
+        try {
+            const configDir = path.join(process.cwd(), 'theme', 'config');
+            const schemaPath = path.join(configDir, 'settings_schema.json');
+            const outputPath = path.join(configDir, 'settings_definition.json');
+
+            // --- Build sections from extracted settings ---
+            const sections: Record<string, any> = {};
+            for (const [sectionName, settings] of Object.entries(sectionsSettings)) {
+                const sectionDef: any = {
+                    name: sectionName,
+                    label: (settings as any).label || sectionName,
+                    description: (settings as any).description || '',
+                    icon: (settings as any).icon || '',
+                    props: {},
+                    blocks: [],
+                };
+
+                // Convert props array to keyed object
+                const props = (settings as any).props;
+                if (Array.isArray(props)) {
+                    for (const prop of props) {
+                        if (prop && prop.id) {
+                            sectionDef.props[prop.id] = {
+                                type: prop.type || 'text',
+                                value: prop.default !== undefined ? prop.default : '',
+                                ...(prop.label && { label: prop.label }),
+                                ...(prop.info && { info: prop.info }),
+                            };
+                        }
+                    }
+                }
+
+                // Process blocks
+                const blocks = (settings as any).blocks;
+                if (Array.isArray(blocks)) {
+                    for (const block of blocks) {
+                        if (!block) continue;
+                        const blockDef: any = {
+                            type: block.type || 'default',
+                            name: block.name || block.type || 'Block',
+                            description: block.description || '',
+                            icon: block.icon || '',
+                            props: {},
+                        };
+                        if (Array.isArray(block.props)) {
+                            for (const prop of block.props) {
+                                if (prop && prop.id) {
+                                    blockDef.props[prop.id] = {
+                                        type: prop.type || 'text',
+                                        value: prop.default !== undefined ? prop.default : '',
+                                        ...(prop.label && { label: prop.label }),
+                                        ...(prop.info && { info: prop.info }),
+                                    };
+                                }
+                            }
+                        }
+                        sectionDef.blocks.push(blockDef);
+                    }
+                }
+
+                sections[sectionName] = sectionDef;
+            }
+
+            // --- Build global_config from settings_schema.json ---
+            let schemaProps: any[] = [];
+            if (fs.existsSync(schemaPath)) {
+                const schema = fs.readJSONSync(schemaPath);
+                schemaProps = Array.isArray(schema.props) ? schema.props : [];
+            }
+
+            // Paths: static (colors/palette) + custom (from schema prop IDs)
+            const paths: Record<string, string> = { ...Theme.STATIC_GLOBAL_CONFIG_PATHS };
+            for (const prop of schemaProps) {
+                if (prop && prop.id) {
+                    paths[prop.id] = `config/list/0/global_config/custom/props/${prop.id}`;
+                }
+            }
+
+            // Template: default values from schema props
+            const customProps: Record<string, any> = {};
+            for (const prop of schemaProps) {
+                if (prop && prop.id) {
+                    customProps[prop.id] = prop.default !== undefined ? prop.default : '';
+                }
+            }
+
+            const globalConfig = {
+                paths,
+                template: {
+                    config: {
+                        list: [{
+                            global_config: {
+                                static: { props: {} },
+                                custom: { props: customProps },
+                            },
+                        }],
+                    },
+                },
+                schema: { props: schemaProps },
+            };
+
+            const settingsDefinition = {
+                version: '1.0.0',
+                sections,
+                global_config: globalConfig,
+            };
+
+            fs.writeFileSync(outputPath, JSON.stringify(settingsDefinition, null, 2));
+            Logger.info('settings_definition.json generated successfully!');
+        } catch (error) {
+            Logger.error(`Failed to generate settings_definition.json: ${error.message}`);
+        }
     }
 
     private static extractSectionsFromFile(path) {
@@ -2225,6 +2556,18 @@ private static async getAvailableReactSectionsForSync(sections, sectionChunkingE
             );
             theme.config = theme.config || {};
             theme.config.global_schema = globalConfigSchema;
+
+            // Load settings_definition.json if it exists
+            const settingsDefinitionPath = path.join(
+                process.cwd(),
+                'theme',
+                'config',
+                'settings_definition.json',
+            );
+            if (fs.existsSync(settingsDefinitionPath)) {
+                theme.config.settings_definition = await fs.readJSON(settingsDefinitionPath);
+            }
+
             theme.config.current = globalConfigData.current || 'default';
 
             // Modify list to update deleted page's prop
