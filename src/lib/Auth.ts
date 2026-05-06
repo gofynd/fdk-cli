@@ -19,7 +19,6 @@ import OrganizationService from './api/services/organization.service';
 import { getOrganizationDisplayName } from '../helper/utils';
 import ExtensionContext from './ExtensionContext';
 import ApiClient from './api/ApiClient';
-import * as semver from 'semver';
 
 const packageJSON = require('../../package.json');
 
@@ -168,13 +167,8 @@ export default class Auth {
         }
     }
 
-    private static shouldUseDeviceFlow(config: { auth_mode?: string; min_cli_version?: string }) {
-        if ((config?.auth_mode || '').toLowerCase() !== 'device_code') {
-            return false;
-        }
-        const minVersion = config?.min_cli_version;
-        if (!minVersion) return true;
-        return semver.gte(semver.coerce(packageJSON.version) || packageJSON.version, semver.coerce(minVersion) || minVersion);
+    private static shouldUseDeviceFlow(config: { auth_mode?: string }) {
+        return (config?.auth_mode || '').toLowerCase() === 'device_code';
     }
 
     private static async runDeviceLogin(env: string, options: any) {

@@ -73,7 +73,6 @@ describe('Auth device flow', () => {
             data: {
                 client_id: 'fdk-cli',
                 auth_mode: 'device_code',
-                min_cli_version: '8.0.6',
             },
         } as any);
 
@@ -115,7 +114,6 @@ describe('Auth device flow', () => {
             data: {
                 client_id: 'fdk-cli',
                 auth_mode: 'device_code',
-                min_cli_version: '8.0.6',
             },
         } as any);
 
@@ -145,4 +143,3 @@ describe('Auth device flow', () => {
         }
     });
 });
-
