@@ -68,6 +68,26 @@ describe('Auth device flow', () => {
         rimraf.sync('./auth-device-test-cli.json');
     });
 
+    it('falls back to legacy when client-config endpoint is unavailable', async () => {
+        jest.spyOn(ApiClient, 'get').mockRejectedValue({
+            response: { status: 404 },
+        });
+
+        await expect((Auth as any).getAuthFlowConfig('api.fyndx1.de')).resolves.toEqual({
+            auth_mode: 'legacy',
+        });
+    });
+
+    it('does not fall back to legacy when client-config returns an unexpected error', async () => {
+        const error = {
+            message: 'Internal server error',
+            response: { status: 500 },
+        };
+        jest.spyOn(ApiClient, 'get').mockRejectedValue(error);
+
+        await expect((Auth as any).getAuthFlowConfig('api.fyndx1.de')).rejects.toBe(error);
+    });
+
     it('uses device flow and appends missing URL params', async () => {
         const getSpy = jest.spyOn(ApiClient, 'get').mockResolvedValue({
             data: {

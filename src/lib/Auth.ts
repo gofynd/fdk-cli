@@ -20,8 +20,6 @@ import { getOrganizationDisplayName } from '../helper/utils';
 import ExtensionContext from './ExtensionContext';
 import ApiClient from './api/ApiClient';
 
-const packageJSON = require('../../package.json');
-
 async function checkTokenExpired(auth_token) {
     const { expiry_time } = auth_token;
     const currentTimestamp = Math.floor(Date.now() / 1000);
@@ -158,12 +156,14 @@ export default class Auth {
                 params: { client_id: 'fdk-cli' },
                 headers: {
                     'Content-Type': 'application/json',
-                    'x-fp-cli': `${packageJSON.version}`,
                 },
             });
             return response.data || {};
         } catch (error) {
-            return { auth_mode: 'legacy' };
+            if (error?.response?.status === 404) {
+                return { auth_mode: 'legacy' };
+            }
+            throw error;
         }
     }
 
@@ -176,7 +176,6 @@ export default class Auth {
         const response = await ApiClient.post(`${authBase}/oauth/device_authorization`, {
             headers: {
                 'Content-Type': 'application/json',
-                'x-fp-cli': `${packageJSON.version}`,
             },
             data: {
                 client_id: 'fdk-cli',
@@ -217,7 +216,6 @@ export default class Auth {
                 const tokenRes = await ApiClient.post(`${authBase}/oauth/token`, {
                     headers: {
                         'Content-Type': 'application/json',
-                        'x-fp-cli': `${packageJSON.version}`,
                     },
                     data: {
                         grant_type: 'urn:ietf:params:oauth:grant-type:device_code',

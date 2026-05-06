@@ -10,6 +10,8 @@ import { transformRequestOptions } from '../../../helper/utils';
 import fs from 'fs-extra';
 import https from 'https'
 
+const packageJSON = require('../../../../package.json');
+
 function getTransformer(config) {
     const { transformRequest } = config;
 
@@ -40,6 +42,8 @@ function interceptorFn(options) {
             }
             const { host, pathname, search } = new URL(url);
             if (pathname.includes('/service') || pathname.startsWith('/ext')) {
+                config.headers = config.headers || {};
+                config.headers['x-fp-cli'] = config.headers['x-fp-cli'] || `${packageJSON.version}`;
                 const { data, headers, method, params } = config;
                 // set cookie
                 const cookie = ConfigStore.get(CONFIG_KEYS.COOKIE);
