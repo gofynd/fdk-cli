@@ -69,13 +69,15 @@ describe('Auth device flow', () => {
     });
 
     it('falls back to legacy when client-config endpoint is unavailable', async () => {
-        jest.spyOn(ApiClient, 'get').mockRejectedValue({
-            response: { status: 404 },
-        });
+        jest.spyOn(ApiClient, 'get').mockResolvedValue({
+            status: 404,
+            data: {},
+        } as any);
 
         await expect((Auth as any).getAuthFlowConfig('api.fyndx1.de')).resolves.toEqual({
             auth_mode: 'legacy',
         });
+        expect(process.exitCode).toBe(0);
     });
 
     it('does not fall back to legacy when client-config returns an unexpected error', async () => {
@@ -123,7 +125,12 @@ describe('Auth device flow', () => {
 
         expect(getSpy).toHaveBeenCalledWith(
             'https://api.fyndx1.de/region/asia-south1/development/service/panel/authentication/v1.0/oauth/client-config',
-            expect.any(Object),
+            expect.objectContaining({
+                params: { client_id: 'fdk-cli' },
+            }),
+            expect.objectContaining({
+                validateStatus: expect.any(Function),
+            }),
         );
         expect(postSpy).toHaveBeenNthCalledWith(
             1,

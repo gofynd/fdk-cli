@@ -168,7 +168,13 @@ export default class Auth {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+            }, {
+                validateStatus: (status) =>
+                    (status >= 200 && status < 300) || status === 404,
             });
+            if (response.status === 404) {
+                return { auth_mode: 'legacy' };
+            }
             return response.data || {};
         } catch (error) {
             if (error?.response?.status === 404) {
