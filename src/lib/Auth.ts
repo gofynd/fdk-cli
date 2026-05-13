@@ -32,6 +32,17 @@ async function checkTokenExpired(auth_token) {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+function getRegionFromOptions(options: any) {
+    return options?.region?.trim();
+}
+
+function getPanelAuthBase(env: string, region?: string) {
+    if (!region) {
+        return `https://${env}/service/panel/authentication/v1.0`;
+    }
+    return `https://${env}/region/${region}/service/panel/authentication/v1.0`;
+}
+
 export const getApp = async () => {
     const app = express();
     let isLoading = false;
@@ -149,9 +160,9 @@ export default class Auth {
     static newDomainToUpdate = null;
     constructor() { }
 
-    private static async getAuthFlowConfig(env: string) {
+    private static async getAuthFlowConfig(env: string, region?: string) {
         try {
-            const url = `https://${env}/service/panel/authentication/v1.0/oauth/client-config`;
+            const url = `${getPanelAuthBase(env, region)}/oauth/client-config`;
             const response = await ApiClient.get(url, {
                 params: { client_id: 'fdk-cli' },
                 headers: {
@@ -172,7 +183,8 @@ export default class Auth {
     }
 
     private static async runDeviceLogin(env: string, options: any) {
-        const authBase = `https://${env}/service/panel/authentication/v1.0`;
+        const region = getRegionFromOptions(options);
+        const authBase = getPanelAuthBase(env, region);
         const response = await ApiClient.post(`${authBase}/oauth/device_authorization`, {
             headers: {
                 'Content-Type': 'application/json',
@@ -181,7 +193,7 @@ export default class Auth {
                 client_id: 'fdk-cli',
                 scope: ['organization/*'],
                 requested_host: env,
-                requested_region: options.region?.trim(),
+                requested_region: region,
             },
         });
         const {
@@ -317,7 +329,8 @@ export default class Auth {
             }
         }
         try {
-            const authFlowConfig = await Auth.getAuthFlowConfig(env);
+            const region = getRegionFromOptions(options);
+            const authFlowConfig = await Auth.getAuthFlowConfig(env, region);
             if (Auth.shouldUseDeviceFlow(authFlowConfig)) {
                 await Auth.runDeviceLogin(env, options);
                 return;
@@ -326,7 +339,6 @@ export default class Auth {
             let domain = null;
             let partnerDomain = env.replace('api', 'partners');
             domain = `https://${partnerDomain}`;
-            const region = options.region?.trim();
             const callbackUrl = `${getLocalBaseUrl()}:${port}`;
             const queryParams = new URLSearchParams({ 'fdk-cli': 'true', callback: callbackUrl });
             if (region) queryParams.set('region', region);

@@ -88,6 +88,67 @@ describe('Auth device flow', () => {
         await expect((Auth as any).getAuthFlowConfig('api.fyndx1.de')).rejects.toBe(error);
     });
 
+    it('uses regional Skywarp URLs for device login when region is provided', async () => {
+        const getSpy = jest.spyOn(ApiClient, 'get').mockResolvedValue({
+            data: {
+                client_id: 'fdk-cli',
+                auth_mode: 'device_code',
+            },
+        } as any);
+
+        const postSpy = jest.spyOn(ApiClient, 'post');
+        postSpy
+            .mockResolvedValueOnce({
+                data: {
+                    device_code: 'device-code-region',
+                    user_code: 'ABCD-EFGH',
+                    verification_uri_complete:
+                        'https://partners.fyndx1.de/activate-with-code?user_code=ABCD-EFGH&device_flow=true&region=asia-south1%2Fdevelopment',
+                    interval: 0,
+                    expires_in: 10,
+                },
+            } as any)
+            .mockResolvedValueOnce({
+                data: {
+                    auth_token: {
+                        access_token: 'region-token',
+                        expires_in: 3600,
+                        current_user: { first_name: 'A', last_name: 'B', emails: [] },
+                    },
+                    organization: { _id: 'org-1', name: 'Test Org' },
+                },
+            } as any);
+
+        await Auth.login({ host: 'api.fyndx1.de', region: 'asia-south1/development' });
+
+        expect(getSpy).toHaveBeenCalledWith(
+            'https://api.fyndx1.de/region/asia-south1/development/service/panel/authentication/v1.0/oauth/client-config',
+            expect.any(Object),
+        );
+        expect(postSpy).toHaveBeenNthCalledWith(
+            1,
+            'https://api.fyndx1.de/region/asia-south1/development/service/panel/authentication/v1.0/oauth/device_authorization',
+            expect.objectContaining({
+                data: expect.objectContaining({
+                    requested_region: 'asia-south1/development',
+                }),
+            }),
+        );
+        expect(postSpy).toHaveBeenNthCalledWith(
+            2,
+            'https://api.fyndx1.de/region/asia-south1/development/service/panel/authentication/v1.0/oauth/token',
+            expect.objectContaining({
+                data: expect.objectContaining({
+                    device_code: 'device-code-region',
+                }),
+            }),
+        );
+        expect(openMock).toHaveBeenCalledWith(
+            'https://partners.fyndx1.de/activate-with-code?user_code=ABCD-EFGH&device_flow=true&region=asia-south1%2Fdevelopment',
+        );
+        expect(configStore.get(CONFIG_KEYS.AUTH_TOKEN).access_token).toBe('region-token');
+    });
+
     it('uses device flow and appends missing URL params', async () => {
         const getSpy = jest.spyOn(ApiClient, 'get').mockResolvedValue({
             data: {
