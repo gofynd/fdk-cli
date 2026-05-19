@@ -266,10 +266,26 @@ export const isValidDomain = (domain) => {
     return domainRegex.test(domain);
 };
 
+// Only called by `findExportedVariable` below. The goal is *not* to produce a build
+// artifact — it is to strip JSX/TSX syntax so acorn can parse the file and walk for
+// an `export const <name> = ...` declaration. The transformed code is throwaway.
+//
+// `babelrc: false, configFile: false` are load-bearing: without them babel auto-
+// loads the theme's `babel.config.js` (or `.babelrc`). Most React themes include
+// `@babel/preset-env` with the default `modules: 'auto'`, which rewrites every
+// `export const X = ...` into `const X = exports.X = ...`. That collapses the
+// ExportNamedDeclaration node `findExportedVariable` walks for, returning `null`
+// and causing `fdk theme sync` to silently push empty `sections_meta` for every
+// page — wiping out canvas slot declarations (left_panel/right_panel pickers in
+// the editor). The bug is silent because no error is thrown and the sync spinner
+// reports success. See findExportedVariable below for the AST walker that depends
+// on the original `export` syntax being preserved.
 export function transformCodeToJS(code: any) {
     const options = {
         filename: 'pages.tsx',
         presets: ['@babel/preset-react', '@babel/preset-typescript'],
+        babelrc: false,
+        configFile: false,
     };
 
     try {
