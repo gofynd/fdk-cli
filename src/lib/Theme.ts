@@ -659,6 +659,14 @@ export default class Theme {
                 throw new CommandError(`Folder ${themeName}  already exists`);
             }
 
+            // Order matters: template files are copied FIRST, then the theme archive
+            // is extracted on top (extractArchive a few lines below). extract-zip
+            // overwrites by default, so any file the archive ships takes precedence —
+            // but defaults remain for anything the archive omits. The React template
+            // includes a baseline webpack.config.js + plugin.js + polyfill.js so
+            // `fdk theme sync` doesn't crash if the platform-uploaded archive is
+            // missing them (the CLI's baseConfig is incomplete on its own — it has
+            // no `entry` or `module.rules`, both must come from the theme).
             Logger.debug('Copying template config files');
             shouldDelete = true;
             if (themeData.theme_type === THEME_TYPE.react) {

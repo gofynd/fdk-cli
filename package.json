@@ -1,6 +1,6 @@
 {
   "name": "@gofynd/fdk-cli",
-  "version": "8.0.6",
+  "version": "8.0.6-beta.3",
   "main": "index.js",
   "license": "MIT",
   "bin": {
@@ -29,7 +29,7 @@
     "watch": "tsc --watch",
     "test": "node --max_old_space_size=4096 --experimental-vm-modules node_modules/jest/bin/jest --runInBand",
     "pretty": "prettier --config ./.prettierrc --write './src/**/*.*'",
-    "localInstall": "sh scripts/localInstall.sh"
+    "localInstall": "bash scripts/localInstall.sh"
   },
   "devDependencies": {
     "@types/async": "^3.2.24",
