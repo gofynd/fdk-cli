@@ -103,9 +103,8 @@ describe('Auth device flow', () => {
             .mockResolvedValueOnce({
                 data: {
                     device_code: 'device-code-region',
-                    user_code: 'ABCD-EFGH',
-            verification_uri_complete:
-                'https://partners.fyndx1.de/partners/organizations/?device_id=device-code-region&region=asia-south1%2Fdevelopment',
+                    verification_uri_complete:
+                        'https://partners.fyndx1.de/partners/organizations/?device_id=device-code-region&region=asia-south1%2Fdevelopment',
                     interval: 0,
                     expires_in: 10,
                 },
@@ -169,8 +168,7 @@ describe('Auth device flow', () => {
             .mockResolvedValueOnce({
                 data: {
                     device_code: 'device-code-1',
-                    user_code: 'ABCD-EFGH',
-            verification_uri_complete: 'https://partners.fyndx1.de/partners/organizations/?device_id=device-code-basic',
+                    verification_uri_complete: 'https://partners.fyndx1.de/partners/organizations/?device_id=device-code-basic',
                     interval: 0,
                     expires_in: 10,
                 },
@@ -209,9 +207,8 @@ describe('Auth device flow', () => {
             .mockResolvedValueOnce({
                 data: {
                     device_code: 'device-code-2',
-                    user_code: 'WXYZ-2345',
-            verification_uri_complete:
-                'https://partners.fyndx1.de/partners/organizations/?device_id=device-code-expired',
+                    verification_uri_complete:
+                        'https://partners.fyndx1.de/partners/organizations/?device_id=device-code-expired',
                     interval: 0,
                     expires_in: 10,
                 },

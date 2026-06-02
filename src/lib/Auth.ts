@@ -204,7 +204,6 @@ export default class Auth {
         });
         const {
             device_code,
-            user_code,
             verification_uri_complete,
             interval = 5,
             expires_in = 600,
@@ -212,7 +211,6 @@ export default class Auth {
 
         const verificationLink = verification_uri_complete;
 
-        Logger.info(`User verification code: ${chalk.cyan(user_code)}`);
         try {
             await open(verificationLink);
             console.log(`Opened link to start the auth process: ${OutputFormatter.link(verificationLink)}`);
@@ -267,9 +265,6 @@ export default class Auth {
                 if (oauthError === 'slow_down') {
                     await sleep(2000);
                     continue;
-                }
-                if (oauthError === 'access_denied') {
-                    throw new CommandError('Login denied in browser.', '403');
                 }
                 if (oauthError === 'expired_token') {
                     throw new CommandError('Device code expired. Please run `fdk login` again.', '400');
