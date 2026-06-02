@@ -210,14 +210,7 @@ export default class Auth {
             expires_in = 600,
         } = response.data;
 
-        const verificationUrl = new URL(verification_uri_complete);
-        if (!verificationUrl.searchParams.has('user_code')) {
-            verificationUrl.searchParams.set('user_code', user_code);
-        }
-        if (!verificationUrl.searchParams.has('device_flow')) {
-            verificationUrl.searchParams.set('device_flow', 'true');
-        }
-        const verificationLink = verificationUrl.toString();
+        const verificationLink = verification_uri_complete;
 
         Logger.info(`User verification code: ${chalk.cyan(user_code)}`);
         try {

@@ -104,8 +104,8 @@ describe('Auth device flow', () => {
                 data: {
                     device_code: 'device-code-region',
                     user_code: 'ABCD-EFGH',
-                    verification_uri_complete:
-                        'https://partners.fyndx1.de/activate-with-code?user_code=ABCD-EFGH&device_flow=true&region=asia-south1%2Fdevelopment',
+            verification_uri_complete:
+                'https://partners.fyndx1.de/partners/organizations/?device_id=device-code-region&region=asia-south1%2Fdevelopment',
                     interval: 0,
                     expires_in: 10,
                 },
@@ -151,12 +151,12 @@ describe('Auth device flow', () => {
             }),
         );
         expect(openMock).toHaveBeenCalledWith(
-            'https://partners.fyndx1.de/activate-with-code?user_code=ABCD-EFGH&device_flow=true&region=asia-south1%2Fdevelopment',
+            'https://partners.fyndx1.de/partners/organizations/?device_id=device-code-region&region=asia-south1%2Fdevelopment',
         );
         expect(configStore.get(CONFIG_KEYS.AUTH_TOKEN).access_token).toBe('region-token');
     });
 
-    it('uses device flow and appends missing URL params', async () => {
+    it('uses device flow and opens verification URL unchanged', async () => {
         const getSpy = jest.spyOn(ApiClient, 'get').mockResolvedValue({
             data: {
                 client_id: 'fdk-cli',
@@ -170,7 +170,7 @@ describe('Auth device flow', () => {
                 data: {
                     device_code: 'device-code-1',
                     user_code: 'ABCD-EFGH',
-                    verification_uri_complete: 'https://partners.fyndx1.de/activate-with-code',
+            verification_uri_complete: 'https://partners.fyndx1.de/partners/organizations/?device_id=device-code-basic',
                     interval: 0,
                     expires_in: 10,
                 },
@@ -192,8 +192,7 @@ describe('Auth device flow', () => {
         expect(postSpy).toHaveBeenCalledTimes(2);
         expect(openMock).toHaveBeenCalledTimes(1);
         const openedUrl = openMock.mock.calls[0][0] as string;
-        expect(openedUrl).toContain('user_code=ABCD-EFGH');
-        expect(openedUrl).toContain('device_flow=true');
+        expect(openedUrl).toBe('https://partners.fyndx1.de/partners/organizations/?device_id=device-code-basic');
         expect(configStore.get(CONFIG_KEYS.AUTH_TOKEN).access_token).toBe('token-1');
     });
 
@@ -211,8 +210,8 @@ describe('Auth device flow', () => {
                 data: {
                     device_code: 'device-code-2',
                     user_code: 'WXYZ-2345',
-                    verification_uri_complete:
-                        'https://partners.fyndx1.de/activate-with-code?user_code=WXYZ-2345&device_flow=true',
+            verification_uri_complete:
+                'https://partners.fyndx1.de/partners/organizations/?device_id=device-code-expired',
                     interval: 0,
                     expires_in: 10,
                 },
