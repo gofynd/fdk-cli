@@ -164,7 +164,6 @@ export default class Auth {
         try {
             const url = `${getPanelAuthBase(env, region)}/oauth/client-config`;
             const response = await ApiClient.get(url, {
-                params: { client_id: 'fdk-cli' },
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -173,19 +172,19 @@ export default class Auth {
                     (status >= 200 && status < 300) || status === 404,
             });
             if (response.status === 404) {
-                return { auth_mode: 'legacy' };
+                return { auth_mode_type: 'legacy' };
             }
             return response.data || {};
         } catch (error) {
             if (error?.response?.status === 404) {
-                return { auth_mode: 'legacy' };
+                return { auth_mode_type: 'legacy' };
             }
             throw error;
         }
     }
 
-    private static shouldUseDeviceFlow(config: { auth_mode?: string }) {
-        return (config?.auth_mode || '').toLowerCase() === 'device_code';
+    private static shouldUseDeviceFlow(config: { auth_mode_type?: string }) {
+        return (config?.auth_mode_type || '').toLowerCase() === 'device_code';
     }
 
     private static async runDeviceLogin(env: string, options: any) {

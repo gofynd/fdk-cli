@@ -75,7 +75,7 @@ describe('Auth device flow', () => {
         } as any);
 
         await expect((Auth as any).getAuthFlowConfig('api.fyndx1.de')).resolves.toEqual({
-            auth_mode: 'legacy',
+            auth_mode_type: 'legacy',
         });
         expect(process.exitCode).toBe(0);
     });
@@ -94,7 +94,7 @@ describe('Auth device flow', () => {
         const getSpy = jest.spyOn(ApiClient, 'get').mockResolvedValue({
             data: {
                 client_id: 'fdk-cli',
-                auth_mode: 'device_code',
+                auth_mode_type: 'device_code',
             },
         } as any);
 
@@ -125,7 +125,9 @@ describe('Auth device flow', () => {
         expect(getSpy).toHaveBeenCalledWith(
             'https://api.fyndx1.de/region/asia-south1/development/service/panel/authentication/v1.0/oauth/client-config',
             expect.objectContaining({
-                params: { client_id: 'fdk-cli' },
+                headers: {
+                    'Content-Type': 'application/json',
+                },
             }),
             expect.objectContaining({
                 validateStatus: expect.any(Function),
@@ -159,7 +161,7 @@ describe('Auth device flow', () => {
         const getSpy = jest.spyOn(ApiClient, 'get').mockResolvedValue({
             data: {
                 client_id: 'fdk-cli',
-                auth_mode: 'device_code',
+                auth_mode_type: 'device_code',
             },
         } as any);
 
@@ -198,7 +200,7 @@ describe('Auth device flow', () => {
         jest.spyOn(ApiClient, 'get').mockResolvedValue({
             data: {
                 client_id: 'fdk-cli',
-                auth_mode: 'device_code',
+                auth_mode_type: 'device_code',
             },
         } as any);
 
