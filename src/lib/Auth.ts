@@ -19,6 +19,8 @@ import OrganizationService from './api/services/organization.service';
 import { getOrganizationDisplayName } from '../helper/utils';
 import ExtensionContext from './ExtensionContext';
 import ApiClient from './api/ApiClient';
+import { URLS } from './api/services/url';
+import { DEVICE_AUTH_SCOPES, DEVICE_CODE_GRANT_TYPE, FDK_CLI_CLIENT_ID } from '../helper/constants';
 
 async function checkTokenExpired(auth_token) {
     const { expiry_time } = auth_token;
@@ -34,13 +36,6 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function getRegionFromOptions(options: any) {
     return options?.region?.trim();
-}
-
-function getPanelAuthBase(env: string, region?: string) {
-    if (!region) {
-        return `https://${env}/service/panel/authentication/v1.0`;
-    }
-    return `https://${env}/region/${region}/service/panel/authentication/v1.0`;
 }
 
 export const getApp = async () => {
@@ -162,7 +157,7 @@ export default class Auth {
 
     private static async getAuthFlowConfig(env: string, region?: string) {
         try {
-            const url = `${getPanelAuthBase(env, region)}/oauth/client-config`;
+            const url = URLS.OAUTH_CLIENT_CONFIG({ env, region });
             const response = await ApiClient.get(url, {
                 headers: {
                     'Content-Type': 'application/json',
@@ -189,14 +184,14 @@ export default class Auth {
 
     private static async runDeviceLogin(env: string, options: any) {
         const region = getRegionFromOptions(options);
-        const authBase = getPanelAuthBase(env, region);
-        const response = await ApiClient.post(`${authBase}/oauth/device_authorization`, {
+        const urlOptions = { env, region };
+        const response = await ApiClient.post(URLS.OAUTH_DEVICE_AUTHORIZATION(urlOptions), {
             headers: {
                 'Content-Type': 'application/json',
             },
             data: {
-                client_id: 'fdk-cli',
-                scope: ['organization/*'],
+                client_id: FDK_CLI_CLIENT_ID,
+                scope: DEVICE_AUTH_SCOPES,
                 requested_host: env,
                 requested_region: region,
             },
@@ -212,22 +207,22 @@ export default class Auth {
 
         try {
             await open(verificationLink);
-            console.log(`Opened link to start the auth process: ${OutputFormatter.link(verificationLink)}`);
+            Logger.info(`Opened link to start the auth process: ${OutputFormatter.link(verificationLink)}`);
         } catch (err) {
-            console.log(`Open this link to continue login: ${OutputFormatter.link(verificationLink)}`);
+            Logger.info(`Open this link to continue login: ${OutputFormatter.link(verificationLink)}`);
         }
 
         const maxAttempts = Math.ceil(expires_in / interval);
         for (let attempt = 0; attempt < maxAttempts; attempt++) {
             await sleep(interval * 1000);
             try {
-                const tokenRes = await ApiClient.post(`${authBase}/oauth/token`, {
+                const tokenRes = await ApiClient.post(URLS.OAUTH_DEVICE_TOKEN(urlOptions), {
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     data: {
-                        grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
-                        client_id: 'fdk-cli',
+                        grant_type: DEVICE_CODE_GRANT_TYPE,
+                        client_id: FDK_CLI_CLIENT_ID,
                         device_code,
                     },
                 });

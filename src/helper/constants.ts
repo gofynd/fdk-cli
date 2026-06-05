@@ -14,6 +14,9 @@ export const ENVIRONMENT_COMMANDS = ['env'];
 export const AUTHENTICATION_COMMANDS = ['auth', 'login', 'logout'];
 export const EXTENSION_COMMANDS = ['init', 'get', 'set', 'pull-env'];
 export const MAX_RETRY = 5;
+export const FDK_CLI_CLIENT_ID = 'fdk-cli';
+export const DEVICE_CODE_GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:device_code';
+export const DEVICE_AUTH_SCOPES = ['organization/*'];
 export const THEME_TYPE = {
     vue2: 'vue2',
     react: 'react',

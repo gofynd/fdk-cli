@@ -23,6 +23,8 @@ import { URLS } from '../lib/api/services/url';
 describe('URLS OAuth (device flow)', () => {
     const authBase =
         'https://api.test.example.com/service/panel/authentication/v1.0';
+    const regionalAuthBase =
+        'https://api.test.example.com/region/asia-south1/development/service/panel/authentication/v1.0';
 
     it('OAUTH_CLIENT_CONFIG builds panel client-config URL', () => {
         expect(URLS.OAUTH_CLIENT_CONFIG()).toBe(
@@ -38,5 +40,19 @@ describe('URLS OAuth (device flow)', () => {
 
     it('OAUTH_DEVICE_TOKEN builds OAuth token URL', () => {
         expect(URLS.OAUTH_DEVICE_TOKEN()).toBe(`${authBase}/oauth/token`);
+    });
+
+    it('OAuth URLs support regional Skywarp paths', () => {
+        const options = { region: 'asia-south1/development' };
+
+        expect(URLS.OAUTH_CLIENT_CONFIG(options)).toBe(
+            `${regionalAuthBase}/oauth/client-config`,
+        );
+        expect(URLS.OAUTH_DEVICE_AUTHORIZATION(options)).toBe(
+            `${regionalAuthBase}/oauth/device_authorization`,
+        );
+        expect(URLS.OAUTH_DEVICE_TOKEN(options)).toBe(
+            `${regionalAuthBase}/oauth/token`,
+        );
     });
 });
