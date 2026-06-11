@@ -14,6 +14,20 @@ export const ENVIRONMENT_COMMANDS = ['env'];
 export const AUTHENTICATION_COMMANDS = ['auth', 'login', 'logout'];
 export const EXTENSION_COMMANDS = ['init', 'get', 'set', 'pull-env'];
 export const MAX_RETRY = 5;
+export const UPLOAD_API_MAX_ATTEMPTS = 3;
+export const UPLOAD_API_RETRY_STATUS_CODES = [429, 502, 503, 504];
+export const UPLOAD_API_RETRY_DELAY_MS = 1000;
+export const STORAGE_PUT_MAX_ATTEMPTS = 3;
+export const STORAGE_PUT_RETRY_STATUS_CODES = [408, 429, 500, 502, 503, 504];
+export const STORAGE_PUT_RETRY_ERROR_CODES = [
+    'ENOTFOUND',
+    'ETIMEDOUT',
+    'ECONNRESET',
+    'EPIPE',
+    'ECONNABORTED',
+];
+export const STORAGE_PUT_RETRY_DELAY_MS = 1000;
+export const UPLOAD_CONCURRENCY = 16;
 export const THEME_TYPE = {
     vue2: 'vue2',
     react: 'react',
