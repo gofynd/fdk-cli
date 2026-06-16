@@ -5,6 +5,11 @@ import Logger from '../../Logger';
 const apiVersion = configStore.get(CONFIG_KEYS.API_VERSION) || '1.0';
 const getOrganizationId = () => configStore.get(CONFIG_KEYS.ORGANIZATION);
 
+type OAuthURLBuildOptions = {
+    env?: string;
+    region?: string;
+};
+
 export const getBaseURL = () => {
     const currentEnv = configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE);
     return `https://${currentEnv}`;
@@ -31,6 +36,11 @@ const ASSET_URL = () => getBaseURL() + '/service/partner/assets/v2.0';
 
 const LOCALES_URL = () => getBaseURL() + '/service/partner/content/v' + apiVersion;
 const PAYMENT_URL = () => getBaseURL() + '/service/partner/payment/v' + apiVersion;
+const OAUTH_URL = (options?: OAuthURLBuildOptions) => {
+    const baseURL = options?.env ? `https://${options.env}` : getBaseURL();
+    const regionalBaseURL = options?.region ? urlJoin(baseURL, `/region/${options.region}`) : baseURL;
+    return regionalBaseURL + '/service/panel/authentication/v' + apiVersion;
+};
 
 export const URLS = {
     // AUTHENTICATION
@@ -42,6 +52,15 @@ export const URLS = {
     },
     VERIFY_OTP: () => {
         return urlJoin(AUTH_URL(), '/auth/login/mobile/otp/verify');
+    },
+    OAUTH_CLIENT_CONFIG: (options?: OAuthURLBuildOptions) => {
+        return urlJoin(OAUTH_URL(options), '/oauth/client-config');
+    },
+    OAUTH_DEVICE_AUTHORIZATION: (options?: OAuthURLBuildOptions) => {
+        return urlJoin(OAUTH_URL(options), '/oauth/device_authorization');
+    },
+    OAUTH_DEVICE_TOKEN: (options?: OAuthURLBuildOptions) => {
+        return urlJoin(OAUTH_URL(options), '/oauth/token');
     },
 
     //CONFIGURATION

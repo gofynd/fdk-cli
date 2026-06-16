@@ -18,6 +18,9 @@ import { OutputFormatter, successBox } from '../helper/formatter';
 import OrganizationService from './api/services/organization.service';
 import { getOrganizationDisplayName } from '../helper/utils';
 import ExtensionContext from './ExtensionContext';
+import ApiClient from './api/ApiClient';
+import { URLS } from './api/services/url';
+import { DEVICE_AUTH_SCOPES, DEVICE_CODE_GRANT_TYPE, FDK_CLI_CLIENT_ID } from '../helper/constants';
 
 async function checkTokenExpired(auth_token) {
     const { expiry_time } = auth_token;
@@ -27,6 +30,12 @@ async function checkTokenExpired(auth_token) {
     } else {
         return false;
     }
+}
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function getRegionFromOptions(options: any) {
+    return options?.region?.trim();
 }
 
 export const getApp = async () => {
@@ -145,6 +154,121 @@ export default class Auth {
     static wantToChangeOrganization = false;
     static newDomainToUpdate = null;
     constructor() { }
+
+    private static async getAuthFlowConfig(env: string, region?: string) {
+        try {
+            const url = URLS.OAUTH_CLIENT_CONFIG({ env, region });
+            const response = await ApiClient.get(url, {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }, {
+                validateStatus: (status) =>
+                    (status >= 200 && status < 300) || status === 404,
+            });
+            if (response.status === 404) {
+                return { auth_mode_type: 'legacy' };
+            }
+            return response.data || {};
+        } catch (error) {
+            if (error?.response?.status === 404) {
+                return { auth_mode_type: 'legacy' };
+            }
+            throw error;
+        }
+    }
+
+    private static shouldUseDeviceFlow(config: { auth_mode_type?: string }) {
+        return (config?.auth_mode_type || '').toLowerCase() === 'device_code';
+    }
+
+    private static async runDeviceLogin(env: string, options: any) {
+        const region = getRegionFromOptions(options);
+        const urlOptions = { env, region };
+        const response = await ApiClient.post(URLS.OAUTH_DEVICE_AUTHORIZATION(urlOptions), {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            data: {
+                client_id: FDK_CLI_CLIENT_ID,
+                scope: DEVICE_AUTH_SCOPES,
+                requested_host: env,
+                requested_region: region,
+            },
+        });
+        const {
+            device_code,
+            verification_uri_complete,
+            interval = 5,
+            expires_in = 600,
+        } = response.data;
+
+        const verificationLink = verification_uri_complete;
+
+        try {
+            await open(verificationLink);
+            Logger.info(`Opened link to start the auth process: ${OutputFormatter.link(verificationLink)}`);
+        } catch (err) {
+            Logger.info(`Open this link to continue login: ${OutputFormatter.link(verificationLink)}`);
+        }
+
+        const maxAttempts = Math.ceil(expires_in / interval);
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            await sleep(interval * 1000);
+            try {
+                const tokenRes = await ApiClient.post(URLS.OAUTH_DEVICE_TOKEN(urlOptions), {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    data: {
+                        grant_type: DEVICE_CODE_GRANT_TYPE,
+                        client_id: FDK_CLI_CLIENT_ID,
+                        device_code,
+                    },
+                });
+                const authToken = tokenRes.data.auth_token;
+                const organization = tokenRes.data.organization;
+                if (Auth.wantToChangeOrganization) {
+                    ConfigStore.delete(CONFIG_KEYS.AUTH_TOKEN);
+                    clearExtensionContext();
+                }
+                const expiryTimestamp =
+                    Math.floor(Date.now() / 1000) + authToken.expires_in;
+                authToken.expiry_time = expiryTimestamp;
+                if (Auth.newDomainToUpdate) {
+                    if (Auth.newDomainToUpdate === 'api.fynd.com') {
+                        Env.setEnv(Auth.newDomainToUpdate);
+                    }
+                    else {
+                        await Env.setNewEnvs(Auth.newDomainToUpdate);
+                    }
+                }
+                ConfigStore.set(CONFIG_KEYS.AUTH_TOKEN, authToken);
+                ConfigStore.set(CONFIG_KEYS.ORGANIZATION, organization);
+                const organization_detail =
+                    await OrganizationService.getOrganizationDetails();
+                ConfigStore.set(
+                    CONFIG_KEYS.ORGANIZATION_DETAIL,
+                    organization_detail.data,
+                );
+                Logger.info(`Logged in successfully in organization ${getOrganizationDisplayName()}`);
+                return;
+            } catch (error) {
+                const oauthError = error?.response?.data?.error;
+                if (oauthError === 'authorization_pending') continue;
+                if (oauthError === 'slow_down') {
+                    await sleep(2000);
+                    continue;
+                }
+                if (oauthError === 'expired_token') {
+                    throw new CommandError('Device code expired. Please run `fdk login` again.', '400');
+                }
+                throw error;
+            }
+        }
+        throw new CommandError('Login timed out. Please run `fdk login` again.', '408');
+    }
+
     public static async login(options) {
 
         let env: string;
@@ -186,16 +310,23 @@ export default class Auth {
                     return;
                 } else {
                     Auth.wantToChangeOrganization = true;
-                    await startServer(port);
                 }
             });
-        } else
-            await startServer(port);
+            if (!Auth.wantToChangeOrganization) {
+                return;
+            }
+        }
         try {
+            const region = getRegionFromOptions(options);
+            const authFlowConfig = await Auth.getAuthFlowConfig(env, region);
+            if (Auth.shouldUseDeviceFlow(authFlowConfig)) {
+                await Auth.runDeviceLogin(env, options);
+                return;
+            }
+            await startServer(port);
             let domain = null;
             let partnerDomain = env.replace('api', 'partners');
             domain = `https://${partnerDomain}`;
-            const region = options.region?.trim();
             const callbackUrl = `${getLocalBaseUrl()}:${port}`;
             const queryParams = new URLSearchParams({ 'fdk-cli': 'true', callback: callbackUrl });
             if (region) queryParams.set('region', region);
