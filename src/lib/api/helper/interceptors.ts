@@ -1,5 +1,6 @@
-const combineURLs = require('axios/lib/helpers/combineURLs');
-const isAbsoluteURL = require('axios/lib/helpers/isAbsoluteURL');
+import axios from 'axios';
+const combineURLs = (baseURL, url) => axios.getUri({ baseURL, url });
+const isAbsoluteURL = (url) => /^(?:[a-z+]+:)?\/\//i.test(url);
 const { sign } = require('@gofynd/fp-signature');
 import Debug from '../../Debug';
 import CommandError, { ErrorCodes } from '../../CommandError';
