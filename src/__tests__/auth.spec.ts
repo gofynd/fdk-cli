@@ -149,6 +149,23 @@ describe('Auth Commands', () => {
         await login('api.fyndx1.de', 'asia-south1');
         expect(configStore.get(CONFIG_KEYS.REGION)).toBe('asia-south1');
     });
+    it('Should pass command region while validating host before login', async () => {
+        configStore.delete(CONFIG_KEYS.AUTH_TOKEN);
+        configStore.set(CONFIG_KEYS.REGION, 'chinmay');
+        const getSpy = jest.spyOn(axios, 'get');
+
+        await login('api.fyndx1.de', 'asia-south2');
+
+        expect(getSpy).toHaveBeenCalledWith(
+            'https://api.fyndx1.de/service/application/content/_healthz',
+            {
+                headers: {
+                    'x-region': 'asia-south2',
+                },
+            },
+        );
+        expect(configStore.get(CONFIG_KEYS.REGION)).toBe('asia-south2');
+    });
     it('should console active user', async () => {
         let consoleWarnSpy: jest.SpyInstance;
         consoleWarnSpy = jest.spyOn(Logger, 'info').mockImplementation();
