@@ -45,6 +45,13 @@ function interceptorFn(options) {
                 config.headers = config.headers || {};
                 config.headers['x-fp-cli'] = config.headers['x-fp-cli'] || `${packageJSON.version}`;
                 const { data, headers, method, params } = config;
+                const hasRegionHeader = Object.prototype.hasOwnProperty.call(headers, 'x-region');
+                const region = hasRegionHeader ? headers['x-region'] : ConfigStore.get(CONFIG_KEYS.REGION);
+                if (region) {
+                    headers['x-region'] = region;
+                } else if (hasRegionHeader) {
+                    delete headers['x-region'];
+                }
                 // set cookie
                 const cookie = ConfigStore.get(CONFIG_KEYS.COOKIE);
                 config.headers['Cookie'] = cookie || '';
