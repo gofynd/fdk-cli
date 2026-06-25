@@ -42,6 +42,46 @@ describe('API request interceptor', () => {
         expect(signedConfig.headers['x-fp-signature']).toBeDefined();
     });
 
+    it('prefers request region header over stored region header', async () => {
+        jest.spyOn(ConfigStore, 'get').mockImplementation((key: string) => {
+            if (key === CONFIG_KEYS.REGION) return 'chinmay';
+            return undefined;
+        });
+        const interceptor = addSignatureFn({});
+        const config: any = {
+            url: 'https://api.fyndx1.de/service/panel/authentication/v1.0/oauth/token',
+            method: 'get',
+            headers: {
+                'x-region': 'asia-south2',
+            },
+        };
+
+        const signedConfig = await interceptor(config);
+
+        expect(signedConfig.headers['x-region']).toBe('asia-south2');
+        expect(signedConfig.headers['x-fp-signature']).toBeDefined();
+    });
+
+    it('does not add stored region header when request opts out of region', async () => {
+        jest.spyOn(ConfigStore, 'get').mockImplementation((key: string) => {
+            if (key === CONFIG_KEYS.REGION) return 'chinmay';
+            return undefined;
+        });
+        const interceptor = addSignatureFn({});
+        const config: any = {
+            url: 'https://api.fyndx1.de/service/panel/authentication/v1.0/oauth/token',
+            method: 'get',
+            headers: {
+                'x-region': null,
+            },
+        };
+
+        const signedConfig = await interceptor(config);
+
+        expect(signedConfig.headers['x-region']).toBeUndefined();
+        expect(signedConfig.headers['x-fp-signature']).toBeDefined();
+    });
+
     it('does not add stored region header to third-party requests', async () => {
         jest.spyOn(ConfigStore, 'get').mockImplementation((key: string) => {
             if (key === CONFIG_KEYS.REGION) return 'asia-south1';
