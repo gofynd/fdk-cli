@@ -19,6 +19,10 @@ import {
 jest.mock('inquirer');
 let program;
 
+jest.mock('../helper/extension_utils', () => ({
+    getRandomFreePort: jest.fn().mockResolvedValue(43123),
+}));
+
 jest.mock('configstore', () => {
     const Store =
         jest.requireActual('configstore');
@@ -45,15 +49,14 @@ jest.mock('configstore', () => {
 jest.mock('open', () => {
     return () => {}
 })
-export async function login(domain?: string) {
+export async function login(domain?: string, region?: string) {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable SSL verification
     const port =  await getRandomFreePort([]);
     const app = await startServer(port);
     const req = request(app);
-    if(domain)
-        await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '--host', domain]);
-    else
-        await program.parseAsync(['ts-node', './src/fdk.ts', 'login', '--host', 'api.fyndx1.de']);
+    const args = ['ts-node', './src/fdk.ts', 'login', '--host', domain || 'api.fyndx1.de'];
+    if (region) args.push('--region', region);
+    await program.parseAsync(args);
     return await req.post('/token').send(tokenData);
 }
 
@@ -132,11 +135,19 @@ describe('Auth Commands', () => {
     });
     it('Should successfully login with and env should updated', async () => {
         configStore.delete(CONFIG_KEYS.AUTH_TOKEN);
+        configStore.set(CONFIG_KEYS.REGION, 'asia-south1');
         await login('api.fynd.com');
         expect(configStore.get(CONFIG_KEYS.CURRENT_ENV_VALUE)).toBe('api.fynd.com');
         expect(configStore.get(CONFIG_KEYS.AUTH_TOKEN).access_token).toBe(
             'pr-4fb094006ed3a6d749b69875be0418b83238d078',
         );
+        expect(configStore.get(CONFIG_KEYS.REGION)).toBeUndefined();
+    });
+    it('Should store region after regional partner panel login', async () => {
+        configStore.delete(CONFIG_KEYS.AUTH_TOKEN);
+        configStore.delete(CONFIG_KEYS.REGION);
+        await login('api.fyndx1.de', 'asia-south1');
+        expect(configStore.get(CONFIG_KEYS.REGION)).toBe('asia-south1');
     });
     it('should console active user', async () => {
         let consoleWarnSpy: jest.SpyInstance;

@@ -15,6 +15,10 @@ jest.mock('open', () => ({
     default: (...args) => openMock(...args),
 }));
 
+jest.mock('../helper/extension_utils', () => ({
+    getRandomFreePort: jest.fn().mockResolvedValue(43123),
+}));
+
 jest.mock('../helper/formatter', () => ({
     OutputFormatter: {
         link: (value: string) => value,
@@ -155,6 +159,7 @@ describe('Auth device flow', () => {
             'https://partners.fyndx1.de/partners/organizations/?device_id=device-code-region&region=asia-south1%2Fdevelopment',
         );
         expect(configStore.get(CONFIG_KEYS.AUTH_TOKEN).access_token).toBe('region-token');
+        expect(configStore.get(CONFIG_KEYS.REGION)).toBe('asia-south1/development');
     });
 
     it('uses device flow and opens verification URL unchanged', async () => {
@@ -186,6 +191,8 @@ describe('Auth device flow', () => {
                 },
             } as any);
 
+        configStore.set(CONFIG_KEYS.REGION, 'asia-south1');
+
         await Auth.login({ host: 'api.fyndx1.de' });
 
         expect(getSpy).toHaveBeenCalled();
@@ -194,6 +201,7 @@ describe('Auth device flow', () => {
         const openedUrl = openMock.mock.calls[0][0] as string;
         expect(openedUrl).toBe('https://partners.fyndx1.de/partners/organizations/?device_id=device-code-basic');
         expect(configStore.get(CONFIG_KEYS.AUTH_TOKEN).access_token).toBe('token-1');
+        expect(configStore.get(CONFIG_KEYS.REGION)).toBeUndefined();
     });
 
     it('maps expired_token polling response to CommandError', async () => {
