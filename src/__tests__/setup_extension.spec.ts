@@ -322,7 +322,14 @@ describe('Extension Commands', () => {
             expect(consoleSpy).toHaveBeenCalledWith(
                 expect.stringContaining("Payment extension name 'payment-ext' is already in use."),
             );
-            const paymentNameQuestion = inquirerMock.mock.calls[3][0][0];
+            const paymentNameQuestionCall = inquirerMock.mock.calls.find(([questions]) => (
+                Array.isArray(questions)
+                && questions[0]?.name === 'name'
+                && questions[0]?.message === 'Enter a different Extension name :'
+            ));
+            expect(paymentNameQuestionCall).toBeDefined();
+
+            const paymentNameQuestion = paymentNameQuestionCall[0][0];
             expect(paymentNameQuestion.name).toBe('name');
             expect(paymentNameQuestion.message).toBe('Enter a different Extension name :');
             expect(paymentNameQuestion.default).toBeUndefined();
