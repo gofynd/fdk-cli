@@ -318,3 +318,17 @@ export const checkAndValidatePaymentSlug = async(slug: string) => {
 
     return true;
 }
+
+export const checkAndValidatePaymentExtensionName = async(name: string) => {
+    const validInput =  validateEmpty(name);
+    if(!validInput){
+        return 'Extension name is required';
+    }
+
+    const isNameAvailable = await ExtensionService.checkPaymentExtensionName(String(name).trim());
+    if(!isNameAvailable.is_valid){
+        return isNameAvailable.error_message || 'Payment extension name already exists. Enter a different name.';
+    }
+
+    return true;
+}

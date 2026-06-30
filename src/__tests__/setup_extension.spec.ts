@@ -47,6 +47,7 @@ function cleanUp() {
     rimraf.sync(extensionList.items[0].name);
     rimraf.sync('app-ext');
     rimraf.sync('payment-ext');
+    rimraf.sync('unique-payment-ext');
     rimraf.sync('fdk.ext.config.json');
     rimraf.sync('frontend/fdk.ext.config.json');
     rimraf.sync(CONSTANTS.EXTENSION_CONTEXT_FILE_NAME);
@@ -262,6 +263,12 @@ describe('Extension Commands', () => {
     });
 
     it('should create a payment extension', async () => {
+        await mockAxios
+            .onGet(URLS.CHECK_PAYMENT_EXTENSION_NAME('payment-ext'))
+            .reply(200, {
+                is_valid: true,
+            });
+
         const inquirerMock = mockFunction(inquirer.prompt);
         inquirerMock
             .mockResolvedValueOnce({
@@ -280,6 +287,62 @@ describe('Extension Commands', () => {
             'init',
         ]);
         expect(fs.existsSync('payment-ext')).toBe(true);
+    });
+
+    it('should re-prompt and validate payment extension name before asking slug', async () => {
+        await mockAxios
+            .onGet(URLS.CHECK_PAYMENT_EXTENSION_NAME('payment-ext'))
+            .reply(200, {
+                is_valid: false,
+                error_message: "Payment extension name 'payment-ext' is already in use.",
+            });
+
+        const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+        const inquirerMock = mockFunction(inquirer.prompt);
+        inquirerMock
+            .mockResolvedValueOnce({
+                action: CONSTANTS.INIT_ACTIONS.create_extension,
+            })
+            .mockResolvedValueOnce({ name: 'payment-ext' })
+            .mockResolvedValueOnce({ type: 'Private', launch_type: 'Payment' })
+            .mockResolvedValueOnce({ name: 'unique-payment-ext' })
+            .mockResolvedValueOnce({ payment_mode_slug: 'unique-payment-ext' })
+            .mockResolvedValueOnce({
+                project_type: 'Node + React.js + SQLite(Payment)',
+            });
+
+        try {
+            await program.parseAsync([
+                'ts-node',
+                './src/fdk.ts',
+                'extension',
+                'init',
+            ]);
+
+            expect(consoleSpy).toHaveBeenCalledWith(
+                expect.stringContaining("Payment extension name 'payment-ext' is already in use."),
+            );
+            const paymentNameQuestionCall = inquirerMock.mock.calls.find(([questions]) => (
+                Array.isArray(questions)
+                && questions[0]?.name === 'name'
+                && questions[0]?.message === 'Enter a different Extension name :'
+            ));
+            expect(paymentNameQuestionCall).toBeDefined();
+
+            const paymentNameQuestion = paymentNameQuestionCall[0][0];
+            expect(paymentNameQuestion.name).toBe('name');
+            expect(paymentNameQuestion.message).toBe('Enter a different Extension name :');
+            expect(paymentNameQuestion.default).toBeUndefined();
+            expect(await paymentNameQuestion.validate('payment-ext')).toBe(
+                "Payment extension name 'payment-ext' is already in use.",
+            );
+
+            const registerPayload = JSON.parse(mockAxios.history.post[0].data);
+            expect(registerPayload.name).toBe('unique-payment-ext');
+            expect(fs.existsSync('unique-payment-ext')).toBe(true);
+        } finally {
+            consoleSpy.mockRestore();
+        }
     });
 
     it('should select an existing extension', async () => {

@@ -16,7 +16,8 @@ import {
     validateEmpty,
     replaceContent,
     selectExtensionFromList,
-    checkAndValidatePaymentSlug
+    checkAndValidatePaymentSlug,
+    checkAndValidatePaymentExtensionName
 } from '../helper/extension_utils';
 
 import { createDirectory, writeFile, readFile } from '../helper/file.utils';
@@ -123,10 +124,6 @@ export default class Extension {
                         answers.name = String(value.name).trim();
                     });
             }
-            answers.targetDir = options['targetDir'] || answers.name;
-
-            Extension.checkFolderAndGitExists(answers.targetDir, isExtensionNameFixed);
-
             const extensionTypeQuestions = [];
 
             // If user wants to create new extension then ask type else it is already set in above section
@@ -159,6 +156,20 @@ export default class Extension {
             // If launch type is Payment, ask for payment mode slug right after launch type selection
             // Only ask for new extensions, not when selecting existing extensions
             if (prompt_answers.launch_type === LAUNCH_TYPES.PAYMENT && action === INIT_ACTIONS.create_extension) {
+                const paymentExtensionNameValidation = await checkAndValidatePaymentExtensionName(answers.name);
+                if (paymentExtensionNameValidation !== true) {
+                    console.log(`${chalk.red('>>')} ${paymentExtensionNameValidation}`);
+                    const paymentExtensionNameAnswer = await inquirer.prompt([
+                        {
+                            type: 'input',
+                            name: 'name',
+                            message: 'Enter a different Extension name :',
+                            validate: checkAndValidatePaymentExtensionName,
+                        },
+                    ]);
+                    answers.name = String(paymentExtensionNameAnswer.name).trim();
+                }
+
                 const paymentModeAnswer = await inquirer.prompt([
                     {
                         type: 'input',
@@ -169,6 +180,10 @@ export default class Extension {
                 ]);
                 prompt_answers = { ...prompt_answers, ...paymentModeAnswer };
             }
+
+            answers.targetDir = options['targetDir'] || answers.name;
+
+            Extension.checkFolderAndGitExists(answers.targetDir, isExtensionNameFixed);
 
             if(template){
                 const selectedLaunchType = prompt_answers.launch_type;
