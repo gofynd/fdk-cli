@@ -295,5 +295,12 @@ export const URLS = {
             PAYMENT_URL(),
             `organization/${getOrganizationId()}/payment/slug?slug=${slug}`,
         );
+    },
+
+    CHECK_PAYMENT_EXTENSION_NAME: (name: string) => {
+        return urlJoin(
+            PAYMENT_URL(),
+            `organization/${getOrganizationId()}/payment/slug?name=${encodeURIComponent(name)}`,
+        );
     }
 };
