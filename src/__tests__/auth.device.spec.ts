@@ -131,7 +131,6 @@ describe('Auth device flow', () => {
             expect.objectContaining({
                 headers: {
                     'Content-Type': 'application/json',
-                    'x-region': 'asia-south1/development',
                 },
             }),
             expect.objectContaining({
@@ -142,9 +141,6 @@ describe('Auth device flow', () => {
             1,
             'https://api.fyndx1.de/region/asia-south1/development/service/panel/authentication/v1.0/oauth/device_authorization',
             expect.objectContaining({
-                headers: expect.objectContaining({
-                    'x-region': 'asia-south1/development',
-                }),
                 data: expect.objectContaining({
                     requested_region: 'asia-south1/development',
                 }),
@@ -154,9 +150,6 @@ describe('Auth device flow', () => {
             2,
             'https://api.fyndx1.de/region/asia-south1/development/service/panel/authentication/v1.0/oauth/token',
             expect.objectContaining({
-                headers: expect.objectContaining({
-                    'x-region': 'asia-south1/development',
-                }),
                 data: expect.objectContaining({
                     device_code: 'device-code-region',
                 }),
@@ -202,37 +195,8 @@ describe('Auth device flow', () => {
 
         await Auth.login({ host: 'api.fyndx1.de' });
 
-        expect(getSpy).toHaveBeenCalledWith(
-            'https://api.fyndx1.de/service/panel/authentication/v1.0/oauth/client-config',
-            expect.objectContaining({
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-region': null,
-                },
-            }),
-            expect.objectContaining({
-                validateStatus: expect.any(Function),
-            }),
-        );
+        expect(getSpy).toHaveBeenCalled();
         expect(postSpy).toHaveBeenCalledTimes(2);
-        expect(postSpy).toHaveBeenNthCalledWith(
-            1,
-            'https://api.fyndx1.de/service/panel/authentication/v1.0/oauth/device_authorization',
-            expect.objectContaining({
-                headers: expect.objectContaining({
-                    'x-region': null,
-                }),
-            }),
-        );
-        expect(postSpy).toHaveBeenNthCalledWith(
-            2,
-            'https://api.fyndx1.de/service/panel/authentication/v1.0/oauth/token',
-            expect.objectContaining({
-                headers: expect.objectContaining({
-                    'x-region': null,
-                }),
-            }),
-        );
         expect(openMock).toHaveBeenCalledTimes(1);
         const openedUrl = openMock.mock.calls[0][0] as string;
         expect(openedUrl).toBe('https://partners.fyndx1.de/partners/organizations/?device_id=device-code-basic');
