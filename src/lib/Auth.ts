@@ -38,14 +38,6 @@ function getRegionFromOptions(options: any) {
     return options?.region?.trim();
 }
 
-function updateRegionConfig(region?: string) {
-    if (region) {
-        ConfigStore.set(CONFIG_KEYS.REGION, region);
-    } else {
-        ConfigStore.delete(CONFIG_KEYS.REGION);
-    }
-}
-
 export const getApp = async () => {
     const app = express();
     let isLoading = false;
@@ -78,7 +70,6 @@ export const getApp = async () => {
             }
             ConfigStore.set(CONFIG_KEYS.AUTH_TOKEN, req.body.auth_token);
             ConfigStore.set(CONFIG_KEYS.ORGANIZATION, req.body.organization);
-            updateRegionConfig(Auth.regionToUpdate);
             const organization_detail =
                 await OrganizationService.getOrganizationDetails();
             ConfigStore.set(
@@ -162,7 +153,6 @@ export default class Auth {
     static timer_id;
     static wantToChangeOrganization = false;
     static newDomainToUpdate = null;
-    static regionToUpdate = null;
     constructor() { }
 
     private static async getAuthFlowConfig(env: string, region?: string) {
@@ -255,7 +245,6 @@ export default class Auth {
                 }
                 ConfigStore.set(CONFIG_KEYS.AUTH_TOKEN, authToken);
                 ConfigStore.set(CONFIG_KEYS.ORGANIZATION, organization);
-                updateRegionConfig(region);
                 const organization_detail =
                     await OrganizationService.getOrganizationDetails();
                 ConfigStore.set(
@@ -290,8 +279,6 @@ export default class Auth {
         else {
             env = 'api.fynd.com';
         }
-        const region = getRegionFromOptions(options);
-        Auth.regionToUpdate = region || null;
 
         let current_env = Env.getEnvValue();
 
@@ -330,6 +317,7 @@ export default class Auth {
             }
         }
         try {
+            const region = getRegionFromOptions(options);
             const authFlowConfig = await Auth.getAuthFlowConfig(env, region);
             if (Auth.shouldUseDeviceFlow(authFlowConfig)) {
                 await Auth.runDeviceLogin(env, options);
