@@ -38,6 +38,22 @@ function getRegionFromOptions(options: any) {
     return options?.region?.trim();
 }
 
+function updateRegionConfig(region?: string) {
+    if (region) {
+        ConfigStore.set(CONFIG_KEYS.REGION, region);
+    } else {
+        ConfigStore.delete(CONFIG_KEYS.REGION);
+    }
+}
+
+function getAuthHeaders(region?: string) {
+    const headers = {
+        'Content-Type': 'application/json',
+    };
+    headers['x-region'] = region || null;
+    return headers;
+}
+
 export const getApp = async () => {
     const app = express();
     let isLoading = false;
@@ -65,11 +81,12 @@ export const getApp = async () => {
                     Env.setEnv(Auth.newDomainToUpdate);
                 }
                 else {
-                    await Env.setNewEnvs(Auth.newDomainToUpdate);
+                    await Env.setNewEnvs(Auth.newDomainToUpdate, Auth.regionToUpdate);
                 }
             }
             ConfigStore.set(CONFIG_KEYS.AUTH_TOKEN, req.body.auth_token);
             ConfigStore.set(CONFIG_KEYS.ORGANIZATION, req.body.organization);
+            updateRegionConfig(Auth.regionToUpdate);
             const organization_detail =
                 await OrganizationService.getOrganizationDetails();
             ConfigStore.set(
@@ -153,15 +170,14 @@ export default class Auth {
     static timer_id;
     static wantToChangeOrganization = false;
     static newDomainToUpdate = null;
+    static regionToUpdate = null;
     constructor() { }
 
     private static async getAuthFlowConfig(env: string, region?: string) {
         try {
             const url = URLS.OAUTH_CLIENT_CONFIG({ env, region });
             const response = await ApiClient.get(url, {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: getAuthHeaders(region),
             }, {
                 validateStatus: (status) =>
                     (status >= 200 && status < 300) || status === 404,
@@ -186,9 +202,7 @@ export default class Auth {
         const region = getRegionFromOptions(options);
         const urlOptions = { env, region };
         const response = await ApiClient.post(URLS.OAUTH_DEVICE_AUTHORIZATION(urlOptions), {
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: getAuthHeaders(region),
             data: {
                 client_id: FDK_CLI_CLIENT_ID,
                 scope: DEVICE_AUTH_SCOPES,
@@ -217,9 +231,7 @@ export default class Auth {
             await sleep(interval * 1000);
             try {
                 const tokenRes = await ApiClient.post(URLS.OAUTH_DEVICE_TOKEN(urlOptions), {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: getAuthHeaders(region),
                     data: {
                         grant_type: DEVICE_CODE_GRANT_TYPE,
                         client_id: FDK_CLI_CLIENT_ID,
@@ -240,11 +252,12 @@ export default class Auth {
                         Env.setEnv(Auth.newDomainToUpdate);
                     }
                     else {
-                        await Env.setNewEnvs(Auth.newDomainToUpdate);
+                        await Env.setNewEnvs(Auth.newDomainToUpdate, region);
                     }
                 }
                 ConfigStore.set(CONFIG_KEYS.AUTH_TOKEN, authToken);
                 ConfigStore.set(CONFIG_KEYS.ORGANIZATION, organization);
+                updateRegionConfig(region);
                 const organization_detail =
                     await OrganizationService.getOrganizationDetails();
                 ConfigStore.set(
@@ -272,9 +285,11 @@ export default class Auth {
     public static async login(options) {
 
         let env: string;
+        const region = getRegionFromOptions(options);
+        Auth.regionToUpdate = region || null;
         const port = await getRandomFreePort([]);
         if (options.host) {
-            env = await Env.verifyAndSanitizeEnvValue(options.host);
+            env = await Env.verifyAndSanitizeEnvValue(options.host, region);
         }
         else {
             env = 'api.fynd.com';
@@ -317,7 +332,6 @@ export default class Auth {
             }
         }
         try {
-            const region = getRegionFromOptions(options);
             const authFlowConfig = await Auth.getAuthFlowConfig(env, region);
             if (Auth.shouldUseDeviceFlow(authFlowConfig)) {
                 await Auth.runDeviceLogin(env, options);
