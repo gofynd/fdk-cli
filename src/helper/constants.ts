@@ -59,7 +59,7 @@ export const TEMPLATES = {
     'node-react': {
         name: 'Node + React.js + SQLite',
         repo: 'https://github.com/gofynd/example-extension-javascript-react',
-        launchTypes: ['Company', 'Application']
+        launchTypes: ['Company', 'Application', 'Logistics']
     },
     'payment-node-react': {
         name: 'Node + React.js + SQLite(Payment)',
@@ -76,7 +76,8 @@ export const INIT_ACTIONS = {
 export const LAUNCH_TYPES = {
     COMPANY: 'Company',
     APPLICATION: 'Application',
-    PAYMENT: 'Payment'
+    PAYMENT: 'Payment',
+    LOGISTICS: 'Logistics'
 };
 
 export function getRepoUrlForTemplate(templateName: string) {
@@ -95,6 +96,10 @@ export function getTemplateChoices(launchType: string) {
             .filter(([_, template]) => template.launchTypes.some(t => t.toLowerCase() === type))
             .map(([_, template]) => template.name);
     } else if (type === LAUNCH_TYPES.PAYMENT.toLowerCase()) {
+        return Object.entries(TEMPLATES)
+            .filter(([_, template]) => template.launchTypes.some(t => t.toLowerCase() === type))
+            .map(([_, template]) => template.name);
+    } else if (type === LAUNCH_TYPES.LOGISTICS.toLowerCase()) {
         return Object.entries(TEMPLATES)
             .filter(([_, template]) => template.launchTypes.some(t => t.toLowerCase() === type))
             .map(([_, template]) => template.name);

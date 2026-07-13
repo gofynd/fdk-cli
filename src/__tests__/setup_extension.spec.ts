@@ -282,6 +282,16 @@ describe('Extension Commands', () => {
         expect(fs.existsSync('payment-ext')).toBe(true);
     });
 
+    it('should expose logistics launch type with react template only', () => {
+        expect(Object.values(CONSTANTS.LAUNCH_TYPES)).toContain('Logistics');
+        expect(CONSTANTS.getTemplateChoices('Logistics')).toEqual([
+            'Node + React.js + SQLite',
+        ]);
+        expect(CONSTANTS.getTemplateChoices('logistics')).toEqual([
+            'Node + React.js + SQLite',
+        ]);
+    });
+
     it('should select an existing extension', async () => {
         const inquirerMock = mockFunction(inquirer.prompt);
         inquirerMock
