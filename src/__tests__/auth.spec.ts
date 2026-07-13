@@ -133,6 +133,38 @@ describe('Auth Commands', () => {
             'pr-4fb094006ed3a6d749b69875be0418b83238d078',
         );
     });
+    it('Should update region when user selects no for organization change', async () => {
+        const inquirerMock = mockFunction(inquirer.prompt);
+        inquirerMock.mockResolvedValue({ confirmChangeOrg: 'No' });
+        configStore.set(CONFIG_KEYS.REGION, 'asia-south1');
+
+        await program.parseAsync([
+            'ts-node',
+            './src/fdk.ts',
+            'login',
+            '--host',
+            'api.fyndx1.de',
+            '--region',
+            'asia-south2',
+        ]);
+
+        expect(configStore.get(CONFIG_KEYS.REGION)).toBe('asia-south2');
+    });
+    it('Should clear region when user selects no for organization change without region', async () => {
+        const inquirerMock = mockFunction(inquirer.prompt);
+        inquirerMock.mockResolvedValue({ confirmChangeOrg: 'No' });
+        configStore.set(CONFIG_KEYS.REGION, 'asia-south1');
+
+        await program.parseAsync([
+            'ts-node',
+            './src/fdk.ts',
+            'login',
+            '--host',
+            'api.fyndx1.de',
+        ]);
+
+        expect(configStore.get(CONFIG_KEYS.REGION)).toBeUndefined();
+    });
     it('Should successfully login with and env should updated', async () => {
         configStore.delete(CONFIG_KEYS.AUTH_TOKEN);
         configStore.set(CONFIG_KEYS.REGION, 'asia-south1');

@@ -328,6 +328,7 @@ export default class Auth {
                 }
             });
             if (!Auth.wantToChangeOrganization) {
+                updateRegionConfig(region);
                 return;
             }
         }
