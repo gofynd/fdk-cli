@@ -56,8 +56,21 @@ export async function login(domain?: string, region?: string) {
     const req = request(app);
     const args = ['ts-node', './src/fdk.ts', 'login', '--host', domain || 'api.fyndx1.de'];
     if (region) args.push('--region', region);
-    await program.parseAsync(args);
+    await parseProgram(args);
     return await req.post('/token').send(tokenData);
+}
+
+function resetProgramState(command = program) {
+    command._optionValues = {};
+    command.args = [];
+    command.rawArgs = [];
+    command.processedArgs = [];
+    command.commands?.forEach((subCommand: any) => resetProgramState(subCommand));
+}
+
+async function parseProgram(args: string[]) {
+    resetProgramState();
+    await program.parseAsync(args);
 }
 
 describe('Auth Commands', () => {
@@ -138,7 +151,7 @@ describe('Auth Commands', () => {
         inquirerMock.mockResolvedValue({ confirmChangeOrg: 'No' });
         configStore.set(CONFIG_KEYS.REGION, 'asia-south1');
 
-        await program.parseAsync([
+        await parseProgram([
             'ts-node',
             './src/fdk.ts',
             'login',
@@ -155,7 +168,7 @@ describe('Auth Commands', () => {
         inquirerMock.mockResolvedValue({ confirmChangeOrg: 'No' });
         configStore.set(CONFIG_KEYS.REGION, 'asia-south1');
 
-        await program.parseAsync([
+        await parseProgram([
             'ts-node',
             './src/fdk.ts',
             'login',
