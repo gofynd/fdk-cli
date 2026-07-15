@@ -296,6 +296,11 @@ describe('Extension Commands', () => {
                 is_valid: false,
                 error_message: "Payment extension name 'payment-ext' is already in use.",
             });
+        await mockAxios
+            .onGet(URLS.CHECK_PAYMENT_EXTENSION_NAME('unique-payment-ext'))
+            .reply(200, {
+                is_valid: true,
+            });
 
         const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
         const inquirerMock = mockFunction(inquirer.prompt);
@@ -336,6 +341,7 @@ describe('Extension Commands', () => {
             expect(await paymentNameQuestion.validate('payment-ext')).toBe(
                 "Payment extension name 'payment-ext' is already in use.",
             );
+            expect(await paymentNameQuestion.validate('unique-payment-ext')).toBe(true);
 
             const registerPayload = JSON.parse(mockAxios.history.post[0].data);
             expect(registerPayload.name).toBe('unique-payment-ext');
