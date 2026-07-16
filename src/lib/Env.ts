@@ -27,10 +27,10 @@ export default class Env {
         Logger.info(`Currently using Platform URL: ${chalk.bold(ctx)}`);
     }
 
-    public static async setNewEnvs(domain: string) {
+    public static async setNewEnvs(domain: string, region?: string) {
         try {
             Debug(`Setting env: ${domain}`);
-            let finalDomain = await Env.verifyAndSanitizeEnvValue(domain);
+            let finalDomain = await Env.verifyAndSanitizeEnvValue(domain, region);
 
             Env.setEnv(finalDomain);
             Logger.info(
@@ -41,7 +41,7 @@ export default class Env {
         }
     }
 
-    public static async verifyAndSanitizeEnvValue(domain: string){
+    public static async verifyAndSanitizeEnvValue(domain: string, region?: string){
         let finalDomain = domain;
 
         if(typeof finalDomain !== 'string'){
@@ -101,7 +101,9 @@ export default class Env {
                 finalDomain,
                 '/service/application/content/_healthz',
             );
-            const response = await axios.get(url);
+            const response = region
+                ? await axios.get(url, { headers: { 'x-region': region } })
+                : await axios.get(url);
 
             if (response?.status !== 200) {
                 throw new Error(
