@@ -8,6 +8,7 @@ export const CONFIG_KEYS = {
     USER: 'current_env.user',
     API_VERSION: 'api_version',
     COOKIE: 'current_env.cookie',
+    REGION: 'current_env.region',
     COMPANY_ID: 'current_env.company_id',
     AUTH_TOKEN: 'current_env.auth_token',
     ORGANIZATION: 'current_env.organization',
