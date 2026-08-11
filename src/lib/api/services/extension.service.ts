@@ -285,5 +285,15 @@ export default {
         } catch (error) {
             throw error;
         }
+    },
+
+    checkPaymentExtensionName: async (name: string) => {
+        try {
+            const axiosOption = Object.assign({}, getCommonHeaderOptions());
+            const res = await ApiClient.get(URLS.CHECK_PAYMENT_EXTENSION_NAME(name), axiosOption);
+            return res.data;
+        } catch (error) {
+            throw error;
+        }
     }
 };
