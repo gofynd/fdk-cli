@@ -36,10 +36,16 @@ const SERVE_BUILD_FOLDER = './.fdk/distServed';
 let port = 5001;
 let sockets = [];
 let publicCache = {};
+// Identifies the request as originating from the CLI. Kept separate from
+// `headers` so it can be attached to non-JSON requests (static assets, proxied
+// traffic) without forcing a JSON Content-Type/Accept on them.
+const cliHeaders = {
+    'x-fp-cli': `${packageJSON.version}`,
+};
 let headers = {
     'Content-Type': 'application/json',
     Accept: 'application/json',
-    'x-fp-cli': `${packageJSON.version}`,
+    ...cliHeaders,
 };
 
 export function reload() {
@@ -87,6 +93,7 @@ function createPreProxyMiddleware(
 
         const url = new URL(currentDomain);
         req.headers.host = url.host;
+        Object.assign(req.headers, cliHeaders);
 
         // Add signature headers only if required
         if (withSignature) {
@@ -182,6 +189,7 @@ async function requestToOriginalSource(req, res, domain, themeId) {
     try {
         const networkRes = await axios.get(
             urlJoin(domain, url, `?themeId=${themeId}`),
+            { headers: cliHeaders },
         );
         publicCache[url] = publicCache[url] || {};
         publicCache[url].body = networkRes.data;
@@ -568,7 +576,9 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
             skyfireUrl.searchParams.set('themeId', currentContext.theme_id);
             reqChunkUrl.searchParams.set('themeId', currentContext.theme_id);
             reqChunkUrl.searchParams.set('url', req.originalUrl);
-            const response = await axios.get(reqChunkUrl.toString());
+            const response = await axios.get(reqChunkUrl.toString(), {
+                headers: cliHeaders,
+            });
             const requiredFiles = ['themeBundle', ...(response.data || [])];
 
             const User = Configstore.get(CONFIG_KEYS.AUTH_TOKEN);
