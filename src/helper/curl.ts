@@ -1,7 +1,7 @@
 import qs from 'query-string';
 import axios, { AxiosRequestConfig } from 'axios';
-import combineURLs from 'axios/lib/helpers/combineURLs';
-import isAbsoluteURL from 'axios/lib/helpers/isAbsoluteURL';
+const combineURLs = (baseURL, url) => axios.getUri({ baseURL, url });
+const isAbsoluteURL = (url) => /^(?:[a-z+]+:)?\/\//i.test(url);
 
 export default class CurlHelper {
     reqConfig: AxiosRequestConfig;
