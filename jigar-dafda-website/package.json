@@ -1,0 +1,40 @@
+{
+  "name": "jigar-dafda-website",
+  "version": "1.0.0",
+  "description": "Personal website for Jigar Dafda - CTPO at Fynd",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "serve": "npx serve .",
+    "dev": "python3 -m http.server 8000",
+    "build": "echo 'No build process required - static HTML/CSS/JS'",
+    "lint": "echo 'No linting configured'",
+    "test": "echo 'No tests configured'"
+  },
+  "keywords": [
+    "personal-website",
+    "portfolio",
+    "leadership",
+    "technology",
+    "commerce",
+    "ai",
+    "fynd"
+  ],
+  "author": "Jigar Dafda",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jigardafda/personal-website.git"
+  },
+  "homepage": "https://jigardafda.com",
+  "devDependencies": {},
+  "dependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}
