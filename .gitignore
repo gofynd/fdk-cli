@@ -1,5 +1,6 @@
 node_modules
 dist
+react-test-theme/
 .test-theme
 # Logs
 logs
