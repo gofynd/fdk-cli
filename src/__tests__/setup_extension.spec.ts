@@ -289,6 +289,16 @@ describe('Extension Commands', () => {
         expect(fs.existsSync('payment-ext')).toBe(true);
     });
 
+    it('should expose logistics launch type with react template only', () => {
+        expect(Object.values(CONSTANTS.LAUNCH_TYPES)).toContain('Logistics');
+        expect(CONSTANTS.getTemplateChoices('Logistics')).toEqual([
+            'Node + React.js + SQLite',
+        ]);
+        expect(CONSTANTS.getTemplateChoices('logistics')).toEqual([
+            'Node + React.js + SQLite',
+        ]);
+    });
+
     it('should re-prompt and validate payment extension name before asking slug', async () => {
         await mockAxios
             .onGet(URLS.CHECK_PAYMENT_EXTENSION_NAME('payment-ext'))
