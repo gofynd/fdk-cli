@@ -143,7 +143,7 @@ function applyProxy(app: any) {
         options,
         true,
     );
-    app.use(['/service', '/ext'], withSignatureMiddleware, corsProxy);
+    app.use(['/service', '/ext', '/en-in'], withSignatureMiddleware, corsProxy);
 
     // Middleware without signature regeneration
     const withoutSignatureMiddleware = createPreProxyMiddleware(
