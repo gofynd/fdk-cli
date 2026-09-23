@@ -152,6 +152,30 @@ function applyProxy(app: any) {
         false,
     );
     app.use(['/cdn'], withoutSignatureMiddleware, corsProxy);
+
+    // Locale-prefixed platform routes (/en-in/ext/*, /en-in/api/*, /en-in/service/*, /en-in/cdn/*).
+    // Strip /en-in before proxying — mirrors the Cloudflare worker that strips the
+    // locale prefix for CDN/ext/API paths before forwarding to the platform.
+    // Page routes (/en-in/product/…, /en-in/cart/…, etc.) are NOT listed here so
+    // they fall through to the catch-all SSR handler below.
+    const stripLocalePrefix = (req: any, _res: any, next: any) => {
+        const stripped = req.originalUrl.replace(/^\/en-in/, '');
+        req.url = stripped || '/';
+        req.originalUrl = req.url;
+        next();
+    };
+    app.use(
+        ['/en-in/ext', '/en-in/api', '/en-in/service'],
+        stripLocalePrefix,
+        withSignatureMiddleware,
+        corsProxy,
+    );
+    app.use(
+        ['/en-in/cdn'],
+        stripLocalePrefix,
+        withoutSignatureMiddleware,
+        corsProxy,
+    );
 }
 
 async function setupServer({ domain }) {
