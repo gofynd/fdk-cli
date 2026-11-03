@@ -11,8 +11,13 @@ import Logger from '../../Logger';
 // and the caller sends the preview request UNSIGNED — so publishing this CLI never
 // breaks `fdk theme serve` while the edge is still in off/shadow mode.
 
+// Partner app-type is exposed through the gateway with the service-slug
+// `authorization` (NOT `authentication` — that slug only exists under the
+// `panel` app-type). The ingress rewrites /service/partner/authorization/$2
+// -> /v1.0/..., which matches skywarp's partner router mount
+// (server/routes/partner/index.js -> /v1.0/application/:application_id/preview-secret).
 const PREVIEW_SECRET_PATH = (applicationId: string) =>
-    `${getBaseURL()}/service/partner/authentication/v1.0/application/${applicationId}/preview-secret`;
+    `${getBaseURL()}/service/partner/authorization/v1.0/application/${applicationId}/preview-secret`;
 
 let cached: { applicationId: string; secret: string; expiresAt: number } | null = null;
 
