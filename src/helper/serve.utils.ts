@@ -18,6 +18,8 @@ import UploadService from '../lib/api/services/upload.service';
 import Configstore, { CONFIG_KEYS } from '../lib/Config';
 import { createProxyMiddleware, fixRequestBody } from 'http-proxy-middleware';
 import { addSignatureFn } from '../lib/api/helper/interceptors';
+import ThemePreviewService from '../lib/api/services/theme-preview.service';
+import { buildPreviewSignatureHeaders } from './preview-signature';
 const { transformRequest } = axios.defaults;
 import webpackDevMiddleware from 'webpack-dev-middleware';
 import webpackHotMiddleware from 'webpack-hot-middleware';
@@ -60,6 +62,31 @@ export function getLocalBaseUrl() {
 
 export function getFullLocalUrl(port) {
     return `${getLocalBaseUrl()}:${port}`;
+}
+
+// WS2: build the x-fp-date/x-fp-signature headers for a storefront preview POST so
+// the scattershot edge can authenticate it. Fail-open: returns {} (send unsigned) if
+// no preview secret is available, so a region without the new skywarp endpoint — or
+// an edge still in off/shadow — keeps working. `bodyObj` MUST be the object axios
+// serializes (we sign JSON.stringify(bodyObj) to match the wire bytes).
+async function previewSignatureHeaders(urlStr, bodyObj, applicationId) {
+    try {
+        const secret = await ThemePreviewService.getPreviewSecret(applicationId);
+        if (!secret) return {};
+        const u = new URL(urlStr);
+        return buildPreviewSignatureHeaders(secret, {
+            method: 'POST',
+            host: u.host,
+            path: u.pathname + u.search,
+            body: JSON.stringify(bodyObj),
+            headers: { 'x-fp-cli': `${packageJSON.version}` },
+        });
+    } catch (err) {
+        Logger.warn(
+            `Preview request will be sent unsigned: ${err && err.message ? err.message : err}`,
+        );
+        return {};
+    }
 }
 
 export function getPort(port) {
@@ -280,14 +307,18 @@ export async function startServer({ domain, host, isSSR, port }) {
                 jetfireUrl.searchParams.set('__csr', 'true');
             }
             // Bundle directly passed on with POST request body.
+            const jetfireBody = {
+                theme_url: themeUrl,
+                domain: getFullLocalUrl(port),
+            };
+            const jetfireSig = await previewSignatureHeaders(
+                jetfireUrl.toString(), jetfireBody, currentContext.application_id,
+            );
             const { data: html }: { data: string } = await axios({
                 method: 'POST',
                 url: jetfireUrl.toString(),
-                headers,
-                data: {
-                    theme_url: themeUrl,
-                    domain: getFullLocalUrl(port),
-                },
+                headers: { ...headers, ...jetfireSig },
+                data: jetfireBody,
             });
 
             let $ = cheerio.load(html);
@@ -610,20 +641,25 @@ export async function startReactServer({ domain, host, isHMREnabled, port }) {
 
             await Promise.all(promises);
 
+            const skyfireBody = {
+                themeURLs,
+                cliMeta: {
+                    port,
+                    domain: getFullLocalUrl(port),
+                    // tunnelUrl: url,
+                },
+            };
+            const skyfireSig = await previewSignatureHeaders(
+                skyfireUrl.toString(), skyfireBody, currentContext.application_id,
+            );
             const { data: html } = await axios
                 .post(
                     skyfireUrl.toString(),
-                    {
-                        themeURLs,
-                        cliMeta: {
-                            port,
-                            domain: getFullLocalUrl(port),
-                            // tunnelUrl: url,
-                        },
-                    },
+                    skyfireBody,
                     {
                         headers: {
                             ...headers,
+                            ...skyfireSig,
                             cookie: req.headers.cookie,
                         },
                     },
